@@ -14,7 +14,7 @@ function createWindow() {
     backgroundColor: '#1e1e1e'
   });
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile('View/MainWindow.html');
 }
 
 app.whenReady().then(() => {
