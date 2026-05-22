@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Silnik Gier Paragrafowych</title>
+    <link rel="stylesheet" href="../styles.css">
+    <!-- Ładowanie bibliotek Cytoscape -->
+    <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
+    <script src="../node_modules/cytoscape-dom-node/cytoscape-dom-node.js"></script>
     <style>
         body {
             margin: 0;
@@ -12,14 +16,37 @@
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        }
+        #cy {
+            width: 100vw;
             height: 100vh;
+            display: block;
+        }
+        /* Przykładowy styl dla kastomowego węzła (DOM Node) */
+        .custom-node {
+            background-color: #333;
+            border: 2px solid #555;
+            border-radius: 8px;
+            padding: 10px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            min-width: 150px;
+        }
+        .custom-node h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #555;
+            padding-bottom: 5px;
+        }
+        .custom-node p {
+            margin: 0;
+            font-size: 12px;
+            color: #ccc;
         }
     </style>
 </head>
 <body>
-    <!-- Puste główne okno -->
+    <div id="cy"></div>
+    <script src="../renderer.js"></script>
 </body>
 </html>
