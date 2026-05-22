@@ -6,9 +6,3 @@ body {
     color: #ffffff;
     overflow: hidden;
 }
-
-#cy {
-    width: 100vw;
-    height: 100vh;
-    display: block;
-}
