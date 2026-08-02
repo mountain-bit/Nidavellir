@@ -1,13 +1,13 @@
-import { Cecha } from "./Cecha"
-import { KlasaPostaci } from "./KlasaPostaci"
-import { Opis } from "./Opis"
-import { Przedmiot } from "./Przedmiot"
-import { Przymiot } from "./Przymiot"
-import { Umiejetnosc } from "./Umiejetnosc"
+import { Cecha } from './Cecha'
+import { KlasaPostaci } from './KlasaPostaci'
+import { Opis } from './Opis'
+import { Przedmiot } from './Przedmiot'
+import { Przymiot } from './Przymiot'
+import { Umiejetnosc } from './Umiejetnosc'
 
 export class PostacGracza {
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opis: Opis = new Opis()
     private cechy: Cecha[] = []
     private umiejetnosci: Umiejetnosc[] = []
@@ -15,7 +15,16 @@ export class PostacGracza {
     private przedmioty: Przedmiot[] = []
     private klasaPostaci: KlasaPostaci | null = null
 
-    constructor(id: string = "", nazwa: string = "", opis: Opis = new Opis(), cechy: Cecha[] = [], umiejetnosci: Umiejetnosc[] = [], przymioty: Przymiot[] = [], przedmioty: Przedmiot[] = [], klasaPostaci: KlasaPostaci | null = null) {
+    constructor(
+        id: string = '',
+        nazwa: string = '',
+        opis: Opis = new Opis(),
+        cechy: Cecha[] = [],
+        umiejetnosci: Umiejetnosc[] = [],
+        przymioty: Przymiot[] = [],
+        przedmioty: Przedmiot[] = [],
+        klasaPostaci: KlasaPostaci | null = null
+    ) {
         this.id = id
         this.nazwa = nazwa
         this.opis = opis
@@ -27,7 +36,7 @@ export class PostacGracza {
     }
 
     public pobierzID(): string | undefined {
-        if (this.id !== "") return this.id
+        if (this.id !== '') return this.id
         return undefined
     }
 
@@ -36,7 +45,7 @@ export class PostacGracza {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {
@@ -126,5 +135,4 @@ export class PostacGracza {
     public ustawKlasaPostaci(klasaPostaci: KlasaPostaci) {
         this.klasaPostaci = klasaPostaci
     }
-
 }

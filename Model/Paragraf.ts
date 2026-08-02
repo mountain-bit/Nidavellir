@@ -1,24 +1,27 @@
-import { Opis } from "./Opis"
-import { Przeskok } from "./Przeskok"
-import { Walka } from "./Walka"
-
-
-
+import { Opis } from './Opis'
+import { Przeskok } from './Przeskok'
+import { Walka } from './Walka'
 
 export class Paragraf {
-
-    private id: string = ""
+    private id: string = ''
     private tags: string[] = []
     private numer: number = 0
     private numerWylosowany: number = 0
     private blokadaNumeru: boolean = false
-    private tytul: string = ""
+    private tytul: string = ''
     private tresc: Opis = new Opis()
     private listaPrzeskokow: Przeskok[] = []
     private czyJestWalka: boolean = false
-    private walka: Walka = new Walka("", "")
+    private walka: Walka = new Walka('', '')
 
-    constructor(id: string, tytul: string = "", tresc: Opis = new Opis(), listaPrzeskokow: Przeskok[] = [], czyJestWalka: boolean = false, walka: Walka = new Walka("", "")) {
+    constructor(
+        id: string,
+        tytul: string = '',
+        tresc: Opis = new Opis(),
+        listaPrzeskokow: Przeskok[] = [],
+        czyJestWalka: boolean = false,
+        walka: Walka = new Walka('', '')
+    ) {
         this.id = id
         this.tytul = tytul
         this.tresc = tresc
@@ -36,7 +39,7 @@ export class Paragraf {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzTytul(): string {
@@ -94,5 +97,4 @@ export class Paragraf {
     public ustawWalke(walka: Walka) {
         this.walka = walka
     }
-
 }

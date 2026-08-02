@@ -1,22 +1,28 @@
-import { Opis } from "./Opis"
-import { NPC } from "./NPC"
+import { Opis } from './Opis'
+import { NPC } from './NPC'
 
 export class Walka {
-
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opisyZwyciestwa: Opis = new Opis()
     private opisyPorazki: Opis = new Opis()
     private opisRemisu: Opis = new Opis()
     private przeciwnicy: NPC[] = []
 
-    constructor(id: string, nazwa: string = "", opisyZwyciestwa: Opis = new Opis(), opisyPorazki: Opis = new Opis(), opisRemisu: Opis = new Opis(), przeciwnicy: NPC[] = []) {
+    constructor(
+        id: string,
+        nazwa: string = '',
+        opisyZwyciestwa: Opis = new Opis(),
+        opisyPorazki: Opis = new Opis(),
+        opisRemisu: Opis = new Opis(),
+        przeciwnicy: NPC[] = []
+    ) {
         this.id = id
         this.nazwa = nazwa
         this.opisyZwyciestwa = opisyZwyciestwa
         this.opisyPorazki = opisyPorazki
         this.opisRemisu = opisRemisu
-        this.przeciwnicy = []
+        this.przeciwnicy = przeciwnicy
     }
 
     public pobierzID(): string {
@@ -28,7 +34,7 @@ export class Walka {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {
@@ -47,7 +53,6 @@ export class Walka {
         this.opisyZwyciestwa = opis
     }
 
-
     public pobierzOpisPorazki(): Opis {
         return this.opisyPorazki
     }
@@ -55,7 +60,6 @@ export class Walka {
     public ustawOpisPorazki(opis: Opis) {
         this.opisyPorazki = opis
     }
-
 
     public pobierzOpisRemisu(): Opis {
         return this.opisRemisu
@@ -76,6 +80,4 @@ export class Walka {
     public pobierzPrzeciwnikow(): NPC[] {
         return this.przeciwnicy
     }
-
-
 }

@@ -1,27 +1,27 @@
-import { Lokacja } from "./Lokacja"
-import { NPC } from "./NPC"
-import { Opis } from "./Opis"
-import { Paragraf } from "./Paragraf"
+import { Lokacja } from './Lokacja'
+import { NPC } from './NPC'
+import { Opis } from './Opis'
+import { Paragraf } from './Paragraf'
 
 export class Scena {
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opis: Opis = new Opis()
     private paragrafy: Paragraf[] = []
     private postacie: NPC[] = []
     private lokacja: Lokacja | null = null
     private tags: string[] = []
-    private poczatkowyParagrafID: string = ""
+    private poczatkowyParagrafID: string = ''
 
     constructor(
-        id: string = "",
-        nazwa: string = "",
+        id: string = '',
+        nazwa: string = '',
         opis: Opis = new Opis(),
         paragrafy: Paragraf[] = [],
         postacie: NPC[] = [],
         lokacja: Lokacja | null = null,
         tags: string[] = [],
-        poczatkowyParagrafID: string = ""
+        poczatkowyParagrafID: string = ''
     ) {
         this.id = id
         this.nazwa = nazwa
@@ -42,7 +42,7 @@ export class Scena {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {

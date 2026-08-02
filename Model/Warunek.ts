@@ -1,14 +1,12 @@
-
 /* 
 Klasa warunku - definicja warunku
 nie wiadomo czy bedzie potzrebna.
 */
 export class Warunek {
+    private id: string = ''
+    private nazwa: string = ''
 
-    private id: string = ""
-    private nazwa: string = ""
-
-    constructor(id: string, nazwa: string = "") {
+    constructor(id: string, nazwa: string = '') {
         this.id = id
         this.nazwa = nazwa
     }
@@ -22,7 +20,7 @@ export class Warunek {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {
@@ -32,5 +30,4 @@ export class Warunek {
     public ustawNazwe(nazwa: string) {
         this.nazwa = nazwa
     }
-
 }

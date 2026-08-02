@@ -1,19 +1,24 @@
-import { Cecha } from "./Cecha"
-import { Opis } from "./Opis"
-import { Przymiot } from "./Przymiot"
-import { Umiejetnosc } from "./Umiejetnosc"
-
+import { Cecha } from './Cecha'
+import { Opis } from './Opis'
+import { Przymiot } from './Przymiot'
+import { Umiejetnosc } from './Umiejetnosc'
 
 export class NPC_Template {
-
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opis: Opis = new Opis()
     private cechy: Cecha[] = []
     private umiejetnosci: Umiejetnosc[] = []
     private przymioty: Przymiot[] = []
 
-    constructor(id: string, nazwa: string = "", opis: Opis = new Opis(), cechy: Cecha[] = [], umiejetnosci: Umiejetnosc[] = [], przymioty: Przymiot[] = []) {
+    constructor(
+        id: string,
+        nazwa: string = '',
+        opis: Opis = new Opis(),
+        cechy: Cecha[] = [],
+        umiejetnosci: Umiejetnosc[] = [],
+        przymioty: Przymiot[] = []
+    ) {
         this.id = id
         this.nazwa = nazwa
         this.opis = opis
@@ -31,7 +36,7 @@ export class NPC_Template {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {
@@ -66,7 +71,6 @@ export class NPC_Template {
         return this.cechy.some(c => c.pobierzID() === id)
     }
 
-
     public pobierzUmiejetnosc(id: string): Umiejetnosc | undefined {
         return this.umiejetnosci.find(u => u.pobierzID() === id)
     }
@@ -98,6 +102,4 @@ export class NPC_Template {
     public czymaPrzymiot(id: string): boolean {
         return this.przymioty.some(p => p.pobierzID() === id)
     }
-
-
 }

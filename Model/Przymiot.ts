@@ -1,11 +1,11 @@
-import { Opis } from "./Opis"
+import { Opis } from './Opis'
 
 export class Przymiot {
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opis: Opis = new Opis()
 
-    constructor(id: string, nazwa: string = "", opis: Opis = new Opis()) {
+    constructor(id: string, nazwa: string = '', opis: Opis = new Opis()) {
         this.nazwa = nazwa
         this.opis = opis
         this.id = id
@@ -32,7 +32,6 @@ export class Przymiot {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
-
 }

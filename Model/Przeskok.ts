@@ -1,17 +1,16 @@
-import { Opis } from "./Opis"
-import { Warunek } from "./Warunek"
+import { Opis } from './Opis'
+import { Warunek } from './Warunek'
 
 export class Przeskok {
-
-    private id: string = ""
-    private nazwa: string = ""
-    private warunek: Warunek = new Warunek("", "")
+    private id: string = ''
+    private nazwa: string = ''
+    private warunek: Warunek = new Warunek('', '')
     private opis: Opis = new Opis()
 
-    constructor(id: string, nazwa: string = "") {
+    constructor(id: string, nazwa: string = '') {
         this.id = id
         this.nazwa = nazwa
-        this.warunek = new Warunek("", "")
+        this.warunek = new Warunek('', '')
         this.opis = new Opis()
     }
 
@@ -24,7 +23,7 @@ export class Przeskok {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {
@@ -50,5 +49,4 @@ export class Przeskok {
     public ustawOpis(opis: Opis) {
         this.opis = opis
     }
-
 }

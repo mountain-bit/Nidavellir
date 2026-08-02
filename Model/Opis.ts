@@ -1,38 +1,35 @@
-
 export class Opis {
+    private tekst: string = ''
+    private streszczenie: string = ''
+    private tekstDlaAutora: string = ''
 
-    private tekst: string = "";
-    private streszczenie: string = "";
-    private tekstDlaAutora: string = "";
-
-    constructor(tekst: string = "", streszczenie: string = "", tekstDlaAutora: string = "") {
-        this.tekst = tekst;
-        this.streszczenie = streszczenie;
-        this.tekstDlaAutora = tekstDlaAutora;
+    constructor(tekst: string = '', streszczenie: string = '', tekstDlaAutora: string = '') {
+        this.tekst = tekst
+        this.streszczenie = streszczenie
+        this.tekstDlaAutora = tekstDlaAutora
     }
 
     public pobierzTekst(): string {
-        return this.tekst;
+        return this.tekst
     }
 
     public pobierzStreszczenie(): string {
-        return this.streszczenie;
+        return this.streszczenie
     }
 
     public pobierzTekstDlaAutora(): string {
-        return this.tekstDlaAutora;
+        return this.tekstDlaAutora
     }
 
     public ustawTekst(tekst: string) {
-        this.tekst = tekst;
+        this.tekst = tekst
     }
 
     public ustawStreszczenie(streszczenie: string) {
-        this.streszczenie = streszczenie;
+        this.streszczenie = streszczenie
     }
 
     public ustawTekstDlaAutora(tekstDlaAutora: string) {
-        this.tekstDlaAutora = tekstDlaAutora;
+        this.tekstDlaAutora = tekstDlaAutora
     }
-
 }

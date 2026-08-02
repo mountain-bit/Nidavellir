@@ -1,12 +1,13 @@
-import { Opis } from "./Opis"
+import { Opis } from './Opis'
 
 export class Lokacja {
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opis: Opis = new Opis()
     private tags: string[] = []
 
-    constructor(id: string = "", nazwa: string = "", opis: Opis = new Opis(), tags: string[] = []) {
+    constructor(id: string = '', nazwa: string = '', opis: Opis = new Opis(), tags: string[] = []) {
+        this.id = id
         this.nazwa = nazwa
         this.opis = opis
         this.tags = tags
@@ -35,5 +36,4 @@ export class Lokacja {
     public pobierzTagi(): string[] {
         return this.tags
     }
-
 }

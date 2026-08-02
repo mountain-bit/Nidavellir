@@ -1,19 +1,19 @@
-import { Cecha } from "./Cecha"
-import { KlasaPostaci } from "./KlasaPostaci"
-import { Lokacja } from "./Lokacja"
-import { NPC } from "./NPC"
-import { Opis } from "./Opis"
-import { PostacGracza } from "./PostacGracza"
-import { Przedmiot } from "./Przedmiot"
-import { Przymiot } from "./Przymiot"
-import { Scena } from "./Scena"
-import { Umiejetnosc } from "./Umiejetnosc"
+import { Cecha } from './Cecha'
+import { KlasaPostaci } from './KlasaPostaci'
+import { Lokacja } from './Lokacja'
+import { NPC } from './NPC'
+import { Opis } from './Opis'
+import { PostacGracza } from './PostacGracza'
+import { Przedmiot } from './Przedmiot'
+import { Przymiot } from './Przymiot'
+import { Scena } from './Scena'
+import { Umiejetnosc } from './Umiejetnosc'
 
 export class Projekt {
-    private id: string = ""
-    private nazwa: string = ""
-    private autor: string = ""
-    private wersja: string = "1.0.0"
+    private id: string = ''
+    private nazwa: string = ''
+    private autor: string = ''
+    private wersja: string = '1.0.0'
     private opis: Opis = new Opis()
 
     private sceny: Scena[] = []
@@ -29,10 +29,10 @@ export class Projekt {
     private globalnePrzymioty: Przymiot[] = []
 
     constructor(
-        id: string = "",
-        nazwa: string = "",
-        autor: string = "",
-        wersja: string = "1.0.0",
+        id: string = '',
+        nazwa: string = '',
+        autor: string = '',
+        wersja: string = '1.0.0',
         opis: Opis = new Opis(),
         sceny: Scena[] = [],
         lokacje: Lokacja[] = [],
@@ -71,7 +71,7 @@ export class Projekt {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {

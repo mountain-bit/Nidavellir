@@ -1,19 +1,26 @@
-import { Cecha } from "./Cecha"
-import { Opis } from "./Opis"
-import { Przymiot } from "./Przymiot"
-import { Umiejetnosc } from "./Umiejetnosc"
-
+import { Cecha } from './Cecha'
+import { Opis } from './Opis'
+import { Przymiot } from './Przymiot'
+import { Umiejetnosc } from './Umiejetnosc'
 
 export class KlasaPostaci {
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private poziom: number = 1
     private opis: Opis = new Opis()
     private cechy: Cecha[] = []
     private umiejetnosci: Umiejetnosc[] = []
     private przymioty: Przymiot[] = []
 
-    constructor(id: string = "", nazwa: string = "", poziom: number = 1, opis: Opis = new Opis(), cechy: Cecha[] = [], umiejetnosci: Umiejetnosc[] = [], przymioty: Przymiot[] = []) {
+    constructor(
+        id: string = '',
+        nazwa: string = '',
+        poziom: number = 1,
+        opis: Opis = new Opis(),
+        cechy: Cecha[] = [],
+        umiejetnosci: Umiejetnosc[] = [],
+        przymioty: Przymiot[] = []
+    ) {
         this.id = id
         this.nazwa = nazwa
         this.poziom = poziom
@@ -32,7 +39,7 @@ export class KlasaPostaci {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 
     public pobierzNazwe(): string {
@@ -53,7 +60,7 @@ export class KlasaPostaci {
 
     public pobierzCecha(id: string): Cecha | undefined {
         const cecha = this.cechy.find(c => c.pobierzID() === id)
-        if (cecha === undefined) throw new Error("Nie znaleziono cechy")
+        if (cecha === undefined) throw new Error('Nie znaleziono cechy')
         return cecha
     }
 
@@ -108,5 +115,4 @@ export class KlasaPostaci {
     public ustawPoziom(poziom: number) {
         this.poziom = poziom
     }
-
 }

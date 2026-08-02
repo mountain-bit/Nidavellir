@@ -1,12 +1,12 @@
-import { Opis } from "./Opis";
+import { Opis } from './Opis'
 
 export class Cecha {
-    private id: string = ""
-    private nazwa: string = ""
+    private id: string = ''
+    private nazwa: string = ''
     private opis: Opis = new Opis()
     private wartosc: string | number
 
-    constructor(id: string, nazwa: string = "", opis: Opis = new Opis(), wartosc: string | number) {
+    constructor(id: string, nazwa: string = '', opis: Opis = new Opis(), wartosc: string | number) {
         this.nazwa = nazwa
         this.opis = opis
         this.wartosc = wartosc
@@ -46,6 +46,6 @@ export class Cecha {
     }
 
     public czymaID(): boolean {
-        return this.id !== ""
+        return this.id !== ''
     }
 }
