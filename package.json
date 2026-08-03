@@ -1,13 +1,21 @@
 {
   "name": "silnikgierparagrafowych",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.15.5",
+  "engines": {
+    "node": ">=20 <22",
+    "pnpm": ">=9 <10"
+  },
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "tsc --noEmit",
+    "start": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && electron .",
+    "build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && tsc --noEmit",
+    "css:build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify",
+    "css:watch": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --watch",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "license:check": "node scripts/check-licenses.js",
     "lint": "eslint \"**/*.ts\"",
     "lint:fix": "eslint \"**/*.ts\" --fix",
     "format": "prettier --write \"**/*.ts\"",
@@ -28,16 +36,18 @@
     "cytoscape": "^3.33.3"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "@vitest/coverage-v8": "^1.0.0",
-    "electron": "^41.5.0",
+    "electron": "41.5.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.0.0",
     "prettier": "^3.0.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.0",
     "vitest": "^1.0.0"
   }
