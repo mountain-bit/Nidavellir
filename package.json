@@ -1,11 +1,15 @@
 {
   "name": "silnikgierparagrafowych",
   "version": "1.0.0",
-  "packageManager": "pnpm@11.9.0",
+  "packageManager": "pnpm@9.15.5",
+  "engines": {
+    "node": ">=20 <22",
+    "pnpm": ">=9 <10"
+  },
   "main": "main.js",
   "scripts": {
-    "start": "pnpm run css:build && electron .",
-    "build": "pnpm run css:build && tsc --noEmit",
+    "start": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && electron .",
+    "build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && tsc --noEmit",
     "css:build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify",
     "css:watch": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --watch",
     "test": "vitest",
