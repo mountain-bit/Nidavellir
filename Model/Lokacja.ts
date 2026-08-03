@@ -13,6 +13,10 @@ export class Lokacja {
         this.tags = tags
     }
 
+    public pobierzID(): string {
+        return this.id
+    }
+
     public pobierzNazwe(): string {
         return this.nazwa
     }

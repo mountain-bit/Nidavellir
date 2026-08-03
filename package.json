@@ -8,6 +8,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "license:check": "node scripts/check-licenses.js",
     "lint": "eslint \"**/*.ts\"",
     "lint:fix": "eslint \"**/*.ts\" --fix",
     "format": "prettier --write \"**/*.ts\"",
