@@ -1,0 +1,92 @@
+{
+  "dialog": {
+    "choose_new_project_folder": "Projektordner auswählen",
+    "open_project": "Projekt öffnen"
+  },
+  "error": {
+    "project_not_found": "Projektpfad existiert nicht"
+  },
+  "app": {
+    "title": "Paragraphen-Spielmotor",
+    "version": "Version"
+  },
+  "projekt": {
+    "nowy": "Neues Projekt",
+    "otworz": "Projekt öffnen",
+    "zapisz": "Projekt speichern",
+    "zamknij": "Projekt schließen",
+    "nazwa": "Projektname",
+    "autor": "Autor",
+    "wersja": "Version",
+    "opis": "Beschreibung"
+  },
+  "scena": {
+    "nowa": "Neue Szene",
+    "usun": "Szene löschen",
+    "edytuj": "Szene bearbeiten",
+    "nazwa": "Szenenname"
+  },
+  "paragraf": {
+    "nowy": "Neuer Absatz",
+    "usun": "Absatz löschen",
+    "edytuj": "Absatz bearbeiten",
+    "tytul": "Titel",
+    "tresc": "Inhalt",
+    "przeskoki": "Sprünge",
+    "walka": "Kampf"
+  },
+  "postac": {
+    "gracz": "Spielercharakter",
+    "npc": "NPC",
+    "imie": "Name",
+    "klasa": "Charakterklasse",
+    "cechy": "Merkmale",
+    "umiejetnosci": "Fähigkeiten",
+    "przymioty": "Attribute"
+  },
+  "przedmiot": {
+    "lista": "Gegenstände",
+    "nowy": "Neuer Gegenstand",
+    "usun": "Gegenstand löschen",
+    "nazwa": "Name",
+    "opis": "Beschreibung"
+  },
+  "lokacja": {
+    "lista": "Orte",
+    "nowa": "Neuer Ort",
+    "usun": "Ort löschen",
+    "nazwa": "Name",
+    "opis": "Beschreibung"
+  },
+  "bledy": {
+    "nieznanyBlad": "Ein unbekannter Fehler ist aufgetreten",
+    "brakPliku": "Datei nicht gefunden",
+    "zapiszNieudany": "Datei konnte nicht gespeichert werden",
+    "wczytajNieudany": "Datei konnte nicht geladen werden"
+  },
+  "przyciski": {
+    "ok": "OK",
+    "anuluj": "Abbrechen",
+    "zapisz": "Speichern",
+    "usun": "Löschen",
+    "dodaj": "Hinzufügen",
+    "edytuj": "Bearbeiten",
+    "zamknij": "Schließen"
+  },
+  "start_window": {
+    "app_subtitle": "Paragraphen-Spielmotor",
+    "get_started": "Loslegen",
+    "create_project": "Neues Projekt erstellen",
+    "open_project": "Projekt öffnen",
+    "version": "Version",
+    "settings": "Einstellungen",
+    "recent_projects": "Letzte Projekte",
+    "no_recent_projects": "Keine letzten Projekte.",
+    "last_opened": "Zuletzt geöffnet:",
+    "open_project_error": "Projekt konnte nicht geöffnet werden:",
+    "language": "Sprache",
+    "language_pl": "Polski",
+    "language_en": "English",
+    "language_de": "Deutsch"
+  }
+}

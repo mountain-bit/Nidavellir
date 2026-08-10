@@ -80,12 +80,17 @@ Projekt stosuje wzorzec **MVVM**:
 ├── Services/             # Serwisy (I/O, persystencja, logika aplikacji)
 │   └── (np. ProjektService.ts, FileService.ts)
 │
+├── Locales/              # Pliki tłumaczeń (JSON)
+│   ├── pl/
+│   │   └── translation.json  # Polski (wzorcowy — definiuje typ Translations)
+│   ├── en/
+│   │   └── translation.json  # Angielski
+│   └── de/
+│       └── translation.json  # Niemiecki
+│
 ├── Utils/                # Narzędzia pomocnicze
 │   ├── translate.ts      # Moduł i18n — główne API tłumaczeń
-│   └── i18n/
-│       ├── pl.ts         # Polski (domyślny, eksportuje typ Translations)
-│       ├── en.ts         # Angielski
-│       └── de.ts         # Niemiecki
+│   └── i18n.js           # Moduł i18n dla procesu głównego Electrona (main.js)
 │
 ├── Modules/              # Opcjonalne moduły rozszerzeń silnika
 │
@@ -113,10 +118,10 @@ Klucze są zagnieżdżone i w pełni typowane (TypeScript wyrzuci błąd przy z�
 
 ### Jak dodać nowy język
 
-1. Utwórz `Utils/i18n/xx.ts` (gdzie `xx` to kod ISO języka)
-2. Zaimportuj i zaimplementuj typ `Translations` z `pl.ts`
-3. Dodaj loader do mapy `loaders` w `translate.ts`
-4. Dodaj kod do tablicy `availableLanguages`
+1. Utwórz `Locales/xx/translation.json` (gdzie `xx` to kod ISO języka)
+2. Skopiuj strukturę z `Locales/pl/translation.json` i przetłumacz wartości
+3. Dodaj loader do mapy `loaders` w `Utils/translate.ts`
+4. Dodaj kod do tablicy `availableLanguages` w `Utils/translate.ts`
 
 ### Użycie w kodzie
 
@@ -223,6 +228,6 @@ npm run test:coverage # raport pokrycia kodu
 1. [ ] Nowa klasa domenowa w `/Model` z metodami `pobierz/ustaw`
 2. [ ] Testy jednostkowe w `tests/Model/`
 3. [ ] Logika prezentacji w `/ViewModel`
-4. [ ] Nowe klucze tłumaczeń w `Utils/i18n/pl.ts` (i pozostałych językach)
+4. [ ] Nowe klucze tłumaczeń w `Locales/pl/translation.json` (i pozostałych językach)
 5. [ ] Jeśli potrzeba IPC — dodaj handler w `main.js` i ekspozycję w `preload.js`
 6. [ ] Uruchom `npm run build` (sprawdzenie TypeScript) i `npm run test:run`

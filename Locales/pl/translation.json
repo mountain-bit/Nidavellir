@@ -1,0 +1,92 @@
+{
+  "dialog": {
+    "choose_new_project_folder": "Wybierz folder dla nowego projektu",
+    "open_project": "Otwórz projekt"
+  },
+  "error": {
+    "project_not_found": "Ścieżka projektu nie istnieje"
+  },
+  "app": {
+    "title": "Silnik Gier Paragrafowych",
+    "version": "Wersja"
+  },
+  "projekt": {
+    "nowy": "Nowy projekt",
+    "otworz": "Otwórz projekt",
+    "zapisz": "Zapisz projekt",
+    "zamknij": "Zamknij projekt",
+    "nazwa": "Nazwa projektu",
+    "autor": "Autor",
+    "wersja": "Wersja",
+    "opis": "Opis"
+  },
+  "scena": {
+    "nowa": "Nowa scena",
+    "usun": "Usuń scenę",
+    "edytuj": "Edytuj scenę",
+    "nazwa": "Nazwa sceny"
+  },
+  "paragraf": {
+    "nowy": "Nowy paragraf",
+    "usun": "Usuń paragraf",
+    "edytuj": "Edytuj paragraf",
+    "tytul": "Tytuł",
+    "tresc": "Treść",
+    "przeskoki": "Przeskoki",
+    "walka": "Walka"
+  },
+  "postac": {
+    "gracz": "Postać gracza",
+    "npc": "NPC",
+    "imie": "Imię",
+    "klasa": "Klasa postaci",
+    "cechy": "Cechy",
+    "umiejetnosci": "Umiejętności",
+    "przymioty": "Przymioty"
+  },
+  "przedmiot": {
+    "lista": "Przedmioty",
+    "nowy": "Nowy przedmiot",
+    "usun": "Usuń przedmiot",
+    "nazwa": "Nazwa",
+    "opis": "Opis"
+  },
+  "lokacja": {
+    "lista": "Lokacje",
+    "nowa": "Nowa lokacja",
+    "usun": "Usuń lokację",
+    "nazwa": "Nazwa",
+    "opis": "Opis"
+  },
+  "bledy": {
+    "nieznanyBlad": "Wystąpił nieznany błąd",
+    "brakPliku": "Nie znaleziono pliku",
+    "zapiszNieudany": "Nie udało się zapisać pliku",
+    "wczytajNieudany": "Nie udało się wczytać pliku"
+  },
+  "przyciski": {
+    "ok": "OK",
+    "anuluj": "Anuluj",
+    "zapisz": "Zapisz",
+    "usun": "Usuń",
+    "dodaj": "Dodaj",
+    "edytuj": "Edytuj",
+    "zamknij": "Zamknij"
+  },
+  "start_window": {
+    "app_subtitle": "Silnik Gier Paragrafowych",
+    "get_started": "Rozpocznij",
+    "create_project": "Stwórz nowy projekt",
+    "open_project": "Otwórz projekt",
+    "version": "Wersja",
+    "settings": "Ustawienia",
+    "recent_projects": "Ostatnie projekty",
+    "no_recent_projects": "Brak ostatnich projektów.",
+    "last_opened": "Ostatnio otwierano:",
+    "open_project_error": "Nie udało się otworzyć projektu:",
+    "language": "Język",
+    "language_pl": "Polski",
+    "language_en": "English",
+    "language_de": "Deutsch"
+  }
+}

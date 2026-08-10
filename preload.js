@@ -1,5 +1,11 @@
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Można tu dodać API do komunikacji z procesem głównym
+  getRecentProjects: () => ipcRenderer.invoke('get-recent-projects'),
+  getTranslations: () => ipcRenderer.invoke('get-translations'),
+  getLocale: () => ipcRenderer.invoke('get-locale'),
+  setLocale: (locale) => ipcRenderer.invoke('set-locale', locale),
+  createProject: () => ipcRenderer.invoke('create-project'),
+  openProject: (path) => ipcRenderer.invoke('open-project', path),
+  closeApp: () => ipcRenderer.invoke('close-app')
 });

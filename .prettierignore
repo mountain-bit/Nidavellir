@@ -1,4 +1,5 @@
-dist/
 node_modules/
-*.json
-*.md
+dist/
+coverage/
+View/MainWindow.generated.css
+pnpm-lock.yaml
