@@ -1,100 +1,100 @@
-# Agent.md — Silnik Gier Paragrafowych
+# Agent.md — Gamebook Engine
 
-Dokument dla agenta AI opisujący architekturę, konwencje i procesy w tym projekcie.
-
----
-
-## Opis projektu
-
-Aplikacja desktopowa do **tworzenia i zarządzania grami paragrafowymi** (gamebook engine).  
-Zbudowana na **Electron** z TypeScript w warstwie logiki. Umożliwia projektowanie scen, paragrafów, przeskoków, postaci, lokacji i walki.
+This document describes the architecture, conventions, and processes of this project for AI agents.
 
 ---
 
-## Stack technologiczny
+## Project Overview
 
-| Warstwa | Technologia |
+A desktop application for **creating and managing gamebook games** (gamebook engine).  
+Built on **Electron** with TypeScript for the business logic layer. Supports designing scenes, paragraphs, jumps, characters, locations, and combat.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
 |---|---|
-| Aplikacja desktopowa | Electron 41+ |
-| Język logiki | TypeScript 6+ |
-| Wizualizacja grafów | Cytoscape.js |
-| Testy | Vitest 1.x |
+| Desktop application | Electron 41+ |
+| Business logic language | TypeScript 6+ |
+| Graph visualization | Cytoscape.js |
+| Testing | Vitest 1.x |
 | Linter | ESLint 8 + @typescript-eslint |
 | Formatter | Prettier 3 |
 | Git hooks | Husky 9 + lint-staged 15 |
-| Lokalizacja | własny moduł translate.ts |
+| Localization | Custom translate.ts module |
 
 ---
 
-## Wzorce projektowe
+## Design Patterns
 
 ### MVVM (Model–View–ViewModel)
 
-Projekt stosuje wzorzec **MVVM**:
+The project follows the **MVVM** pattern:
 
-- **Model** (`/Model/*.ts`) — czyste klasy domenowe bez zależności od UI. Każda klasa ma prywatne pola i publiczne gettery/settery w stylu polskim (`pobierzX`, `ustawX`, `dodajX`, `usunX`).
-- **ViewModel** (`/ViewModel/*.ts`) — logika prezentacji, stan widoku, obsługa zdarzeń UI. Nie wie nic o DOM bezpośrednio.
-- **View** (`/View/*.html`) — pliki HTML ładowane przez Electron. Komunikują się z ViewModel przez renderer.
+- **Model** (`/Model/*.ts`) — pure domain classes with no UI dependencies. Each class has private fields and public getters/setters using Polish naming (`pobierzX`, `ustawX`, `dodajX`, `usunX`).
+- **ViewModel** (`/ViewModel/*.ts`) — presentation logic, view state, UI event handling. Has no direct knowledge of the DOM.
+- **View** (`/View/*.html`) — HTML files loaded by Electron. They communicate with the ViewModel through the renderer.
 
-### Inne wzorce w projekcie
+### Other Patterns Used
 
-- **Repository-like pattern** — klasa `Projekt` pełni rolę agregatu i repozytorium dla wszystkich encji (sceny, NPC, przedmioty...).
-- **Singleton (opcjonalnie)** — `translate.ts` przechowuje stan aktywnego języka jako moduł-singleton.
-- **Lazy loading** — pliki językowe ładowane są dynamicznie przez `import()` tylko gdy potrzeba.
+- **Repository-like pattern** — the `Projekt` class acts as an aggregate root and repository for all entities (scenes, NPCs, items, etc.).
+- **Singleton (optional)** — `translate.ts` holds the active language state as a module-level singleton.
+- **Lazy loading** — language files are loaded dynamically via `import()` only when needed.
 
 ---
 
-## Struktura katalogów
+## Directory Structure
 
 ```
 /
-├── main.js               # Electron main process — tworzy okno BrowserWindow
-├── preload.js            # Electron preload — bezpieczny bridge przez contextBridge
-├── renderer.js           # Electron renderer — punkt wejścia dla UI
-├── index.html            # Główny HTML (dev entry)
+├── main.js               # Electron main process — creates the BrowserWindow
+├── preload.js            # Electron preload — secure bridge via contextBridge
+├── renderer.js           # Electron renderer — UI entry point
+├── index.html            # Main HTML (dev entry)
 │
-├── Model/                # Klasy domenowe (czyste TypeScript)
-│   ├── Projekt.ts        # Agregat projektu — główny kontener
-│   ├── Scena.ts          # Kontener na paragrafy
-│   ├── Paragraf.ts       # Jednostka narracyjna z przeskokami
-│   ├── Przeskok.ts       # Połączenie między paragrafami
-│   ├── Lokacja.ts        # Lokacja w świecie gry
-│   ├── NPC.ts            # Postać niezależna
-│   ├── NPC_Template.ts   # Szablon NPC
-│   ├── PostacGracza.ts   # Postać gracza
-│   ├── KlasaPostaci.ts   # Klasa/archetyp postaci
-│   ├── Przedmiot.ts      # Przedmiot w inwentarzu
-│   ├── Cecha.ts          # Cecha postaci (np. Siła)
-│   ├── Umiejetnosc.ts    # Umiejętność postaci
-│   ├── Przymiot.ts       # Przymiot/właściwość
-│   ├── Walka.ts          # Mechanika walki
-│   ├── Warunek.ts        # Warunek logiczny (do przeskoków)
-│   └── Opis.ts           # Obiekt opisu tekstowego (może mieć wiele wersji językowych)
+├── Model/                # Domain classes (pure TypeScript)
+│   ├── Projekt.ts        # Project aggregate — main container
+│   ├── Scena.ts          # Container for paragraphs (scene)
+│   ├── Paragraf.ts       # Narrative unit with jumps (paragraph)
+│   ├── Przeskok.ts       # Connection between paragraphs (jump)
+│   ├── Lokacja.ts        # Location in the game world
+│   ├── NPC.ts            # Non-player character
+│   ├── NPC_Template.ts   # NPC template
+│   ├── PostacGracza.ts   # Player character
+│   ├── KlasaPostaci.ts   # Character class/archetype
+│   ├── Przedmiot.ts      # Inventory item
+│   ├── Cecha.ts          # Character trait (e.g. Strength)
+│   ├── Umiejetnosc.ts    # Character skill
+│   ├── Przymiot.ts       # Character attribute/property
+│   ├── Walka.ts          # Combat mechanics
+│   ├── Warunek.ts        # Logical condition (used for jumps)
+│   └── Opis.ts           # Text description object (supports multiple language versions)
 │
-├── ViewModel/            # Logika prezentacji
+├── ViewModel/            # Presentation logic
 │   └── MainWindowViewModel.ts
 │
-├── View/                 # Szablony HTML
+├── View/                 # HTML templates
 │   └── MainWindow.html
 │
-├── Services/             # Serwisy (I/O, persystencja, logika aplikacji)
-│   └── (np. ProjektService.ts, FileService.ts)
+├── Services/             # Services (I/O, persistence, application logic)
+│   └── (e.g. ProjektService.ts, FileService.ts)
 │
-├── Locales/              # Pliki tłumaczeń (JSON)
+├── Locales/              # Translation files (JSON)
 │   ├── pl/
-│   │   └── translation.json  # Polski (wzorcowy — definiuje typ Translations)
+│   │   └── translation.json  # Polish (canonical — defines the Translations type)
 │   ├── en/
-│   │   └── translation.json  # Angielski
+│   │   └── translation.json  # English
 │   └── de/
-│       └── translation.json  # Niemiecki
+│       └── translation.json  # German
 │
-├── Utils/                # Narzędzia pomocnicze
-│   ├── translate.ts      # Moduł i18n — główne API tłumaczeń
-│   └── i18n.js           # Moduł i18n dla procesu głównego Electrona (main.js)
+├── Utils/                # Helper utilities
+│   ├── translate.ts      # i18n module — primary translation API
+│   └── i18n.js           # i18n module for Electron main process (main.js)
 │
-├── Modules/              # Opcjonalne moduły rozszerzeń silnika
+├── Modules/              # Optional engine extension modules
 │
-└── tests/                # Testy jednostkowe (Vitest)
+└── tests/                # Unit tests (Vitest)
     ├── Model/
     │   └── Projekt.test.ts
     └── Utils/
@@ -103,27 +103,27 @@ Projekt stosuje wzorzec **MVVM**:
 
 ---
 
-## Lokalizacja (i18n)
+## Localization (i18n)
 
-### Jak działa
+### How It Works
 
-Moduł `Utils/translate.ts` eksportuje:
+The `Utils/translate.ts` module exports:
 
-- `t(key: TranslationKey): string` — główna funkcja tłumaczenia
-- `setLanguage(lang)` — asynchronicznie ładuje plik językowy
-- `getLanguage()` — zwraca aktualny język
-- `availableLanguages` — lista dostępnych kodów języków
+- `t(key: TranslationKey): string` — primary translation function
+- `setLanguage(lang)` — asynchronously loads a language file
+- `getLanguage()` — returns the currently active language
+- `availableLanguages` — list of supported language codes
 
-Klucze są zagnieżdżone i w pełni typowane (TypeScript wyrzuci błąd przy złym kluczu).
+Keys are nested and fully typed — TypeScript will throw an error for invalid keys.
 
-### Jak dodać nowy język
+### Adding a New Language
 
-1. Utwórz `Locales/xx/translation.json` (gdzie `xx` to kod ISO języka)
-2. Skopiuj strukturę z `Locales/pl/translation.json` i przetłumacz wartości
-3. Dodaj loader do mapy `loaders` w `Utils/translate.ts`
-4. Dodaj kod do tablicy `availableLanguages` w `Utils/translate.ts`
+1. Create `Locales/xx/translation.json` (where `xx` is the ISO language code)
+2. Copy the structure from `Locales/pl/translation.json` and translate the values
+3. Add a loader to the `loaders` map in `Utils/translate.ts`
+4. Add the code to the `availableLanguages` array in `Utils/translate.ts`
 
-### Użycie w kodzie
+### Usage in Code
 
 ```typescript
 import { t, setLanguage } from '../Utils/translate'
@@ -135,54 +135,54 @@ console.log(t('projekt.nowy'))     // "New project"
 
 ---
 
-## Konwencje kodu
+## Code Conventions
 
-### Nazewnictwo (Model)
+### Naming (Model)
 
-Projekt używa **polskich nazw** w klasach domenowych (nazwy polskie są intencjonalne — odzwierciedlają domenę gry paragrafowej):
+The project uses **Polish names** in domain classes — this is intentional and reflects the gamebook domain:
 
-| Wzorzec | Przykład |
+| Pattern | Example |
 |---|---|
 | Getter | `pobierzID()`, `pobierzNazwe()` |
 | Setter | `ustawNazwe(nazwa)`, `nadajID(id)` |
-| Sprawdzenie | `czymaID()`, `czymaScene(id)` |
-| Dodawanie | `dodajScene(scena)` |
-| Usuwanie | `usunScene(id)` |
-| Szukanie | `pobierzScene(id): Scena | undefined` |
+| Check | `czymaID()`, `czymaScene(id)` |
+| Add | `dodajScene(scena)` |
+| Remove | `usunScene(id)` |
+| Find | `pobierzScene(id): Scena | undefined` |
 
-### Formatowanie
+### Formatting
 
-Prettier stosuje:
+Prettier is configured with:
 - `singleQuote: true`
 - `semi: false`
 - `tabWidth: 4`
 - `printWidth: 100`
 - `trailingComma: "es5"`
 
-### Nowe klasy domenowe
+### New Domain Classes
 
-Każda nowa klasa w `/Model` powinna:
-- Mieć prywatne pola z typami
-- Eksponować pola przez `pobierz/ustaw` metody
-- Być testowalną (bez zależności od Electron/DOM)
-- Być dodana do `tsconfig.json` jeśli wyjdzie poza istniejące foldery
+Every new class in `/Model` should:
+- Have private fields with types
+- Expose fields through `pobierz/ustaw` methods
+- Be testable (no dependencies on Electron or the DOM)
+- Be added to `tsconfig.json` if placed outside existing folders
 
 ---
 
-## Git hooks (Husky)
+## Git Hooks (Husky)
 
 ### pre-commit
 
-Uruchamia **lint-staged** — dla zmienionych plików `*.ts`:
-1. `prettier --write` — formatuje plik
-2. `eslint --fix` — naprawia problemy z linterem
+Runs **lint-staged** — for staged `*.ts` files:
+1. `prettier --write` — formats the file
+2. `eslint --fix` — fixes linter issues
 
 ### pre-push
 
-Uruchamia **wszystkie testy**: `vitest run`  
-Push nie przejdzie jeśli jakikolwiek test nie przechodzi.
+Runs **all tests**: `vitest run`  
+The push will be rejected if any test fails.
 
-### Jak ominąć (tylko w nagłych sytuacjach)
+### Bypassing Hooks (emergency only)
 
 ```bash
 git commit --no-verify
@@ -191,43 +191,43 @@ git push --no-verify
 
 ---
 
-## Testy
+## Tests
 
 Framework: **Vitest 1.x**  
-Lokalizacja testów: `tests/**/*.test.ts`
+Test location: `tests/**/*.test.ts`
 
-### Uruchamianie
+### Running Tests
 
 ```bash
-npm run test          # tryb watch (development)
-npm run test:run      # jednorazowo (CI, pre-push)
-npm run test:coverage # raport pokrycia kodu
+npm run test          # watch mode (development)
+npm run test:run      # single run (CI, pre-push)
+npm run test:coverage # code coverage report
 ```
 
-### Konwencje testów
+### Test Conventions
 
-- Pliki testów w `tests/` w strukturze odzwierciedlającej źródło (`tests/Model/` → `Model/`)
-- Nazwy plików: `NazwaKlasy.test.ts`
-- Używaj `describe` dla grupowania, `it` dla przypadków
-- Opisy testów po polsku (spójność z domeną)
-- `beforeEach` do resetowania stanu między testami
-
----
-
-## Electron — bezpieczeństwo
-
-- `nodeIntegration: false` — renderer nie ma dostępu do Node API
-- `contextIsolation: true` — izolacja kontekstu JS
-- Cała komunikacja main ↔ renderer przez `contextBridge` w `preload.js`
-- Nowe API wystawiane przez `preload.js` jako `window.electronAPI.*`
+- Test files live in `tests/` mirroring the source structure (`tests/Model/` → `Model/`)
+- File names: `ClassName.test.ts`
+- Use `describe` for grouping, `it` for individual cases
+- Test descriptions are written in Polish (consistency with the domain)
+- Use `beforeEach` to reset state between tests
 
 ---
 
-## Dodawanie nowych funkcji — checklist
+## Electron — Security
 
-1. [ ] Nowa klasa domenowa w `/Model` z metodami `pobierz/ustaw`
-2. [ ] Testy jednostkowe w `tests/Model/`
-3. [ ] Logika prezentacji w `/ViewModel`
-4. [ ] Nowe klucze tłumaczeń w `Locales/pl/translation.json` (i pozostałych językach)
-5. [ ] Jeśli potrzeba IPC — dodaj handler w `main.js` i ekspozycję w `preload.js`
-6. [ ] Uruchom `npm run build` (sprawdzenie TypeScript) i `npm run test:run`
+- `nodeIntegration: false` — the renderer has no access to Node APIs
+- `contextIsolation: true` — JavaScript context isolation is enabled
+- All main ↔ renderer communication goes through `contextBridge` in `preload.js`
+- New APIs are exposed via `preload.js` as `window.electronAPI.*`
+
+---
+
+## Adding New Features — Checklist
+
+1. [ ] New domain class in `/Model` with `pobierz/ustaw` methods
+2. [ ] Unit tests in `tests/Model/`
+3. [ ] Presentation logic in `/ViewModel`
+4. [ ] New translation keys in `Locales/pl/translation.json` (and other languages)
+5. [ ] If IPC is needed — add a handler in `main.js` and expose it in `preload.js`
+6. [ ] Run `npm run build` (TypeScript check) and `npm run test:run`
