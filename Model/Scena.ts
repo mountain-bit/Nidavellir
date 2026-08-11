@@ -37,7 +37,7 @@ export class Scena {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -49,7 +49,7 @@ export class Scena {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -57,7 +57,7 @@ export class Scena {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -66,15 +66,15 @@ export class Scena {
         return this.paragrafy
     }
 
-    public ustawParagrafy(paragrafy: Paragraf[]) {
+    public ustawParagrafy(paragrafy: Paragraf[]): void {
         this.paragrafy = paragrafy
     }
 
-    public dodajParagraf(paragraf: Paragraf) {
+    public dodajParagraf(paragraf: Paragraf): void {
         this.paragrafy.push(paragraf)
     }
 
-    public usunParagraf(id: string) {
+    public usunParagraf(id: string): void {
         this.paragrafy = this.paragrafy.filter(p => p.pobierzID() !== id)
     }
 
@@ -91,15 +91,15 @@ export class Scena {
         return this.postacie
     }
 
-    public ustawPostacie(postacie: NPC[]) {
+    public ustawPostacie(postacie: NPC[]): void {
         this.postacie = postacie
     }
 
-    public dodajPostac(postac: NPC) {
+    public dodajPostac(postac: NPC): void {
         this.postacie.push(postac)
     }
 
-    public usunPostac(id: string) {
+    public usunPostac(id: string): void {
         this.postacie = this.postacie.filter(p => p.pobierzID() !== id)
     }
 
@@ -116,7 +116,7 @@ export class Scena {
         return this.lokacja
     }
 
-    public ustawLokacje(lokacja: Lokacja | null) {
+    public ustawLokacje(lokacja: Lokacja | null): void {
         this.lokacja = lokacja
     }
 
@@ -125,11 +125,11 @@ export class Scena {
         return this.tags
     }
 
-    public dodajTag(tag: string) {
+    public dodajTag(tag: string): void {
         this.tags.push(tag)
     }
 
-    public usunTag(tag: string) {
+    public usunTag(tag: string): void {
         this.tags = this.tags.filter(t => t !== tag)
     }
 
@@ -142,7 +142,7 @@ export class Scena {
         return this.poczatkowyParagrafID
     }
 
-    public ustawPoczatkowyParagrafID(id: string) {
+    public ustawPoczatkowyParagrafID(id: string): void {
         this.poczatkowyParagrafID = id
     }
 }

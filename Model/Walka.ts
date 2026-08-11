@@ -1,5 +1,5 @@
-import { Opis } from './Opis'
 import { NPC } from './NPC'
+import { Opis } from './Opis'
 
 export class Walka {
     private id: string = ''
@@ -29,7 +29,7 @@ export class Walka {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -41,7 +41,7 @@ export class Walka {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -49,7 +49,7 @@ export class Walka {
         return this.opisyZwyciestwa
     }
 
-    public ustawOpisZwyciestwa(opis: Opis) {
+    public ustawOpisZwyciestwa(opis: Opis): void {
         this.opisyZwyciestwa = opis
     }
 
@@ -57,7 +57,7 @@ export class Walka {
         return this.opisyPorazki
     }
 
-    public ustawOpisPorazki(opis: Opis) {
+    public ustawOpisPorazki(opis: Opis): void {
         this.opisyPorazki = opis
     }
 
@@ -65,15 +65,15 @@ export class Walka {
         return this.opisRemisu
     }
 
-    public ustawOpisRemisu(opis: Opis) {
+    public ustawOpisRemisu(opis: Opis): void {
         this.opisRemisu = opis
     }
 
-    public dodajPrzeciwnika(przeciwnik: NPC) {
+    public dodajPrzeciwnika(przeciwnik: NPC): void {
         this.przeciwnicy.push(przeciwnik)
     }
 
-    public usunPrzeciwnika(przeciwnik: NPC) {
+    public usunPrzeciwnika(przeciwnik: NPC): void {
         this.przeciwnicy = this.przeciwnicy.filter(p => p !== przeciwnik)
     }
 

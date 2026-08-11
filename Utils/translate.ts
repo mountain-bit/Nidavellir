@@ -11,9 +11,10 @@
  */
 
 import i18next from 'i18next'
-import pl from '../Locales/pl/translation.json'
-import en from '../Locales/en/translation.json'
+
 import de from '../Locales/de/translation.json'
+import en from '../Locales/en/translation.json'
+import pl from '../Locales/pl/translation.json'
 
 // Typ wyprowadzony ze struktury wzorcowego pliku PL
 export type Translations = typeof pl

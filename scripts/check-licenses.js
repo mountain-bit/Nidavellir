@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const fs = require('fs')
 const path = require('path')
 
@@ -44,7 +45,8 @@ function collectPackageManifests(directory) {
         if (checkedPackages.has(packageId)) continue
         checkedPackages.add(packageId)
 
-        const license = typeof manifest.license === 'string' ? manifest.license : manifest.license?.type
+        const license =
+            typeof manifest.license === 'string' ? manifest.license : manifest.license?.type
         const licenses = license?.replace(/[()]/g, '').split(/\s+(?:OR|AND)\s+/) ?? []
         const isAllowed = licenses.length > 0 && licenses.every(item => allowedLicenses.has(item))
         if (!isAllowed) invalidPackages.push(`${packageId}: ${license ?? 'brak licencji'}`)
@@ -65,4 +67,6 @@ if (invalidPackages.length > 0) {
     process.exit(1)
 }
 
-console.log('Sprawdzono licencje wszystkich zależności: dozwolone licencje są zgodne z polityką projektu.')
+console.log(
+    'Sprawdzono licencje wszystkich zależności: dozwolone licencje są zgodne z polityką projektu.'
+)

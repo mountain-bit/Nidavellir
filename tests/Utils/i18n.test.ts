@@ -5,10 +5,10 @@
  * W testach przekazujemy mock app zamiast prawdziwego Electron API.
  */
 
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
+import { createRequire } from 'module'
 import os from 'os'
 import path from 'path'
-import { createRequire } from 'module'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
 

@@ -1,9 +1,9 @@
 import {
-    initTranslations,
-    t,
-    setLanguage,
     getLanguage,
+    initTranslations,
+    setLanguage,
     type SupportedLanguage,
+    t,
 } from '../Utils/translate'
 
 class StartWindowViewModel {

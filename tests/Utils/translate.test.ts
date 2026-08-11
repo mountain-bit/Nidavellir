@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+
 import {
-    t,
-    setLanguage,
-    getLanguage,
     availableLanguages,
+    getLanguage,
     initTranslationsWithLocale,
-    type TranslationKey,
+    setLanguage,
     type SupportedLanguage,
+    t,
+    type TranslationKey,
 } from '../../Utils/translate'
 
 // ── Pomocnicze ───────────────────────────────────────────────────────────────
