@@ -70,7 +70,17 @@ app.whenReady().then(async () => {
         return getRecentProjects()
     })
 
-    ipcMain.handle('create-project', async event => {
+    const validateProjectData = data => {
+        if (typeof data !== 'object' || data === null) return false
+        if (typeof data.nazwa !== 'string') return false
+        if (!Array.isArray(data.sciezkiOpisow)) return false
+        if (!Array.isArray(data.sciezkiDanych)) return false
+        return true
+    }
+
+    ipcMain.handle('create-project', async (event, projectDetails) => {
+        const { id, nazwa, autor } = projectDetails || {}
+
         const { canceled, filePaths } = await dialog.showOpenDialog({
             title: t('dialog.choose_new_project_folder'),
             properties: ['openDirectory', 'createDirectory'],
@@ -78,21 +88,63 @@ app.whenReady().then(async () => {
 
         if (!canceled && filePaths.length > 0) {
             const projectPath = filePaths[0]
-            const projectName = path.basename(projectPath)
             const projectFile = path.join(projectPath, 'project.json')
-            const existing = fs.existsSync(projectFile)
 
-            if (!existing) {
-                fs.writeFileSync(
-                    projectFile,
-                    JSON.stringify({ name: projectName, version: '1.0.0' }, null, 2)
-                )
+            try {
+                const folders = [
+                    'NPC',
+                    'Paragrafy',
+                    'Przedmioty',
+                    'Lokacje',
+                    'Templates',
+                    'KlasyPostaci',
+                    'Zasady',
+                    'PostacGracza',
+                ]
+                const sciezkiDanych = []
+
+                // Create subfolders and meta.json
+                for (const folder of folders) {
+                    const dirPath = path.join(projectPath, folder)
+                    if (!fs.existsSync(dirPath)) {
+                        fs.mkdirSync(dirPath, { recursive: true })
+                    }
+
+                    const metaPath = path.join(dirPath, 'meta.json')
+                    const metaData = {
+                        opis: `Folder na ${folder}`,
+                        sciezka: `./${folder}`,
+                        sciezkiOpisow: [],
+                        sciezkiZdjec: [],
+                        elementy: [],
+                    }
+                    fs.writeFileSync(metaPath, JSON.stringify(metaData, null, 2))
+                    sciezkiDanych.push(`./${folder}/meta.json`)
+                }
+
+                // Create main project file
+                const projectData = {
+                    id: id || 'nowy_projekt',
+                    nazwa: nazwa || path.basename(projectPath),
+                    autor: autor || '',
+                    wersja: '1.0.0',
+                    sciezkiOpisow: [],
+                    sciezkiDanych: sciezkiDanych,
+                }
+
+                fs.writeFileSync(projectFile, JSON.stringify(projectData, null, 2))
+
+                saveRecentProject(projectFile, projectData.nazwa)
+                // We won't load index.html immediately so the user can see the Toast,
+                // we'll let the renderer handle the navigation.
+                return { success: true, path: projectFile }
+            } catch (err) {
+                console.error(err)
+                return {
+                    success: false,
+                    error: err.message || 'Wystąpił błąd podczas zapisu struktury projektu.',
+                }
             }
-
-            saveRecentProject(projectPath, projectName)
-            const win = BrowserWindow.fromWebContents(event.sender)
-            if (win) win.loadFile('index.html')
-            return { success: true, path: projectPath, existing }
         }
         return { success: false }
     })
@@ -103,7 +155,8 @@ app.whenReady().then(async () => {
         if (!targetPath) {
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 title: t('dialog.open_project'),
-                properties: ['openDirectory'],
+                properties: ['openFile'],
+                filters: [{ name: 'Project Files', extensions: ['json'] }],
             })
 
             if (canceled || filePaths.length === 0) {
@@ -113,17 +166,39 @@ app.whenReady().then(async () => {
         }
 
         if (fs.existsSync(targetPath)) {
-            const projectName = path.basename(targetPath)
-            saveRecentProject(targetPath, projectName)
-            const win = BrowserWindow.fromWebContents(event.sender)
-            if (win) win.loadFile('index.html')
-            return { success: true, path: targetPath }
+            try {
+                const fileContent = fs.readFileSync(targetPath, 'utf8')
+                const projectData = JSON.parse(fileContent)
+
+                if (!validateProjectData(projectData)) {
+                    return {
+                        success: false,
+                        error: 'Nieprawidłowa struktura pliku projektu. Plik musi zawierać: nazwa (string), sciezkiOpisow (tablica), sciezkiDanych (tablica).',
+                    }
+                }
+
+                const projectName = projectData.nazwa || path.basename(targetPath)
+                saveRecentProject(targetPath, projectName)
+
+                // Implementacje otwarcia okna (win.loadFile) będzie później.
+                // Na razie zwracamy dane projektu do widoku.
+                return { success: true, path: targetPath, data: projectData }
+            } catch (err) {
+                return { success: false, error: 'Nie można odczytać lub sparsować pliku JSON.' }
+            }
         }
         return { success: false, error: t('error.project_not_found') }
     })
 
     ipcMain.handle('close-app', () => {
         app.quit()
+    })
+
+    ipcMain.handle('load-main-window', event => {
+        const win = BrowserWindow.fromWebContents(event.sender)
+        if (win) {
+            win.loadFile('index.html')
+        }
     })
 
     createWindow()

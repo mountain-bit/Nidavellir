@@ -1,3 +1,4 @@
+import { Projekt } from '../Model/Projekt'
 import {
     getLanguage,
     initTranslations,
@@ -16,6 +17,14 @@ class StartWindowViewModel {
     private settingsDropdown: HTMLElement | null
     private recentProjectsList: HTMLElement | null
 
+    private newProjectModal: HTMLElement | null
+    private btnCancelNewProject: HTMLElement | null
+    private btnSubmitNewProject: HTMLElement | null
+    private npNazwaInput: HTMLInputElement | null
+    private npAutorInput: HTMLInputElement | null
+    private npIdInput: HTMLInputElement | null
+    private npIdError: HTMLElement | null
+
     constructor() {
         this.btnCreateProject = document.getElementById('btn-create-project')
         this.btnOpenProject = document.getElementById('btn-open-project')
@@ -25,6 +34,14 @@ class StartWindowViewModel {
         this.btnLangEn = document.getElementById('btn-lang-en')
         this.settingsDropdown = document.getElementById('settings-dropdown')
         this.recentProjectsList = document.getElementById('recent-projects-list')
+
+        this.newProjectModal = document.getElementById('new-project-modal')
+        this.btnCancelNewProject = document.getElementById('btn-cancel-new-project')
+        this.btnSubmitNewProject = document.getElementById('btn-submit-new-project')
+        this.npNazwaInput = document.getElementById('np-nazwa') as HTMLInputElement
+        this.npAutorInput = document.getElementById('np-autor') as HTMLInputElement
+        this.npIdInput = document.getElementById('np-id') as HTMLInputElement
+        this.npIdError = document.getElementById('np-id-error')
 
         this.init()
     }
@@ -57,24 +74,92 @@ class StartWindowViewModel {
         this.settingsDropdown.classList.toggle('hidden', !show)
     }
 
+    private showToast(message: string, type: 'success' | 'error' = 'success'): void {
+        const container = document.getElementById('toast-container')
+        if (!container) return
+
+        const toast = document.createElement('div')
+        const bgColor = type === 'success' ? 'bg-green-600/90' : 'bg-red-600/90'
+        toast.className = `px-4 py-2 rounded shadow-lg text-sm text-white transform transition-all duration-300 translate-y-4 opacity-0 ${bgColor}`
+        toast.textContent = message
+
+        container.appendChild(toast)
+
+        // Trigger animation
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-4', 'opacity-0')
+        })
+
+        // Remove after 3s
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-y-4')
+            setTimeout(() => {
+                toast.remove()
+            }, 300)
+        }, 3000)
+    }
+
     private attachEventListeners(): void {
         this.btnCloseApp?.addEventListener('click', () => {
             window.electronAPI.closeApp()
         })
 
-        this.btnCreateProject?.addEventListener('click', async () => {
-            const result = await window.electronAPI.createProject()
-            if (result?.success) {
-                // eslint-disable-next-line no-console
-                console.log('Project created at:', result.path)
+        this.btnCreateProject?.addEventListener('click', () => {
+            if (this.newProjectModal) {
+                this.newProjectModal.classList.remove('hidden')
+                if (this.npNazwaInput) this.npNazwaInput.value = ''
+                if (this.npAutorInput) this.npAutorInput.value = ''
+                if (this.npIdInput) this.npIdInput.value = ''
+                if (this.npIdError) this.npIdError.classList.add('hidden')
+            }
+        })
+
+        this.btnCancelNewProject?.addEventListener('click', () => {
+            this.newProjectModal?.classList.add('hidden')
+        })
+
+        this.btnSubmitNewProject?.addEventListener('click', async () => {
+            const nazwa = this.npNazwaInput?.value.trim() || ''
+            const autor = this.npAutorInput?.value.trim() || ''
+            const id = this.npIdInput?.value.trim() || ''
+
+            if (!id) {
+                this.showToast('ID projektu nie może być puste.', 'error')
+                return
+            }
+
+            if (id.includes(' ')) {
+                this.npIdError?.classList.remove('hidden')
+                return
+            } else {
+                this.npIdError?.classList.add('hidden')
+            }
+
+            try {
+                const result = await window.electronAPI.createProject({ id, nazwa, autor })
+                if (result?.success) {
+                    this.newProjectModal?.classList.add('hidden')
+                    this.showToast('Projekt został pomyślnie utworzony!', 'success')
+                    setTimeout(() => {
+                        window.electronAPI.loadMainWindow()
+                    }, 1000)
+                } else if (result?.error) {
+                    this.showToast(`Błąd: ${result.error}`, 'error')
+                }
+            } catch (err: any) {
+                this.showToast(`Wystąpił nieoczekiwany błąd: ${err.message || ''}`, 'error')
             }
         })
 
         this.btnOpenProject?.addEventListener('click', async () => {
             const result = await window.electronAPI.openProject()
-            if (result?.success) {
+            if (result?.success && result.data) {
+                const projekt = new Projekt()
+                projekt.ustawNazwe(result.data.nazwa)
                 // eslint-disable-next-line no-console
-                console.log('Project opened:', result.path)
+                console.log('Project opened and instantiated:', projekt)
+            } else if (result && !result.success) {
+                this.showToast(`Błąd otwierania projektu: ${result.error || ''}`, 'error')
             }
         })
 
@@ -167,8 +252,16 @@ class StartWindowViewModel {
 
             btn.addEventListener('click', async () => {
                 const result = await window.electronAPI.openProject(project.path)
-                if (result && !result.success) {
-                    alert(`${t('start_window.open_project_error')} ${result.error ?? ''}`)
+                if (result?.success && result.data) {
+                    const projekt = new Projekt()
+                    projekt.ustawNazwe(result.data.nazwa)
+                    // eslint-disable-next-line no-console
+                    console.log('Recent project opened and instantiated:', projekt)
+                } else if (result && !result.success) {
+                    this.showToast(
+                        `${t('start_window.open_project_error')} ${result.error ?? ''}`,
+                        'error'
+                    )
                 }
             })
 
