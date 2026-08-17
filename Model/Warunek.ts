@@ -30,4 +30,9 @@ export class Warunek {
     public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
+
+    public static fromJSON(json: any): Warunek {
+        if (!json) return new Warunek('')
+        return new Warunek(json.id || '', json.nazwa || '')
+    }
 }

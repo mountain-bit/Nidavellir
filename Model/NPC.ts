@@ -102,4 +102,17 @@ export class NPC {
     public czymaPrzymiot(id: string): boolean {
         return this.przymioty.some(p => p.pobierzID() === id)
     }
+
+    public static fromJSON(json: any): NPC {
+        if (!json) return new NPC('')
+        const npc = new NPC(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            (json.cechy || []).map((c: any) => Cecha.fromJSON(c)),
+            (json.umiejetnosci || []).map((u: any) => Umiejetnosc.fromJSON(u)),
+            (json.przymioty || []).map((p: any) => Przymiot.fromJSON(p))
+        )
+        return npc
+    }
 }

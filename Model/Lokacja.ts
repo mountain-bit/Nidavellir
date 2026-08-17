@@ -40,4 +40,14 @@ export class Lokacja {
     public pobierzTagi(): string[] {
         return this.tags
     }
+
+    public static fromJSON(json: any): Lokacja {
+        if (!json) return new Lokacja()
+        return new Lokacja(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            json.tags || []
+        )
+    }
 }

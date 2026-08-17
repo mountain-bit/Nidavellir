@@ -1,3 +1,4 @@
+import type { EntitiesData, ProjectData } from '../types/ipc'
 import { Cecha } from './Cecha'
 import { KlasaPostaci } from './KlasaPostaci'
 import { Lokacja } from './Lokacja'
@@ -281,5 +282,54 @@ export class Projekt {
 
     public dodajGlobalnyPrzymiot(przymiot: Przymiot): void {
         this.globalnePrzymioty.push(przymiot)
+    }
+
+    /**
+     * Tworzy instancję Projekt na podstawie danych JSON przesłanych przez IPC.
+     *
+     * @param projectData - dane z project.json
+     * @param entities - kolekcje encji z podfolderów projektu
+     */
+    public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Projekt {
+        const lokacje = (entities.Lokacje ?? []).map(l => Lokacja.fromJSON(l))
+        const postacie = (entities.NPC ?? []).map(n => NPC.fromJSON(n))
+        const przedmioty = (entities.Przedmioty ?? []).map(p => Przedmiot.fromJSON(p))
+        const klasyPostaci = (entities.KlasyPostaci ?? []).map(k => KlasaPostaci.fromJSON(k))
+
+        // Sceny mogą być przechowywane w folderze Paragrafy lub jako osobne encje
+        const sceny = (entities.Paragrafy ?? []).map(s => Scena.fromJSON(s))
+
+        // Postać gracza — maksymalnie jeden element w folderze PostacGracza
+        const postacGraczaData = (entities.PostacGracza ?? [])[0]
+        const postacGracza = postacGraczaData
+            ? PostacGracza.fromJSON(postacGraczaData)
+            : new PostacGracza()
+
+        // Globalne cechy, umiejętności i przymioty z folderu Zasady
+        const zasady = entities.Zasady ?? []
+        const globalneCechy = zasady.filter(z => z.typ === 'cecha').map(z => Cecha.fromJSON(z))
+        const globalneUmiejetnosci = zasady
+            .filter(z => z.typ === 'umiejetnosc')
+            .map(z => Umiejetnosc.fromJSON(z))
+        const globalnePrzymioty = zasady
+            .filter(z => z.typ === 'przymiot')
+            .map(z => Przymiot.fromJSON(z))
+
+        return new Projekt(
+            projectData.id ?? '',
+            projectData.nazwa ?? '',
+            projectData.autor ?? '',
+            projectData.wersja ?? '1.0.0',
+            new Opis(),
+            sceny,
+            lokacje,
+            postacie,
+            przedmioty,
+            klasyPostaci,
+            postacGracza,
+            globalneCechy,
+            globalneUmiejetnosci,
+            globalnePrzymioty
+        )
     }
 }

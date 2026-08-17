@@ -49,4 +49,12 @@ export class Przeskok {
     public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
+
+    public static fromJSON(json: any): Przeskok {
+        if (!json) return new Przeskok('')
+        const p = new Przeskok(json.id || '', json.nazwa || '')
+        if (json.warunek) p.ustawWarunek(Warunek.fromJSON(json.warunek))
+        if (json.opis) p.ustawOpis(Opis.fromJSON(json.opis))
+        return p
+    }
 }

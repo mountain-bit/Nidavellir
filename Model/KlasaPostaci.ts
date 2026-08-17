@@ -115,4 +115,17 @@ export class KlasaPostaci {
     public ustawPoziom(poziom: number): void {
         this.poziom = poziom
     }
+
+    public static fromJSON(json: any): KlasaPostaci {
+        if (!json) return new KlasaPostaci()
+        return new KlasaPostaci(
+            json.id || '',
+            json.nazwa || '',
+            json.poziom || 1,
+            Opis.fromJSON(json.opis),
+            (json.cechy || []).map((c: any) => Cecha.fromJSON(c)),
+            (json.umiejetnosci || []).map((u: any) => Umiejetnosc.fromJSON(u)),
+            (json.przymioty || []).map((p: any) => Przymiot.fromJSON(p))
+        )
+    }
 }

@@ -97,4 +97,21 @@ export class Paragraf {
     public ustawWalke(walka: Walka): void {
         this.walka = walka
     }
+
+    public static fromJSON(json: any): Paragraf {
+        if (!json) return new Paragraf('')
+        const p = new Paragraf(
+            json.id || '',
+            json.tytul || '',
+            Opis.fromJSON(json.tresc),
+            (json.listaPrzeskokow || []).map((przeskok: any) => Przeskok.fromJSON(przeskok)),
+            json.czyJestWalka || false,
+            json.walka ? Walka.fromJSON(json.walka) : new Walka('', '')
+        )
+        if (json.tags) p.tags = json.tags
+        if (json.numer !== undefined) p.numer = json.numer
+        if (json.numerWylosowany !== undefined) p.numerWylosowany = json.numerWylosowany
+        if (json.blokadaNumeru !== undefined) p.blokadaNumeru = json.blokadaNumeru
+        return p
+    }
 }

@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getTranslations: () => ipcRenderer.invoke('get-translations'),
     getLocale: () => ipcRenderer.invoke('get-locale'),
     setLocale: locale => ipcRenderer.invoke('set-locale', locale),
+    chooseFolder: () => ipcRenderer.invoke('choose-folder'),
     createProject: details => ipcRenderer.invoke('create-project', details),
     openProject: path => ipcRenderer.invoke('open-project', path),
     closeApp: () => ipcRenderer.invoke('close-app'),

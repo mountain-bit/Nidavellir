@@ -80,4 +80,16 @@ export class Walka {
     public pobierzPrzeciwnikow(): NPC[] {
         return this.przeciwnicy
     }
+
+    public static fromJSON(json: any): Walka {
+        if (!json) return new Walka('', '')
+        const w = new Walka(json.id || '', json.nazwa || '')
+        if (json.opisyZwyciestwa) w.ustawOpisZwyciestwa(Opis.fromJSON(json.opisyZwyciestwa))
+        if (json.opisyPorazki) w.ustawOpisPorazki(Opis.fromJSON(json.opisyPorazki))
+        if (json.opisRemisu) w.ustawOpisRemisu(Opis.fromJSON(json.opisRemisu))
+        if (json.przeciwnicy && Array.isArray(json.przeciwnicy)) {
+            json.przeciwnicy.forEach((p: any) => w.dodajPrzeciwnika(NPC.fromJSON(p)))
+        }
+        return w
+    }
 }

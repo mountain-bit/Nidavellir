@@ -38,4 +38,9 @@ export class Przedmiot {
     public czymaID(): boolean {
         return this.id !== ''
     }
+
+    public static fromJSON(json: any): Przedmiot {
+        if (!json) return new Przedmiot('')
+        return new Przedmiot(json.id || '', json.nazwa || '', Opis.fromJSON(json.opis))
+    }
 }

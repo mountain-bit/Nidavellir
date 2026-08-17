@@ -32,4 +32,9 @@ export class Opis {
     public ustawTekstDlaAutora(tekstDlaAutora: string): void {
         this.tekstDlaAutora = tekstDlaAutora
     }
+
+    public static fromJSON(json: any): Opis {
+        if (!json) return new Opis()
+        return new Opis(json.tekst || '', json.streszczenie || '', json.tekstDlaAutora || '')
+    }
 }

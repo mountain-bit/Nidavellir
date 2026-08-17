@@ -34,4 +34,9 @@ export class Umiejetnosc {
     public nadajID(id: string): void {
         this.id = id
     }
+
+    public static fromJSON(json: any): Umiejetnosc {
+        if (!json) return new Umiejetnosc()
+        return new Umiejetnosc(json.id || '', json.nazwa || '', Opis.fromJSON(json.opis))
+    }
 }

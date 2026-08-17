@@ -1,4 +1,4 @@
-import { Projekt } from '../Model/Projekt'
+import { ProjectManager } from '../Services/ProjectManager'
 import {
     getLanguage,
     initTranslations,
@@ -19,11 +19,13 @@ class StartWindowViewModel {
 
     private newProjectModal: HTMLElement | null
     private btnCancelNewProject: HTMLElement | null
-    private btnSubmitNewProject: HTMLElement | null
+    private btnCloseNewProjectModal: HTMLElement | null
+    private btnSubmitNewProject: HTMLButtonElement | null
+    private btnBrowseFolder: HTMLElement | null
     private npNazwaInput: HTMLInputElement | null
     private npAutorInput: HTMLInputElement | null
-    private npIdInput: HTMLInputElement | null
-    private npIdError: HTMLElement | null
+    private npFolderDisplay: HTMLElement | null
+    private selectedProjectPath: string | null = null
 
     constructor() {
         this.btnCreateProject = document.getElementById('btn-create-project')
@@ -37,11 +39,14 @@ class StartWindowViewModel {
 
         this.newProjectModal = document.getElementById('new-project-modal')
         this.btnCancelNewProject = document.getElementById('btn-cancel-new-project')
-        this.btnSubmitNewProject = document.getElementById('btn-submit-new-project')
+        this.btnCloseNewProjectModal = document.getElementById('btn-close-new-project-modal')
+        this.btnSubmitNewProject = document.getElementById(
+            'btn-submit-new-project'
+        ) as HTMLButtonElement
+        this.btnBrowseFolder = document.getElementById('btn-browse-folder')
         this.npNazwaInput = document.getElementById('np-nazwa') as HTMLInputElement
         this.npAutorInput = document.getElementById('np-autor') as HTMLInputElement
-        this.npIdInput = document.getElementById('np-id') as HTMLInputElement
-        this.npIdError = document.getElementById('np-id-error')
+        this.npFolderDisplay = document.getElementById('np-folder-display')
 
         this.init()
     }
@@ -58,6 +63,10 @@ class StartWindowViewModel {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n')
             if (key) el.textContent = t(key as Parameters<typeof t>[0])
+        })
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder')
+            if (key) (el as HTMLInputElement).placeholder = t(key as Parameters<typeof t>[0])
         })
     }
 
@@ -109,8 +118,13 @@ class StartWindowViewModel {
                 this.newProjectModal.classList.remove('hidden')
                 if (this.npNazwaInput) this.npNazwaInput.value = ''
                 if (this.npAutorInput) this.npAutorInput.value = ''
-                if (this.npIdInput) this.npIdInput.value = ''
-                if (this.npIdError) this.npIdError.classList.add('hidden')
+                this.selectedProjectPath = null
+                if (this.npFolderDisplay) {
+                    this.npFolderDisplay.textContent = t('start_window.np_folder_placeholder')
+                    this.npFolderDisplay.classList.remove('text-zinc-200')
+                    this.npFolderDisplay.classList.add('text-zinc-500')
+                }
+                if (this.btnSubmitNewProject) this.btnSubmitNewProject.disabled = true
             }
         })
 
@@ -118,48 +132,80 @@ class StartWindowViewModel {
             this.newProjectModal?.classList.add('hidden')
         })
 
+        this.btnCloseNewProjectModal?.addEventListener('click', () => {
+            this.newProjectModal?.classList.add('hidden')
+        })
+
+        this.btnBrowseFolder?.addEventListener('click', async () => {
+            const result = await window.electronAPI.chooseFolder()
+            if (!result?.canceled && result?.path) {
+                this.selectedProjectPath = result.path
+                if (this.npFolderDisplay) {
+                    this.npFolderDisplay.textContent = result.path
+                    this.npFolderDisplay.classList.remove('text-zinc-500')
+                    this.npFolderDisplay.classList.add('text-zinc-200')
+                }
+                if (this.btnSubmitNewProject) this.btnSubmitNewProject.disabled = false
+            }
+        })
+
         this.btnSubmitNewProject?.addEventListener('click', async () => {
             const nazwa = this.npNazwaInput?.value.trim() || ''
             const autor = this.npAutorInput?.value.trim() || ''
-            const id = this.npIdInput?.value.trim() || ''
+            const projectPath = this.selectedProjectPath
 
-            if (!id) {
-                this.showToast('ID projektu nie może być puste.', 'error')
+            if (!projectPath) {
+                this.showToast(t('start_window.np_folder_required'), 'error')
                 return
             }
 
-            if (id.includes(' ')) {
-                this.npIdError?.classList.remove('hidden')
-                return
-            } else {
-                this.npIdError?.classList.add('hidden')
-            }
+            // Auto-generuj ID z nazwy projektu
+            const id = nazwa
+                ? nazwa
+                      .toLowerCase()
+                      .replace(/\s+/g, '_')
+                      .replace(/[^a-z0-9_]/g, '')
+                : 'nowy_projekt'
 
             try {
-                const result = await window.electronAPI.createProject({ id, nazwa, autor })
+                const result = await window.electronAPI.createProject({
+                    id,
+                    nazwa,
+                    autor,
+                    projectPath,
+                })
                 if (result?.success) {
                     this.newProjectModal?.classList.add('hidden')
-                    this.showToast('Projekt został pomyślnie utworzony!', 'success')
+                    this.showToast(t('start_window.np_create_success'), 'success')
                     setTimeout(() => {
                         window.electronAPI.loadMainWindow()
                     }, 1000)
                 } else if (result?.error) {
-                    this.showToast(`Błąd: ${result.error}`, 'error')
+                    this.showToast(`${t('start_window.np_create_error')} ${result.error}`, 'error')
                 }
             } catch (err: any) {
-                this.showToast(`Wystąpił nieoczekiwany błąd: ${err.message || ''}`, 'error')
+                this.showToast(
+                    `${t('start_window.np_unexpected_error')} ${err.message || ''}`,
+                    'error'
+                )
             }
         })
 
         this.btnOpenProject?.addEventListener('click', async () => {
             const result = await window.electronAPI.openProject()
-            if (result?.success && result.data) {
-                const projekt = new Projekt()
-                projekt.ustawNazwe(result.data.nazwa)
-                // eslint-disable-next-line no-console
-                console.log('Project opened and instantiated:', projekt)
+            if (result?.success && result.project && result.entities) {
+                try {
+                    ProjectManager.getInstance().load(result.project, result.entities)
+                    window.electronAPI.loadMainWindow()
+                } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : String(err)
+                    this.showToast(`${t('start_window.open_project_load_error')} ${msg}`, 'error')
+                }
             } else if (result && !result.success) {
-                this.showToast(`Błąd otwierania projektu: ${result.error || ''}`, 'error')
+                this.showToast(
+                    `${t('start_window.open_project_error')} ${result.error || ''}`,
+                    'error'
+                )
             }
         })
 
@@ -252,11 +298,14 @@ class StartWindowViewModel {
 
             btn.addEventListener('click', async () => {
                 const result = await window.electronAPI.openProject(project.path)
-                if (result?.success && result.data) {
-                    const projekt = new Projekt()
-                    projekt.ustawNazwe(result.data.nazwa)
-                    // eslint-disable-next-line no-console
-                    console.log('Recent project opened and instantiated:', projekt)
+                if (result?.success && result.project && result.entities) {
+                    try {
+                        ProjectManager.getInstance().load(result.project, result.entities)
+                        window.electronAPI.loadMainWindow()
+                    } catch (err: unknown) {
+                        const msg = err instanceof Error ? err.message : String(err)
+                        this.showToast(`Błąd podczas ładowania projektu: ${msg}`, 'error')
+                    }
                 } else if (result && !result.success) {
                     this.showToast(
                         `${t('start_window.open_project_error')} ${result.error ?? ''}`,

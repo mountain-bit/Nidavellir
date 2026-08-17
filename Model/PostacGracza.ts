@@ -135,4 +135,18 @@ export class PostacGracza {
     public ustawKlasaPostaci(klasaPostaci: KlasaPostaci): void {
         this.klasaPostaci = klasaPostaci
     }
+
+    public static fromJSON(json: any): PostacGracza {
+        if (!json) return new PostacGracza()
+        return new PostacGracza(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            (json.cechy || []).map((c: any) => Cecha.fromJSON(c)),
+            (json.umiejetnosci || []).map((u: any) => Umiejetnosc.fromJSON(u)),
+            (json.przymioty || []).map((p: any) => Przymiot.fromJSON(p)),
+            (json.przedmioty || []).map((p: any) => Przedmiot.fromJSON(p)),
+            json.klasaPostaci ? KlasaPostaci.fromJSON(json.klasaPostaci) : null
+        )
+    }
 }

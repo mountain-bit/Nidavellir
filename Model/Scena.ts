@@ -145,4 +145,18 @@ export class Scena {
     public ustawPoczatkowyParagrafID(id: string): void {
         this.poczatkowyParagrafID = id
     }
+
+    public static fromJSON(json: any): Scena {
+        if (!json) return new Scena()
+        return new Scena(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            (json.paragrafy || []).map((p: any) => Paragraf.fromJSON(p)),
+            (json.postacie || []).map((p: any) => NPC.fromJSON(p)),
+            json.lokacja ? Lokacja.fromJSON(json.lokacja) : null,
+            json.tags || [],
+            json.poczatkowyParagrafID || ''
+        )
+    }
 }

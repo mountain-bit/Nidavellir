@@ -48,4 +48,14 @@ export class Cecha {
     public czymaID(): boolean {
         return this.id !== ''
     }
+
+    public static fromJSON(json: any): Cecha {
+        if (!json) return new Cecha('', '', new Opis(), '')
+        return new Cecha(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            json.wartosc || ''
+        )
+    }
 }

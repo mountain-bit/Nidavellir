@@ -78,76 +78,88 @@ app.whenReady().then(async () => {
         return true
     }
 
-    ipcMain.handle('create-project', async (event, projectDetails) => {
-        const { id, nazwa, autor } = projectDetails || {}
-
+    ipcMain.handle('choose-folder', async () => {
         const { canceled, filePaths } = await dialog.showOpenDialog({
             title: t('dialog.choose_new_project_folder'),
             properties: ['openDirectory', 'createDirectory'],
         })
+        if (canceled || filePaths.length === 0) return { canceled: true }
+        return { canceled: false, path: filePaths[0] }
+    })
 
-        if (!canceled && filePaths.length > 0) {
-            const projectPath = filePaths[0]
-            const projectFile = path.join(projectPath, 'project.json')
+    ipcMain.handle('create-project', async (event, projectDetails) => {
+        const { id, nazwa, autor, projectPath } = projectDetails || {}
 
-            try {
-                const folders = [
-                    'NPC',
-                    'Paragrafy',
-                    'Przedmioty',
-                    'Lokacje',
-                    'Templates',
-                    'KlasyPostaci',
-                    'Zasady',
-                    'PostacGracza',
-                ]
-                const sciezkiDanych = []
+        if (!projectPath) {
+            return { success: false, error: 'Nie wybrano ścieżki projektu.' }
+        }
 
-                // Create subfolders and meta.json
-                for (const folder of folders) {
-                    const dirPath = path.join(projectPath, folder)
-                    if (!fs.existsSync(dirPath)) {
-                        fs.mkdirSync(dirPath, { recursive: true })
-                    }
+        const projectFile = path.join(projectPath, 'project.json')
 
-                    const metaPath = path.join(dirPath, 'meta.json')
-                    const metaData = {
-                        opis: `Folder na ${folder}`,
-                        sciezka: `./${folder}`,
-                        sciezkiOpisow: [],
-                        sciezkiZdjec: [],
-                        elementy: [],
-                    }
-                    fs.writeFileSync(metaPath, JSON.stringify(metaData, null, 2))
-                    sciezkiDanych.push(`./${folder}/meta.json`)
+        try {
+            const folders = [
+                'NPC',
+                'Paragrafy',
+                'Przedmioty',
+                'Lokacje',
+                'Templates',
+                'KlasyPostaci',
+                'Zasady',
+                'PostacGracza',
+            ]
+            const sciezkiDanych = []
+
+            // Create subfolders and meta.json
+            for (const folder of folders) {
+                const dirPath = path.join(projectPath, folder)
+                if (!fs.existsSync(dirPath)) {
+                    fs.mkdirSync(dirPath, { recursive: true })
                 }
 
-                // Create main project file
-                const projectData = {
-                    id: id || 'nowy_projekt',
-                    nazwa: nazwa || path.basename(projectPath),
-                    autor: autor || '',
-                    wersja: '1.0.0',
+                const metaPath = path.join(dirPath, 'meta.json')
+                const metaData = {
+                    opis: `Folder na ${folder}`,
+                    sciezka: `./${folder}`,
                     sciezkiOpisow: [],
-                    sciezkiDanych: sciezkiDanych,
+                    sciezkiZdjec: [],
+                    elementy: [],
                 }
+                fs.writeFileSync(metaPath, JSON.stringify(metaData, null, 2))
+                sciezkiDanych.push(`./${folder}/meta.json`)
+            }
 
-                fs.writeFileSync(projectFile, JSON.stringify(projectData, null, 2))
+            // Create main project file
+            const projectData = {
+                id: id || 'nowy_projekt',
+                nazwa: nazwa || path.basename(projectPath),
+                autor: autor || '',
+                wersja: '1.0.0',
+                sciezkiOpisow: [],
+                sciezkiDanych: sciezkiDanych,
+            }
 
-                saveRecentProject(projectFile, projectData.nazwa)
-                // We won't load index.html immediately so the user can see the Toast,
-                // we'll let the renderer handle the navigation.
-                return { success: true, path: projectFile }
-            } catch (err) {
-                console.error(err)
-                return {
-                    success: false,
-                    error: err.message || 'Wystąpił błąd podczas zapisu struktury projektu.',
-                }
+            fs.writeFileSync(projectFile, JSON.stringify(projectData, null, 2))
+
+            saveRecentProject(projectFile, projectData.nazwa)
+            return { success: true, path: projectFile }
+        } catch (err) {
+            console.error(err)
+            return {
+                success: false,
+                error: err.message || 'Wystąpił błąd podczas zapisu struktury projektu.',
             }
         }
-        return { success: false }
     })
+
+    /**
+     * Sprawdza czy ścieżka docelowa leży wewnątrz katalogu bazowego.
+     * Zapobiega path traversal (np. ../../plik-poza-projektem.json).
+     */
+    function isPathInsideBase(basePath, targetPath) {
+        const resolvedBase = path.resolve(basePath)
+        const resolvedTarget = path.resolve(targetPath)
+        return resolvedTarget.startsWith(resolvedBase + path.sep) || resolvedTarget === resolvedBase
+    }
 
     ipcMain.handle('open-project', async (event, projectPath = null) => {
         let targetPath = projectPath
@@ -155,39 +167,148 @@ app.whenReady().then(async () => {
         if (!targetPath) {
             const { canceled, filePaths } = await dialog.showOpenDialog({
                 title: t('dialog.open_project'),
-                properties: ['openFile'],
-                filters: [{ name: 'Project Files', extensions: ['json'] }],
+                properties: ['openDirectory'],
             })
 
             if (canceled || filePaths.length === 0) {
                 return { success: false }
             }
-            targetPath = filePaths[0]
+            // Obsługujemy zarówno ścieżkę do katalogu, jak i do pliku project.json
+            const chosen = filePaths[0]
+            const stat = fs.statSync(chosen)
+            if (stat.isDirectory()) {
+                targetPath = path.join(chosen, 'project.json')
+            } else {
+                targetPath = chosen
+            }
+        } else {
+            // Jeżeli przekazano ścieżkę do katalogu projektu, wyznacz ścieżkę do project.json
+            if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
+                targetPath = path.join(targetPath, 'project.json')
+            }
         }
 
-        if (fs.existsSync(targetPath)) {
+        if (!fs.existsSync(targetPath)) {
+            return { success: false, error: t('error.project_not_found') }
+        }
+
+        const projectDir = path.dirname(targetPath)
+
+        try {
+            // 1. Odczyt project.json
+            let projectData
             try {
                 const fileContent = fs.readFileSync(targetPath, 'utf8')
-                const projectData = JSON.parse(fileContent)
+                projectData = JSON.parse(fileContent)
+            } catch {
+                return {
+                    success: false,
+                    error: 'Nie można odczytać lub sparsować pliku project.json.',
+                }
+            }
 
-                if (!validateProjectData(projectData)) {
+            if (!validateProjectData(projectData)) {
+                return {
+                    success: false,
+                    error: 'Nieprawidłowa struktura pliku projektu. Plik musi zawierać: nazwa (string), sciezkiOpisow (tablica), sciezkiDanych (tablica).',
+                }
+            }
+
+            // 2. Odczyt encji z podfolderów
+            const entities = {}
+
+            for (const sciezka of projectData.sciezkiDanych) {
+                // Walidacja ścieżki meta.json — musi być wewnątrz katalogu projektu
+                const metaPath = path.resolve(projectDir, sciezka)
+                if (!isPathInsideBase(projectDir, metaPath)) {
                     return {
                         success: false,
-                        error: 'Nieprawidłowa struktura pliku projektu. Plik musi zawierać: nazwa (string), sciezkiOpisow (tablica), sciezkiDanych (tablica).',
+                        error: `Niedozwolona ścieżka meta.json: ${sciezka}`,
                     }
                 }
 
-                const projectName = projectData.nazwa || path.basename(targetPath)
-                saveRecentProject(targetPath, projectName)
+                if (!fs.existsSync(metaPath)) {
+                    return {
+                        success: false,
+                        error: `Brak pliku meta.json: ${metaPath}`,
+                    }
+                }
 
-                // Implementacje otwarcia okna (win.loadFile) będzie później.
-                // Na razie zwracamy dane projektu do widoku.
-                return { success: true, path: targetPath, data: projectData }
-            } catch (err) {
-                return { success: false, error: 'Nie można odczytać lub sparsować pliku JSON.' }
+                let metaData
+                try {
+                    const metaContent = fs.readFileSync(metaPath, 'utf8')
+                    metaData = JSON.parse(metaContent)
+                } catch {
+                    return {
+                        success: false,
+                        error: `Nie można sparsować meta.json: ${metaPath}`,
+                    }
+                }
+
+                const metaDir = path.dirname(metaPath)
+                const folderName = path.basename(metaDir)
+
+                if (!entities[folderName]) {
+                    entities[folderName] = []
+                }
+
+                if (Array.isArray(metaData.elementy)) {
+                    for (const element of metaData.elementy) {
+                        // Walidacja ścieżki elementu — relatywna względem katalogu meta.json
+                        const elementPath = path.resolve(metaDir, element)
+                        if (!isPathInsideBase(projectDir, elementPath)) {
+                            return {
+                                success: false,
+                                error: `Niedozwolona ścieżka elementu: ${element}`,
+                            }
+                        }
+
+                        if (!fs.existsSync(elementPath)) {
+                            return {
+                                success: false,
+                                error: `Brak pliku elementu: ${elementPath}`,
+                            }
+                        }
+
+                        let elementData
+                        try {
+                            const elementContent = fs.readFileSync(elementPath, 'utf8')
+                            elementData = JSON.parse(elementContent)
+                        } catch {
+                            return {
+                                success: false,
+                                error: `Nie można sparsować pliku elementu: ${elementPath}`,
+                            }
+                        }
+
+                        if (typeof elementData !== 'object' || elementData === null) {
+                            return {
+                                success: false,
+                                error: `Nieprawidłowa struktura danych w pliku: ${elementPath}`,
+                            }
+                        }
+
+                        entities[folderName].push(elementData)
+                    }
+                }
+            }
+
+            const projectName = projectData.nazwa || path.basename(projectDir)
+            saveRecentProject(targetPath, projectName)
+
+            return {
+                success: true,
+                path: targetPath,
+                project: projectData,
+                entities: entities,
+            }
+        } catch (err) {
+            console.error('Nieoczekiwany błąd podczas otwierania projektu:', err)
+            return {
+                success: false,
+                error: 'Wystąpił nieoczekiwany błąd podczas otwierania projektu.',
             }
         }
-        return { success: false, error: t('error.project_not_found') }
     })
 
     ipcMain.handle('close-app', () => {
