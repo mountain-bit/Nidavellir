@@ -113,11 +113,18 @@ class StartWindowViewModel {
             window.electronAPI.closeApp()
         })
 
-        this.btnCreateProject?.addEventListener('click', () => {
+        this.btnCreateProject?.addEventListener('click', async () => {
             if (this.newProjectModal) {
                 this.newProjectModal.classList.remove('hidden')
                 if (this.npNazwaInput) this.npNazwaInput.value = ''
-                if (this.npAutorInput) this.npAutorInput.value = ''
+                if (this.npAutorInput) {
+                    try {
+                        const defaultAuthor = await window.electronAPI.getSystemUsername()
+                        this.npAutorInput.value = defaultAuthor || ''
+                    } catch {
+                        this.npAutorInput.value = ''
+                    }
+                }
                 this.selectedProjectPath = null
                 if (this.npFolderDisplay) {
                     this.npFolderDisplay.textContent = t('start_window.np_folder_placeholder')

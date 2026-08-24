@@ -24,6 +24,7 @@ declare global {
             getTranslations: () => Promise<Record<string, unknown>>
             getLocale: () => Promise<string>
             setLocale: (locale: string) => Promise<boolean>
+            getSystemUsername: () => Promise<string>
         }
     }
 }

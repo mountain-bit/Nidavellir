@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
 const fs = require('fs')
+const os = require('os')
 const { initI18n, t, getTranslations, setLocale, getLocale } = require('./Utils/i18n')
 const recentProjectsPath = path.join(app.getPath('userData'), 'recent-projects.json')
 
@@ -68,6 +69,18 @@ app.whenReady().then(async () => {
 
     ipcMain.handle('get-recent-projects', () => {
         return getRecentProjects()
+    })
+
+    ipcMain.handle('get-system-username', () => {
+        try {
+            const userInfo = os.userInfo()
+            if (userInfo && userInfo.username) {
+                return userInfo.username
+            }
+        } catch (err) {
+            console.error('Error getting system username:', err)
+        }
+        return process.env.USERNAME || process.env.USER || ''
     })
 
     const validateProjectData = data => {

@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openProject: path => ipcRenderer.invoke('open-project', path),
     closeApp: () => ipcRenderer.invoke('close-app'),
     loadMainWindow: () => ipcRenderer.invoke('load-main-window'),
+    getSystemUsername: () => ipcRenderer.invoke('get-system-username'),
 })
