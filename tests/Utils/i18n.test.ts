@@ -49,8 +49,8 @@ describe('i18n.js — initI18n', () => {
     })
 
     it('po inicjalizacji t() zwraca polskie tłumaczenie', () => {
-        expect(i18n.t('przyciski.zapisz')).toBe('Zapisz')
-        expect(i18n.t('przyciski.ok')).toBe('OK')
+        expect(i18n.t('buttons.save')).toBe('Zapisz')
+        expect(i18n.t('buttons.ok')).toBe('OK')
     })
 
     it('ponowne wywołanie initI18n() nie rzuca błędu (idempotentność)', async () => {
@@ -65,13 +65,13 @@ describe('i18n.js — setLocale i getLocale', () => {
         const result = await i18n.setLocale('en')
         expect(result).toBe(true)
         expect(i18n.getLocale()).toBe('en')
-        expect(i18n.t('przyciski.zapisz')).toBe('Save')
+        expect(i18n.t('buttons.save')).toBe('Save')
     })
 
     it('setLocale("de") zmienia język na niemiecki', async () => {
         await i18n.setLocale('de')
         expect(i18n.getLocale()).toBe('de')
-        expect(i18n.t('przyciski.zapisz')).toBe('Speichern')
+        expect(i18n.t('buttons.save')).toBe('Speichern')
     })
 
     it('setLocale z nieobsługiwanym locale zwraca false', async () => {
@@ -87,11 +87,11 @@ describe('i18n.js — setLocale i getLocale', () => {
 
     it('można przełączać między wszystkimi wspieranymi językami', async () => {
         await i18n.setLocale('de')
-        expect(i18n.t('przyciski.zapisz')).toBe('Speichern')
+        expect(i18n.t('buttons.save')).toBe('Speichern')
         await i18n.setLocale('en')
-        expect(i18n.t('przyciski.zapisz')).toBe('Save')
+        expect(i18n.t('buttons.save')).toBe('Save')
         await i18n.setLocale('pl')
-        expect(i18n.t('przyciski.zapisz')).toBe('Zapisz')
+        expect(i18n.t('buttons.save')).toBe('Zapisz')
     })
 })
 
@@ -101,14 +101,14 @@ describe('i18n.js — getTranslations', () => {
     it('zwraca obiekt z kluczami tłumaczeń dla polskiego', () => {
         const tr = i18n.getTranslations() as Record<string, Record<string, string>>
         expect(typeof tr).toBe('object')
-        expect(tr.przyciski?.zapisz).toBe('Zapisz')
-        expect(tr.projekt?.nowy).toBe('Nowy projekt')
+        expect(tr.buttons?.save).toBe('Zapisz')
+        expect(tr.project?.new).toBe('Nowy projekt')
     })
 
     it('zmienia się po setLocale', async () => {
         await i18n.setLocale('en')
         const tr = i18n.getTranslations() as Record<string, Record<string, string>>
-        expect(tr.przyciski?.zapisz).toBe('Save')
+        expect(tr.buttons?.save).toBe('Save')
     })
 
     it('zawiera klucze dialog i error (używane przez main process w showOpenDialog)', () => {
@@ -122,8 +122,8 @@ describe('i18n.js — getTranslations', () => {
 
 describe('i18n.js — t()', () => {
     it('tłumaczy klucze z sekcji projekt', () => {
-        expect(i18n.t('projekt.nowy')).toBe('Nowy projekt')
-        expect(i18n.t('projekt.zapisz')).toBe('Zapisz projekt')
+        expect(i18n.t('project.new')).toBe('Nowy projekt')
+        expect(i18n.t('project.save')).toBe('Zapisz projekt')
     })
 
     it('tłumaczy klucze z sekcji dialog', () => {

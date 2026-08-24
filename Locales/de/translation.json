@@ -10,68 +10,68 @@
     "title": "Paragraphen-Spielmotor",
     "version": "Version"
   },
-  "projekt": {
-    "nowy": "Neues Projekt",
-    "otworz": "Projekt öffnen",
-    "zapisz": "Projekt speichern",
-    "zamknij": "Projekt schließen",
-    "nazwa": "Projektname",
-    "autor": "Autor",
-    "wersja": "Version",
-    "opis": "Beschreibung"
+  "project": {
+    "new": "Neues Projekt",
+    "open": "Projekt öffnen",
+    "save": "Projekt speichern",
+    "close": "Projekt schließen",
+    "name": "Projektname",
+    "author": "Autor",
+    "version": "Version",
+    "description": "Beschreibung"
   },
-  "scena": {
-    "nowa": "Neue Szene",
-    "usun": "Szene löschen",
-    "edytuj": "Szene bearbeiten",
-    "nazwa": "Szenenname"
+  "scene": {
+    "new": "Neue Szene",
+    "delete": "Szene löschen",
+    "edit": "Szene bearbeiten",
+    "name": "Szenenname"
   },
-  "paragraf": {
-    "nowy": "Neuer Absatz",
-    "usun": "Absatz löschen",
-    "edytuj": "Absatz bearbeiten",
-    "tytul": "Titel",
-    "tresc": "Inhalt",
-    "przeskoki": "Sprünge",
-    "walka": "Kampf"
+  "paragraph": {
+    "new": "Neuer Absatz",
+    "delete": "Absatz löschen",
+    "edit": "Absatz bearbeiten",
+    "title": "Titel",
+    "content": "Inhalt",
+    "jumps": "Sprünge",
+    "combat": "Kampf"
   },
-  "postac": {
-    "gracz": "Spielercharakter",
+  "character": {
+    "player": "Spielercharakter",
     "npc": "NPC",
-    "imie": "Name",
-    "klasa": "Charakterklasse",
-    "cechy": "Merkmale",
-    "umiejetnosci": "Fähigkeiten",
-    "przymioty": "Attribute"
+    "name": "Name",
+    "class": "Charakterklasse",
+    "traits": "Merkmale",
+    "skills": "Fähigkeiten",
+    "attributes": "Attribute"
   },
-  "przedmiot": {
-    "lista": "Gegenstände",
-    "nowy": "Neuer Gegenstand",
-    "usun": "Gegenstand löschen",
-    "nazwa": "Name",
-    "opis": "Beschreibung"
+  "item": {
+    "list": "Gegenstände",
+    "new": "Neuer Gegenstand",
+    "delete": "Gegenstand löschen",
+    "name": "Name",
+    "description": "Beschreibung"
   },
-  "lokacja": {
-    "lista": "Orte",
-    "nowa": "Neuer Ort",
-    "usun": "Ort löschen",
-    "nazwa": "Name",
-    "opis": "Beschreibung"
+  "location": {
+    "list": "Orte",
+    "new": "Neuer Ort",
+    "delete": "Ort löschen",
+    "name": "Name",
+    "description": "Beschreibung"
   },
-  "bledy": {
-    "nieznanyBlad": "Ein unbekannter Fehler ist aufgetreten",
-    "brakPliku": "Datei nicht gefunden",
-    "zapiszNieudany": "Datei konnte nicht gespeichert werden",
-    "wczytajNieudany": "Datei konnte nicht geladen werden"
+  "errors": {
+    "unknownError": "Ein unbekannter Fehler ist aufgetreten",
+    "fileNotFound": "Datei nicht gefunden",
+    "saveFailed": "Datei konnte nicht gespeichert werden",
+    "loadFailed": "Datei konnte nicht geladen werden"
   },
-  "przyciski": {
+  "buttons": {
     "ok": "OK",
-    "anuluj": "Abbrechen",
-    "zapisz": "Speichern",
-    "usun": "Löschen",
-    "dodaj": "Hinzufügen",
-    "edytuj": "Bearbeiten",
-    "zamknij": "Schließen"
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
+    "close": "Schließen"
   },
   "start_window": {
     "app_subtitle": "Paragraphen-Spielmotor",
@@ -90,10 +90,10 @@
     "language_en": "English",
     "language_de": "Deutsch",
     "new_project_title": "Neues Projekt",
-    "np_nazwa": "Projektname",
-    "np_nazwa_placeholder": "z.B. Mein tolles Projekt",
-    "np_autor": "Autor",
-    "np_autor_placeholder": "z.B. Max Mustermann",
+    "np_name": "Projektname",
+    "np_name_placeholder": "z.B. Mein tolles Projekt",
+    "np_author": "Autor",
+    "np_author_placeholder": "z.B. Max Mustermann",
     "np_id": "ID (eindeutig, keine Leerzeichen)",
     "np_id_placeholder": "z.B. mein_tolles_projekt",
     "np_id_error": "ID darf keine Leerzeichen enthalten.",

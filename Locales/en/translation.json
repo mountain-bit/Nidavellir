@@ -10,68 +10,68 @@
     "title": "Paragraph Game Engine",
     "version": "Version"
   },
-  "projekt": {
-    "nowy": "New project",
-    "otworz": "Open project",
-    "zapisz": "Save project",
-    "zamknij": "Close project",
-    "nazwa": "Project name",
-    "autor": "Author",
-    "wersja": "Version",
-    "opis": "Description"
+  "project": {
+    "new": "New project",
+    "open": "Open project",
+    "save": "Save project",
+    "close": "Close project",
+    "name": "Project name",
+    "author": "Author",
+    "version": "Version",
+    "description": "Description"
   },
-  "scena": {
-    "nowa": "New scene",
-    "usun": "Delete scene",
-    "edytuj": "Edit scene",
-    "nazwa": "Scene name"
+  "scene": {
+    "new": "New scene",
+    "delete": "Delete scene",
+    "edit": "Edit scene",
+    "name": "Scene name"
   },
-  "paragraf": {
-    "nowy": "New paragraph",
-    "usun": "Delete paragraph",
-    "edytuj": "Edit paragraph",
-    "tytul": "Title",
-    "tresc": "Content",
-    "przeskoki": "Jumps",
-    "walka": "Combat"
+  "paragraph": {
+    "new": "New paragraph",
+    "delete": "Delete paragraph",
+    "edit": "Edit paragraph",
+    "title": "Title",
+    "content": "Content",
+    "jumps": "Jumps",
+    "combat": "Combat"
   },
-  "postac": {
-    "gracz": "Player character",
+  "character": {
+    "player": "Player character",
     "npc": "NPC",
-    "imie": "Name",
-    "klasa": "Character class",
-    "cechy": "Traits",
-    "umiejetnosci": "Skills",
-    "przymioty": "Attributes"
+    "name": "Name",
+    "class": "Character class",
+    "traits": "Traits",
+    "skills": "Skills",
+    "attributes": "Attributes"
   },
-  "przedmiot": {
-    "lista": "Items",
-    "nowy": "New item",
-    "usun": "Delete item",
-    "nazwa": "Name",
-    "opis": "Description"
+  "item": {
+    "list": "Items",
+    "new": "New item",
+    "delete": "Delete item",
+    "name": "Name",
+    "description": "Description"
   },
-  "lokacja": {
-    "lista": "Locations",
-    "nowa": "New location",
-    "usun": "Delete location",
-    "nazwa": "Name",
-    "opis": "Description"
+  "location": {
+    "list": "Locations",
+    "new": "New location",
+    "delete": "Delete location",
+    "name": "Name",
+    "description": "Description"
   },
-  "bledy": {
-    "nieznanyBlad": "An unknown error occurred",
-    "brakPliku": "File not found",
-    "zapiszNieudany": "Failed to save file",
-    "wczytajNieudany": "Failed to load file"
+  "errors": {
+    "unknownError": "An unknown error occurred",
+    "fileNotFound": "File not found",
+    "saveFailed": "Failed to save file",
+    "loadFailed": "Failed to load file"
   },
-  "przyciski": {
+  "buttons": {
     "ok": "OK",
-    "anuluj": "Cancel",
-    "zapisz": "Save",
-    "usun": "Delete",
-    "dodaj": "Add",
-    "edytuj": "Edit",
-    "zamknij": "Close"
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "add": "Add",
+    "edit": "Edit",
+    "close": "Close"
   },
   "start_window": {
     "app_subtitle": "Paragraph Game Engine",
@@ -90,10 +90,10 @@
     "language_en": "English",
     "language_de": "Deutsch",
     "new_project_title": "New project details",
-    "np_nazwa": "Project name",
-    "np_nazwa_placeholder": "e.g. My Epic Project",
-    "np_autor": "Author",
-    "np_autor_placeholder": "e.g. John Smith",
+    "np_name": "Project name",
+    "np_name_placeholder": "e.g. My Epic Project",
+    "np_author": "Author",
+    "np_author_placeholder": "e.g. John Smith",
     "np_id": "ID (unique, no spaces)",
     "np_id_placeholder": "e.g. my_epic_project",
     "np_id_error": "ID cannot contain spaces.",

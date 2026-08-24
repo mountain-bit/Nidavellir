@@ -31,21 +31,21 @@ describe('translate — podstawowe tłumaczenia', () => {
     })
 
     it('t() zwraca polskie tłumaczenie', () => {
-        expect(t('przyciski.zapisz')).toBe('Zapisz')
-        expect(t('przyciski.anuluj')).toBe('Anuluj')
-        expect(t('przyciski.ok')).toBe('OK')
+        expect(t('buttons.save')).toBe('Zapisz')
+        expect(t('buttons.cancel')).toBe('Anuluj')
+        expect(t('buttons.ok')).toBe('OK')
     })
 
     it('t() zwraca angielskie tłumaczenie po setLanguage("en")', async () => {
         await setLanguage('en')
-        expect(t('przyciski.zapisz')).toBe('Save')
-        expect(t('przyciski.anuluj')).toBe('Cancel')
+        expect(t('buttons.save')).toBe('Save')
+        expect(t('buttons.cancel')).toBe('Cancel')
     })
 
     it('t() zwraca niemieckie tłumaczenie po setLanguage("de")', async () => {
         await setLanguage('de')
-        expect(t('przyciski.zapisz')).toBe('Speichern')
-        expect(t('przyciski.anuluj')).toBe('Abbrechen')
+        expect(t('buttons.save')).toBe('Speichern')
+        expect(t('buttons.cancel')).toBe('Abbrechen')
     })
 
     it('t() zwraca klucz jako fallback gdy klucz nie istnieje', () => {
@@ -108,13 +108,13 @@ describe('translate — setLanguage', () => {
     })
 
     it('tłumaczenia zmieniają się natychmiast po setLanguage', async () => {
-        expect(t('przyciski.zapisz')).toBe('Zapisz')
+        expect(t('buttons.save')).toBe('Zapisz')
         await setLanguage('en')
-        expect(t('przyciski.zapisz')).toBe('Save')
+        expect(t('buttons.save')).toBe('Save')
         await setLanguage('de')
-        expect(t('przyciski.zapisz')).toBe('Speichern')
+        expect(t('buttons.save')).toBe('Speichern')
         await setLanguage('pl')
-        expect(t('przyciski.zapisz')).toBe('Zapisz')
+        expect(t('buttons.save')).toBe('Zapisz')
     })
 })
 
@@ -160,8 +160,8 @@ describe('translate — initTranslations', () => {
 describe('translate — bezpieczeństwo typów', () => {
     it('TranslationKey akceptuje prawidłowe klucze', () => {
         // Jeśli to się kompiluje, typy działają poprawnie
-        const key1: TranslationKey = 'przyciski.zapisz'
-        const key2: TranslationKey = 'projekt.nowy'
+        const key1: TranslationKey = 'buttons.save'
+        const key2: TranslationKey = 'project.new'
         const key3: TranslationKey = 'start_window.create_project'
         expect(t(key1)).toBeTruthy()
         expect(t(key2)).toBeTruthy()

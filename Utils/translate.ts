@@ -6,7 +6,7 @@
  *
  * Użycie:
  *   await initTranslations()         // wywołać raz przy starcie strony
- *   t('przyciski.zapisz')            // → "Save"
+ *   t('buttons.save')               // → "Save"
  *   t('start_window.last_opened')    // → "Last opened:"
  */
 
@@ -19,7 +19,7 @@ import pl from '../Locales/pl/translation.json'
 // Typ wyprowadzony ze struktury wzorcowego pliku PL
 export type Translations = typeof pl
 
-// Typ bezpiecznego klucza zagnieżdżonego, np. "projekt.nowy" | "przyciski.ok"
+// Typ bezpiecznego klucza zagnieżdżonego, np. "project.new" | "buttons.ok"
 type NestedKeyOf<T, Prefix extends string = ''> = {
     [K in keyof T & string]: T[K] extends object
         ? NestedKeyOf<T[K], `${Prefix}${K}.`>
@@ -84,7 +84,7 @@ export async function initTranslationsWithLocale(locale: SupportedLanguage): Pro
 
 /**
  * Tłumaczy klucz. Wymaga wcześniejszego wywołania initTranslations().
- * @param key     - bezpieczny typowo klucz, np. "projekt.nowy"
+ * @param key     - bezpieczny typowo klucz, np. "project.new"
  * @param options - opcjonalne opcje i18next (interpolacja, count, itp.)
  */
 export function t(key: TranslationKey, options?: Record<string, unknown>): string {

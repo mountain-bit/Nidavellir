@@ -10,68 +10,68 @@
     "title": "Silnik Gier Paragrafowych",
     "version": "Wersja"
   },
-  "projekt": {
-    "nowy": "Nowy projekt",
-    "otworz": "Otwórz projekt",
-    "zapisz": "Zapisz projekt",
-    "zamknij": "Zamknij projekt",
-    "nazwa": "Nazwa projektu",
-    "autor": "Autor",
-    "wersja": "Wersja",
-    "opis": "Opis"
+  "project": {
+    "new": "Nowy projekt",
+    "open": "Otwórz projekt",
+    "save": "Zapisz projekt",
+    "close": "Zamknij projekt",
+    "name": "Nazwa projektu",
+    "author": "Autor",
+    "version": "Wersja",
+    "description": "Opis"
   },
-  "scena": {
-    "nowa": "Nowa scena",
-    "usun": "Usuń scenę",
-    "edytuj": "Edytuj scenę",
-    "nazwa": "Nazwa sceny"
+  "scene": {
+    "new": "Nowa scena",
+    "delete": "Usuń scenę",
+    "edit": "Edytuj scenę",
+    "name": "Nazwa sceny"
   },
-  "paragraf": {
-    "nowy": "Nowy paragraf",
-    "usun": "Usuń paragraf",
-    "edytuj": "Edytuj paragraf",
-    "tytul": "Tytuł",
-    "tresc": "Treść",
-    "przeskoki": "Przeskoki",
-    "walka": "Walka"
+  "paragraph": {
+    "new": "Nowy paragraf",
+    "delete": "Usuń paragraf",
+    "edit": "Edytuj paragraf",
+    "title": "Tytuł",
+    "content": "Treść",
+    "jumps": "Przeskoki",
+    "combat": "Walka"
   },
-  "postac": {
-    "gracz": "Postać gracza",
+  "character": {
+    "player": "Postać gracza",
     "npc": "NPC",
-    "imie": "Imię",
-    "klasa": "Klasa postaci",
-    "cechy": "Cechy",
-    "umiejetnosci": "Umiejętności",
-    "przymioty": "Przymioty"
+    "name": "Imię",
+    "class": "Klasa postaci",
+    "traits": "Cechy",
+    "skills": "Umiejętności",
+    "attributes": "Przymioty"
   },
-  "przedmiot": {
-    "lista": "Przedmioty",
-    "nowy": "Nowy przedmiot",
-    "usun": "Usuń przedmiot",
-    "nazwa": "Nazwa",
-    "opis": "Opis"
+  "item": {
+    "list": "Przedmioty",
+    "new": "Nowy przedmiot",
+    "delete": "Usuń przedmiot",
+    "name": "Nazwa",
+    "description": "Opis"
   },
-  "lokacja": {
-    "lista": "Lokacje",
-    "nowa": "Nowa lokacja",
-    "usun": "Usuń lokację",
-    "nazwa": "Nazwa",
-    "opis": "Opis"
+  "location": {
+    "list": "Lokacje",
+    "new": "Nowa lokacja",
+    "delete": "Usuń lokację",
+    "name": "Nazwa",
+    "description": "Opis"
   },
-  "bledy": {
-    "nieznanyBlad": "Wystąpił nieznany błąd",
-    "brakPliku": "Nie znaleziono pliku",
-    "zapiszNieudany": "Nie udało się zapisać pliku",
-    "wczytajNieudany": "Nie udało się wczytać pliku"
+  "errors": {
+    "unknownError": "Wystąpił nieznany błąd",
+    "fileNotFound": "Nie znaleziono pliku",
+    "saveFailed": "Nie udało się zapisać pliku",
+    "loadFailed": "Nie udało się wczytać pliku"
   },
-  "przyciski": {
+  "buttons": {
     "ok": "OK",
-    "anuluj": "Anuluj",
-    "zapisz": "Zapisz",
-    "usun": "Usuń",
-    "dodaj": "Dodaj",
-    "edytuj": "Edytuj",
-    "zamknij": "Zamknij"
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "delete": "Usuń",
+    "add": "Dodaj",
+    "edit": "Edytuj",
+    "close": "Zamknij"
   },
   "start_window": {
     "app_subtitle": "Silnik Gier Paragrafowych",
@@ -90,10 +90,10 @@
     "language_en": "English",
     "language_de": "Deutsch",
     "new_project_title": "Szczegóły nowego projektu",
-    "np_nazwa": "Nazwa projektu",
-    "np_nazwa_placeholder": "np. Mój Epicki Projekt",
-    "np_autor": "Autor",
-    "np_autor_placeholder": "np. Jan Kowalski",
+    "np_name": "Nazwa projektu",
+    "np_name_placeholder": "np. Mój Epicki Projekt",
+    "np_author": "Autor",
+    "np_author_placeholder": "np. Jan Kowalski",
     "np_id": "ID (unikalne, bez spacji)",
     "np_id_placeholder": "np. moj_epicki_projekt",
     "np_id_error": "ID nie może zawierać spacji.",
