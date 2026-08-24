@@ -1,0 +1,111 @@
+{
+  "dialog": {
+    "choose_new_project_folder": "Choose folder for new project",
+    "open_project": "Open project"
+  },
+  "error": {
+    "project_not_found": "Project path does not exist"
+  },
+  "app": {
+    "title": "Paragraph Game Engine",
+    "version": "Version"
+  },
+  "project": {
+    "new": "New project",
+    "open": "Open project",
+    "save": "Save project",
+    "close": "Close project",
+    "name": "Project name",
+    "author": "Author",
+    "version": "Version",
+    "description": "Description"
+  },
+  "scene": {
+    "new": "New scene",
+    "delete": "Delete scene",
+    "edit": "Edit scene",
+    "name": "Scene name"
+  },
+  "paragraph": {
+    "new": "New paragraph",
+    "delete": "Delete paragraph",
+    "edit": "Edit paragraph",
+    "title": "Title",
+    "content": "Content",
+    "jumps": "Jumps",
+    "combat": "Combat"
+  },
+  "character": {
+    "player": "Player character",
+    "npc": "NPC",
+    "name": "Name",
+    "class": "Character class",
+    "traits": "Traits",
+    "skills": "Skills",
+    "attributes": "Attributes"
+  },
+  "item": {
+    "list": "Items",
+    "new": "New item",
+    "delete": "Delete item",
+    "name": "Name",
+    "description": "Description"
+  },
+  "location": {
+    "list": "Locations",
+    "new": "New location",
+    "delete": "Delete location",
+    "name": "Name",
+    "description": "Description"
+  },
+  "errors": {
+    "unknownError": "An unknown error occurred",
+    "fileNotFound": "File not found",
+    "saveFailed": "Failed to save file",
+    "loadFailed": "Failed to load file"
+  },
+  "buttons": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "add": "Add",
+    "edit": "Edit",
+    "close": "Close"
+  },
+  "start_window": {
+    "app_subtitle": "Paragraph Game Engine",
+    "get_started": "Get Started",
+    "create_project": "Create new project",
+    "open_project": "Open project",
+    "version": "Version",
+    "settings": "Settings",
+    "recent_projects": "Recent projects",
+    "no_recent_projects": "No recent projects.",
+    "last_opened": "Last opened:",
+    "open_project_error": "Failed to open project:",
+    "open_project_load_error": "Error loading project:",
+    "language": "Language",
+    "language_pl": "Polski",
+    "language_en": "English",
+    "language_de": "Deutsch",
+    "new_project_title": "New project details",
+    "np_name": "Project name",
+    "np_name_placeholder": "e.g. My Epic Project",
+    "np_author": "Author",
+    "np_author_placeholder": "e.g. John Smith",
+    "np_id": "ID (unique, no spaces)",
+    "np_id_placeholder": "e.g. my_epic_project",
+    "np_id_error": "ID cannot contain spaces.",
+    "np_id_required": "Project ID cannot be empty.",
+    "np_cancel": "Cancel",
+    "np_create": "Create project",
+    "np_folder": "Project folder",
+    "np_folder_placeholder": "No folder selected...",
+    "np_folder_required": "Please select a folder for the project.",
+    "np_browse": "Browse",
+    "np_create_success": "Project created successfully!",
+    "np_create_error": "Error creating project:",
+    "np_unexpected_error": "An unexpected error occurred:"
+  }
+}

@@ -37,7 +37,7 @@ export class Scena {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -49,7 +49,7 @@ export class Scena {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -57,24 +57,23 @@ export class Scena {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
-    // Paragrafy w scenie
     public pobierzParagrafy(): Paragraf[] {
         return this.paragrafy
     }
 
-    public ustawParagrafy(paragrafy: Paragraf[]) {
+    public ustawParagrafy(paragrafy: Paragraf[]): void {
         this.paragrafy = paragrafy
     }
 
-    public dodajParagraf(paragraf: Paragraf) {
+    public dodajParagraf(paragraf: Paragraf): void {
         this.paragrafy.push(paragraf)
     }
 
-    public usunParagraf(id: string) {
+    public usunParagraf(id: string): void {
         this.paragrafy = this.paragrafy.filter(p => p.pobierzID() !== id)
     }
 
@@ -86,20 +85,19 @@ export class Scena {
         return this.paragrafy.some(p => p.pobierzID() === id)
     }
 
-    // Postacie (NPC) w scenie
     public pobierzPostacie(): NPC[] {
         return this.postacie
     }
 
-    public ustawPostacie(postacie: NPC[]) {
+    public ustawPostacie(postacie: NPC[]): void {
         this.postacie = postacie
     }
 
-    public dodajPostac(postac: NPC) {
+    public dodajPostac(postac: NPC): void {
         this.postacie.push(postac)
     }
 
-    public usunPostac(id: string) {
+    public usunPostac(id: string): void {
         this.postacie = this.postacie.filter(p => p.pobierzID() !== id)
     }
 
@@ -111,25 +109,23 @@ export class Scena {
         return this.postacie.some(p => p.pobierzID() === id)
     }
 
-    // Lokacja sceny
     public pobierzLokacje(): Lokacja | null {
         return this.lokacja
     }
 
-    public ustawLokacje(lokacja: Lokacja | null) {
+    public ustawLokacje(lokacja: Lokacja | null): void {
         this.lokacja = lokacja
     }
 
-    // Tagi sceny
     public pobierzTagi(): string[] {
         return this.tags
     }
 
-    public dodajTag(tag: string) {
+    public dodajTag(tag: string): void {
         this.tags.push(tag)
     }
 
-    public usunTag(tag: string) {
+    public usunTag(tag: string): void {
         this.tags = this.tags.filter(t => t !== tag)
     }
 
@@ -137,12 +133,25 @@ export class Scena {
         return this.tags.includes(tag)
     }
 
-    // Początkowy paragraf sceny
     public pobierzPoczatkowyParagrafID(): string {
         return this.poczatkowyParagrafID
     }
 
-    public ustawPoczatkowyParagrafID(id: string) {
+    public ustawPoczatkowyParagrafID(id: string): void {
         this.poczatkowyParagrafID = id
+    }
+
+    public static fromJSON(json: any): Scena {
+        if (!json) return new Scena()
+        return new Scena(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            (json.paragrafy || []).map((p: any) => Paragraf.fromJSON(p)),
+            (json.postacie || []).map((p: any) => NPC.fromJSON(p)),
+            json.lokacja ? Lokacja.fromJSON(json.lokacja) : null,
+            json.tags || [],
+            json.poczatkowyParagrafID || ''
+        )
     }
 }

@@ -1,3 +1,4 @@
+import type { EntitiesData, ProjectData } from '../types/ipc'
 import { Cecha } from './Cecha'
 import { KlasaPostaci } from './KlasaPostaci'
 import { Lokacja } from './Lokacja'
@@ -23,7 +24,6 @@ export class Projekt {
     private klasyPostaci: KlasaPostaci[] = []
     private postacGracza: PostacGracza = new PostacGracza()
 
-    // Globalne definicje, z których gracz/NPC mogą korzystać
     private globalneCechy: Cecha[] = []
     private globalneUmiejetnosci: Umiejetnosc[] = []
     private globalnePrzymioty: Przymiot[] = []
@@ -60,13 +60,11 @@ export class Projekt {
         this.globalnePrzymioty = globalnePrzymioty
     }
 
-    // --- Podstawowe dane ---
-
     public pobierzID(): string {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -78,7 +76,7 @@ export class Projekt {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -86,7 +84,7 @@ export class Projekt {
         return this.autor
     }
 
-    public ustawAutora(autor: string) {
+    public ustawAutora(autor: string): void {
         this.autor = autor
     }
 
@@ -94,7 +92,7 @@ export class Projekt {
         return this.wersja
     }
 
-    public ustawWersje(wersja: string) {
+    public ustawWersje(wersja: string): void {
         this.wersja = wersja
     }
 
@@ -102,25 +100,23 @@ export class Projekt {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
-
-    // --- Sceny ---
 
     public pobierzSceny(): Scena[] {
         return this.sceny
     }
 
-    public ustawSceny(sceny: Scena[]) {
+    public ustawSceny(sceny: Scena[]): void {
         this.sceny = sceny
     }
 
-    public dodajScene(scena: Scena) {
+    public dodajScene(scena: Scena): void {
         this.sceny.push(scena)
     }
 
-    public usunScene(id: string) {
+    public usunScene(id: string): void {
         this.sceny = this.sceny.filter(s => s.pobierzID() !== id)
     }
 
@@ -132,20 +128,19 @@ export class Projekt {
         return this.sceny.some(s => s.pobierzID() === id)
     }
 
-    // --- Lokacje ---
     public pobierzLokacje(): Lokacja[] {
         return this.lokacje
     }
 
-    public ustawLokacje(lokacje: Lokacja[]) {
+    public ustawLokacje(lokacje: Lokacja[]): void {
         this.lokacje = lokacje
     }
 
-    public dodajLokacja(lokacja: Lokacja) {
+    public dodajLokacja(lokacja: Lokacja): void {
         this.lokacje.push(lokacja)
     }
 
-    public usunLokacja(id: string) {
+    public usunLokacja(id: string): void {
         this.lokacje = this.lokacje.filter(l => l.pobierzID() !== id)
     }
 
@@ -157,21 +152,19 @@ export class Projekt {
         return this.lokacje.some(l => l.pobierzID() === id)
     }
 
-    // --- Postacie (NPC) ---
-
     public pobierzPostacie(): NPC[] {
         return this.postacie
     }
 
-    public ustawPostacie(postacie: NPC[]) {
+    public ustawPostacie(postacie: NPC[]): void {
         this.postacie = postacie
     }
 
-    public dodajPostac(postac: NPC) {
+    public dodajPostac(postac: NPC): void {
         this.postacie.push(postac)
     }
 
-    public usunPostac(id: string) {
+    public usunPostac(id: string): void {
         this.postacie = this.postacie.filter(p => p.pobierzID() !== id)
     }
 
@@ -183,21 +176,19 @@ export class Projekt {
         return this.postacie.some(p => p.pobierzID() === id)
     }
 
-    // --- Przedmioty ---
-
     public pobierzPrzedmioty(): Przedmiot[] {
         return this.przedmioty
     }
 
-    public ustawPrzedmioty(przedmioty: Przedmiot[]) {
+    public ustawPrzedmioty(przedmioty: Przedmiot[]): void {
         this.przedmioty = przedmioty
     }
 
-    public dodajPrzedmiot(przedmiot: Przedmiot) {
+    public dodajPrzedmiot(przedmiot: Przedmiot): void {
         this.przedmioty.push(przedmiot)
     }
 
-    public usunPrzedmiot(id: string) {
+    public usunPrzedmiot(id: string): void {
         this.przedmioty = this.przedmioty.filter(p => p.pobierzID() !== id)
     }
 
@@ -209,21 +200,19 @@ export class Projekt {
         return this.przedmioty.some(p => p.pobierzID() === id)
     }
 
-    // --- Klasy Postaci ---
-
     public pobierzKlasyPostaci(): KlasaPostaci[] {
         return this.klasyPostaci
     }
 
-    public ustawKlasyPostaci(klasyPostaci: KlasaPostaci[]) {
+    public ustawKlasyPostaci(klasyPostaci: KlasaPostaci[]): void {
         this.klasyPostaci = klasyPostaci
     }
 
-    public dodajKlasePostaci(klasaPostaci: KlasaPostaci) {
+    public dodajKlasePostaci(klasaPostaci: KlasaPostaci): void {
         this.klasyPostaci.push(klasaPostaci)
     }
 
-    public usunKlasePostaci(id: string) {
+    public usunKlasePostaci(id: string): void {
         this.klasyPostaci = this.klasyPostaci.filter(k => k.pobierzID() !== id)
     }
 
@@ -235,27 +224,23 @@ export class Projekt {
         return this.klasyPostaci.some(k => k.pobierzID() === id)
     }
 
-    // --- Postać Gracza ---
-
     public pobierzPostacGracza(): PostacGracza {
         return this.postacGracza
     }
 
-    public ustawPostacGracza(postacGracza: PostacGracza) {
+    public ustawPostacGracza(postacGracza: PostacGracza): void {
         this.postacGracza = postacGracza
     }
-
-    // --- Globalne Definicje (Cechy, Umiejętności, Przymioty) ---
 
     public pobierzGlobalneCechy(): Cecha[] {
         return this.globalneCechy
     }
 
-    public ustawGlobalneCechy(cechy: Cecha[]) {
+    public ustawGlobalneCechy(cechy: Cecha[]): void {
         this.globalneCechy = cechy
     }
 
-    public dodajGlobalnaCecha(cecha: Cecha) {
+    public dodajGlobalnaCecha(cecha: Cecha): void {
         this.globalneCechy.push(cecha)
     }
 
@@ -263,11 +248,11 @@ export class Projekt {
         return this.globalneUmiejetnosci
     }
 
-    public ustawGlobalneUmiejetnosci(umiejetnosci: Umiejetnosc[]) {
+    public ustawGlobalneUmiejetnosci(umiejetnosci: Umiejetnosc[]): void {
         this.globalneUmiejetnosci = umiejetnosci
     }
 
-    public dodajGlobalnaUmiejetnosc(umiejetnosc: Umiejetnosc) {
+    public dodajGlobalnaUmiejetnosc(umiejetnosc: Umiejetnosc): void {
         this.globalneUmiejetnosci.push(umiejetnosc)
     }
 
@@ -275,11 +260,51 @@ export class Projekt {
         return this.globalnePrzymioty
     }
 
-    public ustawGlobalnePrzymioty(przymioty: Przymiot[]) {
+    public ustawGlobalnePrzymioty(przymioty: Przymiot[]): void {
         this.globalnePrzymioty = przymioty
     }
 
-    public dodajGlobalnyPrzymiot(przymiot: Przymiot) {
+    public dodajGlobalnyPrzymiot(przymiot: Przymiot): void {
         this.globalnePrzymioty.push(przymiot)
+    }
+
+    public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Projekt {
+        const lokacje = (entities.Lokacje ?? []).map(l => Lokacja.fromJSON(l))
+        const postacie = (entities.NPC ?? []).map(n => NPC.fromJSON(n))
+        const przedmioty = (entities.Przedmioty ?? []).map(p => Przedmiot.fromJSON(p))
+        const klasyPostaci = (entities.KlasyPostaci ?? []).map(k => KlasaPostaci.fromJSON(k))
+
+        const sceny = (entities.Paragrafy ?? []).map(s => Scena.fromJSON(s))
+
+        const postacGraczaData = (entities.PostacGracza ?? [])[0]
+        const postacGracza = postacGraczaData
+            ? PostacGracza.fromJSON(postacGraczaData)
+            : new PostacGracza()
+
+        const zasady = entities.Zasady ?? []
+        const globalneCechy = zasady.filter(z => z.typ === 'cecha').map(z => Cecha.fromJSON(z))
+        const globalneUmiejetnosci = zasady
+            .filter(z => z.typ === 'umiejetnosc')
+            .map(z => Umiejetnosc.fromJSON(z))
+        const globalnePrzymioty = zasady
+            .filter(z => z.typ === 'przymiot')
+            .map(z => Przymiot.fromJSON(z))
+
+        return new Projekt(
+            projectData.id ?? '',
+            projectData.nazwa ?? '',
+            projectData.autor ?? '',
+            projectData.wersja ?? '1.0.0',
+            new Opis(),
+            sceny,
+            lokacje,
+            postacie,
+            przedmioty,
+            klasyPostaci,
+            postacGracza,
+            globalneCechy,
+            globalneUmiejetnosci,
+            globalnePrzymioty
+        )
     }
 }

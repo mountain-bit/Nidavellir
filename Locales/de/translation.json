@@ -1,0 +1,111 @@
+{
+  "dialog": {
+    "choose_new_project_folder": "Projektordner auswählen",
+    "open_project": "Projekt öffnen"
+  },
+  "error": {
+    "project_not_found": "Projektpfad existiert nicht"
+  },
+  "app": {
+    "title": "Paragraphen-Spielmotor",
+    "version": "Version"
+  },
+  "project": {
+    "new": "Neues Projekt",
+    "open": "Projekt öffnen",
+    "save": "Projekt speichern",
+    "close": "Projekt schließen",
+    "name": "Projektname",
+    "author": "Autor",
+    "version": "Version",
+    "description": "Beschreibung"
+  },
+  "scene": {
+    "new": "Neue Szene",
+    "delete": "Szene löschen",
+    "edit": "Szene bearbeiten",
+    "name": "Szenenname"
+  },
+  "paragraph": {
+    "new": "Neuer Absatz",
+    "delete": "Absatz löschen",
+    "edit": "Absatz bearbeiten",
+    "title": "Titel",
+    "content": "Inhalt",
+    "jumps": "Sprünge",
+    "combat": "Kampf"
+  },
+  "character": {
+    "player": "Spielercharakter",
+    "npc": "NPC",
+    "name": "Name",
+    "class": "Charakterklasse",
+    "traits": "Merkmale",
+    "skills": "Fähigkeiten",
+    "attributes": "Attribute"
+  },
+  "item": {
+    "list": "Gegenstände",
+    "new": "Neuer Gegenstand",
+    "delete": "Gegenstand löschen",
+    "name": "Name",
+    "description": "Beschreibung"
+  },
+  "location": {
+    "list": "Orte",
+    "new": "Neuer Ort",
+    "delete": "Ort löschen",
+    "name": "Name",
+    "description": "Beschreibung"
+  },
+  "errors": {
+    "unknownError": "Ein unbekannter Fehler ist aufgetreten",
+    "fileNotFound": "Datei nicht gefunden",
+    "saveFailed": "Datei konnte nicht gespeichert werden",
+    "loadFailed": "Datei konnte nicht geladen werden"
+  },
+  "buttons": {
+    "ok": "OK",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "add": "Hinzufügen",
+    "edit": "Bearbeiten",
+    "close": "Schließen"
+  },
+  "start_window": {
+    "app_subtitle": "Paragraphen-Spielmotor",
+    "get_started": "Loslegen",
+    "create_project": "Neues Projekt erstellen",
+    "open_project": "Projekt öffnen",
+    "version": "Version",
+    "settings": "Einstellungen",
+    "recent_projects": "Letzte Projekte",
+    "no_recent_projects": "Keine letzten Projekte.",
+    "last_opened": "Zuletzt geöffnet:",
+    "open_project_error": "Projekt konnte nicht geöffnet werden:",
+    "open_project_load_error": "Fehler beim Laden des Projekts:",
+    "language": "Sprache",
+    "language_pl": "Polski",
+    "language_en": "English",
+    "language_de": "Deutsch",
+    "new_project_title": "Neues Projekt",
+    "np_name": "Projektname",
+    "np_name_placeholder": "z.B. Mein tolles Projekt",
+    "np_author": "Autor",
+    "np_author_placeholder": "z.B. Max Mustermann",
+    "np_id": "ID (eindeutig, keine Leerzeichen)",
+    "np_id_placeholder": "z.B. mein_tolles_projekt",
+    "np_id_error": "ID darf keine Leerzeichen enthalten.",
+    "np_id_required": "Projekt-ID darf nicht leer sein.",
+    "np_cancel": "Abbrechen",
+    "np_create": "Projekt erstellen",
+    "np_folder": "Projektordner",
+    "np_folder_placeholder": "Kein Ordner ausgewählt...",
+    "np_folder_required": "Bitte wählen Sie einen Ordner für das Projekt.",
+    "np_browse": "Durchsuchen",
+    "np_create_success": "Projekt erfolgreich erstellt!",
+    "np_create_error": "Fehler beim Erstellen des Projekts:",
+    "np_unexpected_error": "Ein unerwarteter Fehler ist aufgetreten:"
+  }
+}

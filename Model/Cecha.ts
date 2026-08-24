@@ -25,15 +25,15 @@ export class Cecha {
         return this.wartosc
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
-    public ustawWartosc(wartosc: string | number) {
+    public ustawWartosc(wartosc: string | number): void {
         this.wartosc = wartosc
     }
 
@@ -41,11 +41,21 @@ export class Cecha {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
     public czymaID(): boolean {
         return this.id !== ''
+    }
+
+    public static fromJSON(json: any): Cecha {
+        if (!json) return new Cecha('', '', new Opis(), '')
+        return new Cecha(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            json.wartosc || ''
+        )
     }
 }

@@ -19,11 +19,11 @@ export class Przedmiot {
         return this.opis
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -31,11 +31,16 @@ export class Przedmiot {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
     public czymaID(): boolean {
         return this.id !== ''
+    }
+
+    public static fromJSON(json: any): Przedmiot {
+        if (!json) return new Przedmiot('')
+        return new Przedmiot(json.id || '', json.nazwa || '', Opis.fromJSON(json.opis))
     }
 }

@@ -21,15 +21,20 @@ export class Opis {
         return this.tekstDlaAutora
     }
 
-    public ustawTekst(tekst: string) {
+    public ustawTekst(tekst: string): void {
         this.tekst = tekst
     }
 
-    public ustawStreszczenie(streszczenie: string) {
+    public ustawStreszczenie(streszczenie: string): void {
         this.streszczenie = streszczenie
     }
 
-    public ustawTekstDlaAutora(tekstDlaAutora: string) {
+    public ustawTekstDlaAutora(tekstDlaAutora: string): void {
         this.tekstDlaAutora = tekstDlaAutora
+    }
+
+    public static fromJSON(json: any): Opis {
+        if (!json) return new Opis()
+        return new Opis(json.tekst || '', json.streszczenie || '', json.tekstDlaAutora || '')
     }
 }

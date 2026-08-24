@@ -40,7 +40,7 @@ export class PostacGracza {
         return undefined
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -52,7 +52,7 @@ export class PostacGracza {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -60,7 +60,7 @@ export class PostacGracza {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -68,11 +68,11 @@ export class PostacGracza {
         return this.cechy.find(c => c.pobierzID() === id)?.pobierzWartosc()
     }
 
-    public dodajCecha(cecha: Cecha) {
+    public dodajCecha(cecha: Cecha): void {
         this.cechy.push(cecha)
     }
 
-    public usunCecha(id: string) {
+    public usunCecha(id: string): void {
         this.cechy = this.cechy.filter(c => c.pobierzID() !== id)
     }
 
@@ -84,11 +84,11 @@ export class PostacGracza {
         return this.umiejetnosci.find(u => u.pobierzID() === id)
     }
 
-    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc) {
+    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc): void {
         this.umiejetnosci.push(umiejetnosc)
     }
 
-    public usunUmiejetnosc(id: string) {
+    public usunUmiejetnosc(id: string): void {
         this.umiejetnosci = this.umiejetnosci.filter(u => u.pobierzID() !== id)
     }
 
@@ -100,11 +100,11 @@ export class PostacGracza {
         return this.przymioty.find(p => p.pobierzID() === id)
     }
 
-    public dodajPrzymiot(przymiot: Przymiot) {
+    public dodajPrzymiot(przymiot: Przymiot): void {
         this.przymioty.push(przymiot)
     }
 
-    public usunPrzymiot(id: string) {
+    public usunPrzymiot(id: string): void {
         this.przymioty = this.przymioty.filter(p => p.pobierzID() !== id)
     }
 
@@ -116,11 +116,11 @@ export class PostacGracza {
         return this.przedmioty.find(p => p.pobierzID() === id)
     }
 
-    public dodajPrzedmiot(przedmiot: Przedmiot) {
+    public dodajPrzedmiot(przedmiot: Przedmiot): void {
         this.przedmioty.push(przedmiot)
     }
 
-    public usunPrzedmiot(id: string) {
+    public usunPrzedmiot(id: string): void {
         this.przedmioty = this.przedmioty.filter(p => p.pobierzID() !== id)
     }
 
@@ -132,7 +132,21 @@ export class PostacGracza {
         return this.klasaPostaci || undefined
     }
 
-    public ustawKlasaPostaci(klasaPostaci: KlasaPostaci) {
+    public ustawKlasaPostaci(klasaPostaci: KlasaPostaci): void {
         this.klasaPostaci = klasaPostaci
+    }
+
+    public static fromJSON(json: any): PostacGracza {
+        if (!json) return new PostacGracza()
+        return new PostacGracza(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            (json.cechy || []).map((c: any) => Cecha.fromJSON(c)),
+            (json.umiejetnosci || []).map((u: any) => Umiejetnosc.fromJSON(u)),
+            (json.przymioty || []).map((p: any) => Przymiot.fromJSON(p)),
+            (json.przedmioty || []).map((p: any) => Przedmiot.fromJSON(p)),
+            json.klasaPostaci ? KlasaPostaci.fromJSON(json.klasaPostaci) : null
+        )
     }
 }

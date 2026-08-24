@@ -1,0 +1,111 @@
+{
+  "dialog": {
+    "choose_new_project_folder": "Wybierz folder dla nowego projektu",
+    "open_project": "Otwórz projekt"
+  },
+  "error": {
+    "project_not_found": "Ścieżka projektu nie istnieje"
+  },
+  "app": {
+    "title": "Silnik Gier Paragrafowych",
+    "version": "Wersja"
+  },
+  "project": {
+    "new": "Nowy projekt",
+    "open": "Otwórz projekt",
+    "save": "Zapisz projekt",
+    "close": "Zamknij projekt",
+    "name": "Nazwa projektu",
+    "author": "Autor",
+    "version": "Wersja",
+    "description": "Opis"
+  },
+  "scene": {
+    "new": "Nowa scena",
+    "delete": "Usuń scenę",
+    "edit": "Edytuj scenę",
+    "name": "Nazwa sceny"
+  },
+  "paragraph": {
+    "new": "Nowy paragraf",
+    "delete": "Usuń paragraf",
+    "edit": "Edytuj paragraf",
+    "title": "Tytuł",
+    "content": "Treść",
+    "jumps": "Przeskoki",
+    "combat": "Walka"
+  },
+  "character": {
+    "player": "Postać gracza",
+    "npc": "NPC",
+    "name": "Imię",
+    "class": "Klasa postaci",
+    "traits": "Cechy",
+    "skills": "Umiejętności",
+    "attributes": "Przymioty"
+  },
+  "item": {
+    "list": "Przedmioty",
+    "new": "Nowy przedmiot",
+    "delete": "Usuń przedmiot",
+    "name": "Nazwa",
+    "description": "Opis"
+  },
+  "location": {
+    "list": "Lokacje",
+    "new": "Nowa lokacja",
+    "delete": "Usuń lokację",
+    "name": "Nazwa",
+    "description": "Opis"
+  },
+  "errors": {
+    "unknownError": "Wystąpił nieznany błąd",
+    "fileNotFound": "Nie znaleziono pliku",
+    "saveFailed": "Nie udało się zapisać pliku",
+    "loadFailed": "Nie udało się wczytać pliku"
+  },
+  "buttons": {
+    "ok": "OK",
+    "cancel": "Anuluj",
+    "save": "Zapisz",
+    "delete": "Usuń",
+    "add": "Dodaj",
+    "edit": "Edytuj",
+    "close": "Zamknij"
+  },
+  "start_window": {
+    "app_subtitle": "Silnik Gier Paragrafowych",
+    "get_started": "Rozpocznij",
+    "create_project": "Stwórz nowy projekt",
+    "open_project": "Otwórz projekt",
+    "version": "Wersja",
+    "settings": "Ustawienia",
+    "recent_projects": "Ostatnie projekty",
+    "no_recent_projects": "Brak ostatnich projektów.",
+    "last_opened": "Ostatnio otwierano:",
+    "open_project_error": "Nie udało się otworzyć projektu:",
+    "open_project_load_error": "Błąd podczas ładowania projektu:",
+    "language": "Język",
+    "language_pl": "Polski",
+    "language_en": "English",
+    "language_de": "Deutsch",
+    "new_project_title": "Szczegóły nowego projektu",
+    "np_name": "Nazwa projektu",
+    "np_name_placeholder": "np. Mój Epicki Projekt",
+    "np_author": "Autor",
+    "np_author_placeholder": "np. Jan Kowalski",
+    "np_id": "ID (unikalne, bez spacji)",
+    "np_id_placeholder": "np. moj_epicki_projekt",
+    "np_id_error": "ID nie może zawierać spacji.",
+    "np_id_required": "ID projektu nie może być puste.",
+    "np_cancel": "Anuluj",
+    "np_create": "Utwórz projekt",
+    "np_folder": "Folder projektu",
+    "np_folder_placeholder": "Nie wybrano folderu...",
+    "np_folder_required": "Wybierz folder dla projektu.",
+    "np_browse": "Przeglądaj",
+    "np_create_success": "Projekt został pomyślnie utworzony!",
+    "np_create_error": "Błąd podczas tworzenia projektu:",
+    "np_unexpected_error": "Wystąpił nieoczekiwany błąd:"
+  }
+}

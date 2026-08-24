@@ -25,19 +25,29 @@ export class Lokacja {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
-    public dodajTag(tag: string) {
+    public dodajTag(tag: string): void {
         this.tags.push(tag)
     }
 
-    public usunTag(tag: string) {
+    public usunTag(tag: string): void {
         this.tags = this.tags.filter(t => t !== tag)
     }
 
     public pobierzTagi(): string[] {
         return this.tags
+    }
+
+    public static fromJSON(json: any): Lokacja {
+        if (!json) return new Lokacja()
+        return new Lokacja(
+            json.id || '',
+            json.nazwa || '',
+            Opis.fromJSON(json.opis),
+            json.tags || []
+        )
     }
 }

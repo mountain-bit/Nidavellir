@@ -3,6 +3,7 @@ import { Opis } from './Opis'
 import { Przymiot } from './Przymiot'
 import { Umiejetnosc } from './Umiejetnosc'
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export class NPC_Template {
     private id: string = ''
     private nazwa: string = ''
@@ -31,7 +32,7 @@ export class NPC_Template {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -43,7 +44,7 @@ export class NPC_Template {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -51,7 +52,7 @@ export class NPC_Template {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -59,11 +60,11 @@ export class NPC_Template {
         return this.cechy.find(c => c.pobierzID() === id)?.pobierzWartosc()
     }
 
-    public dodajCecha(cecha: Cecha) {
+    public dodajCecha(cecha: Cecha): void {
         this.cechy.push(cecha)
     }
 
-    public usunCecha(id: string) {
+    public usunCecha(id: string): void {
         this.cechy = this.cechy.filter(c => c.pobierzID() !== id)
     }
 
@@ -75,11 +76,11 @@ export class NPC_Template {
         return this.umiejetnosci.find(u => u.pobierzID() === id)
     }
 
-    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc) {
+    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc): void {
         this.umiejetnosci.push(umiejetnosc)
     }
 
-    public usunUmiejetnosc(id: string) {
+    public usunUmiejetnosc(id: string): void {
         this.umiejetnosci = this.umiejetnosci.filter(u => u.pobierzID() !== id)
     }
 
@@ -91,11 +92,11 @@ export class NPC_Template {
         return this.przymioty.find(p => p.pobierzID() === id)
     }
 
-    public dodajPrzymiot(przymiot: Przymiot) {
+    public dodajPrzymiot(przymiot: Przymiot): void {
         this.przymioty.push(przymiot)
     }
 
-    public usunPrzymiot(id: string) {
+    public usunPrzymiot(id: string): void {
         this.przymioty = this.przymioty.filter(p => p.pobierzID() !== id)
     }
 

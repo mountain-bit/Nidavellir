@@ -1,7 +1,3 @@
-/* 
-Klasa warunku - definicja warunku
-nie wiadomo czy bedzie potzrebna.
-*/
 export class Warunek {
     private id: string = ''
     private nazwa: string = ''
@@ -15,7 +11,7 @@ export class Warunek {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -27,7 +23,12 @@ export class Warunek {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
+    }
+
+    public static fromJSON(json: any): Warunek {
+        if (!json) return new Warunek('')
+        return new Warunek(json.id || '', json.nazwa || '')
     }
 }

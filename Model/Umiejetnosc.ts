@@ -19,7 +19,7 @@ export class Umiejetnosc {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -31,7 +31,12 @@ export class Umiejetnosc {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
+    }
+
+    public static fromJSON(json: any): Umiejetnosc {
+        if (!json) return new Umiejetnosc()
+        return new Umiejetnosc(json.id || '', json.nazwa || '', Opis.fromJSON(json.opis))
     }
 }

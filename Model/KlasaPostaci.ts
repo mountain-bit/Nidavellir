@@ -34,7 +34,7 @@ export class KlasaPostaci {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -46,7 +46,7 @@ export class KlasaPostaci {
         return this.nazwa
     }
 
-    public ustawNazwe(nazwa: string) {
+    public ustawNazwe(nazwa: string): void {
         this.nazwa = nazwa
     }
 
@@ -54,7 +54,7 @@ export class KlasaPostaci {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -64,11 +64,11 @@ export class KlasaPostaci {
         return cecha
     }
 
-    public dodajCecha(cecha: Cecha) {
+    public dodajCecha(cecha: Cecha): void {
         this.cechy.push(cecha)
     }
 
-    public usunCecha(id: string) {
+    public usunCecha(id: string): void {
         this.cechy = this.cechy.filter(c => c.pobierzID() !== id)
     }
 
@@ -80,11 +80,11 @@ export class KlasaPostaci {
         return this.umiejetnosci.find(u => u.pobierzID() === id)
     }
 
-    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc) {
+    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc): void {
         this.umiejetnosci.push(umiejetnosc)
     }
 
-    public usunUmiejetnosc(id: string) {
+    public usunUmiejetnosc(id: string): void {
         this.umiejetnosci = this.umiejetnosci.filter(u => u.pobierzID() !== id)
     }
 
@@ -96,11 +96,11 @@ export class KlasaPostaci {
         return this.przymioty.find(p => p.pobierzID() === id)
     }
 
-    public dodajPrzymiot(przymiot: Przymiot) {
+    public dodajPrzymiot(przymiot: Przymiot): void {
         this.przymioty.push(przymiot)
     }
 
-    public usunPrzymiot(id: string) {
+    public usunPrzymiot(id: string): void {
         this.przymioty = this.przymioty.filter(p => p.pobierzID() !== id)
     }
 
@@ -112,7 +112,20 @@ export class KlasaPostaci {
         return this.poziom
     }
 
-    public ustawPoziom(poziom: number) {
+    public ustawPoziom(poziom: number): void {
         this.poziom = poziom
+    }
+
+    public static fromJSON(json: any): KlasaPostaci {
+        if (!json) return new KlasaPostaci()
+        return new KlasaPostaci(
+            json.id || '',
+            json.nazwa || '',
+            json.poziom || 1,
+            Opis.fromJSON(json.opis),
+            (json.cechy || []).map((c: any) => Cecha.fromJSON(c)),
+            (json.umiejetnosci || []).map((u: any) => Umiejetnosc.fromJSON(u)),
+            (json.przymioty || []).map((p: any) => Przymiot.fromJSON(p))
+        )
     }
 }

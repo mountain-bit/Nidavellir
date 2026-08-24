@@ -1,15 +1,11 @@
-/**
- * Moduł lokalizacji (i18n)
- *
- * Użycie:
- *   import { t, setLanguage } from '../Utils/translate'
- *   setLanguage('en')
- *   console.log(t('przyciski.zapisz')) // "Save"
- */
+import i18next from 'i18next'
 
-import pl, { type Translations } from './i18n/pl'
+import de from '../Locales/de/translation.json'
+import en from '../Locales/en/translation.json'
+import pl from '../Locales/pl/translation.json'
 
-// Typ klucza zagnieżdżonego, np. "projekt.nowy" | "przyciski.ok"
+export type Translations = typeof pl
+
 type NestedKeyOf<T, Prefix extends string = ''> = {
     [K in keyof T & string]: T[K] extends object
         ? NestedKeyOf<T[K], `${Prefix}${K}.`>
@@ -18,63 +14,63 @@ type NestedKeyOf<T, Prefix extends string = ''> = {
 
 export type TranslationKey = NestedKeyOf<Translations>
 
-type SupportedLanguage = 'pl' | 'en' | 'de'
+export const availableLanguages = ['pl', 'en', 'de'] as const
+export type SupportedLanguage = (typeof availableLanguages)[number]
 
-const loaders: Record<SupportedLanguage, () => Promise<Translations>> = {
-    pl: async () => (await import('./i18n/pl')).default,
-    en: async () => (await import('./i18n/en')).default,
-    de: async () => (await import('./i18n/de')).default,
+const resources = {
+    pl: { translation: pl as unknown as Translations },
+    en: { translation: en as unknown as Translations },
+    de: { translation: de as unknown as Translations },
 }
 
-let currentTranslations: Translations = pl
-let currentLanguage: SupportedLanguage = 'pl'
+let initialized = false
 
-/**
- * Asynchronicznie ładuje i ustawia język aplikacji.
- */
-export async function setLanguage(lang: SupportedLanguage): Promise<void> {
-    const loader = loaders[lang]
-    if (!loader) {
-        console.warn(`Nieznany język: ${lang}, pozostawiam domyślny`)
+export async function initTranslations(): Promise<void> {
+    if (initialized) return
+
+    const locale = await window.electronAPI.getLocale()
+
+    await i18next.init({
+        lng: locale,
+        fallbackLng: 'en',
+        resources,
+        interpolation: { escapeValue: true },
+    })
+
+    initialized = true
+}
+
+export async function initTranslationsWithLocale(locale: SupportedLanguage): Promise<void> {
+    if (i18next.isInitialized) {
+        await i18next.changeLanguage(locale)
         return
     }
-    currentTranslations = await loader()
-    currentLanguage = lang
+    await i18next.init({
+        lng: locale,
+        fallbackLng: 'en',
+        resources,
+        interpolation: { escapeValue: true },
+    })
+    initialized = true
 }
 
-/**
- * Zwraca aktualnie ustawiony język.
- */
-export function getLanguage(): SupportedLanguage {
-    return currentLanguage
-}
-
-/**
- * Pobiera przetłumaczony tekst po kluczu (np. "projekt.nowy").
- * Jeśli klucz nie istnieje — zwraca sam klucz jako fallback.
- */
-export function t(key: TranslationKey): string {
-    const parts = key.split('.')
+export function t(key: TranslationKey, options?: Record<string, unknown>): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let current: any = currentTranslations
-
-    for (const part of parts) {
-        if (current == null || typeof current !== 'object') {
-            console.warn(`Brak tłumaczenia dla klucza: "${key}"`)
-            return key
-        }
-        current = current[part]
-    }
-
-    if (typeof current !== 'string') {
-        console.warn(`Klucz "${key}" nie prowadzi do tekstu`)
-        return key
-    }
-
-    return current
+    return i18next.t(key as any, options as any) as string
 }
 
-/**
- * Lista dostępnych języków.
- */
-export const availableLanguages: SupportedLanguage[] = ['pl', 'en', 'de']
+export function getLanguage(): SupportedLanguage {
+    return i18next.language as SupportedLanguage
+}
+
+export async function setLanguage(locale: SupportedLanguage): Promise<boolean> {
+    if (!availableLanguages.includes(locale)) {
+        console.warn(`[i18n] Unsupported locale: ${locale}`)
+        return false
+    }
+    await i18next.changeLanguage(locale)
+    if (typeof window !== 'undefined' && window.electronAPI) {
+        window.electronAPI.setLocale(locale).catch(() => {})
+    }
+    return true
+}

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const fs = require('fs')
 const path = require('path')
 
@@ -16,7 +17,7 @@ const allowedLicenses = new Set([
 ])
 
 if (!fs.existsSync(virtualStoreDir)) {
-    console.error('Nie znaleziono zależności pnpm. Uruchom najpierw pnpm install.')
+    console.error('pnpm dependencies not found. Please run pnpm install first.')
     process.exit(1)
 }
 
@@ -44,7 +45,8 @@ function collectPackageManifests(directory) {
         if (checkedPackages.has(packageId)) continue
         checkedPackages.add(packageId)
 
-        const license = typeof manifest.license === 'string' ? manifest.license : manifest.license?.type
+        const license =
+            typeof manifest.license === 'string' ? manifest.license : manifest.license?.type
         const licenses = license?.replace(/[()]/g, '').split(/\s+(?:OR|AND)\s+/) ?? []
         const isAllowed = licenses.length > 0 && licenses.every(item => allowedLicenses.has(item))
         if (!isAllowed) invalidPackages.push(`${packageId}: ${license ?? 'brak licencji'}`)
@@ -58,11 +60,11 @@ for (const storeEntry of fs.readdirSync(virtualStoreDir, { withFileTypes: true }
 }
 
 if (invalidPackages.length > 0) {
-    console.error('Znaleziono zależności z niedozwoloną lub nieznaną licencją:')
+    console.error('Found dependencies with disallowed or unknown license:')
     for (const packageInfo of invalidPackages) {
         console.error(`- ${packageInfo}`)
     }
     process.exit(1)
 }
 
-console.log('Sprawdzono licencje wszystkich zależności: dozwolone licencje są zgodne z polityką projektu.')
+console.log('Checked licenses for all dependencies: allowed licenses conform to project policy.')

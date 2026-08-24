@@ -1,6 +1,12 @@
+import path from 'path'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            electron: path.resolve(__dirname, '__mocks__/electron.js'),
+        },
+    },
     test: {
         globals: true,
         environment: 'node',

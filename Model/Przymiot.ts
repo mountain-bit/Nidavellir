@@ -19,7 +19,7 @@ export class Przymiot {
         return this.opis
     }
 
-    public ustawOpis(opis: Opis) {
+    public ustawOpis(opis: Opis): void {
         this.opis = opis
     }
 
@@ -27,11 +27,16 @@ export class Przymiot {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
     public czymaID(): boolean {
         return this.id !== ''
+    }
+
+    public static fromJSON(json: any): Przymiot {
+        if (!json) return new Przymiot('')
+        return new Przymiot(json.id || '', json.nazwa || '', Opis.fromJSON(json.opis))
     }
 }

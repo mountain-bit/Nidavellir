@@ -34,7 +34,7 @@ export class Paragraf {
         return this.id
     }
 
-    public nadajID(id: string) {
+    public nadajID(id: string): void {
         this.id = id
     }
 
@@ -46,7 +46,7 @@ export class Paragraf {
         return this.tytul
     }
 
-    public ustawTytul(tytul: string) {
+    public ustawTytul(tytul: string): void {
         this.tytul = tytul
     }
 
@@ -54,7 +54,7 @@ export class Paragraf {
         return this.tresc
     }
 
-    public ustawTresc(tresc: Opis) {
+    public ustawTresc(tresc: Opis): void {
         this.tresc = tresc
     }
 
@@ -62,7 +62,7 @@ export class Paragraf {
         return this.listaPrzeskokow
     }
 
-    public ustawListaPrzeskokow(listaPrzeskokow: Przeskok[]) {
+    public ustawListaPrzeskokow(listaPrzeskokow: Przeskok[]): void {
         this.listaPrzeskokow = listaPrzeskokow
     }
 
@@ -70,11 +70,11 @@ export class Paragraf {
         return this.listaPrzeskokow.some(p => p.pobierzID() === id)
     }
 
-    public dodajPrzeskok(przeskok: Przeskok) {
+    public dodajPrzeskok(przeskok: Przeskok): void {
         this.listaPrzeskokow.push(przeskok)
     }
 
-    public usunPrzeskok(id: string) {
+    public usunPrzeskok(id: string): void {
         this.listaPrzeskokow = this.listaPrzeskokow.filter(p => p.pobierzID() !== id)
     }
 
@@ -86,7 +86,7 @@ export class Paragraf {
         return this.czyJestWalka
     }
 
-    public ustawCzyJestWalka(czyJestWalka: boolean) {
+    public ustawCzyJestWalka(czyJestWalka: boolean): void {
         this.czyJestWalka = czyJestWalka
     }
 
@@ -94,7 +94,24 @@ export class Paragraf {
         return this.walka
     }
 
-    public ustawWalke(walka: Walka) {
+    public ustawWalke(walka: Walka): void {
         this.walka = walka
+    }
+
+    public static fromJSON(json: any): Paragraf {
+        if (!json) return new Paragraf('')
+        const p = new Paragraf(
+            json.id || '',
+            json.tytul || '',
+            Opis.fromJSON(json.tresc),
+            (json.listaPrzeskokow || []).map((przeskok: any) => Przeskok.fromJSON(przeskok)),
+            json.czyJestWalka || false,
+            json.walka ? Walka.fromJSON(json.walka) : new Walka('', '')
+        )
+        if (json.tags) p.tags = json.tags
+        if (json.numer !== undefined) p.numer = json.numer
+        if (json.numerWylosowany !== undefined) p.numerWylosowany = json.numerWylosowany
+        if (json.blokadaNumeru !== undefined) p.blokadaNumeru = json.blokadaNumeru
+        return p
     }
 }

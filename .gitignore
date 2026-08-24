@@ -1,7 +1,7 @@
 node_modules
+dist
+coverage
 View/MainWindow.generated.css
 
 .vscode
-
-
-
+Plan.md
