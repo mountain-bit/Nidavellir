@@ -7,7 +7,7 @@ import {
     t,
 } from '../Utils/translate'
 
-class StartWindowViewModel {
+export class StartWindowViewModel {
     private btnCreateProject: HTMLElement | null
     private btnOpenProject: HTMLElement | null
     private btnCloseApp: HTMLElement | null
@@ -23,7 +23,6 @@ class StartWindowViewModel {
     private btnSubmitNewProject: HTMLButtonElement | null
     private btnBrowseFolder: HTMLElement | null
     private npNazwaInput: HTMLInputElement | null
-    private npAutorInput: HTMLInputElement | null
     private npFolderDisplay: HTMLElement | null
     private selectedProjectPath: string | null = null
 
@@ -45,7 +44,6 @@ class StartWindowViewModel {
         ) as HTMLButtonElement
         this.btnBrowseFolder = document.getElementById('btn-browse-folder')
         this.npNazwaInput = document.getElementById('np-nazwa') as HTMLInputElement
-        this.npAutorInput = document.getElementById('np-autor') as HTMLInputElement
         this.npFolderDisplay = document.getElementById('np-folder-display')
 
         this.init()
@@ -113,18 +111,10 @@ class StartWindowViewModel {
             window.electronAPI.closeApp()
         })
 
-        this.btnCreateProject?.addEventListener('click', async () => {
+        this.btnCreateProject?.addEventListener('click', () => {
             if (this.newProjectModal) {
                 this.newProjectModal.classList.remove('hidden')
                 if (this.npNazwaInput) this.npNazwaInput.value = ''
-                if (this.npAutorInput) {
-                    try {
-                        const defaultAuthor = await window.electronAPI.getSystemUsername()
-                        this.npAutorInput.value = defaultAuthor || ''
-                    } catch {
-                        this.npAutorInput.value = ''
-                    }
-                }
                 this.selectedProjectPath = null
                 if (this.npFolderDisplay) {
                     this.npFolderDisplay.textContent = t('start_window.np_folder_placeholder')
@@ -158,7 +148,12 @@ class StartWindowViewModel {
 
         this.btnSubmitNewProject?.addEventListener('click', async () => {
             const nazwa = this.npNazwaInput?.value.trim() || ''
-            const autor = this.npAutorInput?.value.trim() || ''
+            let autor = ''
+            try {
+                autor = (await window.electronAPI.getSystemUsername()) || ''
+            } catch {
+                autor = ''
+            }
             const projectPath = this.selectedProjectPath
 
             if (!projectPath) {
