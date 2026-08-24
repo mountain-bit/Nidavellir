@@ -87,7 +87,6 @@ describe('StartWindowViewModel', () => {
 
     async function createViewModel(): Promise<StartWindowViewModel> {
         const vm = new StartWindowViewModel()
-        // Czekamy na powiązanie zdarzeń i załadowanie ostatnich projektów z init()
         await vi.waitFor(() => {
             const recentList = document.getElementById('recent-projects-list')
             expect(recentList?.children.length).toBeGreaterThan(0)
@@ -123,11 +122,9 @@ describe('StartWindowViewModel', () => {
 
             expect(dropdown?.classList.contains('hidden')).toBe(true)
 
-            // Otwórz
             btnSettings?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
             expect(dropdown?.classList.contains('hidden')).toBe(false)
 
-            // Zamknij kliknięciem w dokument
             document.dispatchEvent(new MouseEvent('click', { bubbles: true }))
             expect(dropdown?.classList.contains('hidden')).toBe(true)
         })
@@ -250,7 +247,6 @@ describe('StartWindowViewModel', () => {
             const display = document.getElementById('np-folder-display')
             const btnSubmit = document.getElementById('btn-submit-new-project') as HTMLButtonElement
 
-            // Przypadek 1: Wybór folderu powiódł się
             btnBrowse?.click()
 
             await vi.waitFor(() => {
@@ -259,14 +255,12 @@ describe('StartWindowViewModel', () => {
                 expect(btnSubmit.disabled).toBe(false)
             })
 
-            // Przypadek 2: Wybór anulowany przez użytkownika
             ;(window.electronAPI.chooseFolder as any).mockResolvedValueOnce({ canceled: true })
             btnBrowse?.click()
 
             await vi.waitFor(() => {
                 expect(window.electronAPI.chooseFolder).toHaveBeenCalledTimes(2)
             })
-            // Ścieżka powinna pozostać poprzednia
             expect(display?.textContent).toBe('C:/Projekty/Gra1')
         })
 
@@ -274,7 +268,6 @@ describe('StartWindowViewModel', () => {
             vi.useFakeTimers()
             new StartWindowViewModel()
 
-            // Manualne odczekanie na init w trybie fake timers
             await vi.runAllTimersAsync()
 
             const btnCreate = document.getElementById('btn-create-project')
@@ -501,7 +494,6 @@ describe('StartWindowViewModel', () => {
             expect(projButton?.textContent).toContain('Super Gra')
             expect(projButton?.textContent).toContain('C:/Gry/SuperGra')
 
-            // Kliknięcie w projekt z listy
             projButton?.click()
 
             await vi.waitFor(() => {
@@ -580,7 +572,6 @@ describe('StartWindowViewModel', () => {
             const container = document.getElementById('toast-container')
             expect(container?.children.length).toBe(1)
 
-            // Przesuń czas o 3.5 sekundy (3000ms + 300ms na usunięcie)
             await vi.advanceTimersByTimeAsync(3500)
 
             expect(container?.children.length).toBe(0)

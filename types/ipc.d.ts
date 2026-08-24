@@ -1,6 +1,3 @@
-/** Typy danych przesyłanych przez IPC między Main Process a Renderer */
-
-/** Surowe dane projektu z project.json */
 export interface ProjectData {
     id: string
     nazwa: string
@@ -10,10 +7,8 @@ export interface ProjectData {
     sciezkiDanych: string[]
 }
 
-/** Surowe dane pojedynczego elementu (np. Lokacja, NPC, Przedmiot itp.) */
 export type EntityData = Record<string, unknown>
 
-/** Kolekcja encji pogrupowanych według nazwy folderu */
 export interface EntitiesData {
     Lokacje?: EntityData[]
     NPC?: EntityData[]
@@ -26,13 +21,11 @@ export interface EntitiesData {
     [folder: string]: EntityData[] | undefined
 }
 
-/** Zserializowany projekt przekazywany przez IPC do Renderera */
 export interface SerializedProject {
     project: ProjectData
     entities: EntitiesData
 }
 
-/** Wynik operacji open-project zwracany przez Main Process */
 export interface OpenProjectResult {
     success: boolean
     path?: string

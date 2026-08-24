@@ -30,7 +30,7 @@ function saveLocale(locale) {
     try {
         settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
     } catch (_err) {
-        // settings.json może nie istnieć lub być niepoprawny — ignorujemy błąd
+        // ignore error
     }
     settings.locale = locale
     fs.mkdirSync(path.dirname(settingsPath), { recursive: true })
@@ -48,7 +48,7 @@ function detectSystemLocale() {
 }
 
 /**
- * @param {{ app?: import('electron').App }} [deps] - opcjonalne dependencje (dla testów)
+ * @param {{ app?: import('electron').App }} [deps]
  */
 async function initI18n(deps = {}) {
     _app = deps.app ?? require('electron').app
@@ -76,7 +76,7 @@ async function initI18n(deps = {}) {
 
 /**
  * @param {string} key
- * @param {Record<string, unknown>} [options] - interpolacja, count, itp.
+ * @param {Record<string, unknown>} [options]
  */
 function t(key, options) {
     return i18next.t(key, options)

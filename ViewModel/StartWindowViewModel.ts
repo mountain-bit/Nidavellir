@@ -177,7 +177,6 @@ export class StartWindowViewModel {
                 return
             }
 
-            // Auto-generuj ID z nazwy projektu
             const id = nazwa
                 ? nazwa
                       .toLowerCase()
@@ -280,7 +279,6 @@ export class StartWindowViewModel {
             btn.className =
                 'group flex flex-col items-start gap-1.5 rounded-lg border border-transparent p-3 text-left transition-all hover:bg-zinc-800/60 hover:border-zinc-700/50'
 
-            // Wiersz: ikona + nazwa projektu
             const row = document.createElement('div')
             row.className = 'flex items-center gap-2 w-full'
 
@@ -346,7 +344,6 @@ export class StartWindowViewModel {
     }
 }
 
-// Inicjalizacja po załadowaniu DOM
 document.addEventListener('DOMContentLoaded', () => {
     new StartWindowViewModel()
 })

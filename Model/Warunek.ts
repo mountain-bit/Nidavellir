@@ -1,7 +1,3 @@
-/* 
-Klasa warunku - definicja warunku
-nie wiadomo czy bedzie potzrebna.
-*/
 export class Warunek {
     private id: string = ''
     private nazwa: string = ''

@@ -1,10 +1,3 @@
-/**
- * Testy dla Utils/i18n.js (main process)
- *
- * i18n.js przyjmuje opcjonalne { app } w initI18n() — dependency injection.
- * W testach przekazujemy mock app zamiast prawdziwego Electron API.
- */
-
 import { createRequire } from 'module'
 import os from 'os'
 import path from 'path'
@@ -12,15 +5,11 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 const require = createRequire(import.meta.url)
 
-// ── Mock app ──────────────────────────────────────────────────────────────────
-
 const mockApp = {
     getPath: (name: string): string =>
         name === 'userData' ? path.join(os.tmpdir(), 'sgp-test') : os.tmpdir(),
     getLocale: (): string => 'pl-PL',
 }
-
-// ── Import modułu ─────────────────────────────────────────────────────────────
 
 const i18n = require('../../Utils/i18n.js') as {
     initI18n: (deps?: { app?: typeof mockApp }) => Promise<void>
@@ -30,21 +19,16 @@ const i18n = require('../../Utils/i18n.js') as {
     setLocale: (locale: string) => Promise<boolean>
 }
 
-// Inicjalizujemy raz — i18next jest singletonem CJS
 beforeAll(async (): Promise<void> => {
     await i18n.initI18n({ app: mockApp })
 })
 
-// Reset do polskiego przed każdym testem
 beforeEach(async (): Promise<void> => {
     await i18n.setLocale('pl')
 })
 
-// ── initI18n ──────────────────────────────────────────────────────────────────
-
 describe('i18n.js — initI18n', () => {
     it('po inicjalizacji getLocale() zwraca język wykryty z systemu', () => {
-        // mockApp.getLocale() → 'pl-PL' → detekcja zwraca 'pl'
         expect(i18n.getLocale()).toBe('pl')
     })
 
@@ -57,8 +41,6 @@ describe('i18n.js — initI18n', () => {
         await expect(i18n.initI18n({ app: mockApp })).resolves.not.toThrow()
     })
 })
-
-// ── setLocale / getLocale ─────────────────────────────────────────────────────
 
 describe('i18n.js — setLocale i getLocale', () => {
     it('setLocale("en") zmienia język na angielski i zwraca true', async () => {
@@ -95,8 +77,6 @@ describe('i18n.js — setLocale i getLocale', () => {
     })
 })
 
-// ── getTranslations ───────────────────────────────────────────────────────────
-
 describe('i18n.js — getTranslations', () => {
     it('zwraca obiekt z kluczami tłumaczeń dla polskiego', () => {
         const tr = i18n.getTranslations() as Record<string, Record<string, string>>
@@ -117,8 +97,6 @@ describe('i18n.js — getTranslations', () => {
         expect(tr.error?.project_not_found).toBeTruthy()
     })
 })
-
-// ── t() ───────────────────────────────────────────────────────────────────────
 
 describe('i18n.js — t()', () => {
     it('tłumaczy klucze z sekcji projekt', () => {

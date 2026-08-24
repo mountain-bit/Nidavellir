@@ -61,7 +61,6 @@ export class Scena {
         this.opis = opis
     }
 
-    // Paragrafy w scenie
     public pobierzParagrafy(): Paragraf[] {
         return this.paragrafy
     }
@@ -86,7 +85,6 @@ export class Scena {
         return this.paragrafy.some(p => p.pobierzID() === id)
     }
 
-    // Postacie (NPC) w scenie
     public pobierzPostacie(): NPC[] {
         return this.postacie
     }
@@ -111,7 +109,6 @@ export class Scena {
         return this.postacie.some(p => p.pobierzID() === id)
     }
 
-    // Lokacja sceny
     public pobierzLokacje(): Lokacja | null {
         return this.lokacja
     }
@@ -120,7 +117,6 @@ export class Scena {
         this.lokacja = lokacja
     }
 
-    // Tagi sceny
     public pobierzTagi(): string[] {
         return this.tags
     }
@@ -137,7 +133,6 @@ export class Scena {
         return this.tags.includes(tag)
     }
 
-    // Początkowy paragraf sceny
     public pobierzPoczatkowyParagrafID(): string {
         return this.poczatkowyParagrafID
     }

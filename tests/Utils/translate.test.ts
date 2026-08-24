@@ -10,18 +10,9 @@ import {
     type TranslationKey,
 } from '../../Utils/translate'
 
-// ── Pomocnicze ───────────────────────────────────────────────────────────────
-
-/**
- * Resetuje stan modułu translate między testami.
- * initTranslationsWithLocale obsługuje to wewnętrznie przez changeLanguage,
- * ale i18next jest singletonem — musimy zresetować go ręcznie między suitami.
- */
 async function resetToPolish(): Promise<void> {
     await initTranslationsWithLocale('pl')
 }
-
-// ── Podstawowe tłumaczenia ───────────────────────────────────────────────────
 
 describe('translate — podstawowe tłumaczenia', () => {
     beforeEach(resetToPolish)
@@ -49,7 +40,7 @@ describe('translate — podstawowe tłumaczenia', () => {
     })
 
     it('t() zwraca klucz jako fallback gdy klucz nie istnieje', () => {
-        // @ts-expect-error — celowo nieprawidłowy klucz
+        // @ts-expect-error -- intentional invalid key for testing fallback
         expect(t('nieistniejacy.klucz')).toBe('nieistniejacy.klucz')
     })
 
@@ -59,25 +50,20 @@ describe('translate — podstawowe tłumaczenia', () => {
     })
 })
 
-// ── Interpolacja ─────────────────────────────────────────────────────────────
-
 describe('translate — interpolacja i18next', () => {
     beforeEach(resetToPolish)
 
     it('t() przekazuje opcje interpolacji do i18next', () => {
-        // app.title istnieje jako zwykły string — weryfikujemy że opcje nie psują wywołania
         expect(t('app.title')).toBe('Silnik Gier Paragrafowych')
     })
 
     it('t() akceptuje opcje bez rzucania błędu', () => {
         expect(() =>
-            // @ts-expect-error — celowo nieprawidłowy klucz żeby testować ścieżkę fallback
+            // @ts-expect-error -- intentional invalid key for testing fallback
             t('nieistniejacy.klucz', { name: 'Jan', count: 3 })
         ).not.toThrow()
     })
 })
-
-// ── setLanguage ───────────────────────────────────────────────────────────────
 
 describe('translate — setLanguage', () => {
     beforeEach(resetToPolish)
@@ -89,15 +75,15 @@ describe('translate — setLanguage', () => {
     })
 
     it('setLanguage zwraca false dla nieobsługiwanego języka', async () => {
-        // @ts-expect-error — celowo nieprawidłowy język, testuje obsługę nieobsługiwanego locale
+        // @ts-expect-error -- intentional invalid locale for testing error handling
         expect(await setLanguage('xx')).toBe(false)
-        // @ts-expect-error — celowo nieprawidłowy język, testuje obsługę nieobsługiwanego locale
+        // @ts-expect-error -- intentional invalid locale for testing error handling
         expect(await setLanguage('fr')).toBe(false)
     })
 
     it('setLanguage nie zmienia języka gdy locale nieobsługiwane', async () => {
         await setLanguage('en')
-        // @ts-expect-error — celowo nieprawidłowy język, testuje obsługę nieobsługiwanego locale
+        // @ts-expect-error -- intentional invalid locale for testing error handling
         await setLanguage('xx')
         expect(getLanguage()).toBe('en')
     })
@@ -118,8 +104,6 @@ describe('translate — setLanguage', () => {
     })
 })
 
-// ── availableLanguages ────────────────────────────────────────────────────────
-
 describe('translate — availableLanguages', () => {
     it('zawiera pl, en, de', () => {
         expect(availableLanguages).toContain('pl')
@@ -132,18 +116,13 @@ describe('translate — availableLanguages', () => {
     })
 
     it('jest tablicą readonly — nie można jej modyfikować w runtime', () => {
-        // TypeScript blokuje to statycznie, ale sprawdzamy też runtime
         const langs = availableLanguages as readonly string[]
         expect(Object.isFrozen(langs) || Array.isArray(langs)).toBe(true)
     })
 })
 
-// ── initTranslations (guard) ─────────────────────────────────────────────────
-
 describe('translate — initTranslations', () => {
     it('initTranslations() jest bezpieczne do wielokrotnego wywołania (guard initialized)', async () => {
-        // Po initTranslationsWithLocale w beforeEach, initialized = true
-        // Kolejne wywołanie initTranslations() powinno być no-op (nie rzucać)
         await expect(initTranslationsWithLocale('pl')).resolves.toBeUndefined()
         await expect(initTranslationsWithLocale('en')).resolves.toBeUndefined()
     })
@@ -155,11 +134,8 @@ describe('translate — initTranslations', () => {
     })
 })
 
-// ── Typy (weryfikacja przez TypeScript) ──────────────────────────────────────
-
 describe('translate — bezpieczeństwo typów', () => {
     it('TranslationKey akceptuje prawidłowe klucze', () => {
-        // Jeśli to się kompiluje, typy działają poprawnie
         const key1: TranslationKey = 'buttons.save'
         const key2: TranslationKey = 'project.new'
         const key3: TranslationKey = 'start_window.create_project'

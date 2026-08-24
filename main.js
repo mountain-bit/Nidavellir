@@ -164,10 +164,6 @@ app.whenReady().then(async () => {
         }
     })
 
-    /**
-     * Sprawdza czy ścieżka docelowa leży wewnątrz katalogu bazowego.
-     * Zapobiega path traversal (np. ../../plik-poza-projektem.json).
-     */
     function isPathInsideBase(basePath, targetPath) {
         const resolvedBase = path.resolve(basePath)
         const resolvedTarget = path.resolve(targetPath)
@@ -186,7 +182,6 @@ app.whenReady().then(async () => {
             if (canceled || filePaths.length === 0) {
                 return { success: false }
             }
-            // Obsługujemy zarówno ścieżkę do katalogu, jak i do pliku project.json
             const chosen = filePaths[0]
             const stat = fs.statSync(chosen)
             if (stat.isDirectory()) {
@@ -195,7 +190,6 @@ app.whenReady().then(async () => {
                 targetPath = chosen
             }
         } else {
-            // Jeżeli przekazano ścieżkę do katalogu projektu, wyznacz ścieżkę do project.json
             if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
                 targetPath = path.join(targetPath, 'project.json')
             }
@@ -208,7 +202,6 @@ app.whenReady().then(async () => {
         const projectDir = path.dirname(targetPath)
 
         try {
-            // 1. Odczyt project.json
             let projectData
             try {
                 const fileContent = fs.readFileSync(targetPath, 'utf8')
@@ -227,11 +220,9 @@ app.whenReady().then(async () => {
                 }
             }
 
-            // 2. Odczyt encji z podfolderów
             const entities = {}
 
             for (const sciezka of projectData.sciezkiDanych) {
-                // Walidacja ścieżki meta.json — musi być wewnątrz katalogu projektu
                 const metaPath = path.resolve(projectDir, sciezka)
                 if (!isPathInsideBase(projectDir, metaPath)) {
                     return {
@@ -267,7 +258,6 @@ app.whenReady().then(async () => {
 
                 if (Array.isArray(metaData.elementy)) {
                     for (const element of metaData.elementy) {
-                        // Walidacja ścieżki elementu — relatywna względem katalogu meta.json
                         const elementPath = path.resolve(metaDir, element)
                         if (!isPathInsideBase(projectDir, elementPath)) {
                             return {
@@ -316,7 +306,7 @@ app.whenReady().then(async () => {
                 entities: entities,
             }
         } catch (err) {
-            console.error('Nieoczekiwany błąd podczas otwierania projektu:', err)
+            console.error('Unexpected error while opening project:', err)
             return {
                 success: false,
                 error: 'Wystąpił nieoczekiwany błąd podczas otwierania projektu.',

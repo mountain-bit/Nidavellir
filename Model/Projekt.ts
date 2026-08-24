@@ -24,7 +24,6 @@ export class Projekt {
     private klasyPostaci: KlasaPostaci[] = []
     private postacGracza: PostacGracza = new PostacGracza()
 
-    // Globalne definicje, z których gracz/NPC mogą korzystać
     private globalneCechy: Cecha[] = []
     private globalneUmiejetnosci: Umiejetnosc[] = []
     private globalnePrzymioty: Przymiot[] = []
@@ -60,8 +59,6 @@ export class Projekt {
         this.globalneUmiejetnosci = globalneUmiejetnosci
         this.globalnePrzymioty = globalnePrzymioty
     }
-
-    // --- Podstawowe dane ---
 
     public pobierzID(): string {
         return this.id
@@ -107,8 +104,6 @@ export class Projekt {
         this.opis = opis
     }
 
-    // --- Sceny ---
-
     public pobierzSceny(): Scena[] {
         return this.sceny
     }
@@ -133,7 +128,6 @@ export class Projekt {
         return this.sceny.some(s => s.pobierzID() === id)
     }
 
-    // --- Lokacje ---
     public pobierzLokacje(): Lokacja[] {
         return this.lokacje
     }
@@ -157,8 +151,6 @@ export class Projekt {
     public czymaLokacja(id: string): boolean {
         return this.lokacje.some(l => l.pobierzID() === id)
     }
-
-    // --- Postacie (NPC) ---
 
     public pobierzPostacie(): NPC[] {
         return this.postacie
@@ -184,8 +176,6 @@ export class Projekt {
         return this.postacie.some(p => p.pobierzID() === id)
     }
 
-    // --- Przedmioty ---
-
     public pobierzPrzedmioty(): Przedmiot[] {
         return this.przedmioty
     }
@@ -209,8 +199,6 @@ export class Projekt {
     public czymaPrzedmiot(id: string): boolean {
         return this.przedmioty.some(p => p.pobierzID() === id)
     }
-
-    // --- Klasy Postaci ---
 
     public pobierzKlasyPostaci(): KlasaPostaci[] {
         return this.klasyPostaci
@@ -236,8 +224,6 @@ export class Projekt {
         return this.klasyPostaci.some(k => k.pobierzID() === id)
     }
 
-    // --- Postać Gracza ---
-
     public pobierzPostacGracza(): PostacGracza {
         return this.postacGracza
     }
@@ -245,8 +231,6 @@ export class Projekt {
     public ustawPostacGracza(postacGracza: PostacGracza): void {
         this.postacGracza = postacGracza
     }
-
-    // --- Globalne Definicje (Cechy, Umiejętności, Przymioty) ---
 
     public pobierzGlobalneCechy(): Cecha[] {
         return this.globalneCechy
@@ -284,28 +268,19 @@ export class Projekt {
         this.globalnePrzymioty.push(przymiot)
     }
 
-    /**
-     * Tworzy instancję Projekt na podstawie danych JSON przesłanych przez IPC.
-     *
-     * @param projectData - dane z project.json
-     * @param entities - kolekcje encji z podfolderów projektu
-     */
     public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Projekt {
         const lokacje = (entities.Lokacje ?? []).map(l => Lokacja.fromJSON(l))
         const postacie = (entities.NPC ?? []).map(n => NPC.fromJSON(n))
         const przedmioty = (entities.Przedmioty ?? []).map(p => Przedmiot.fromJSON(p))
         const klasyPostaci = (entities.KlasyPostaci ?? []).map(k => KlasaPostaci.fromJSON(k))
 
-        // Sceny mogą być przechowywane w folderze Paragrafy lub jako osobne encje
         const sceny = (entities.Paragrafy ?? []).map(s => Scena.fromJSON(s))
 
-        // Postać gracza — maksymalnie jeden element w folderze PostacGracza
         const postacGraczaData = (entities.PostacGracza ?? [])[0]
         const postacGracza = postacGraczaData
             ? PostacGracza.fromJSON(postacGraczaData)
             : new PostacGracza()
 
-        // Globalne cechy, umiejętności i przymioty z folderu Zasady
         const zasady = entities.Zasady ?? []
         const globalneCechy = zasady.filter(z => z.typ === 'cecha').map(z => Cecha.fromJSON(z))
         const globalneUmiejetnosci = zasady

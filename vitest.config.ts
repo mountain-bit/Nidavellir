@@ -4,7 +4,6 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
     resolve: {
         alias: {
-            // Przekieruj import/require('electron') na mock podczas testów
             electron: path.resolve(__dirname, '__mocks__/electron.js'),
         },
     },
