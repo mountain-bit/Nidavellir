@@ -24,6 +24,7 @@ const mockHTML = `
     <div id="settings-dropdown" class="hidden">
         <button id="btn-lang-pl">Polski</button>
         <button id="btn-lang-en">English</button>
+        <button id="btn-lang-de">Deutsch</button>
     </div>
 
     <div id="recent-projects-list"></div>
@@ -157,6 +158,31 @@ describe('StartWindowViewModel', () => {
             })
             expect(btnLangPl?.classList.contains('text-blue-400')).toBe(true)
         })
+
+        it('zmienia język na DE po kliknięciu btn-lang-de', async () => {
+            await createViewModel()
+
+            const btnLangDe = document.getElementById('btn-lang-de')
+            btnLangDe?.click()
+
+            await vi.waitFor(() => {
+                expect(window.electronAPI.setLocale).toHaveBeenCalledWith('de')
+            })
+            expect(btnLangDe?.classList.contains('text-blue-400')).toBe(true)
+        })
+
+        it('zamyka dropdown klawiszem Escape', async () => {
+            await createViewModel()
+
+            const btnSettings = document.getElementById('btn-settings')
+            const dropdown = document.getElementById('settings-dropdown')
+
+            btnSettings?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+            expect(dropdown?.classList.contains('hidden')).toBe(false)
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+            expect(dropdown?.classList.contains('hidden')).toBe(true)
+        })
     })
 
     describe('Modal Nowego Projektu', () => {
@@ -178,7 +204,7 @@ describe('StartWindowViewModel', () => {
             expect(btnSubmit.disabled).toBe(true)
         })
 
-        it('zamyka modal po kliknięciu Anuluj lub ikony zamknij', async () => {
+        it('zamyka modal po kliknięciu Anuluj, ikony zamknij lub klawisza Escape', async () => {
             await createViewModel()
 
             const modal = document.getElementById('new-project-modal')
@@ -192,6 +218,29 @@ describe('StartWindowViewModel', () => {
             const btnCloseModal = document.getElementById('btn-close-new-project-modal')
             btnCloseModal?.click()
             expect(modal?.classList.contains('hidden')).toBe(true)
+
+            modal?.classList.remove('hidden')
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+            expect(modal?.classList.contains('hidden')).toBe(true)
+        })
+
+        it('zatwierdza modal naciśnięciem klawisza Enter w polu nazwy projektu, jeśli przycisk nie jest zablokowany', async () => {
+            await createViewModel()
+
+            const btnBrowse = document.getElementById('btn-browse-folder')
+            const btnSubmit = document.getElementById('btn-submit-new-project') as HTMLButtonElement
+            const inputNazwa = document.getElementById('np-nazwa') as HTMLInputElement
+
+            btnBrowse?.click()
+
+            await vi.waitFor(() => {
+                expect(btnSubmit.disabled).toBe(false)
+            })
+
+            const submitSpy = vi.spyOn(btnSubmit, 'click')
+            inputNazwa.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+
+            expect(submitSpy).toHaveBeenCalled()
         })
 
         it('obsługuje wybór folderu (wybór poprawny vs anulowany)', async () => {

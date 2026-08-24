@@ -14,6 +14,7 @@ export class StartWindowViewModel {
     private btnSettings: HTMLElement | null
     private btnLangPl: HTMLElement | null
     private btnLangEn: HTMLElement | null
+    private btnLangDe: HTMLElement | null
     private settingsDropdown: HTMLElement | null
     private recentProjectsList: HTMLElement | null
 
@@ -33,6 +34,7 @@ export class StartWindowViewModel {
         this.btnSettings = document.getElementById('btn-settings')
         this.btnLangPl = document.getElementById('btn-lang-pl')
         this.btnLangEn = document.getElementById('btn-lang-en')
+        this.btnLangDe = document.getElementById('btn-lang-de')
         this.settingsDropdown = document.getElementById('settings-dropdown')
         this.recentProjectsList = document.getElementById('recent-projects-list')
 
@@ -72,6 +74,7 @@ export class StartWindowViewModel {
         const activeClass = 'text-blue-400'
         this.btnLangPl?.classList.toggle(activeClass, locale === 'pl')
         this.btnLangEn?.classList.toggle(activeClass, locale === 'en')
+        this.btnLangDe?.classList.toggle(activeClass, locale === 'de')
     }
 
     private toggleDropdown(force?: boolean): void {
@@ -114,7 +117,10 @@ export class StartWindowViewModel {
         this.btnCreateProject?.addEventListener('click', () => {
             if (this.newProjectModal) {
                 this.newProjectModal.classList.remove('hidden')
-                if (this.npNazwaInput) this.npNazwaInput.value = ''
+                if (this.npNazwaInput) {
+                    this.npNazwaInput.value = ''
+                    this.npNazwaInput.focus()
+                }
                 this.selectedProjectPath = null
                 if (this.npFolderDisplay) {
                     this.npFolderDisplay.textContent = t('start_window.np_folder_placeholder')
@@ -143,6 +149,16 @@ export class StartWindowViewModel {
                     this.npFolderDisplay.classList.add('text-zinc-200')
                 }
                 if (this.btnSubmitNewProject) this.btnSubmitNewProject.disabled = false
+            }
+        })
+
+        this.npNazwaInput?.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (
+                e.key === 'Enter' &&
+                this.btnSubmitNewProject &&
+                !this.btnSubmitNewProject.disabled
+            ) {
+                this.btnSubmitNewProject.click()
             }
         })
 
@@ -185,11 +201,9 @@ export class StartWindowViewModel {
                 } else if (result?.error) {
                     this.showToast(`${t('start_window.np_create_error')} ${result.error}`, 'error')
                 }
-            } catch (err: any) {
-                this.showToast(
-                    `${t('start_window.np_unexpected_error')} ${err.message || ''}`,
-                    'error'
-                )
+            } catch (err: unknown) {
+                const msg = err instanceof Error ? err.message : String(err)
+                this.showToast(`${t('start_window.np_unexpected_error')} ${msg}`, 'error')
             }
         })
 
@@ -220,10 +234,18 @@ export class StartWindowViewModel {
             this.toggleDropdown(false)
         })
 
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                this.newProjectModal?.classList.add('hidden')
+                this.toggleDropdown(false)
+            }
+        })
+
         this.settingsDropdown?.addEventListener('click', e => e.stopPropagation())
 
         this.btnLangPl?.addEventListener('click', () => this.changeLocale('pl'))
         this.btnLangEn?.addEventListener('click', () => this.changeLocale('en'))
+        this.btnLangDe?.addEventListener('click', () => this.changeLocale('de'))
     }
 
     private async changeLocale(locale: SupportedLanguage): Promise<void> {
@@ -306,7 +328,10 @@ export class StartWindowViewModel {
                         window.electronAPI.loadMainWindow()
                     } catch (err: unknown) {
                         const msg = err instanceof Error ? err.message : String(err)
-                        this.showToast(`Błąd podczas ładowania projektu: ${msg}`, 'error')
+                        this.showToast(
+                            `${t('start_window.open_project_load_error')} ${msg}`,
+                            'error'
+                        )
                     }
                 } else if (result && !result.success) {
                     this.showToast(
