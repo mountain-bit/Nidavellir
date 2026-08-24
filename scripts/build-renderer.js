@@ -8,6 +8,7 @@ const watch = process.argv.includes('--watch')
 const config = {
     entryPoints: {
         StartWindowViewModel: path.join(__dirname, '..', 'ViewModel', 'StartWindowViewModel.ts'),
+        MainWindowViewModel: path.join(__dirname, '..', 'ViewModel', 'MainWindowViewModel.ts'),
     },
     bundle: true,
     outdir: path.join(__dirname, '..', 'dist', 'ViewModel'),

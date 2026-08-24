@@ -38,18 +38,21 @@ function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
-        frame: false,
-        transparent: true,
+        minWidth: 800,
+        minHeight: 600,
+        frame: true,
+        resizable: true,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             nodeIntegration: false,
             contextIsolation: true,
         },
         title: 'Silnik Gier Paragrafowych',
-        backgroundColor: '#00000000',
+        backgroundColor: '#18181b',
     })
 
-    mainWindow.loadFile('View/StartWindow.html')
+    mainWindow.maximize()
+    mainWindow.loadFile('View/MainWindow.html')
 }
 
 app.whenReady().then(async () => {

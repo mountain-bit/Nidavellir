@@ -87,6 +87,16 @@
         "ecmaVersion": 2020,
         "sourceType": "commonjs"
       }
+    },
+    {
+      "files": [
+        "View/**/*.js"
+      ],
+      "parser": "espree",
+      "parserOptions": {
+        "ecmaVersion": 2020,
+        "sourceType": "module"
+      }
     }
   ]
 }
