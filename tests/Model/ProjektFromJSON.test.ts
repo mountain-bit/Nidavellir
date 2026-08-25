@@ -63,7 +63,7 @@ describe('Projekt.fromJSON()', () => {
         expect(lokacje[0].pobierzID()).toBe('las')
         expect(lokacje[0].pobierzNazwe()).toBe('Las')
         expect(lokacje[0].pobierzOpis().pobierzTekst()).toBe('Gęsty las')
-        expect(lokacje[0].pobierzTagi()).toEqual(['zewnątrz'])
+        expect(lokacje[0].pobierzTagi().map(t => t.pobierzID())).toEqual(['zewnątrz'])
     })
 
     it('powinien deserializować NPC jako instancje NPC', () => {
@@ -174,6 +174,6 @@ describe('Projekt.fromJSON()', () => {
         expect(lokacja?.pobierzOpis().pobierzTekst()).toBe('Zimna krypta')
         expect(lokacja?.pobierzOpis().pobierzStreszczenie()).toBe('Miejscowość')
         expect(lokacja?.pobierzOpis().pobierzTekstDlaAutora()).toBe('Uwaga autora')
-        expect(lokacja?.pobierzTagi()).toEqual(['podziemia', 'mroczne'])
+        expect(lokacja?.pobierzTagi().map(t => t.pobierzID())).toEqual(['podziemia', 'mroczne'])
     })
 })

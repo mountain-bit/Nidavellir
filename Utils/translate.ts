@@ -74,3 +74,27 @@ export async function setLanguage(locale: SupportedLanguage): Promise<boolean> {
     }
     return true
 }
+
+export function applyTranslations(): void {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n')
+        if (key) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            el.textContent = i18next.t(key as any) as string
+        }
+    })
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder')
+        if (key && el instanceof HTMLInputElement) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            el.placeholder = i18next.t(key as any) as string
+        }
+    })
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title')
+        if (key) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(el as HTMLElement).title = i18next.t(key as any) as string
+        }
+    })
+}

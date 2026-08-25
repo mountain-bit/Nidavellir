@@ -107,5 +107,111 @@
     "np_create_success": "Project created successfully!",
     "np_create_error": "Error creating project:",
     "np_unexpected_error": "An unexpected error occurred:"
+  },
+  "ribbon": {
+    "tabs": {
+      "main": "Home",
+      "scenes": "Scene Editing",
+      "view": "View"
+    },
+    "groups": {
+      "file": "File",
+      "game": "Game",
+      "scenes": "Scenes",
+      "world_elements": "World Elements",
+      "workspace": "Workspace",
+      "side_panels": "Side Panels"
+    },
+    "buttons": {
+      "new_file": "New file",
+      "save": "Save",
+      "open": "Open",
+      "run_game": "Test game",
+      "export_game": "Export",
+      "add_scene": "Add scene",
+      "link_scenes": "Link scenes",
+      "npcs": "NPC Characters",
+      "items": "Items",
+      "locations": "Locations",
+      "markdown_editor": "Markdown Editor",
+      "story_graph": "Story Graph",
+      "left_panel": "Left Panel",
+      "right_panel": "Right Panel"
+    }
+  },
+  "left_bar": {
+    "paragraphs": "Paragraphs",
+    "scenes": "Scenes",
+    "characters": "Characters",
+    "locations": "Locations",
+    "traits": "Traits",
+    "main_character": "Hero",
+    "tags": "Tags",
+    "search": "Search",
+    "settings": "Options"
+  },
+  "left_panel": {
+    "paragraphs": "Paragraphs",
+    "scenes": "Scenes",
+    "characters": "Characters & Templates",
+    "locations": "Locations",
+    "traits": "Traits & Attributes",
+    "main_character": "Main Character (Player)",
+    "tags": "Project Tags",
+    "explorer": "Game Structure",
+    "search": "Search",
+    "settings": "Editor Settings",
+    "no_paragraphs": "No paragraphs in project",
+    "no_scenes": "No scenes in project",
+    "no_characters": "No characters or templates in project",
+    "no_locations": "No locations in project",
+    "no_traits": "No defined traits in project",
+    "no_main_character": "No player character configuration",
+    "no_tags": "No defined tags in project",
+    "search_placeholder": "Search phrase or scene...",
+    "paragraphs_search_placeholder": "Search in title or text...",
+    "search_characters_placeholder": "Search characters...",
+    "search_locations_placeholder": "Search locations...",
+    "search_traits_placeholder": "Search traits...",
+    "search_tags_placeholder": "Search tags...",
+    "add_character": "Add character",
+    "add_location": "Add location",
+    "add_trait": "Add trait",
+    "add_tag": "Add tag",
+    "filter_tile_title": "Filter",
+    "filter_by_tags": "Tags",
+    "filter_by_characters": "Characters",
+    "filter_by_scenes": "Scenes",
+    "clear_filters": "Clear filters"
+  },
+  "context_menu": {
+    "delete": "Delete element",
+    "edit_title": "Edit title",
+    "add_tag": "Add tag",
+    "add_trait": "Add trait"
+  },
+  "settings": {
+    "title": "Editor Settings",
+    "language": "Interface Language",
+    "auto_save": "Auto save",
+    "show_grid": "Show grid in graph"
+  },
+  "view_mode": {
+    "text": "📝 Text",
+    "graph": "⌘ Graph"
+  },
+  "graph": {
+    "title": "Story Graph (Cytoscape.js)",
+    "instruction": "Drag nodes to organize scenes and connections"
+  },
+  "right_panel": {
+    "title": "Properties",
+    "selected_element": "Selected element",
+    "info": "Information",
+    "type": "Type:",
+    "status": "Status:",
+    "status_edited": "Edited",
+    "quick_actions": "Quick Actions",
+    "show_story_graph": "Show story graph"
   }
 }

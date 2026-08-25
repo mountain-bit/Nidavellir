@@ -8,6 +8,7 @@ import { PostacGracza } from './PostacGracza'
 import { Przedmiot } from './Przedmiot'
 import { Przymiot } from './Przymiot'
 import { Scena } from './Scena'
+import { Tag } from './Tag'
 import { Umiejetnosc } from './Umiejetnosc'
 
 export class Projekt {
@@ -23,6 +24,7 @@ export class Projekt {
     private przedmioty: Przedmiot[] = []
     private klasyPostaci: KlasaPostaci[] = []
     private postacGracza: PostacGracza = new PostacGracza()
+    private listaTagow: Tag[] = []
 
     private globalneCechy: Cecha[] = []
     private globalneUmiejetnosci: Umiejetnosc[] = []
@@ -266,6 +268,37 @@ export class Projekt {
 
     public dodajGlobalnyPrzymiot(przymiot: Przymiot): void {
         this.globalnePrzymioty.push(przymiot)
+    }
+
+    public pobierzWszystkieTagi(): Tag[] {
+        const tagMap = new Map<string, Tag>()
+
+        this.listaTagow.forEach(t => tagMap.set(t.pobierzID() || t.pobierzNazwe(), t))
+
+        this.sceny.forEach(s => {
+            s.pobierzTagi().forEach(t => tagMap.set(t.pobierzID() || t.pobierzNazwe(), t))
+            s.pobierzParagrafy().forEach(p => {
+                p.pobierzTagi().forEach(t => tagMap.set(t.pobierzID() || t.pobierzNazwe(), t))
+            })
+        })
+
+        this.lokacje.forEach(l => {
+            l.pobierzTagi().forEach(t => tagMap.set(t.pobierzID() || t.pobierzNazwe(), t))
+        })
+
+        return Array.from(tagMap.values())
+    }
+
+    public dodajTag(tag: Tag): void {
+        if (!this.listaTagow.some(t => t.pobierzID() === tag.pobierzID())) {
+            this.listaTagow.push(tag)
+        }
+    }
+
+    public usunTag(tagIdOrName: string): void {
+        this.listaTagow = this.listaTagow.filter(
+            t => t.pobierzID() !== tagIdOrName && t.pobierzNazwe() !== tagIdOrName
+        )
     }
 
     public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Projekt {

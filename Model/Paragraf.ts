@@ -1,10 +1,11 @@
 import { Opis } from './Opis'
 import { Przeskok } from './Przeskok'
+import { Tag } from './Tag'
 import { Walka } from './Walka'
 
 export class Paragraf {
     private id: string = ''
-    private tags: string[] = []
+    private tags: Tag[] = []
     private numer: number = 0
     private numerWylosowany: number = 0
     private blokadaNumeru: boolean = false
@@ -20,7 +21,8 @@ export class Paragraf {
         tresc: Opis = new Opis(),
         listaPrzeskokow: Przeskok[] = [],
         czyJestWalka: boolean = false,
-        walka: Walka = new Walka('', '')
+        walka: Walka = new Walka('', ''),
+        tags: Tag[] = []
     ) {
         this.id = id
         this.tytul = tytul
@@ -28,6 +30,7 @@ export class Paragraf {
         this.listaPrzeskokow = listaPrzeskokow
         this.czyJestWalka = czyJestWalka
         this.walka = walka
+        this.tags = tags
     }
 
     public pobierzID(): string {
@@ -56,6 +59,56 @@ export class Paragraf {
 
     public ustawTresc(tresc: Opis): void {
         this.tresc = tresc
+    }
+
+    public pobierzTagi(): Tag[] {
+        return this.tags
+    }
+
+    public ustawTagi(tags: Tag[]): void {
+        this.tags = tags
+    }
+
+    public dodajTag(tag: Tag): void {
+        if (!this.tags.some(t => t.pobierzID() === tag.pobierzID())) {
+            this.tags.push(tag)
+        }
+    }
+
+    public usunTag(tagIdOrName: string): void {
+        this.tags = this.tags.filter(
+            t => t.pobierzID() !== tagIdOrName && t.pobierzNazwe() !== tagIdOrName
+        )
+    }
+
+    public czymaTag(tagIdOrName: string): boolean {
+        return this.tags.some(
+            t => t.pobierzID() === tagIdOrName || t.pobierzNazwe() === tagIdOrName
+        )
+    }
+
+    public pobierzNumer(): number {
+        return this.numer
+    }
+
+    public ustawNumer(numer: number): void {
+        this.numer = numer
+    }
+
+    public pobierzNumerWylosowany(): number {
+        return this.numerWylosowany
+    }
+
+    public ustawNumerWylosowany(numer: number): void {
+        this.numerWylosowany = numer
+    }
+
+    public pobierzBlokadaNumeru(): boolean {
+        return this.blokadaNumeru
+    }
+
+    public ustawBlokadaNumeru(blokada: boolean): void {
+        this.blokadaNumeru = blokada
     }
 
     public pobierzListaPrzeskokow(): Przeskok[] {
@@ -100,18 +153,34 @@ export class Paragraf {
 
     public static fromJSON(json: any): Paragraf {
         if (!json) return new Paragraf('')
+        const tagsParsed = (json.tags || []).map((t: any) => Tag.fromJSON(t))
         const p = new Paragraf(
             json.id || '',
             json.tytul || '',
             Opis.fromJSON(json.tresc),
             (json.listaPrzeskokow || []).map((przeskok: any) => Przeskok.fromJSON(przeskok)),
             json.czyJestWalka || false,
-            json.walka ? Walka.fromJSON(json.walka) : new Walka('', '')
+            json.walka ? Walka.fromJSON(json.walka) : new Walka('', ''),
+            tagsParsed
         )
-        if (json.tags) p.tags = json.tags
         if (json.numer !== undefined) p.numer = json.numer
         if (json.numerWylosowany !== undefined) p.numerWylosowany = json.numerWylosowany
         if (json.blokadaNumeru !== undefined) p.blokadaNumeru = json.blokadaNumeru
         return p
+    }
+
+    public toJSON(): any {
+        return {
+            id: this.id,
+            tytul: this.tytul,
+            tresc: this.tresc,
+            listaPrzeskokow: this.listaPrzeskokow,
+            czyJestWalka: this.czyJestWalka,
+            walka: this.walka,
+            tags: this.tags,
+            numer: this.numer,
+            numerWylosowany: this.numerWylosowany,
+            blokadaNumeru: this.blokadaNumeru,
+        }
     }
 }

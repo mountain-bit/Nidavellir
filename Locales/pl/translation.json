@@ -107,5 +107,111 @@
     "np_create_success": "Projekt został pomyślnie utworzony!",
     "np_create_error": "Błąd podczas tworzenia projektu:",
     "np_unexpected_error": "Wystąpił nieoczekiwany błąd:"
+  },
+  "ribbon": {
+    "tabs": {
+      "main": "Główne",
+      "scenes": "Edycja Scen",
+      "view": "Widok"
+    },
+    "groups": {
+      "file": "Plik",
+      "game": "Gra",
+      "scenes": "Sceny",
+      "world_elements": "Elementy świata",
+      "workspace": "Obszar roboczy",
+      "side_panels": "Panele boczne"
+    },
+    "buttons": {
+      "new_file": "Nowy plik",
+      "save": "Zapisz",
+      "open": "Otwórz",
+      "run_game": "Testuj grę",
+      "export_game": "Eksportuj",
+      "add_scene": "Dodaj scenę",
+      "link_scenes": "Połącz sceny",
+      "npcs": "Postacie NPC",
+      "items": "Przedmioty",
+      "locations": "Lokacje",
+      "markdown_editor": "Edytor Markdown",
+      "story_graph": "Graf historii",
+      "left_panel": "Panel lewy",
+      "right_panel": "Panel prawy"
+    }
+  },
+  "left_bar": {
+    "paragraphs": "Paragrafy",
+    "scenes": "Sceny",
+    "characters": "Postacie",
+    "locations": "Lokacje",
+    "traits": "Cechy",
+    "main_character": "Bohater",
+    "tags": "Tagi",
+    "search": "Szukaj",
+    "settings": "Opcje"
+  },
+  "left_panel": {
+    "paragraphs": "Paragrafy",
+    "scenes": "Sceny",
+    "characters": "Postacie i Szablony",
+    "locations": "Lokacje",
+    "traits": "Cechy i Atrybuty",
+    "main_character": "Maincharakter (Postać Gracza)",
+    "tags": "Tagi w Projekcie",
+    "explorer": "Struktura Gry",
+    "search": "Wyszukiwanie",
+    "settings": "Ustawienia Edytora",
+    "no_paragraphs": "Brak paragrafów w projekcie",
+    "no_scenes": "Brak scen w projekcie",
+    "no_characters": "Brak postaci i szablonów w projekcie",
+    "no_locations": "Brak lokacji w projekcie",
+    "no_traits": "Brak zdefiniowanych cech w projekcie",
+    "no_main_character": "Brak konfiguracji postaci gracza",
+    "no_tags": "Brak zdefiniowanych tagów w projekcie",
+    "search_placeholder": "Szukaj frazy lub sceny...",
+    "paragraphs_search_placeholder": "Szukaj w tytule lub treści...",
+    "search_characters_placeholder": "Szukaj postaci...",
+    "search_locations_placeholder": "Szukaj lokacji...",
+    "search_traits_placeholder": "Szukaj cech...",
+    "search_tags_placeholder": "Szukaj tagów...",
+    "add_character": "Dodaj postać",
+    "add_location": "Dodaj lokację",
+    "add_trait": "Dodaj cechę",
+    "add_tag": "Dodaj tag",
+    "filter_tile_title": "Filtruj",
+    "filter_by_tags": "Tagi",
+    "filter_by_characters": "Postacie",
+    "filter_by_scenes": "Sceny",
+    "clear_filters": "Wyczyść filtry"
+  },
+  "context_menu": {
+    "delete": "Usuń element",
+    "edit_title": "Edytuj nazwę",
+    "add_tag": "Dodaj tag",
+    "add_trait": "Dodaj cechę"
+  },
+  "settings": {
+    "title": "Ustawienia Edytora",
+    "language": "Język interfejsu",
+    "auto_save": "Automatyczny zapis",
+    "show_grid": "Pokazuj siatkę w grafie"
+  },
+  "view_mode": {
+    "text": "📝 Tekst",
+    "graph": "⌘ Graf"
+  },
+  "graph": {
+    "title": "Graf historii (Cytoscape.js)",
+    "instruction": "Przeciągaj węzły, aby uporządkować sceny i połączenia"
+  },
+  "right_panel": {
+    "title": "Właściwości",
+    "selected_element": "Wybrany element",
+    "info": "Informacje",
+    "type": "Typ:",
+    "status": "Status:",
+    "status_edited": "Edytowany",
+    "quick_actions": "Szybkie akcje",
+    "show_story_graph": "Pokaż graf historii"
   }
 }

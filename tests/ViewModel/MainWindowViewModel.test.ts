@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { Opis } from '../../Model/Opis'
+import { Paragraf } from '../../Model/Paragraf'
+import { Tag } from '../../Model/Tag'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('MainWindowViewModel', () => {
@@ -11,7 +14,7 @@ describe('MainWindowViewModel', () => {
 
     it('domyślnie posiada aktywne odpowiednie zakładki i stan widoków', () => {
         expect(vm.getActiveRibbonTab()).toBe('glowna')
-        expect(vm.getActiveLeftTab()).toBe('explorer')
+        expect(vm.getActiveLeftTab()).toBe('paragraphs')
         expect(vm.isLeftDrawerOpen()).toBe(true)
         expect(vm.isRightSidebarCollapsed()).toBe(false)
         expect(vm.getActiveMainView()).toBe('markdown')
@@ -26,22 +29,33 @@ describe('MainWindowViewModel', () => {
     })
 
     it('ponowne kliknięcie tej samej ikony na lewym pasku zamyka panel (toggle off)', () => {
-        expect(vm.getActiveLeftTab()).toBe('explorer')
+        expect(vm.getActiveLeftTab()).toBe('paragraphs')
         expect(vm.isLeftDrawerOpen()).toBe(true)
 
-        vm.toggleLeftTab('explorer')
+        vm.toggleLeftTab('paragraphs')
         expect(vm.getActiveLeftTab()).toBeNull()
         expect(vm.isLeftDrawerOpen()).toBe(false)
     })
 
-    it('kliknięcie innej ikony na lewym pasku zmienia otwartą zakładkę w panelu', () => {
-        vm.toggleLeftTab('scenes')
-        expect(vm.getActiveLeftTab()).toBe('scenes')
-        expect(vm.isLeftDrawerOpen()).toBe(true)
+    it('kliknięcie innej ikony na lewym pasku zmienia otwartą zakładkę w panelu dla wszystkich sekcji w tym tags', () => {
+        vm.closeLeftDrawer()
+        const tabs = [
+            'paragraphs',
+            'scenes',
+            'characters',
+            'locations',
+            'traits',
+            'main-character',
+            'tags',
+            'search',
+            'settings',
+        ] as const
 
-        vm.toggleLeftTab('search')
-        expect(vm.getActiveLeftTab()).toBe('search')
-        expect(vm.isLeftDrawerOpen()).toBe(true)
+        tabs.forEach(tab => {
+            vm.toggleLeftTab(tab)
+            expect(vm.getActiveLeftTab()).toBe(tab)
+            expect(vm.isLeftDrawerOpen()).toBe(true)
+        })
     })
 
     it('zamykanie i ponowne otwieranie lewego panelu', () => {
@@ -87,5 +101,91 @@ describe('MainWindowViewModel', () => {
 
         vm.setActiveMainView('markdown')
         expect(vm.getActiveMainView()).toBe('markdown')
+    })
+
+    describe('Wyszukiwanie i filtrowanie paragrafów', () => {
+        it('sortuje wyniki wyszukiwania wg priorytetu: 1. zablokowany numer, 2. pasujący tytuł, 3. pasująca treść', () => {
+            const p1 = new Paragraf('p1', 'Normalny tytuł', new Opis('Zawiera słowo smok w treści'))
+            const p2 = new Paragraf('p2', 'Smok w tytule', new Opis('Treść zwykła'))
+            const p3 = new Paragraf('p3', 'Inny tytuł', new Opis('Inna treść ze słowem smok'))
+            p3.ustawBlokadaNumeru(true)
+
+            const list = [p1, p2, p3]
+
+            vm.setParagraphSearchQuery('smok')
+            const filtered = vm.searchAndFilterParagraphs(list)
+
+            expect(filtered).toHaveLength(3)
+            expect(filtered[0].pobierzID()).toBe('p3')
+            expect(filtered[1].pobierzID()).toBe('p2')
+            expect(filtered[2].pobierzID()).toBe('p1')
+        })
+
+        it('filtruje paragrafy po wybranym obiekcie Tag', () => {
+            const tagWalka = new Tag('t-walka', 'Walka')
+            const tagMagia = new Tag('t-magia', 'Magia')
+
+            const p1 = new Paragraf('p1', 'Starcie', new Opis(), [], false, undefined, [tagWalka])
+            const p2 = new Paragraf('p2', 'Czar', new Opis(), [], false, undefined, [tagMagia])
+            const p3 = new Paragraf('p3', 'Pojedynek', new Opis(), [], false, undefined, [
+                tagWalka,
+                tagMagia,
+            ])
+
+            vm.setSelectedFilterTag('Walka')
+            const filtered = vm.searchAndFilterParagraphs([p1, p2, p3])
+
+            expect(filtered).toHaveLength(2)
+            expect(filtered.map(p => p.pobierzID())).toEqual(['p1', 'p3'])
+        })
+    })
+
+    describe('Tworzenie elementów i filtrowanie sekcji (Postacie, Lokacje, Cechy, Tagi)', () => {
+        it('tworzy postać z własną lub domyślną nazwą gdy pole jest puste', () => {
+            const pWlasna = vm.stworzPostac('Kupiec')
+            expect(pWlasna.pobierzNazwe()).toBe('Kupiec')
+
+            const pDomyslna = vm.stworzPostac('')
+            expect(pDomyslna.pobierzNazwe()).toBe('Nowa postać')
+        })
+
+        it('tworzy lokację z własną lub domyślną nazwą gdy pole jest puste', () => {
+            const lWlasna = vm.stworzLokacje('Karczma')
+            expect(lWlasna.pobierzNazwe()).toBe('Karczma')
+
+            const lDomyslna = vm.stworzLokacje('   ')
+            expect(lDomyslna.pobierzNazwe()).toBe('Nowa lokacja')
+        })
+
+        it('tworzy cechę z własną lub domyślną nazwą gdy pole jest puste', () => {
+            const cWlasna = vm.stworzCeche('Siła')
+            expect(cWlasna.pobierzNazwe()).toBe('Siła')
+
+            const cDomyslna = vm.stworzCeche('')
+            expect(cDomyslna.pobierzNazwe()).toBe('Nowa cecha')
+        })
+
+        it('tworzy tag z własną lub domyślną nazwą gdy pole jest puste', () => {
+            const tWlasny = vm.stworzTag('Magia', '#8b5cf6')
+            expect(tWlasny.pobierzNazwe()).toBe('Magia')
+            expect(tWlasny.pobierzKolor()).toBe('#8b5cf6')
+
+            const tDomyslny = vm.stworzTag('')
+            expect(tDomyslny.pobierzNazwe()).toBe('Nowy tag')
+        })
+
+        it('filtruje sekcje po wyszukiwanym haśle', () => {
+            const p1 = vm.stworzPostac('Strażnik')
+            const p2 = vm.stworzPostac('Kupiec')
+
+            vm.setCharacterSearchQuery('straż')
+            expect(vm.searchAndFilterCharacters([p1, p2])).toEqual([p1])
+
+            const l1 = vm.stworzLokacje('Zamek')
+            const l2 = vm.stworzLokacje('Karczma')
+
+            vm.setLocationSearchQuery('karcz')
+            expect(vm.searchAndFilterLocations([l1, l2])).toEqual([l2])
+        })
     })
 })

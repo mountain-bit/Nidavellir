@@ -107,5 +107,111 @@
     "np_create_success": "Projekt erfolgreich erstellt!",
     "np_create_error": "Fehler beim Erstellen des Projekts:",
     "np_unexpected_error": "Ein unerwarteter Fehler ist aufgetreten:"
+  },
+  "ribbon": {
+    "tabs": {
+      "main": "Start",
+      "scenes": "Szenenbearbeitung",
+      "view": "Ansicht"
+    },
+    "groups": {
+      "file": "Datei",
+      "game": "Spiel",
+      "scenes": "Szenen",
+      "world_elements": "Weltelemente",
+      "workspace": "Arbeitsbereich",
+      "side_panels": "Seitenleisten"
+    },
+    "buttons": {
+      "new_file": "Neue Datei",
+      "save": "Speichern",
+      "open": "Öffnen",
+      "run_game": "Spiel testen",
+      "export_game": "Exportieren",
+      "add_scene": "Szene hinzufügen",
+      "link_scenes": "Szenen verbinden",
+      "npcs": "NPC-Charaktere",
+      "items": "Gegenstände",
+      "locations": "Orte",
+      "markdown_editor": "Markdown-Editor",
+      "story_graph": "Story-Graph",
+      "left_panel": "Linke Leiste",
+      "right_panel": "Rechte Leiste"
+    }
+  },
+  "left_bar": {
+    "paragraphs": "Absätze",
+    "scenes": "Szenen",
+    "characters": "Charaktere",
+    "locations": "Orte",
+    "traits": "Merkmale",
+    "main_character": "Held",
+    "tags": "Tags",
+    "search": "Suchen",
+    "settings": "Optionen"
+  },
+  "left_panel": {
+    "paragraphs": "Absätze",
+    "scenes": "Szenen",
+    "characters": "Charaktere & Vorlagen",
+    "locations": "Orte",
+    "traits": "Merkmale & Attribute",
+    "main_character": "Hauptcharakter (Spieler)",
+    "tags": "Projekt-Tags",
+    "explorer": "Spielstruktur",
+    "search": "Suche",
+    "settings": "Editor-Einstellungen",
+    "no_paragraphs": "Keine Absätze im Projekt",
+    "no_scenes": "Keine Szenen im Projekt",
+    "no_characters": "Keine Charaktere oder Vorlagen im Projekt",
+    "no_locations": "Keine Orte im Projekt",
+    "no_traits": "Keine definierten Merkmale im Projekt",
+    "no_main_character": "Keine Spielercharakter-Konfiguration",
+    "no_tags": "Keine definierten Tags im Projekt",
+    "search_placeholder": "Suchbegriff oder Szene...",
+    "paragraphs_search_placeholder": "In Titel oder Text suchen...",
+    "search_characters_placeholder": "Charaktere suchen...",
+    "search_locations_placeholder": "Orte suchen...",
+    "search_traits_placeholder": "Merkmale suchen...",
+    "search_tags_placeholder": "Tags suchen...",
+    "add_character": "Charakter hinzufügen",
+    "add_location": "Ort hinzufügen",
+    "add_trait": "Merkmal hinzufügen",
+    "add_tag": "Tag hinzufügen",
+    "filter_tile_title": "Filter",
+    "filter_by_tags": "Tags",
+    "filter_by_characters": "Charaktere",
+    "filter_by_scenes": "Szenen",
+    "clear_filters": "Filter zurücksetzen"
+  },
+  "context_menu": {
+    "delete": "Element löschen",
+    "edit_title": "Titel bearbeiten",
+    "add_tag": "Tag hinzufügen",
+    "add_trait": "Merkmal hinzufügen"
+  },
+  "settings": {
+    "title": "Editor-Einstellungen",
+    "language": "Oberflächensprache",
+    "auto_save": "Automatisches Speichern",
+    "show_grid": "Gitter im Graph anzeigen"
+  },
+  "view_mode": {
+    "text": "📝 Text",
+    "graph": "⌘ Graph"
+  },
+  "graph": {
+    "title": "Story-Graph (Cytoscape.js)",
+    "instruction": "Knoten ziehen, um Szenen und Verbindungen zu ordnen"
+  },
+  "right_panel": {
+    "title": "Eigenschaften",
+    "selected_element": "Ausgewähltes Element",
+    "info": "Informationen",
+    "type": "Typ:",
+    "status": "Status:",
+    "status_edited": "Bearbeitet",
+    "quick_actions": "Schnellaktionen",
+    "show_story_graph": "Story-Graph anzeigen"
   }
 }

@@ -2,6 +2,7 @@ import { Lokacja } from './Lokacja'
 import { NPC } from './NPC'
 import { Opis } from './Opis'
 import { Paragraf } from './Paragraf'
+import { Tag } from './Tag'
 
 export class Scena {
     private id: string = ''
@@ -10,7 +11,7 @@ export class Scena {
     private paragrafy: Paragraf[] = []
     private postacie: NPC[] = []
     private lokacja: Lokacja | null = null
-    private tags: string[] = []
+    private tags: Tag[] = []
     private poczatkowyParagrafID: string = ''
 
     constructor(
@@ -20,7 +21,7 @@ export class Scena {
         paragrafy: Paragraf[] = [],
         postacie: NPC[] = [],
         lokacja: Lokacja | null = null,
-        tags: string[] = [],
+        tags: Tag[] = [],
         poczatkowyParagrafID: string = ''
     ) {
         this.id = id
@@ -117,20 +118,30 @@ export class Scena {
         this.lokacja = lokacja
     }
 
-    public pobierzTagi(): string[] {
+    public pobierzTagi(): Tag[] {
         return this.tags
     }
 
-    public dodajTag(tag: string): void {
-        this.tags.push(tag)
+    public ustawTagi(tags: Tag[]): void {
+        this.tags = tags
     }
 
-    public usunTag(tag: string): void {
-        this.tags = this.tags.filter(t => t !== tag)
+    public dodajTag(tag: Tag): void {
+        if (!this.tags.some(t => t.pobierzID() === tag.pobierzID())) {
+            this.tags.push(tag)
+        }
     }
 
-    public czymaTag(tag: string): boolean {
-        return this.tags.includes(tag)
+    public usunTag(tagIdOrName: string): void {
+        this.tags = this.tags.filter(
+            t => t.pobierzID() !== tagIdOrName && t.pobierzNazwe() !== tagIdOrName
+        )
+    }
+
+    public czymaTag(tagIdOrName: string): boolean {
+        return this.tags.some(
+            t => t.pobierzID() === tagIdOrName || t.pobierzNazwe() === tagIdOrName
+        )
     }
 
     public pobierzPoczatkowyParagrafID(): string {
@@ -143,6 +154,7 @@ export class Scena {
 
     public static fromJSON(json: any): Scena {
         if (!json) return new Scena()
+        const tagsParsed = (json.tags || []).map((t: any) => Tag.fromJSON(t))
         return new Scena(
             json.id || '',
             json.nazwa || '',
@@ -150,8 +162,21 @@ export class Scena {
             (json.paragrafy || []).map((p: any) => Paragraf.fromJSON(p)),
             (json.postacie || []).map((p: any) => NPC.fromJSON(p)),
             json.lokacja ? Lokacja.fromJSON(json.lokacja) : null,
-            json.tags || [],
+            tagsParsed,
             json.poczatkowyParagrafID || ''
         )
+    }
+
+    public toJSON(): any {
+        return {
+            id: this.id,
+            nazwa: this.nazwa,
+            opis: this.opis,
+            paragrafy: this.paragrafy,
+            postacie: this.postacie,
+            lokacja: this.lokacja,
+            tags: this.tags,
+            poczatkowyParagrafID: this.poczatkowyParagrafID,
+        }
     }
 }
