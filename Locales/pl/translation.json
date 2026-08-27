@@ -242,5 +242,18 @@
     "show_story_graph": "Pokaż graf historii",
     "toggle_collapse": "Zwiń / Rozwiń właściwości",
     "expand": "Rozwiń właściwości"
+  },
+  "toast": {
+    "success_title": "Sukces",
+    "warning_title": "Ostrzeżenie",
+    "error_title": "Błąd",
+    "info_title": "Informacja",
+    "element_created": "Pomyślnie utworzono element: {{name}}",
+    "element_created_title": "Utworzono element",
+    "file_recreated_warning": "Ostrzeżenie: Plik Markdown nie istniał i został automatycznie utworzony.",
+    "file_locked_warning": "Ostrzeżenie: Plik jest zablokowany przez inny proces. Zmiany zachowano w pamięci.",
+    "meta_sync_warning": "Ostrzeżenie: Wykryto niespójność w strukturze projektu i zaktualizowano metadane.",
+    "save_success": "Zapisano zmiany pomyślnie.",
+    "save_error": "Wystąpił błąd podczas zapisu: {{error}}"
   }
 }

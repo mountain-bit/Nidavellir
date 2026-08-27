@@ -3,7 +3,26 @@ const path = require('path')
 const fs = require('fs')
 const os = require('os')
 const { initI18n, t, getTranslations, setLocale, getLocale } = require('./Utils/i18n')
+const { slugifyEntityName, generateUniqueSlug } = require('./Utils/pathSanitizer')
+
 const recentProjectsPath = path.join(app.getPath('userData'), 'recent-projects.json')
+
+function resolveProjectDir(projectPath) {
+    if (!projectPath || typeof projectPath !== 'string') return null
+    if (!fs.existsSync(projectPath)) return null
+    try {
+        const stat = fs.statSync(projectPath)
+        return stat.isDirectory() ? projectPath : path.dirname(projectPath)
+    } catch {
+        return null
+    }
+}
+
+function isPathInsideBase(basePath, targetPath) {
+    const resolvedBase = path.resolve(basePath)
+    const resolvedTarget = path.resolve(targetPath)
+    return resolvedTarget.startsWith(resolvedBase + path.sep) || resolvedTarget === resolvedBase
+}
 
 function getRecentProjects() {
     if (fs.existsSync(recentProjectsPath)) {
@@ -125,7 +144,6 @@ app.whenReady().then(async () => {
             ]
             const sciezkiDanych = []
 
-            // Create subfolders and meta.json
             for (const folder of folders) {
                 const dirPath = path.join(projectPath, folder)
                 if (!fs.existsSync(dirPath)) {
@@ -144,7 +162,6 @@ app.whenReady().then(async () => {
                 sciezkiDanych.push(`./${folder}/meta.json`)
             }
 
-            // Create main project file
             const projectData = {
                 id: id || 'nowy_projekt',
                 nazwa: nazwa || path.basename(projectPath),
@@ -159,19 +176,13 @@ app.whenReady().then(async () => {
             saveRecentProject(projectFile, projectData.nazwa)
             return { success: true, path: projectFile }
         } catch (err) {
-            console.error(err)
+            console.error('Error creating project structure:', err)
             return {
                 success: false,
                 error: err.message || 'Wystąpił błąd podczas zapisu struktury projektu.',
             }
         }
     })
-
-    function isPathInsideBase(basePath, targetPath) {
-        const resolvedBase = path.resolve(basePath)
-        const resolvedTarget = path.resolve(targetPath)
-        return resolvedTarget.startsWith(resolvedBase + path.sep) || resolvedTarget === resolvedBase
-    }
 
     ipcMain.handle('open-project', async (event, projectPath = null) => {
         let targetPath = projectPath
@@ -185,24 +196,26 @@ app.whenReady().then(async () => {
             if (canceled || filePaths.length === 0) {
                 return { success: false }
             }
-            const chosen = filePaths[0]
-            const stat = fs.statSync(chosen)
+            targetPath = filePaths[0]
+        }
+
+        const projectDir = resolveProjectDir(targetPath)
+        if (!projectDir) {
+            return { success: false, error: t('error.project_not_found') }
+        }
+
+        try {
+            const stat = fs.statSync(targetPath)
             if (stat.isDirectory()) {
-                targetPath = path.join(chosen, 'project.json')
-            } else {
-                targetPath = chosen
-            }
-        } else {
-            if (fs.existsSync(targetPath) && fs.statSync(targetPath).isDirectory()) {
                 targetPath = path.join(targetPath, 'project.json')
             }
+        } catch {
+            return { success: false, error: t('error.project_not_found') }
         }
 
         if (!fs.existsSync(targetPath)) {
             return { success: false, error: t('error.project_not_found') }
         }
-
-        const projectDir = path.dirname(targetPath)
 
         try {
             let projectData
@@ -263,17 +276,13 @@ app.whenReady().then(async () => {
                     for (const element of metaData.elementy) {
                         const elementPath = path.resolve(metaDir, element)
                         if (!isPathInsideBase(projectDir, elementPath)) {
-                            return {
-                                success: false,
-                                error: `Niedozwolona ścieżka elementu: ${element}`,
-                            }
+                            console.warn(`Skipped unauthorized element path: ${element}`)
+                            continue
                         }
 
                         if (!fs.existsSync(elementPath)) {
-                            return {
-                                success: false,
-                                error: `Brak pliku elementu: ${elementPath}`,
-                            }
+                            console.warn(`Skipped missing element file: ${elementPath}`)
+                            continue
                         }
 
                         let elementData
@@ -281,17 +290,13 @@ app.whenReady().then(async () => {
                             const elementContent = fs.readFileSync(elementPath, 'utf8')
                             elementData = JSON.parse(elementContent)
                         } catch {
-                            return {
-                                success: false,
-                                error: `Nie można sparsować pliku elementu: ${elementPath}`,
-                            }
+                            console.warn(`Could not parse element file: ${elementPath}`)
+                            continue
                         }
 
                         if (typeof elementData !== 'object' || elementData === null) {
-                            return {
-                                success: false,
-                                error: `Nieprawidłowa struktura danych w pliku: ${elementPath}`,
-                            }
+                            console.warn(`Invalid element data structure: ${elementPath}`)
+                            continue
                         }
 
                         entities[folderName].push(elementData)
@@ -314,6 +319,217 @@ app.whenReady().then(async () => {
                 success: false,
                 error: 'Wystąpił nieoczekiwany błąd podczas otwierania projektu.',
             }
+        }
+    })
+
+    ipcMain.handle('create-entity', async (_event, options) => {
+        const {
+            projectPath,
+            category,
+            entityData,
+            folderName,
+            createDescriptionPaths = true,
+        } = options || {}
+
+        const projectDir = resolveProjectDir(projectPath)
+        if (!projectDir) {
+            return { success: false, error: 'Nieprawidłowa ścieżka projektu.' }
+        }
+        if (!category || typeof category !== 'string') {
+            return { success: false, error: 'Brak podanej kategorii elementu.' }
+        }
+
+        const categoryDir = path.join(projectDir, category)
+        if (!isPathInsideBase(projectDir, categoryDir)) {
+            return { success: false, error: 'Niedozwolona ścieżka kategorii.' }
+        }
+
+        if (!fs.existsSync(categoryDir)) {
+            fs.mkdirSync(categoryDir, { recursive: true })
+        }
+
+        const metaPath = path.join(categoryDir, 'meta.json')
+        let metaData = {
+            opis: `Folder na ${category}`,
+            sciezka: `./${category}`,
+            sciezkiOpisow: [],
+            sciezkiZdjec: [],
+            elementy: [],
+        }
+
+        if (fs.existsSync(metaPath)) {
+            try {
+                metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
+                if (!Array.isArray(metaData.elementy)) metaData.elementy = []
+            } catch (err) {
+                console.error(`Error reading meta.json in ${categoryDir}:`, err)
+            }
+        }
+
+        const nameSource =
+            folderName ||
+            entityData?.id ||
+            entityData?.nazwa ||
+            entityData?.tytul ||
+            `nowy_${category.toLowerCase()}`
+
+        const rawSlug = slugifyEntityName(String(nameSource))
+        const entityFolderSlug = generateUniqueSlug(rawSlug, candidate =>
+            fs.existsSync(path.join(categoryDir, candidate))
+        )
+        const entityDir = path.join(categoryDir, entityFolderSlug)
+
+        if (!isPathInsideBase(projectDir, entityDir)) {
+            return { success: false, error: 'Niedozwolona ścieżka encji.' }
+        }
+
+        const elementJsonPath = path.join(entityDir, 'element.json')
+        if (!isPathInsideBase(projectDir, elementJsonPath)) {
+            return { success: false, error: 'Niedozwolona ścieżka zapisu encji.' }
+        }
+
+        try {
+            fs.mkdirSync(entityDir, { recursive: true })
+
+            if (createDescriptionPaths) {
+                const sciezkaTekst = `./${category}/${entityFolderSlug}/tekst.md`
+                const sciezkaTekstDlaAutora = `./${category}/${entityFolderSlug}/autor.md`
+
+                const existingOpis =
+                    typeof entityData?.opis === 'object' && entityData.opis !== null
+                        ? entityData.opis
+                        : {}
+
+                entityData.opis = {
+                    tekst: existingOpis.tekst || '',
+                    streszczenie: existingOpis.streszczenie || '',
+                    tekstDlaAutora: existingOpis.tekstDlaAutora || '',
+                    sciezkaTekst: sciezkaTekst,
+                    sciezkaTekstDlaAutora: sciezkaTekstDlaAutora,
+                }
+            }
+
+            const tempElementPath = `${elementJsonPath}.${Date.now()}.tmp`
+            fs.writeFileSync(tempElementPath, JSON.stringify(entityData, null, 2), 'utf8')
+            fs.renameSync(tempElementPath, elementJsonPath)
+
+            const relativeElementPath = `./${entityFolderSlug}/element.json`
+            if (!metaData.elementy.includes(relativeElementPath)) {
+                metaData.elementy.push(relativeElementPath)
+                const tempMetaPath = `${metaPath}.${Date.now()}.tmp`
+                fs.writeFileSync(tempMetaPath, JSON.stringify(metaData, null, 2), 'utf8')
+                fs.renameSync(tempMetaPath, metaPath)
+            }
+
+            return {
+                success: true,
+                entity: entityData,
+                entityPath: elementJsonPath,
+            }
+        } catch (err) {
+            console.error('Error creating element on disk:', err)
+            return {
+                success: false,
+                error: err.message || 'Wystąpił błąd podczas tworzenia elementu na dysku.',
+            }
+        }
+    })
+
+    ipcMain.handle('save-entity', async (_event, payload) => {
+        const { projectPath, category, entityFolder, entityData } = payload || {}
+        if (!projectPath || !category || !entityFolder || !entityData) {
+            return { success: false, error: 'Brak wymaganych parametrów do zapisu encji.' }
+        }
+
+        const projectDir = resolveProjectDir(projectPath)
+        if (!projectDir) {
+            return { success: false, error: 'Nieprawidłowa ścieżka projektu.' }
+        }
+
+        const entityJsonPath = path.join(projectDir, category, entityFolder, 'element.json')
+        if (!isPathInsideBase(projectDir, entityJsonPath)) {
+            return { success: false, error: 'Niedozwolona ścieżka zapisu encji.' }
+        }
+
+        try {
+            const entityDir = path.dirname(entityJsonPath)
+            if (!fs.existsSync(entityDir)) {
+                fs.mkdirSync(entityDir, { recursive: true })
+            }
+            const tempPath = `${entityJsonPath}.${Date.now()}.tmp`
+            fs.writeFileSync(tempPath, JSON.stringify(entityData, null, 2), 'utf8')
+            fs.renameSync(tempPath, entityJsonPath)
+            return { success: true }
+        } catch (err) {
+            console.error('Error saving entity:', err)
+            return { success: false, error: err.message || 'Nie udało się zapisać pliku encji.' }
+        }
+    })
+
+    ipcMain.handle('read-markdown-file', async (_event, payload) => {
+        const { projectPath, relativePath } = payload || {}
+        if (!projectPath || !relativePath) {
+            return { success: false, error: 'Brak ścieżki projektu lub pliku.' }
+        }
+
+        const projectDir = resolveProjectDir(projectPath)
+        if (!projectDir) {
+            return { success: false, error: 'Nieprawidłowa ścieżka projektu.' }
+        }
+
+        const fullPath = path.resolve(projectDir, relativePath)
+        if (!isPathInsideBase(projectDir, fullPath)) {
+            return { success: false, error: 'Niedozwolona ścieżka pliku.' }
+        }
+
+        if (!fs.existsSync(fullPath)) {
+            return { success: true, content: '', isVirtual: true }
+        }
+
+        try {
+            const content = fs.readFileSync(fullPath, 'utf8')
+            return { success: true, content: content, isVirtual: false }
+        } catch (err) {
+            console.error('Error reading markdown file:', err)
+            return { success: false, error: err.message || 'Błąd odczytu pliku.' }
+        }
+    })
+
+    ipcMain.handle('save-markdown-file', async (_event, payload) => {
+        const { projectPath, relativePath, content } = payload || {}
+        if (!projectPath || !relativePath) {
+            return { success: false, error: 'Brak ścieżki projektu lub pliku.' }
+        }
+
+        const projectDir = resolveProjectDir(projectPath)
+        if (!projectDir) {
+            return { success: false, error: 'Nieprawidłowa ścieżka projektu.' }
+        }
+
+        const fullPath = path.resolve(projectDir, relativePath)
+        if (!isPathInsideBase(projectDir, fullPath)) {
+            return { success: false, error: 'Niedozwolona ścieżka pliku.' }
+        }
+
+        try {
+            const existed = fs.existsSync(fullPath)
+            const parentDir = path.dirname(fullPath)
+            if (!fs.existsSync(parentDir)) {
+                fs.mkdirSync(parentDir, { recursive: true })
+            }
+
+            const tempPath = `${fullPath}.${Date.now()}.tmp`
+            fs.writeFileSync(tempPath, content || '', 'utf8')
+            fs.renameSync(tempPath, fullPath)
+
+            return {
+                success: true,
+                recreated: !existed,
+                warning: !existed ? 'recreated' : undefined,
+            }
+        } catch (err) {
+            console.error('Error saving markdown file:', err)
+            return { success: false, error: err.message || 'Błąd zapisu pliku markdown.' }
         }
     })
 

@@ -1,4 +1,5 @@
 import { ProjectManager } from '../Services/ProjectManager'
+import { showToast as showToastUtil, type ToastType } from '../Utils/toast'
 import {
     getLanguage,
     initTranslations,
@@ -84,29 +85,8 @@ export class StartWindowViewModel {
         this.settingsDropdown.classList.toggle('hidden', !show)
     }
 
-    private showToast(message: string, type: 'success' | 'error' = 'success'): void {
-        const container = document.getElementById('toast-container')
-        if (!container) return
-
-        const toast = document.createElement('div')
-        const bgColor = type === 'success' ? 'bg-green-600/90' : 'bg-red-600/90'
-        toast.className = `px-4 py-2 rounded shadow-lg text-sm text-white transform transition-all duration-300 translate-y-4 opacity-0 ${bgColor}`
-        toast.textContent = message
-
-        container.appendChild(toast)
-
-        // Trigger animation
-        requestAnimationFrame(() => {
-            toast.classList.remove('translate-y-4', 'opacity-0')
-        })
-
-        // Remove after 3s
-        setTimeout(() => {
-            toast.classList.add('opacity-0', 'translate-y-4')
-            setTimeout(() => {
-                toast.remove()
-            }, 300)
-        }, 3000)
+    private showToast(message: string, type: ToastType = 'info'): void {
+        showToastUtil({ message, type, duration: 3000 })
     }
 
     private attachEventListeners(): void {
@@ -192,6 +172,7 @@ export class StartWindowViewModel {
                     projectPath,
                 })
                 if (result?.success) {
+                    window.currentProjectPath = result.path || projectPath
                     this.newProjectModal?.classList.add('hidden')
                     this.showToast(t('start_window.np_create_success'), 'success')
                     setTimeout(() => {
@@ -210,7 +191,12 @@ export class StartWindowViewModel {
             const result = await window.electronAPI.openProject()
             if (result?.success && result.project && result.entities) {
                 try {
-                    ProjectManager.getInstance().load(result.project, result.entities)
+                    window.currentProjectPath = result.path || ''
+                    ProjectManager.getInstance().load(
+                        result.project,
+                        result.entities,
+                        result.path || ''
+                    )
                     window.electronAPI.loadMainWindow()
                 } catch (err: unknown) {
                     const msg = err instanceof Error ? err.message : String(err)
@@ -322,7 +308,12 @@ export class StartWindowViewModel {
                 const result = await window.electronAPI.openProject(project.path)
                 if (result?.success && result.project && result.entities) {
                     try {
-                        ProjectManager.getInstance().load(result.project, result.entities)
+                        window.currentProjectPath = result.path || project.path
+                        ProjectManager.getInstance().load(
+                            result.project,
+                            result.entities,
+                            result.path || project.path
+                        )
                         window.electronAPI.loadMainWindow()
                     } catch (err: unknown) {
                         const msg = err instanceof Error ? err.message : String(err)

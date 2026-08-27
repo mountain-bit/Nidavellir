@@ -33,3 +33,38 @@ export interface OpenProjectResult {
     entities?: EntitiesData
     error?: string
 }
+
+export interface CreateEntityOptions {
+    projectPath: string
+    category: string
+    entityData: EntityData
+    folderName?: string
+    createDescriptionPaths?: boolean
+}
+
+export interface CreateEntityResult {
+    success: boolean
+    entity?: EntityData
+    entityPath?: string
+    warning?: string
+    error?: string
+}
+
+export interface ReadMarkdownResult {
+    success: boolean
+    content?: string
+    isVirtual?: boolean
+    error?: string
+}
+
+export interface SaveMarkdownResult {
+    success: boolean
+    recreated?: boolean
+    warning?: string
+    error?: string
+}
+
+export interface SaveEntityResult {
+    success: boolean
+    error?: string
+}

@@ -5,6 +5,7 @@ export class ProjectManager {
     private static instance: ProjectManager
 
     private currentProject: Projekt | null = null
+    private currentProjectPath: string = ''
 
     private constructor() {}
 
@@ -19,13 +20,27 @@ export class ProjectManager {
         return this.currentProject
     }
 
-    public load(projectData: ProjectData, entities: EntitiesData = {}): Projekt {
+    public getProjectPath(): string {
+        return this.currentProjectPath
+    }
+
+    public setProjectPath(projectPath: string): void {
+        this.currentProjectPath = projectPath
+    }
+
+    public load(
+        projectData: ProjectData,
+        entities: EntitiesData = {},
+        projectPath: string = ''
+    ): Projekt {
         const projekt = Projekt.fromJSON(projectData, entities)
         this.currentProject = projekt
+        this.currentProjectPath = projectPath
         return projekt
     }
 
     public clear(): void {
         this.currentProject = null
+        this.currentProjectPath = ''
     }
 }

@@ -1,3 +1,4 @@
+import { toast } from '../dist/Utils/toast.js'
 import {
     applyTranslations,
     getLanguage,
@@ -6,6 +7,8 @@ import {
     t,
 } from '../dist/Utils/translate.js'
 import {
+    DEFAULT_TAG_COLOR,
+    ENTITY_CATEGORIES,
     MainWindowViewModel,
     Opis,
     Paragraf,
@@ -439,24 +442,78 @@ function setupSectionControlsAndContextMenu() {
         }
 
         if (submit && form && input) {
-            const handleAdd = () => {
+            const handleAdd = async () => {
                 const defaultName = sec.getDefaultName()
                 const name = input.value.trim() || defaultName
+                let createdItem = null
+                let category = null
+
                 if (sec.type === 'tag') {
-                    projectTags.push(vm.stworzTag(name, '#3b82f6', defaultName))
+                    createdItem = vm.stworzTag(name, DEFAULT_TAG_COLOR, defaultName)
+                    projectTags.push(createdItem)
                     renderTagsList()
                     renderFilterTags()
                 } else if (sec.type === 'character') {
-                    projectCharacters.push(vm.stworzPostac(name, defaultName))
+                    createdItem = vm.stworzPostac(name, defaultName)
+                    category = ENTITY_CATEGORIES.NPC
+                    projectCharacters.push(createdItem)
                     renderCharactersList()
                     populateFilterSelects()
                 } else if (sec.type === 'location') {
-                    projectLocations.push(vm.stworzLokacje(name, defaultName))
+                    createdItem = vm.stworzLokacje(name, defaultName)
+                    category = ENTITY_CATEGORIES.LOKACJE
+                    projectLocations.push(createdItem)
                     renderLocationsList()
                 } else if (sec.type === 'trait') {
-                    projectTraits.push(vm.stworzCeche(name, defaultName))
+                    createdItem = vm.stworzCeche(name, defaultName)
+                    category = ENTITY_CATEGORIES.ZASADY
+                    projectTraits.push(createdItem)
                     renderTraitsList()
                 }
+
+                let persistSuccess = true
+
+                if (
+                    window.electronAPI &&
+                    window.electronAPI.createEntity &&
+                    category &&
+                    createdItem
+                ) {
+                    const currentPath = window.currentProjectPath || ''
+                    if (currentPath) {
+                        try {
+                            const res = await window.electronAPI.createEntity({
+                                projectPath: currentPath,
+                                category: category,
+                                entityData: createdItem.toJSON
+                                    ? createdItem.toJSON()
+                                    : { ...createdItem },
+                            })
+                            if (res && !res.success) {
+                                persistSuccess = false
+                                toast.error(
+                                    res.error || t('errors.unknownError'),
+                                    t('toast.error_title')
+                                )
+                            }
+                        } catch (err) {
+                            persistSuccess = false
+                            console.error('Error saving entity via IPC:', err)
+                            toast.error(
+                                err.message || t('errors.unknownError'),
+                                t('toast.error_title')
+                            )
+                        }
+                    }
+                }
+
+                if (persistSuccess) {
+                    toast.success(
+                        t('toast.element_created', { name }),
+                        t('toast.element_created_title')
+                    )
+                }
+
                 input.value = ''
                 form.classList.add('hidden')
             }
@@ -1112,6 +1169,48 @@ viewMarkdownBtn.addEventListener('click', () => {
 viewGraphBtn.addEventListener('click', () => {
     vm.setActiveMainView('graph')
     updateMainWorkspaceUI()
+})
+
+async function saveActiveFile() {
+    const active = vm.getActiveFile()
+    if (!active) return
+
+    const content = fileEditor ? fileEditor.value : ''
+    files[active] = content
+
+    const currentPath = window.currentProjectPath || ''
+    if (window.electronAPI && window.electronAPI.saveMarkdownFile && currentPath) {
+        try {
+            const res = await window.electronAPI.saveMarkdownFile(currentPath, active, content)
+            if (res && res.success) {
+                if (saveStatus) saveStatus.textContent = ''
+                if (res.recreated || res.warning === 'recreated') {
+                    toast.warning(t('toast.file_recreated_warning'), t('toast.warning_title'))
+                } else {
+                    toast.success(t('toast.save_success'), t('toast.success_title'))
+                }
+            } else if (res && !res.success) {
+                toast.error(t('toast.save_error', { error: res.error }), t('toast.error_title'))
+            }
+        } catch (err) {
+            console.error('Error saving file:', err)
+            toast.error(t('toast.save_error', { error: err.message }), t('toast.error_title'))
+        }
+    } else {
+        if (saveStatus) saveStatus.textContent = ''
+        toast.success(t('toast.save_success'), t('toast.success_title'))
+    }
+}
+
+document.querySelectorAll('[data-action="save"]').forEach(btn => {
+    btn.addEventListener('click', saveActiveFile)
+})
+
+document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        saveActiveFile()
+    }
 })
 
 fileEditor.addEventListener('input', () => {

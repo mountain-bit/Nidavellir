@@ -242,5 +242,18 @@
     "show_story_graph": "Show story graph",
     "toggle_collapse": "Collapse / Expand properties",
     "expand": "Expand properties"
+  },
+  "toast": {
+    "success_title": "Success",
+    "warning_title": "Warning",
+    "error_title": "Error",
+    "info_title": "Information",
+    "element_created": "Successfully created element: {{name}}",
+    "element_created_title": "Element Created",
+    "file_recreated_warning": "Warning: Markdown file did not exist and was automatically created.",
+    "file_locked_warning": "Warning: File is locked by another process. Changes kept in memory.",
+    "meta_sync_warning": "Warning: Inconsistency detected in project structure and metadata was updated.",
+    "save_success": "Changes saved successfully.",
+    "save_error": "An error occurred while saving: {{error}}"
   }
 }

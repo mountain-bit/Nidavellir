@@ -8,6 +8,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     chooseFolder: () => ipcRenderer.invoke('choose-folder'),
     createProject: details => ipcRenderer.invoke('create-project', details),
     openProject: path => ipcRenderer.invoke('open-project', path),
+    createEntity: options => ipcRenderer.invoke('create-entity', options),
+    saveEntity: (projectPath, category, entityFolder, entityData) =>
+        ipcRenderer.invoke('save-entity', { projectPath, category, entityFolder, entityData }),
+    readMarkdownFile: (projectPath, relativePath) =>
+        ipcRenderer.invoke('read-markdown-file', { projectPath, relativePath }),
+    saveMarkdownFile: (projectPath, relativePath, content) =>
+        ipcRenderer.invoke('save-markdown-file', { projectPath, relativePath, content }),
     closeApp: () => ipcRenderer.invoke('close-app'),
     loadMainWindow: () => ipcRenderer.invoke('load-main-window'),
     getSystemUsername: () => ipcRenderer.invoke('get-system-username'),

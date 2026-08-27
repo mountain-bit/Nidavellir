@@ -20,6 +20,8 @@ const config = {
             'MainWindowViewModel.ts'
         ),
         'Utils/translate': path.join(__dirname, '..', 'Utils', 'translate.ts'),
+        'Utils/toast': path.join(__dirname, '..', 'Utils', 'toast.ts'),
+        'Utils/pathSanitizer': path.join(__dirname, '..', 'Utils', 'pathSanitizer.ts'),
     },
     bundle: true,
     outdir: path.join(__dirname, '..', 'dist'),

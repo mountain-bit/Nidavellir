@@ -1,12 +1,28 @@
 import { Cecha } from '../Model/Cecha'
+import { DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
+import { KlasaPostaci } from '../Model/KlasaPostaci'
 import { Lokacja } from '../Model/Lokacja'
 import { NPC } from '../Model/NPC'
 import { Opis } from '../Model/Opis'
 import { Paragraf } from '../Model/Paragraf'
+import { Przedmiot } from '../Model/Przedmiot'
 import { Scena } from '../Model/Scena'
 import { Tag } from '../Model/Tag'
+import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
 
-export { Cecha, Lokacja, NPC, Opis, Paragraf, Scena, Tag }
+export {
+    Cecha,
+    DEFAULT_TAG_COLOR,
+    ENTITY_CATEGORIES,
+    KlasaPostaci,
+    Lokacja,
+    NPC,
+    Opis,
+    Paragraf,
+    Przedmiot,
+    Scena,
+    Tag,
+}
 
 export type RibbonTab = 'glowna' | 'sceny' | 'widok'
 export type LeftTab =
@@ -41,7 +57,11 @@ export class MainWindowViewModel {
     private traitSearchQuery: string = ''
     private tagSearchQuery: string = ''
 
-    constructor() {}
+    private idGenerator: IdGenerator
+
+    constructor(idGenerator: IdGenerator = defaultIdGenerator) {
+        this.idGenerator = idGenerator
+    }
 
     public getActiveRibbonTab(): RibbonTab {
         return this.activeRibbonTab
@@ -190,38 +210,64 @@ export class MainWindowViewModel {
         this.tagSearchQuery = query
     }
 
-    // Factory Helpers with Fallback Default Names
+    public stworzParagraf(tytulInput?: string, domyslnyTytul: string = 'Nowy paragraf'): Paragraf {
+        const tytul = (tytulInput ?? '').trim() || domyslnyTytul
+        const id = this.idGenerator('paragraf')
+        return new Paragraf(id, tytul)
+    }
+
+    public stworzScene(nazwaInput?: string, domyslnaNazwa: string = 'Nowa scena'): Scena {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = this.idGenerator('scena')
+        return new Scena(id, nazwa)
+    }
+
+    public stworzPrzedmiot(
+        nazwaInput?: string,
+        domyslnaNazwa: string = 'Nowy przedmiot'
+    ): Przedmiot {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = this.idGenerator('przedmiot')
+        return new Przedmiot(id, nazwa)
+    }
+
+    public stworzKlasePostaci(
+        nazwaInput?: string,
+        domyslnaNazwa: string = 'Nowa klasa'
+    ): KlasaPostaci {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = this.idGenerator('klasa')
+        return new KlasaPostaci(id, nazwa)
+    }
+
     public stworzPostac(nazwaInput?: string, domyslnaNazwa: string = 'Nowa postać'): NPC {
         const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = 'npc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+        const id = this.idGenerator('npc')
         return new NPC(id, nazwa)
     }
 
     public stworzLokacje(nazwaInput?: string, domyslnaNazwa: string = 'Nowa lokacja'): Lokacja {
         const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = 'lokacja_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+        const id = this.idGenerator('lokacja')
         return new Lokacja(id, nazwa)
     }
 
     public stworzCeche(nazwaInput?: string, domyslnaNazwa: string = 'Nowa cecha'): Cecha {
         const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = 'cecha_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+        const id = this.idGenerator('cecha')
         return new Cecha(id, nazwa, new Opis(), '')
     }
 
     public stworzTag(
         nazwaInput?: string,
-        kolorInput: string = '#3b82f6',
+        kolorInput: string = DEFAULT_TAG_COLOR,
         domyslnaNazwa: string = 'Nowy tag'
     ): Tag {
         const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = 'tag_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
+        const id = this.idGenerator('tag')
         return new Tag(id, nazwa, kolorInput)
     }
 
-    /**
-     * Search and filter methods
-     */
     public searchAndFilterParagraphs(paragraphs: Paragraf[]): Paragraf[] {
         let result = [...paragraphs]
 

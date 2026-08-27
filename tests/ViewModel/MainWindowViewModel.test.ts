@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { DEFAULT_TAG_COLOR } from '../../Model/constants'
 import { Opis } from '../../Model/Opis'
 import { Paragraf } from '../../Model/Paragraf'
 import { Tag } from '../../Model/Tag'
@@ -140,7 +141,43 @@ describe('MainWindowViewModel', () => {
         })
     })
 
-    describe('Tworzenie elementów i filtrowanie sekcji (Postacie, Lokacje, Cechy, Tagi)', () => {
+    describe('Tworzenie elementów i filtrowanie sekcji', () => {
+        it('tworzy paragraf z własnym lub domyślnym tytułem', () => {
+            const pWlasny = vm.stworzParagraf('Prolog')
+            expect(pWlasny.pobierzTytul()).toBe('Prolog')
+            expect(pWlasny.pobierzID()).toMatch(/^paragraf_/)
+
+            const pDomyslny = vm.stworzParagraf('')
+            expect(pDomyslny.pobierzTytul()).toBe('Nowy paragraf')
+        })
+
+        it('tworzy scenę z własną lub domyślną nazwą', () => {
+            const sWlasna = vm.stworzScene('Wstęp')
+            expect(sWlasna.pobierzNazwe()).toBe('Wstęp')
+            expect(sWlasna.pobierzID()).toMatch(/^scena_/)
+
+            const sDomyslna = vm.stworzScene('')
+            expect(sDomyslna.pobierzNazwe()).toBe('Nowa scena')
+        })
+
+        it('tworzy przedmiot z własną lub domyślną nazwą', () => {
+            const prWlasny = vm.stworzPrzedmiot('Miecz')
+            expect(prWlasny.pobierzNazwe()).toBe('Miecz')
+            expect(prWlasny.pobierzID()).toMatch(/^przedmiot_/)
+
+            const prDomyslny = vm.stworzPrzedmiot('')
+            expect(prDomyslny.pobierzNazwe()).toBe('Nowy przedmiot')
+        })
+
+        it('tworzy klasę postaci z własną lub domyślną nazwą', () => {
+            const kWlasna = vm.stworzKlasePostaci('Wojownik')
+            expect(kWlasna.pobierzNazwe()).toBe('Wojownik')
+            expect(kWlasna.pobierzID()).toMatch(/^klasa_/)
+
+            const kDomyslna = vm.stworzKlasePostaci('')
+            expect(kDomyslna.pobierzNazwe()).toBe('Nowa klasa')
+        })
+
         it('tworzy postać z własną lub domyślną nazwą gdy pole jest puste', () => {
             const pWlasna = vm.stworzPostac('Kupiec')
             expect(pWlasna.pobierzNazwe()).toBe('Kupiec')
@@ -165,13 +202,30 @@ describe('MainWindowViewModel', () => {
             expect(cDomyslna.pobierzNazwe()).toBe('Nowa cecha')
         })
 
-        it('tworzy tag z własną lub domyślną nazwą gdy pole jest puste', () => {
+        it('tworzy tag z własną lub domyślną nazwą oraz domyślnym kolorem', () => {
             const tWlasny = vm.stworzTag('Magia', '#8b5cf6')
             expect(tWlasny.pobierzNazwe()).toBe('Magia')
             expect(tWlasny.pobierzKolor()).toBe('#8b5cf6')
 
             const tDomyslny = vm.stworzTag('')
             expect(tDomyslny.pobierzNazwe()).toBe('Nowy tag')
+            expect(tDomyslny.pobierzKolor()).toBe(DEFAULT_TAG_COLOR)
+        })
+
+        it('umożliwia wstrzyknięcie niestandardowego generatora ID dla pełnego determinizmu', () => {
+            let counter = 0
+            const mockGenerator = (prefix?: string): string =>
+                `${prefix || 'id'}_fixed_${++counter}`
+            const deterministicVm = new MainWindowViewModel(mockGenerator)
+
+            const npc = deterministicVm.stworzPostac('Bohater')
+            expect(npc.pobierzID()).toBe('npc_fixed_1')
+
+            const location = deterministicVm.stworzLokacje('Góry')
+            expect(location.pobierzID()).toBe('lokacja_fixed_2')
+
+            const tag = deterministicVm.stworzTag('Test')
+            expect(tag.pobierzID()).toBe('tag_fixed_3')
         })
 
         it('filtruje sekcje po wyszukiwanym haśle', () => {
