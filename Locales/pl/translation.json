@@ -42,7 +42,24 @@
     "class": "Klasa postaci",
     "traits": "Cechy",
     "skills": "Umiejętności",
-    "attributes": "Przymioty"
+    "attributes": "Przymioty",
+    "default_name": "Nowa postać"
+  },
+  "trait": {
+    "default_name": "Nowa cecha"
+  },
+  "tags": {
+    "change_color": "Zmień kolor",
+    "choose_color": "Wybierz kolor taga",
+    "custom_color": "Własny:",
+    "default_name": "Nowy tag"
+  },
+  "editor": {
+    "no_open_file": "Brak otwartego pliku",
+    "close_file": "Zamknij plik",
+    "unsaved_changes": "Niezapisane zmiany",
+    "document": "Dokument",
+    "encoding_info": "UTF-8 · Markdown"
   },
   "item": {
     "list": "Przedmioty",
@@ -56,7 +73,8 @@
     "new": "Nowa lokacja",
     "delete": "Usuń lokację",
     "name": "Nazwa",
-    "description": "Opis"
+    "description": "Opis",
+    "default_name": "Nowa lokacja"
   },
   "errors": {
     "unknownError": "Wystąpił nieznany błąd",
@@ -156,11 +174,18 @@
     "characters": "Postacie i Szablony",
     "locations": "Lokacje",
     "traits": "Cechy i Atrybuty",
-    "main_character": "Maincharakter (Postać Gracza)",
+    "main_character": "Postać Główna (Gracz)",
     "tags": "Tagi w Projekcie",
     "explorer": "Struktura Gry",
     "search": "Wyszukiwanie",
     "settings": "Ustawienia Edytora",
+    "all_characters": "Wszystkie postacie",
+    "all_scenes": "Wszystkie sceny",
+    "tag_name_placeholder": "Nazwa taga (lub zostaw puste)",
+    "character_name_placeholder": "Nazwa postaci (lub zostaw puste)",
+    "location_name_placeholder": "Nazwa lokacji (lub zostaw puste)",
+    "trait_name_placeholder": "Nazwa cechy (lub zostaw puste)",
+    "close_panel": "Zamknij panel",
     "no_paragraphs": "Brak paragrafów w projekcie",
     "no_scenes": "Brak scen w projekcie",
     "no_characters": "Brak postaci i szablonów w projekcie",
@@ -188,7 +213,9 @@
     "delete": "Usuń element",
     "edit_title": "Edytuj nazwę",
     "add_tag": "Dodaj tag",
-    "add_trait": "Dodaj cechę"
+    "add_trait": "Dodaj cechę",
+    "rename_prompt": "Wprowadź nową nazwę:",
+    "confirm_delete": "Czy na pewno chcesz usunąć: \"{{name}}\"?"
   },
   "settings": {
     "title": "Ustawienia Edytora",
@@ -212,6 +239,8 @@
     "status": "Status:",
     "status_edited": "Edytowany",
     "quick_actions": "Szybkie akcje",
-    "show_story_graph": "Pokaż graf historii"
+    "show_story_graph": "Pokaż graf historii",
+    "toggle_collapse": "Zwiń / Rozwiń właściwości",
+    "expand": "Rozwiń właściwości"
   }
 }

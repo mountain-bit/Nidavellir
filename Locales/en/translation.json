@@ -42,7 +42,24 @@
     "class": "Character class",
     "traits": "Traits",
     "skills": "Skills",
-    "attributes": "Attributes"
+    "attributes": "Attributes",
+    "default_name": "New character"
+  },
+  "trait": {
+    "default_name": "New trait"
+  },
+  "tags": {
+    "change_color": "Change color",
+    "choose_color": "Choose tag color",
+    "custom_color": "Custom:",
+    "default_name": "New tag"
+  },
+  "editor": {
+    "no_open_file": "No open file",
+    "close_file": "Close file",
+    "unsaved_changes": "Unsaved changes",
+    "document": "Document",
+    "encoding_info": "UTF-8 · Markdown"
   },
   "item": {
     "list": "Items",
@@ -56,7 +73,8 @@
     "new": "New location",
     "delete": "Delete location",
     "name": "Name",
-    "description": "Description"
+    "description": "Description",
+    "default_name": "New location"
   },
   "errors": {
     "unknownError": "An unknown error occurred",
@@ -161,6 +179,13 @@
     "explorer": "Game Structure",
     "search": "Search",
     "settings": "Editor Settings",
+    "all_characters": "All characters",
+    "all_scenes": "All scenes",
+    "tag_name_placeholder": "Tag name (or leave empty)",
+    "character_name_placeholder": "Character name (or leave empty)",
+    "location_name_placeholder": "Location name (or leave empty)",
+    "trait_name_placeholder": "Trait name (or leave empty)",
+    "close_panel": "Close panel",
     "no_paragraphs": "No paragraphs in project",
     "no_scenes": "No scenes in project",
     "no_characters": "No characters or templates in project",
@@ -188,7 +213,9 @@
     "delete": "Delete element",
     "edit_title": "Edit title",
     "add_tag": "Add tag",
-    "add_trait": "Add trait"
+    "add_trait": "Add trait",
+    "rename_prompt": "Enter new name:",
+    "confirm_delete": "Are you sure you want to delete: \"{{name}}\"?"
   },
   "settings": {
     "title": "Editor Settings",
@@ -212,6 +239,8 @@
     "status": "Status:",
     "status_edited": "Edited",
     "quick_actions": "Quick Actions",
-    "show_story_graph": "Show story graph"
+    "show_story_graph": "Show story graph",
+    "toggle_collapse": "Collapse / Expand properties",
+    "expand": "Expand properties"
   }
 }

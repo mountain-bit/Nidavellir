@@ -3,7 +3,10 @@ import { Lokacja } from '../Model/Lokacja'
 import { NPC } from '../Model/NPC'
 import { Opis } from '../Model/Opis'
 import { Paragraf } from '../Model/Paragraf'
+import { Scena } from '../Model/Scena'
 import { Tag } from '../Model/Tag'
+
+export { Cecha, Lokacja, NPC, Opis, Paragraf, Scena, Tag }
 
 export type RibbonTab = 'glowna' | 'sceny' | 'widok'
 export type LeftTab =
@@ -188,27 +191,31 @@ export class MainWindowViewModel {
     }
 
     // Factory Helpers with Fallback Default Names
-    public stworzPostac(nazwaInput?: string): NPC {
-        const nazwa = (nazwaInput ?? '').trim() || 'Nowa postać'
-        const id = 'npc_' + Date.now() + '_' + Math.floor(Math.random() * 1000)
+    public stworzPostac(nazwaInput?: string, domyslnaNazwa: string = 'Nowa postać'): NPC {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = 'npc_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
         return new NPC(id, nazwa)
     }
 
-    public stworzLokacje(nazwaInput?: string): Lokacja {
-        const nazwa = (nazwaInput ?? '').trim() || 'Nowa lokacja'
-        const id = 'lokacja_' + Date.now() + '_' + Math.floor(Math.random() * 1000)
+    public stworzLokacje(nazwaInput?: string, domyslnaNazwa: string = 'Nowa lokacja'): Lokacja {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = 'lokacja_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
         return new Lokacja(id, nazwa)
     }
 
-    public stworzCeche(nazwaInput?: string): Cecha {
-        const nazwa = (nazwaInput ?? '').trim() || 'Nowa cecha'
-        const id = 'cecha_' + Date.now() + '_' + Math.floor(Math.random() * 1000)
+    public stworzCeche(nazwaInput?: string, domyslnaNazwa: string = 'Nowa cecha'): Cecha {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = 'cecha_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
         return new Cecha(id, nazwa, new Opis(), '')
     }
 
-    public stworzTag(nazwaInput?: string, kolorInput: string = '#3b82f6'): Tag {
-        const nazwa = (nazwaInput ?? '').trim() || 'Nowy tag'
-        const id = 'tag_' + Date.now() + '_' + Math.floor(Math.random() * 1000)
+    public stworzTag(
+        nazwaInput?: string,
+        kolorInput: string = '#3b82f6',
+        domyslnaNazwa: string = 'Nowy tag'
+    ): Tag {
+        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const id = 'tag_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9)
         return new Tag(id, nazwa, kolorInput)
     }
 

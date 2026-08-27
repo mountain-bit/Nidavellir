@@ -42,7 +42,24 @@
     "class": "Charakterklasse",
     "traits": "Merkmale",
     "skills": "Fähigkeiten",
-    "attributes": "Attribute"
+    "attributes": "Attribute",
+    "default_name": "Neuer Charakter"
+  },
+  "trait": {
+    "default_name": "Neues Merkmal"
+  },
+  "tags": {
+    "change_color": "Farbe ändern",
+    "choose_color": "Tag-Farbe wählen",
+    "custom_color": "Eigene:",
+    "default_name": "Neuer Tag"
+  },
+  "editor": {
+    "no_open_file": "Keine Datei geöffnet",
+    "close_file": "Datei schließen",
+    "unsaved_changes": "Ungespeicherte Änderungen",
+    "document": "Dokument",
+    "encoding_info": "UTF-8 · Markdown"
   },
   "item": {
     "list": "Gegenstände",
@@ -56,7 +73,8 @@
     "new": "Neuer Ort",
     "delete": "Ort löschen",
     "name": "Name",
-    "description": "Beschreibung"
+    "description": "Beschreibung",
+    "default_name": "Neuer Ort"
   },
   "errors": {
     "unknownError": "Ein unbekannter Fehler ist aufgetreten",
@@ -161,6 +179,13 @@
     "explorer": "Spielstruktur",
     "search": "Suche",
     "settings": "Editor-Einstellungen",
+    "all_characters": "Alle Charaktere",
+    "all_scenes": "Alle Szenen",
+    "tag_name_placeholder": "Tag-Name (oder leer lassen)",
+    "character_name_placeholder": "Charaktername (oder leer lassen)",
+    "location_name_placeholder": "Ortsname (oder leer lassen)",
+    "trait_name_placeholder": "Merkmalname (oder leer lassen)",
+    "close_panel": "Panel schließen",
     "no_paragraphs": "Keine Absätze im Projekt",
     "no_scenes": "Keine Szenen im Projekt",
     "no_characters": "Keine Charaktere oder Vorlagen im Projekt",
@@ -188,7 +213,9 @@
     "delete": "Element löschen",
     "edit_title": "Titel bearbeiten",
     "add_tag": "Tag hinzufügen",
-    "add_trait": "Merkmal hinzufügen"
+    "add_trait": "Merkmal hinzufügen",
+    "rename_prompt": "Geben Sie einen neuen Namen ein:",
+    "confirm_delete": "Möchten Sie \"{{name}}\" wirklich löschen?"
   },
   "settings": {
     "title": "Editor-Einstellungen",
@@ -212,6 +239,8 @@
     "status": "Status:",
     "status_edited": "Bearbeitet",
     "quick_actions": "Schnellaktionen",
-    "show_story_graph": "Story-Graph anzeigen"
+    "show_story_graph": "Story-Graph anzeigen",
+    "toggle_collapse": "Eigenschaften ein-/ausklappen",
+    "expand": "Eigenschaften ausklappen"
   }
 }

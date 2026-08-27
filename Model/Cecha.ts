@@ -58,4 +58,13 @@ export class Cecha {
             json.wartosc || ''
         )
     }
+
+    public toJSON(): any {
+        return {
+            id: this.id,
+            nazwa: this.nazwa,
+            opis: this.opis,
+            wartosc: this.wartosc,
+        }
+    }
 }

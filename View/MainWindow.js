@@ -5,9 +5,25 @@ import {
     setLanguage,
     t,
 } from '../dist/Utils/translate.js'
-import { MainWindowViewModel } from '../dist/ViewModel/MainWindowViewModel.js'
+import {
+    MainWindowViewModel,
+    Opis,
+    Paragraf,
+    Scena,
+} from '../dist/ViewModel/MainWindowViewModel.js'
 
 const vm = new MainWindowViewModel()
+
+// Utility for XSS safety
+function escapeHtml(str) {
+    if (!str) return ''
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+}
 
 // DOM elements
 const leftDrawer = document.getElementById('left-drawer')
@@ -27,6 +43,20 @@ const viewGraphBtn = document.getElementById('view-mode-graph-btn')
 const fileEditor = document.getElementById('file-editor')
 const saveStatus = document.getElementById('save-status')
 
+// Context Menu DOM elements (cached)
+const ctxMenu = document.getElementById('custom-context-menu')
+const ctxEditTitle = document.getElementById('ctx-edit-title')
+const ctxAddTagGroup = document.getElementById('ctx-add-tag-group')
+const ctxAddTagToggle = document.getElementById('ctx-add-tag-toggle')
+const ctxAddTagList = document.getElementById('ctx-add-tag-list')
+const ctxAddTagChevron = document.getElementById('ctx-add-tag-chevron')
+const ctxAddTraitGroup = document.getElementById('ctx-add-trait-group')
+const ctxAddTraitToggle = document.getElementById('ctx-add-trait-toggle')
+const ctxAddTraitList = document.getElementById('ctx-add-trait-list')
+const ctxAddTraitChevron = document.getElementById('ctx-add-trait-chevron')
+const ctxDelete = document.getElementById('ctx-delete')
+const colorPickerPopover = document.getElementById('tag-color-picker-popover')
+
 // Mock files state
 const files = {
     'Wprowadzenie.md': '# Wprowadzenie\n\nWitaj w edytorze gry paragrafowej...',
@@ -42,6 +72,51 @@ let projectTags = [
 let projectCharacters = [vm.stworzPostac('Strażnik miejski'), vm.stworzPostac('Kupiec Jan')]
 let projectLocations = [vm.stworzLokacje('Karczma Pod Różą'), vm.stworzLokacje('Mroczny Las')]
 let projectTraits = [vm.stworzCeche('Siła'), vm.stworzCeche('Zręczność')]
+let projectParagraphs = [
+    new Paragraf(
+        'p1',
+        'Prolog: Przebudzenie',
+        new Opis('Budzisz się w starej karczmie. Za oknem szaleje burza.'),
+        [],
+        false,
+        undefined,
+        [projectTags[0]]
+    ),
+    new Paragraf(
+        'p2',
+        'Mroczny trakt leśny',
+        new Opis('Ścieżka prowadzi przez gęsty las pełen niebezpieczeństw.'),
+        [],
+        false,
+        undefined,
+        [projectTags[1]]
+    ),
+    new Paragraf(
+        'p3',
+        'Komnata runiczna',
+        new Opis('Blask runów oświetla starożytne zwoje i artefakty.'),
+        [],
+        false,
+        undefined,
+        [projectTags[2]]
+    ),
+]
+let projectScenes = [
+    new Scena(
+        's1',
+        'Wstęp do przygody',
+        new Opis(),
+        [projectParagraphs[0]],
+        [projectCharacters[0]]
+    ),
+    new Scena(
+        's2',
+        'Eksploracja lasu',
+        new Opis(),
+        [projectParagraphs[1], projectParagraphs[2]],
+        [projectCharacters[1]]
+    ),
+]
 
 // Active context menu & color picker state
 let activeContextMenuTarget = null
@@ -123,24 +198,121 @@ function updateLeftDrawerUI() {
     }
 }
 
+// Paragraph Filter Popover: Tag Badges & Selects
+function renderFilterTags() {
+    const filterTagsContainer = document.getElementById('filter-tags-list')
+    if (!filterTagsContainer) return
+
+    const selectedTag = vm.getSelectedFilterTag()
+
+    if (projectTags.length === 0) {
+        filterTagsContainer.innerHTML = `<span class="text-[10px] text-gray-500 italic" data-i18n="left_panel.no_tags">${t('left_panel.no_tags')}</span>`
+        return
+    }
+
+    filterTagsContainer.innerHTML = projectTags
+        .map(tag => {
+            const isSelected = selectedTag === tag.pobierzID() || selectedTag === tag.pobierzNazwe()
+            const borderClass = isSelected
+                ? 'ring-2 ring-white font-bold scale-105 shadow-md'
+                : 'opacity-85 hover:opacity-100 hover:scale-105'
+
+            return `
+            <button type="button" class="filter-tag-badge px-2 py-0.5 rounded text-[10px] text-white transition-all cursor-pointer flex items-center gap-1 shrink-0 ${borderClass}" 
+                style="background-color: ${escapeHtml(tag.pobierzKolor())}" 
+                data-tag-id="${escapeHtml(tag.pobierzID())}" 
+                data-tag-name="${escapeHtml(tag.pobierzNazwe())}">
+                ${isSelected ? '✓ ' : ''}${escapeHtml(tag.pobierzNazwe())}
+            </button>
+        `
+        })
+        .join('')
+
+    filterTagsContainer.querySelectorAll('.filter-tag-badge').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation()
+            const tagId = btn.dataset.tagId
+            const tagName = btn.dataset.tagName
+            const currentSelected = vm.getSelectedFilterTag()
+            if (currentSelected === tagId || currentSelected === tagName) {
+                vm.setSelectedFilterTag(null)
+            } else {
+                vm.setSelectedFilterTag(tagName || tagId)
+            }
+            updateFilterBadgeState()
+            renderFilterTags()
+            renderParagraphsList()
+        })
+    })
+}
+
+function populateFilterSelects() {
+    const charSelect = document.getElementById('filter-character-select')
+    const sceneSelect = document.getElementById('filter-scene-select')
+
+    if (charSelect) {
+        const currentVal = vm.getSelectedFilterCharacter() || ''
+        charSelect.innerHTML =
+            `<option value="" data-i18n="left_panel.all_characters">${t('left_panel.all_characters')}</option>` +
+            projectCharacters
+                .map(
+                    c =>
+                        `<option value="${escapeHtml(c.pobierzID())}" ${c.pobierzID() === currentVal ? 'selected' : ''}>${escapeHtml(c.pobierzNazwe())}</option>`
+                )
+                .join('')
+    }
+
+    if (sceneSelect) {
+        const currentVal = vm.getSelectedFilterScene() || ''
+        sceneSelect.innerHTML =
+            `<option value="" data-i18n="left_panel.all_scenes">${t('left_panel.all_scenes')}</option>` +
+            projectScenes
+                .map(
+                    s =>
+                        `<option value="${escapeHtml(s.pobierzID())}" ${s.pobierzID() === currentVal ? 'selected' : ''}>${escapeHtml(s.pobierzNazwe())}</option>`
+                )
+                .join('')
+    }
+}
+
+function updateFilterBadgeState() {
+    const badge = document.getElementById('active-filter-badge')
+    if (!badge) return
+    const hasActiveFilter = Boolean(
+        vm.getSelectedFilterTag() || vm.getSelectedFilterCharacter() || vm.getSelectedFilterScene()
+    )
+    if (hasActiveFilter) {
+        badge.classList.remove('hidden')
+    } else {
+        badge.classList.add('hidden')
+    }
+}
+
 // Paragraph Search & Filter Popover Controls
 function setupParagraphSearchAndFilters() {
     const searchInput = document.getElementById('paragraph-search-input')
     const filterBtn = document.getElementById('paragraph-filter-btn')
     const filterPopover = document.getElementById('paragraph-filter-popover')
     const clearFiltersBtn = document.getElementById('btn-clear-paragraph-filters')
-    const badge = document.getElementById('active-filter-badge')
+    const charSelect = document.getElementById('filter-character-select')
+    const sceneSelect = document.getElementById('filter-scene-select')
 
     if (searchInput) {
         searchInput.addEventListener('input', () => {
             vm.setParagraphSearchQuery(searchInput.value)
+            renderParagraphsList()
         })
     }
 
     if (filterBtn && filterPopover) {
         filterBtn.addEventListener('click', e => {
             e.stopPropagation()
+            const isHidden = filterPopover.classList.contains('hidden')
             filterPopover.classList.toggle('hidden')
+            if (isHidden) {
+                renderFilterTags()
+                populateFilterSelects()
+            }
         })
 
         document.addEventListener('click', e => {
@@ -150,21 +322,43 @@ function setupParagraphSearchAndFilters() {
         })
     }
 
+    if (charSelect) {
+        charSelect.addEventListener('change', () => {
+            vm.setSelectedFilterCharacter(charSelect.value || null)
+            updateFilterBadgeState()
+            renderParagraphsList()
+        })
+    }
+
+    if (sceneSelect) {
+        sceneSelect.addEventListener('change', () => {
+            vm.setSelectedFilterScene(sceneSelect.value || null)
+            updateFilterBadgeState()
+            renderParagraphsList()
+        })
+    }
+
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
             vm.clearParagraphFilters()
             if (searchInput) searchInput.value = ''
-            if (badge) badge.classList.add('hidden')
+            if (charSelect) charSelect.value = ''
+            if (sceneSelect) sceneSelect.value = ''
+            updateFilterBadgeState()
+            renderFilterTags()
+            renderParagraphsList()
             if (filterPopover) filterPopover.classList.add('hidden')
         })
     }
+
+    renderFilterTags()
+    populateFilterSelects()
+    renderParagraphsList()
+    renderScenesList()
 }
 
 // Context Menu and Section Handlers
 function setupSectionControlsAndContextMenu() {
-    const ctxMenu = document.getElementById('custom-context-menu')
-    const colorPickerPopover = document.getElementById('tag-color-picker-popover')
-
     // Close menus when clicking anywhere outside
     document.addEventListener('click', e => {
         if (ctxMenu && !ctxMenu.contains(e.target)) {
@@ -189,7 +383,7 @@ function setupSectionControlsAndContextMenu() {
             submitId: 'tag-create-submit',
             cancelId: 'tag-create-cancel',
             searchId: 'tag-search-input',
-            defaultName: 'Nowy tag',
+            getDefaultName: () => t('tags.default_name'),
         },
         {
             type: 'character',
@@ -199,7 +393,7 @@ function setupSectionControlsAndContextMenu() {
             submitId: 'character-create-submit',
             cancelId: 'character-create-cancel',
             searchId: 'character-search-input',
-            defaultName: 'Nowa postać',
+            getDefaultName: () => t('character.default_name'),
         },
         {
             type: 'location',
@@ -209,7 +403,7 @@ function setupSectionControlsAndContextMenu() {
             submitId: 'location-create-submit',
             cancelId: 'location-create-cancel',
             searchId: 'location-search-input',
-            defaultName: 'Nowa lokacja',
+            getDefaultName: () => t('location.default_name'),
         },
         {
             type: 'trait',
@@ -219,7 +413,7 @@ function setupSectionControlsAndContextMenu() {
             submitId: 'trait-create-submit',
             cancelId: 'trait-create-cancel',
             searchId: 'trait-search-input',
-            defaultName: 'Nowa cecha',
+            getDefaultName: () => t('trait.default_name'),
         },
     ]
 
@@ -246,18 +440,21 @@ function setupSectionControlsAndContextMenu() {
 
         if (submit && form && input) {
             const handleAdd = () => {
-                const name = input.value.trim() || sec.defaultName
+                const defaultName = sec.getDefaultName()
+                const name = input.value.trim() || defaultName
                 if (sec.type === 'tag') {
-                    projectTags.push(vm.stworzTag(name))
+                    projectTags.push(vm.stworzTag(name, '#3b82f6', defaultName))
                     renderTagsList()
+                    renderFilterTags()
                 } else if (sec.type === 'character') {
-                    projectCharacters.push(vm.stworzPostac(name))
+                    projectCharacters.push(vm.stworzPostac(name, defaultName))
                     renderCharactersList()
+                    populateFilterSelects()
                 } else if (sec.type === 'location') {
-                    projectLocations.push(vm.stworzLokacje(name))
+                    projectLocations.push(vm.stworzLokacje(name, defaultName))
                     renderLocationsList()
                 } else if (sec.type === 'trait') {
-                    projectTraits.push(vm.stworzCeche(name))
+                    projectTraits.push(vm.stworzCeche(name, defaultName))
                     renderTraitsList()
                 }
                 input.value = ''
@@ -290,20 +487,10 @@ function setupSectionControlsAndContextMenu() {
         }
     })
 
-    // Context Menu Buttons
-    const ctxEditTitle = document.getElementById('ctx-edit-title')
-    const ctxAddTagToggle = document.getElementById('ctx-add-tag-toggle')
-    const ctxAddTagList = document.getElementById('ctx-add-tag-list')
-    const ctxAddTagChevron = document.getElementById('ctx-add-tag-chevron')
-    const ctxAddTraitToggle = document.getElementById('ctx-add-trait-toggle')
-    const ctxAddTraitList = document.getElementById('ctx-add-trait-list')
-    const ctxAddTraitChevron = document.getElementById('ctx-add-trait-chevron')
-    const ctxDelete = document.getElementById('ctx-delete')
-
     if (ctxEditTitle) {
         ctxEditTitle.addEventListener('click', () => {
             if (!activeContextMenuTarget) return
-            const newName = prompt('Wprowadź nową nazwę:', activeContextMenuTarget.name)
+            const newName = prompt(t('context_menu.rename_prompt'), activeContextMenuTarget.name)
             if (newName !== null && newName.trim() !== '') {
                 activeContextMenuTarget.item.ustawNazwe(newName.trim())
                 refreshActiveSection(activeContextMenuTarget.type)
@@ -316,14 +503,16 @@ function setupSectionControlsAndContextMenu() {
         ctxDelete.addEventListener('click', () => {
             if (!activeContextMenuTarget) return
             const confirmDel = confirm(
-                `Czy na pewno chcesz usunąć: "${activeContextMenuTarget.name}"?`
+                t('context_menu.confirm_delete', { name: activeContextMenuTarget.name })
             )
             if (confirmDel) {
                 const id = activeContextMenuTarget.id
                 if (activeContextMenuTarget.type === 'tag') {
                     projectTags = projectTags.filter(t => t.pobierzID() !== id)
+                    renderFilterTags()
                 } else if (activeContextMenuTarget.type === 'character') {
                     projectCharacters = projectCharacters.filter(c => c.pobierzID() !== id)
+                    populateFilterSelects()
                 } else if (activeContextMenuTarget.type === 'location') {
                     projectLocations = projectLocations.filter(l => l.pobierzID() !== id)
                 } else if (activeContextMenuTarget.type === 'trait') {
@@ -348,13 +537,13 @@ function setupSectionControlsAndContextMenu() {
                 // Populate the tag list
                 ctxAddTagList.innerHTML =
                     projectTags.length === 0
-                        ? `<div class="px-3 py-1.5 text-gray-500 italic">Brak tagów</div>`
+                        ? `<div class="px-3 py-1.5 text-gray-500 italic" data-i18n="left_panel.no_tags">${t('left_panel.no_tags')}</div>`
                         : projectTags
                               .map(
                                   tag => `
-                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-tag-id="${tag.pobierzID()}">
-                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${tag.pobierzKolor()}"></span>
-                            <span>${tag.pobierzNazwe()}</span>
+                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-tag-id="${escapeHtml(tag.pobierzID())}">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(tag.pobierzKolor())}"></span>
+                            <span>${escapeHtml(tag.pobierzNazwe())}</span>
                         </button>
                     `
                               )
@@ -389,13 +578,13 @@ function setupSectionControlsAndContextMenu() {
                 // Populate the trait list
                 ctxAddTraitList.innerHTML =
                     projectTraits.length === 0
-                        ? `<div class="px-3 py-1.5 text-gray-500 italic">Brak cech</div>`
+                        ? `<div class="px-3 py-1.5 text-gray-500 italic" data-i18n="left_panel.no_traits">${t('left_panel.no_traits')}</div>`
                         : projectTraits
                               .map(
                                   tr => `
-                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-trait-id="${tr.pobierzID()}">
+                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-trait-id="${escapeHtml(tr.pobierzID())}">
                             <span class="text-blue-400">⚡</span>
-                            <span>${tr.pobierzNazwe()}</span>
+                            <span>${escapeHtml(tr.pobierzNazwe())}</span>
                         </button>
                     `
                               )
@@ -425,6 +614,8 @@ function setupSectionControlsAndContextMenu() {
             if (activeTagForColor) {
                 activeTagForColor.ustawKolor(btn.dataset.color)
                 renderTagsList()
+                renderFilterTags()
+                renderParagraphsList()
             }
             if (colorPickerPopover) colorPickerPopover.classList.add('hidden')
         })
@@ -436,6 +627,8 @@ function setupSectionControlsAndContextMenu() {
             if (activeTagForColor) {
                 activeTagForColor.ustawKolor(customColorInput.value)
                 renderTagsList()
+                renderFilterTags()
+                renderParagraphsList()
             }
         })
     }
@@ -445,16 +638,84 @@ function setupSectionControlsAndContextMenu() {
     renderCharactersList()
     renderLocationsList()
     renderTraitsList()
+    renderParagraphsList()
+    renderScenesList()
 }
 
 function refreshActiveSection(type) {
-    if (type === 'tag') renderTagsList()
-    if (type === 'character') renderCharactersList()
+    if (type === 'tag') {
+        renderTagsList()
+        renderFilterTags()
+        renderParagraphsList()
+    }
+    if (type === 'character') {
+        renderCharactersList()
+        populateFilterSelects()
+    }
     if (type === 'location') renderLocationsList()
     if (type === 'trait') renderTraitsList()
+    if (type === 'paragraph') renderParagraphsList()
+    if (type === 'scene') {
+        renderScenesList()
+        populateFilterSelects()
+    }
 }
 
-// Renderers for 4 Sections
+// Renderers for Sections
+function renderParagraphsList() {
+    const container = document.getElementById('paragraphs-list-container')
+    if (!container) return
+
+    const filtered = vm.searchAndFilterParagraphs(projectParagraphs)
+    if (filtered.length === 0) {
+        container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_paragraphs">${t('left_panel.no_paragraphs')}</p>`
+        return
+    }
+
+    container.innerHTML = filtered
+        .map(p => {
+            const tagsBadges = p
+                .pobierzTagi()
+                .map(
+                    tObj =>
+                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.pobierzKolor())}">${escapeHtml(tObj.pobierzNazwe())}</span>`
+                )
+                .join(' ')
+
+            return `
+            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="paragraph" data-item-id="${escapeHtml(p.pobierzID())}">
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-white text-xs truncate">📄 § ${escapeHtml(p.pobierzTytul() || p.pobierzID())}</span>
+                </div>
+                ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges}</div>` : ''}
+            </div>
+        `
+        })
+        .join('')
+}
+
+function renderScenesList() {
+    const container = document.getElementById('scenes-list-container')
+    if (!container) return
+
+    if (projectScenes.length === 0) {
+        container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_scenes">${t('left_panel.no_scenes')}</p>`
+        return
+    }
+
+    container.innerHTML = projectScenes
+        .map(s => {
+            return `
+            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="scene" data-item-id="${escapeHtml(s.pobierzID())}">
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-white text-xs truncate">🎬 ${escapeHtml(s.pobierzNazwe() || s.pobierzID())}</span>
+                </div>
+            </div>
+        `
+        })
+        .join('')
+}
+
 function renderTagsList() {
     const container = document.getElementById('tags-list-container')
     if (!container) return
@@ -465,15 +726,15 @@ function renderTagsList() {
         return
     }
 
+    const changeColorTitle = t('tags.change_color')
     container.innerHTML = filtered
         .map(
             tag => `
-            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="tag" data-item-id="${tag.pobierzID()}">
+            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="tag" data-item-id="${escapeHtml(tag.pobierzID())}">
                 <div class="flex items-center gap-2 min-w-0">
-                    <span class="tag-color-badge w-3.5 h-3.5 rounded-full border border-white/20 hover:scale-125 transition-transform cursor-pointer shrink-0" style="background-color: ${tag.pobierzKolor()}" title="Zmień kolor"></span>
-                    <span class="font-medium text-white truncate text-xs">${tag.pobierzNazwe()}</span>
+                    <span class="tag-color-badge w-3.5 h-3.5 rounded-full border border-white/20 hover:scale-125 transition-transform cursor-pointer shrink-0" style="background-color: ${escapeHtml(tag.pobierzKolor())}" title="${escapeHtml(changeColorTitle)}"></span>
+                    <span class="font-medium text-white truncate text-xs">${escapeHtml(tag.pobierzNazwe())}</span>
                 </div>
-                
             </div>
         `
         )
@@ -498,22 +759,22 @@ function renderCharactersList() {
             const tagsBadges = c
                 .pobierzTagi()
                 .map(
-                    t =>
-                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${t.pobierzKolor()}">${t.pobierzNazwe()}</span>`
+                    tObj =>
+                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.pobierzKolor())}">${escapeHtml(tObj.pobierzNazwe())}</span>`
                 )
                 .join(' ')
             const traitsBadges = c
                 .pobierzCechy()
                 .map(
                     tr =>
-                        `<span class="px-1 py-0.5 rounded bg-blue-900/60 text-blue-200 text-[9px]">${tr.pobierzNazwe()}</span>`
+                        `<span class="px-1 py-0.5 rounded bg-blue-900/60 text-blue-200 text-[9px]">${escapeHtml(tr.pobierzNazwe())}</span>`
                 )
                 .join(' ')
 
             return `
-                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="character" data-item-id="${c.pobierzID()}">
+                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="character" data-item-id="${escapeHtml(c.pobierzID())}">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate">👤 ${c.pobierzNazwe()}</span>
+                        <span class="font-medium text-white text-xs truncate">👤 ${escapeHtml(c.pobierzNazwe())}</span>
                     </div>
                     ${tagsBadges || traitsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges} ${traitsBadges}</div>` : ''}
                 </div>
@@ -539,15 +800,15 @@ function renderLocationsList() {
             const tagsBadges = l
                 .pobierzTagi()
                 .map(
-                    t =>
-                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${t.pobierzKolor()}">${t.pobierzNazwe()}</span>`
+                    tObj =>
+                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.pobierzKolor())}">${escapeHtml(tObj.pobierzNazwe())}</span>`
                 )
                 .join(' ')
 
             return `
-                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="location" data-item-id="${l.pobierzID()}">
+                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="location" data-item-id="${escapeHtml(l.pobierzID())}">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate">📍 ${l.pobierzNazwe()}</span>
+                        <span class="font-medium text-white text-xs truncate">📍 ${escapeHtml(l.pobierzNazwe())}</span>
                     </div>
                     ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges}</div>` : ''}
                 </div>
@@ -571,8 +832,8 @@ function renderTraitsList() {
     container.innerHTML = filtered
         .map(
             tr => `
-            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="trait" data-item-id="${tr.pobierzID()}">
-                <span class="font-medium text-white text-xs truncate">⚡ ${tr.pobierzNazwe()}</span>
+            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="trait" data-item-id="${escapeHtml(tr.pobierzID())}">
+                <span class="font-medium text-white text-xs truncate">⚡ ${escapeHtml(tr.pobierzNazwe())}</span>
             </div>
         `
         )
@@ -583,14 +844,6 @@ function renderTraitsList() {
 
 // Helpers for Context Menu & Color Picker Listeners
 function attachContextMenuListeners(container, type, sourceArray) {
-    const ctxMenu = document.getElementById('custom-context-menu')
-    const ctxAddTagGroup = document.getElementById('ctx-add-tag-group')
-    const ctxAddTraitGroup = document.getElementById('ctx-add-trait-group')
-    const ctxAddTagList = document.getElementById('ctx-add-tag-list')
-    const ctxAddTraitList = document.getElementById('ctx-add-trait-list')
-    const ctxAddTagChevron = document.getElementById('ctx-add-tag-chevron')
-    const ctxAddTraitChevron = document.getElementById('ctx-add-trait-chevron')
-
     container.querySelectorAll('.drawer-item').forEach(el => {
         el.addEventListener('contextmenu', e => {
             e.preventDefault()
@@ -647,7 +900,6 @@ function attachContextMenuListeners(container, type, sourceArray) {
 }
 
 function attachColorPickerListeners(container) {
-    const colorPickerPopover = document.getElementById('tag-color-picker-popover')
     container.querySelectorAll('.tag-color-badge').forEach(badge => {
         badge.addEventListener('click', e => {
             e.stopPropagation()
@@ -686,22 +938,24 @@ function updateMainWorkspaceUI() {
     if (mainView === 'graph') {
         markdownContainer.classList.add('hidden')
         graphContainer.classList.remove('hidden')
-        viewGraphBtn.className = 'px-2.5 py-1 text-xs rounded bg-[#2e2e33] text-white'
-        viewMarkdownBtn.className =
-            'px-2.5 py-1 text-xs rounded bg-transparent text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white'
+        viewGraphBtn.classList.add('bg-[#2e2e33]', 'text-white')
+        viewGraphBtn.classList.remove('bg-transparent', 'text-[#a1a1aa]')
+        viewMarkdownBtn.classList.add('bg-transparent', 'text-[#a1a1aa]')
+        viewMarkdownBtn.classList.remove('bg-[#2e2e33]', 'text-white')
         showGraph()
     } else {
         markdownContainer.classList.remove('hidden')
         graphContainer.classList.add('hidden')
-        viewMarkdownBtn.className = 'px-2.5 py-1 text-xs rounded bg-[#2e2e33] text-white'
-        viewGraphBtn.className =
-            'px-2.5 py-1 text-xs rounded bg-transparent text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white'
+        viewMarkdownBtn.classList.add('bg-[#2e2e33]', 'text-white')
+        viewMarkdownBtn.classList.remove('bg-transparent', 'text-[#a1a1aa]')
+        viewGraphBtn.classList.add('bg-transparent', 'text-[#a1a1aa]')
+        viewGraphBtn.classList.remove('bg-[#2e2e33]', 'text-white')
     }
 
     const active = vm.getActiveFile()
     const activeLabel = document.getElementById('active-file-label')
     if (activeLabel) {
-        activeLabel.textContent = active || 'Brak otwartego pliku'
+        activeLabel.textContent = active || t('editor.no_open_file')
     }
     if (fileEditor) {
         fileEditor.value = active ? files[active] || '' : ''
@@ -716,6 +970,7 @@ function renderEditorTabs() {
 
     const openFiles = vm.getOpenFiles()
     const activeFile = vm.getActiveFile()
+    const closeFileTitle = t('editor.close_file')
 
     editorTabsContainer.innerHTML = openFiles
         .map(file => {
@@ -726,9 +981,9 @@ function renderEditorTabs() {
 
             return `
             <div class="flex items-center gap-1.5 px-3 py-1 text-xs rounded-t cursor-pointer border-r border-[#333338] ${activeClasses}"
-                data-tab-file="${file}">
-                <span>📄 ${file}</span>
-                <button class="close-tab-btn hover:text-red-400 p-0.5 rounded" data-close-file="${file}" title="Zamknij plik">×</button>
+                data-tab-file="${escapeHtml(file)}">
+                <span>📄 ${escapeHtml(file)}</span>
+                <button class="close-tab-btn hover:text-red-400 p-0.5 rounded" data-close-file="${escapeHtml(file)}" title="${escapeHtml(closeFileTitle)}">×</button>
             </div>
         `
         })
@@ -863,7 +1118,7 @@ fileEditor.addEventListener('input', () => {
     const active = vm.getActiveFile()
     if (active) {
         files[active] = fileEditor.value
-        if (saveStatus) saveStatus.textContent = 'Niezapisane zmiany'
+        if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
     }
 })
 
@@ -886,6 +1141,15 @@ async function initApp() {
             await setLanguage(newLang)
             applyTranslations()
             updateLeftDrawerUI()
+            renderFilterTags()
+            populateFilterSelects()
+            renderParagraphsList()
+            renderScenesList()
+            renderTagsList()
+            renderCharactersList()
+            renderLocationsList()
+            renderTraitsList()
+            updateMainWorkspaceUI()
         })
     }
 }

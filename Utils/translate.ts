@@ -76,6 +76,9 @@ export async function setLanguage(locale: SupportedLanguage): Promise<boolean> {
 }
 
 export function applyTranslations(): void {
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.lang = getLanguage()
+    }
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n')
         if (key) {

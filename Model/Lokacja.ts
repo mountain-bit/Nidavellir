@@ -22,6 +22,10 @@ export class Lokacja {
         return this.nazwa
     }
 
+    public ustawNazwe(nazwa: string): void {
+        this.nazwa = nazwa
+    }
+
     public pobierzOpis(): Opis {
         return this.opis
     }
