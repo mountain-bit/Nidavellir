@@ -1,28 +1,25 @@
 import fs from 'fs'
+import { createRequire } from 'module'
 import os from 'os'
 import path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { generateUniqueSlug, slugifyEntityName } from '../../Utils/pathSanitizer'
+const require = createRequire(import.meta.url)
 
-function resolveProjectDir(projectPath: string | null | undefined): string | null {
-    if (!projectPath || typeof projectPath !== 'string') return null
-    if (!fs.existsSync(projectPath)) return null
-    try {
-        const stat = fs.statSync(projectPath)
-        return stat.isDirectory() ? projectPath : path.dirname(projectPath)
-    } catch {
-        return null
-    }
-}
+const {
+    resolveProjectDir,
+    isPathInsideBase,
+    validateProjectData,
+    atomicWriteStringSync,
+    atomicWriteJsonSync,
+} = require('../../Utils/fsSecurity.js')
 
-function isPathInsideBase(basePath: string, targetPath: string): boolean {
-    const resolvedBase = path.resolve(basePath)
-    const resolvedTarget = path.resolve(targetPath)
-    return resolvedTarget.startsWith(resolvedBase + path.sep) || resolvedTarget === resolvedBase
-}
+const ProjectService = require('../../main/services/ProjectService.js')
+const EntityService = require('../../main/services/EntityService.js')
+const MarkdownService = require('../../main/services/MarkdownService.js')
+const RecentProjectsService = require('../../main/services/RecentProjectsService.js')
 
-describe('IPC Handlers & File System Operations', () => {
+describe('Main Process Services & File System Operations', () => {
     let tempDir: string
 
     beforeEach(() => {
@@ -39,169 +36,270 @@ describe('IPC Handlers & File System Operations', () => {
         }
     })
 
-    describe('resolveProjectDir', () => {
-        it('zwraca ścieżkę katalogu dla istniejącego folderu', () => {
-            expect(resolveProjectDir(tempDir)).toBe(tempDir)
+    describe('fsSecurity utilities', () => {
+        describe('resolveProjectDir', () => {
+            it('zwraca ścieżkę katalogu dla istniejącego folderu', () => {
+                expect(resolveProjectDir(tempDir)).toBe(tempDir)
+            })
+
+            it('zwraca katalog nadrzędny dla istniejącego pliku project.json', () => {
+                const projectFile = path.join(tempDir, 'project.json')
+                fs.writeFileSync(projectFile, '{}')
+                expect(resolveProjectDir(projectFile)).toBe(tempDir)
+            })
+
+            it('zwraca null i nie rzuca błędu dla nieistniejącej ścieżki', () => {
+                const nonExistent = path.join(tempDir, 'non_existent_folder_xyz')
+                expect(resolveProjectDir(nonExistent)).toBeNull()
+                expect(resolveProjectDir('')).toBeNull()
+                expect(resolveProjectDir(null as unknown as string)).toBeNull()
+            })
         })
 
-        it('zwraca katalog nadrzędny dla istniejącego pliku project.json', () => {
-            const projectFile = path.join(tempDir, 'project.json')
-            fs.writeFileSync(projectFile, '{}')
-            expect(resolveProjectDir(projectFile)).toBe(tempDir)
+        describe('isPathInsideBase (Path Traversal Protection)', () => {
+            it('akceptuje ścieżki wewnątrz katalogu bazowego', () => {
+                const subFile = path.join(tempDir, 'NPC', 'straznik', 'element.json')
+                expect(isPathInsideBase(tempDir, subFile)).toBe(true)
+            })
+
+            it('odrzuca ścieżki wychodzące poza bazę (np. ../../etc/passwd)', () => {
+                const maliciousPath = path.join(tempDir, '..', '..', 'windows', 'system32')
+                expect(isPathInsideBase(tempDir, maliciousPath)).toBe(false)
+            })
+
+            it('odrzuca ścieżki o zbliżonej nazwie prefixu ale poza folderem (np. /temp-other)', () => {
+                const similarPath = tempDir + '-other/file.json'
+                expect(isPathInsideBase(tempDir, similarPath)).toBe(false)
+            })
+
+            it('zwraca false dla nieprawidłowych argumentów', () => {
+                expect(isPathInsideBase('', tempDir)).toBe(false)
+                expect(isPathInsideBase(tempDir, '')).toBe(false)
+                expect(isPathInsideBase(null as any, tempDir)).toBe(false)
+            })
         })
 
-        it('zwraca null i nie rzuca błędu dla nieistniejącej ścieżki', () => {
-            const nonExistent = path.join(tempDir, 'non_existent_folder_xyz')
-            expect(resolveProjectDir(nonExistent)).toBeNull()
-            expect(resolveProjectDir('')).toBeNull()
-            expect(resolveProjectDir(null as unknown as string)).toBeNull()
-        })
-    })
-
-    describe('isPathInsideBase (Path Traversal Protection)', () => {
-        it('akceptuje ścieżki wewnątrz katalogu bazowego', () => {
-            const subFile = path.join(tempDir, 'NPC', 'straznik', 'element.json')
-            expect(isPathInsideBase(tempDir, subFile)).toBe(true)
-        })
-
-        it('odrzuca ścieżki wychodzące poza bazę (np. ../../etc/passwd)', () => {
-            const maliciousPath = path.join(tempDir, '..', '..', 'windows', 'system32')
-            expect(isPathInsideBase(tempDir, maliciousPath)).toBe(false)
-        })
-
-        it('odrzuca ścieżki o zbliżonej nazwie prefixu ale poza folderem (np. /temp-other)', () => {
-            const similarPath = tempDir + '-other/file.json'
-            expect(isPathInsideBase(tempDir, similarPath)).toBe(false)
-        })
-    })
-
-    describe('create-entity handler logic', () => {
-        it('tworzy encję, strukturę katalogu i aktualizuje meta.json atomowo', () => {
-            const category = 'NPC'
-            const categoryDir = path.join(tempDir, category)
-            fs.mkdirSync(categoryDir, { recursive: true })
-
-            const metaPath = path.join(categoryDir, 'meta.json')
-            fs.writeFileSync(
-                metaPath,
-                JSON.stringify({
-                    opis: `Folder na ${category}`,
-                    sciezka: `./${category}`,
+        describe('validateProjectData', () => {
+            it('zwraca true dla poprawnego obiektu projektu', () => {
+                const validData = {
+                    nazwa: 'Test Game',
                     sciezkiOpisow: [],
-                    sciezkiZdjec: [],
-                    elementy: [],
-                })
+                    sciezkiDanych: [],
+                }
+                expect(validateProjectData(validData)).toBe(true)
+            })
+
+            it('zwraca false dla brakujących lub błędnych pól', () => {
+                expect(validateProjectData(null)).toBe(false)
+                expect(validateProjectData({})).toBe(false)
+                expect(
+                    validateProjectData({
+                        nazwa: 123,
+                        sciezkiOpisow: [],
+                        sciezkiDanych: [],
+                    })
+                ).toBe(false)
+                expect(
+                    validateProjectData({
+                        nazwa: 'Test',
+                        sciezkiOpisow: 'invalid',
+                        sciezkiDanych: [],
+                    })
+                ).toBe(false)
+            })
+        })
+
+        describe('atomic writes', () => {
+            it('atomowo zapisuje string oraz tworzy katalogi nadrzędne', () => {
+                const targetFile = path.join(tempDir, 'nested', 'deep', 'note.txt')
+                atomicWriteStringSync(targetFile, 'Hello World')
+                expect(fs.existsSync(targetFile)).toBe(true)
+                expect(fs.readFileSync(targetFile, 'utf8')).toBe('Hello World')
+            })
+
+            it('atomowo zapisuje obiekt JSON', () => {
+                const targetJson = path.join(tempDir, 'data.json')
+                atomicWriteJsonSync(targetJson, { foo: 'bar' })
+                expect(fs.existsSync(targetJson)).toBe(true)
+                expect(JSON.parse(fs.readFileSync(targetJson, 'utf8'))).toEqual({ foo: 'bar' })
+            })
+        })
+    })
+
+    describe('ProjectService', () => {
+        it('tworzy strukturę nowego projektu z folderami i meta.json', async () => {
+            const result = await ProjectService.createProject({
+                id: 'moj_projekt',
+                nazwa: 'Moja Przygoda',
+                autor: 'Jan Kowalski',
+                projectPath: tempDir,
+            })
+
+            expect(result.success).toBe(true)
+            expect(result.path).toBe(path.join(tempDir, 'project.json'))
+
+            const projectJson = JSON.parse(fs.readFileSync(result.path!, 'utf8'))
+            expect(projectJson.nazwa).toBe('Moja Przygoda')
+            expect(projectJson.autor).toBe('Jan Kowalski')
+            expect(projectJson.sciezkiDanych.length).toBeGreaterThan(0)
+
+            // Verify NPC folder & meta.json
+            const npcMetaPath = path.join(tempDir, 'NPC', 'meta.json')
+            expect(fs.existsSync(npcMetaPath)).toBe(true)
+            const npcMeta = JSON.parse(fs.readFileSync(npcMetaPath, 'utf8'))
+            expect(npcMeta.sciezka).toBe('./NPC')
+        })
+
+        it('otwiera poprawny projekt i wczytuje encje', async () => {
+            await ProjectService.createProject({
+                nazwa: 'Gra Testowa',
+                projectPath: tempDir,
+            })
+
+            // Add an entity
+            await EntityService.createEntity({
+                projectPath: tempDir,
+                category: 'NPC',
+                entityData: { id: 'npc_1', nazwa: 'Bohater' },
+            })
+
+            const openResult = await ProjectService.openProject(tempDir)
+            expect(openResult.success).toBe(true)
+            expect(openResult.project.nazwa).toBe('Gra Testowa')
+            expect(openResult.entities.NPC).toBeDefined()
+            expect(openResult.entities.NPC.length).toBe(1)
+            expect(openResult.entities.NPC[0].nazwa).toBe('Bohater')
+        })
+
+        it('zwraca błąd dla nieistniejącej ścieżki projektu', async () => {
+            const result = await ProjectService.openProject(
+                path.join(tempDir, 'nieistniejacy_katalog')
             )
+            expect(result.success).toBe(false)
+            expect(result.error).toBeDefined()
+            expect(result.error!.length).toBeGreaterThan(0)
+        })
+    })
+
+    describe('EntityService', () => {
+        it('tworzy encję, strukturę katalogu i aktualizuje meta.json atomowo', async () => {
+            await ProjectService.createProject({ projectPath: tempDir })
 
             const entityData = {
-                id: 'npc_1',
                 nazwa: 'Kupiec Jan',
                 opis: { tekst: 'Bogaty kupiec' },
             }
 
-            const rawSlug = slugifyEntityName(entityData.nazwa)
-            const entityFolderSlug = generateUniqueSlug(rawSlug, candidate =>
-                fs.existsSync(path.join(categoryDir, candidate))
-            )
-            const entityDir = path.join(categoryDir, entityFolderSlug)
+            const result = await EntityService.createEntity({
+                projectPath: tempDir,
+                category: 'NPC',
+                entityData,
+            })
 
-            expect(isPathInsideBase(tempDir, entityDir)).toBe(true)
-            fs.mkdirSync(entityDir, { recursive: true })
+            expect(result.success).toBe(true)
+            expect(result.entityPath).toBeDefined()
+            expect(fs.existsSync(result.entityPath!)).toBe(true)
 
-            const elementJsonPath = path.join(entityDir, 'element.json')
-            expect(isPathInsideBase(tempDir, elementJsonPath)).toBe(true)
+            const saved = JSON.parse(fs.readFileSync(result.entityPath!, 'utf8'))
+            expect(saved.nazwa).toBe('Kupiec Jan')
+            expect(saved.opis.sciezkaTekst).toBe('./NPC/kupiec_jan/tekst.md')
 
-            // Atomic write
-            const tempElementPath = `${elementJsonPath}.${Date.now()}.tmp`
-            fs.writeFileSync(tempElementPath, JSON.stringify(entityData, null, 2), 'utf8')
-            fs.renameSync(tempElementPath, elementJsonPath)
-
-            expect(fs.existsSync(elementJsonPath)).toBe(true)
-            const savedEntity = JSON.parse(fs.readFileSync(elementJsonPath, 'utf8'))
-            expect(savedEntity.nazwa).toBe('Kupiec Jan')
-
-            // Update meta.json
-            const metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
-            const relativeElementPath = `./${entityFolderSlug}/element.json`
-            metaData.elementy.push(relativeElementPath)
-
-            const tempMetaPath = `${metaPath}.${Date.now()}.tmp`
-            fs.writeFileSync(tempMetaPath, JSON.stringify(metaData, null, 2), 'utf8')
-            fs.renameSync(tempMetaPath, metaPath)
-
-            const updatedMeta = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
-            expect(updatedMeta.elementy).toContain('./kupiec_jan/element.json')
+            const meta = JSON.parse(fs.readFileSync(path.join(tempDir, 'NPC', 'meta.json'), 'utf8'))
+            expect(meta.elementy).toContain('./kupiec_jan/element.json')
         })
 
-        it('odrzuca niebezpieczne nazwy kategorii próbujące path traversal', () => {
-            const maliciousCategory = '../../escaped_folder'
-            const categoryDir = path.join(tempDir, maliciousCategory)
-            expect(isPathInsideBase(tempDir, categoryDir)).toBe(false)
+        it('zapisuje encję przez saveEntity i odrzuca path traversal', async () => {
+            await ProjectService.createProject({ projectPath: tempDir })
+
+            await EntityService.createEntity({
+                projectPath: tempDir,
+                category: 'Lokacje',
+                entityData: { id: 'lok_1', nazwa: 'Karczma' },
+                folderName: 'karczma',
+            })
+
+            const updateResult = await EntityService.saveEntity({
+                projectPath: tempDir,
+                category: 'Lokacje',
+                entityFolder: 'karczma',
+                entityData: { id: 'lok_1', nazwa: 'Karczma Pod Różą' },
+            })
+
+            expect(updateResult.success).toBe(true)
+            const updated = JSON.parse(
+                fs.readFileSync(path.join(tempDir, 'Lokacje', 'karczma', 'element.json'), 'utf8')
+            )
+            expect(updated.nazwa).toBe('Karczma Pod Różą')
+
+            const maliciousResult = await EntityService.saveEntity({
+                projectPath: tempDir,
+                category: '../../outside',
+                entityFolder: 'karczma',
+                entityData: { id: 'bad' },
+            })
+            expect(maliciousResult.success).toBe(false)
         })
     })
 
-    describe('save-entity handler logic', () => {
-        it('zapisuje encję atomowo i odrzuca path traversal', () => {
-            const category = 'Lokacje'
-            const entityFolder = 'karczma'
-            const entityDir = path.join(tempDir, category, entityFolder)
-            fs.mkdirSync(entityDir, { recursive: true })
-
-            const entityJsonPath = path.join(tempDir, category, entityFolder, 'element.json')
-            expect(isPathInsideBase(tempDir, entityJsonPath)).toBe(true)
-
-            const entityData = { id: 'lok_1', nazwa: 'Karczma Pod Różą' }
-            const tempPath = `${entityJsonPath}.${Date.now()}.tmp`
-            fs.writeFileSync(tempPath, JSON.stringify(entityData, null, 2), 'utf8')
-            fs.renameSync(tempPath, entityJsonPath)
-
-            expect(fs.existsSync(entityJsonPath)).toBe(true)
-            expect(JSON.parse(fs.readFileSync(entityJsonPath, 'utf8')).nazwa).toBe(
-                'Karczma Pod Różą'
-            )
-
-            // Malicious path test
-            const maliciousEntityJsonPath = path.join(
-                tempDir,
-                '..',
-                '..',
-                'outside',
-                'element.json'
-            )
-            expect(isPathInsideBase(tempDir, maliciousEntityJsonPath)).toBe(false)
-        })
-    })
-
-    describe('read-markdown-file & save-markdown-file handler logic', () => {
-        it('zwraca isVirtual: true gdy plik markdown jeszcze nie istnieje fizycznie na dysku', () => {
-            const relativePath = './NPC/straznik/tekst.md'
-            const fullPath = path.resolve(tempDir, relativePath)
-            expect(isPathInsideBase(tempDir, fullPath)).toBe(true)
-            expect(fs.existsSync(fullPath)).toBe(false)
+    describe('MarkdownService', () => {
+        it('zwraca isVirtual: true gdy plik markdown jeszcze nie istnieje fizycznie na dysku', async () => {
+            const readResult = await MarkdownService.readMarkdownFile({
+                projectPath: tempDir,
+                relativePath: './NPC/straznik/tekst.md',
+            })
+            expect(readResult.success).toBe(true)
+            expect(readResult.isVirtual).toBe(true)
+            expect(readResult.content).toBe('')
         })
 
-        it('automatycznie tworzy brakujące podkatalogi i zapisuje treść markdown atomowo', () => {
+        it('automatycznie tworzy brakujące podkatalogi i zapisuje treść markdown atomowo', async () => {
             const relativePath = './NPC/straznik/tekst.md'
-            const fullPath = path.resolve(tempDir, relativePath)
-            const parentDir = path.dirname(fullPath)
-
-            if (!fs.existsSync(parentDir)) {
-                fs.mkdirSync(parentDir, { recursive: true })
-            }
-
-            const tempPath = `${fullPath}.${Date.now()}.tmp`
             const content = '# Strażnik miejski\nOpis postaci...'
-            fs.writeFileSync(tempPath, content, 'utf8')
-            fs.renameSync(tempPath, fullPath)
 
-            expect(fs.existsSync(fullPath)).toBe(true)
-            expect(fs.readFileSync(fullPath, 'utf8')).toBe(content)
+            const saveResult = await MarkdownService.saveMarkdownFile({
+                projectPath: tempDir,
+                relativePath,
+                content,
+            })
+
+            expect(saveResult.success).toBe(true)
+            expect(saveResult.recreated).toBe(true)
+
+            const readResult = await MarkdownService.readMarkdownFile({
+                projectPath: tempDir,
+                relativePath,
+            })
+            expect(readResult.success).toBe(true)
+            expect(readResult.isVirtual).toBe(false)
+            expect(readResult.content).toBe(content)
         })
 
-        it('odrzuca próby odczytu lub zapisu poza katalogiem projektu', () => {
-            const maliciousRelativePath = '../../system_secret.md'
-            const fullPath = path.resolve(tempDir, maliciousRelativePath)
-            expect(isPathInsideBase(tempDir, fullPath)).toBe(false)
+        it('odrzuca próby odczytu lub zapisu poza katalogiem projektu', async () => {
+            const maliciousRead = await MarkdownService.readMarkdownFile({
+                projectPath: tempDir,
+                relativePath: '../../secret.md',
+            })
+            expect(maliciousRead.success).toBe(false)
+
+            const maliciousSave = await MarkdownService.saveMarkdownFile({
+                projectPath: tempDir,
+                relativePath: '../../secret.md',
+                content: 'bad',
+            })
+            expect(maliciousSave.success).toBe(false)
+        })
+    })
+
+    describe('RecentProjectsService', () => {
+        it('zapisuje i odczytuje listę ostatnich projektów', () => {
+            const projectPath = path.join(tempDir, 'project.json')
+            RecentProjectsService.saveRecentProject(projectPath, 'Test Project')
+
+            const recent = RecentProjectsService.getRecentProjects()
+            expect(Array.isArray(recent)).toBe(true)
+            const item = recent.find((p: any) => p.path === projectPath)
+            expect(item).toBeDefined()
+            expect(item.name).toBe('Test Project')
         })
     })
 })
