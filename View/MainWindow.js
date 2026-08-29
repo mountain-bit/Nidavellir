@@ -8,11 +8,11 @@ import {
 } from '../dist/Utils/translate.js'
 import {
     DEFAULT_TAG_COLOR,
+    Description,
     ENTITY_CATEGORIES,
     MainWindowViewModel,
-    Opis,
-    Paragraf,
-    Scena,
+    Paragraph,
+    Scene,
 } from '../dist/ViewModel/MainWindowViewModel.js'
 
 const vm = new MainWindowViewModel()
@@ -68,36 +68,36 @@ const files = {
 
 // In-memory project entities state
 let projectTags = [
-    vm.stworzTag('Ważne', '#ef4444'),
-    vm.stworzTag('Walka', '#dc2626'),
-    vm.stworzTag('Magia', '#8b5cf6'),
+    vm.createTag('Ważne', '#ef4444'),
+    vm.createTag('Walka', '#dc2626'),
+    vm.createTag('Magia', '#8b5cf6'),
 ]
-let projectCharacters = [vm.stworzPostac('Strażnik miejski'), vm.stworzPostac('Kupiec Jan')]
-let projectLocations = [vm.stworzLokacje('Karczma Pod Różą'), vm.stworzLokacje('Mroczny Las')]
-let projectTraits = [vm.stworzCeche('Siła'), vm.stworzCeche('Zręczność')]
+let projectCharacters = [vm.createCharacter('Strażnik miejski'), vm.createCharacter('Kupiec Jan')]
+let projectLocations = [vm.createLocation('Karczma Pod Różą'), vm.createLocation('Mroczny Las')]
+let projectStats = [vm.createStat('Siła'), vm.createStat('Zręczność')]
 let projectParagraphs = [
-    new Paragraf(
+    new Paragraph(
         'p1',
         'Prolog: Przebudzenie',
-        new Opis('Budzisz się w starej karczmie. Za oknem szaleje burza.'),
+        new Description('Budzisz się w starej karczmie. Za oknem szaleje burza.'),
         [],
         false,
         undefined,
         [projectTags[0]]
     ),
-    new Paragraf(
+    new Paragraph(
         'p2',
         'Mroczny trakt leśny',
-        new Opis('Ścieżka prowadzi przez gęsty las pełen niebezpieczeństw.'),
+        new Description('Ścieżka prowadzi przez gęsty las pełen niebezpieczeństw.'),
         [],
         false,
         undefined,
         [projectTags[1]]
     ),
-    new Paragraf(
+    new Paragraph(
         'p3',
         'Komnata runiczna',
-        new Opis('Blask runów oświetla starożytne zwoje i artefakty.'),
+        new Description('Blask runów oświetla starożytne zwoje i artefakty.'),
         [],
         false,
         undefined,
@@ -105,17 +105,17 @@ let projectParagraphs = [
     ),
 ]
 let projectScenes = [
-    new Scena(
+    new Scene(
         's1',
         'Wstęp do przygody',
-        new Opis(),
+        new Description(),
         [projectParagraphs[0]],
         [projectCharacters[0]]
     ),
-    new Scena(
+    new Scene(
         's2',
         'Eksploracja lasu',
-        new Opis(),
+        new Description(),
         [projectParagraphs[1], projectParagraphs[2]],
         [projectCharacters[1]]
     ),
@@ -215,17 +215,17 @@ function renderFilterTags() {
 
     filterTagsContainer.innerHTML = projectTags
         .map(tag => {
-            const isSelected = selectedTag === tag.pobierzID() || selectedTag === tag.pobierzNazwe()
+            const isSelected = selectedTag === tag.getId() || selectedTag === tag.getName()
             const borderClass = isSelected
                 ? 'ring-2 ring-white font-bold scale-105 shadow-md'
                 : 'opacity-85 hover:opacity-100 hover:scale-105'
 
             return `
             <button type="button" class="filter-tag-badge px-2 py-0.5 rounded text-[10px] text-white transition-all cursor-pointer flex items-center gap-1 shrink-0 ${borderClass}" 
-                style="background-color: ${escapeHtml(tag.pobierzKolor())}" 
-                data-tag-id="${escapeHtml(tag.pobierzID())}" 
-                data-tag-name="${escapeHtml(tag.pobierzNazwe())}">
-                ${isSelected ? '✓ ' : ''}${escapeHtml(tag.pobierzNazwe())}
+                style="background-color: ${escapeHtml(tag.getColor())}" 
+                data-tag-id="${escapeHtml(tag.getId())}" 
+                data-tag-name="${escapeHtml(tag.getName())}">
+                ${isSelected ? '✓ ' : ''}${escapeHtml(tag.getName())}
             </button>
         `
         })
@@ -260,7 +260,7 @@ function populateFilterSelects() {
             projectCharacters
                 .map(
                     c =>
-                        `<option value="${escapeHtml(c.pobierzID())}" ${c.pobierzID() === currentVal ? 'selected' : ''}>${escapeHtml(c.pobierzNazwe())}</option>`
+                        `<option value="${escapeHtml(c.getId())}" ${c.getId() === currentVal ? 'selected' : ''}>${escapeHtml(c.getName())}</option>`
                 )
                 .join('')
     }
@@ -272,7 +272,7 @@ function populateFilterSelects() {
             projectScenes
                 .map(
                     s =>
-                        `<option value="${escapeHtml(s.pobierzID())}" ${s.pobierzID() === currentVal ? 'selected' : ''}>${escapeHtml(s.pobierzNazwe())}</option>`
+                        `<option value="${escapeHtml(s.getId())}" ${s.getId() === currentVal ? 'selected' : ''}>${escapeHtml(s.getName())}</option>`
                 )
                 .join('')
     }
@@ -449,25 +449,25 @@ function setupSectionControlsAndContextMenu() {
                 let category = null
 
                 if (sec.type === 'tag') {
-                    createdItem = vm.stworzTag(name, DEFAULT_TAG_COLOR, defaultName)
+                    createdItem = vm.createTag(name, DEFAULT_TAG_COLOR, defaultName)
                     projectTags.push(createdItem)
                     renderTagsList()
                     renderFilterTags()
                 } else if (sec.type === 'character') {
-                    createdItem = vm.stworzPostac(name, defaultName)
+                    createdItem = vm.createCharacter(name, defaultName)
                     category = ENTITY_CATEGORIES.NPC
                     projectCharacters.push(createdItem)
                     renderCharactersList()
                     populateFilterSelects()
                 } else if (sec.type === 'location') {
-                    createdItem = vm.stworzLokacje(name, defaultName)
-                    category = ENTITY_CATEGORIES.LOKACJE
+                    createdItem = vm.createLocation(name, defaultName)
+                    category = ENTITY_CATEGORIES.LOCATIONS
                     projectLocations.push(createdItem)
                     renderLocationsList()
                 } else if (sec.type === 'trait') {
-                    createdItem = vm.stworzCeche(name, defaultName)
-                    category = ENTITY_CATEGORIES.ZASADY
-                    projectTraits.push(createdItem)
+                    createdItem = vm.createStat(name, defaultName)
+                    category = ENTITY_CATEGORIES.RULES
+                    projectStats.push(createdItem)
                     renderTraitsList()
                 }
 
@@ -537,7 +537,7 @@ function setupSectionControlsAndContextMenu() {
                     vm.setLocationSearchQuery(val)
                     renderLocationsList()
                 } else if (sec.type === 'trait') {
-                    vm.setTraitSearchQuery(val)
+                    vm.setStatSearchQuery(val)
                     renderTraitsList()
                 }
             })
@@ -549,7 +549,7 @@ function setupSectionControlsAndContextMenu() {
             if (!activeContextMenuTarget) return
             const newName = prompt(t('context_menu.rename_prompt'), activeContextMenuTarget.name)
             if (newName !== null && newName.trim() !== '') {
-                activeContextMenuTarget.item.ustawNazwe(newName.trim())
+                activeContextMenuTarget.item.setName(newName.trim())
                 refreshActiveSection(activeContextMenuTarget.type)
             }
             if (ctxMenu) ctxMenu.classList.add('hidden')
@@ -565,15 +565,15 @@ function setupSectionControlsAndContextMenu() {
             if (confirmDel) {
                 const id = activeContextMenuTarget.id
                 if (activeContextMenuTarget.type === 'tag') {
-                    projectTags = projectTags.filter(t => t.pobierzID() !== id)
+                    projectTags = projectTags.filter(t => t.getId() !== id)
                     renderFilterTags()
                 } else if (activeContextMenuTarget.type === 'character') {
-                    projectCharacters = projectCharacters.filter(c => c.pobierzID() !== id)
+                    projectCharacters = projectCharacters.filter(c => c.getId() !== id)
                     populateFilterSelects()
                 } else if (activeContextMenuTarget.type === 'location') {
-                    projectLocations = projectLocations.filter(l => l.pobierzID() !== id)
+                    projectLocations = projectLocations.filter(l => l.getId() !== id)
                 } else if (activeContextMenuTarget.type === 'trait') {
-                    projectTraits = projectTraits.filter(tr => tr.pobierzID() !== id)
+                    projectStats = projectStats.filter(tr => tr.getId() !== id)
                 }
                 refreshActiveSection(activeContextMenuTarget.type)
             }
@@ -598,9 +598,9 @@ function setupSectionControlsAndContextMenu() {
                         : projectTags
                               .map(
                                   tag => `
-                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-tag-id="${escapeHtml(tag.pobierzID())}">
-                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(tag.pobierzKolor())}"></span>
-                            <span>${escapeHtml(tag.pobierzNazwe())}</span>
+                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-tag-id="${escapeHtml(tag.getId())}">
+                            <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${escapeHtml(tag.getColor())}"></span>
+                            <span>${escapeHtml(tag.getName())}</span>
                         </button>
                     `
                               )
@@ -610,9 +610,9 @@ function setupSectionControlsAndContextMenu() {
                 ctxAddTagList.querySelectorAll('.ctx-sublist-item').forEach(btn => {
                     btn.addEventListener('click', () => {
                         if (!activeContextMenuTarget) return
-                        const tagObj = projectTags.find(t => t.pobierzID() === btn.dataset.tagId)
+                        const tagObj = projectTags.find(t => t.getId() === btn.dataset.tagId)
                         if (tagObj) {
-                            activeContextMenuTarget.item.dodajTag(tagObj)
+                            activeContextMenuTarget.item.addTag(tagObj)
                             refreshActiveSection(activeContextMenuTarget.type)
                         }
                         if (ctxMenu) ctxMenu.classList.add('hidden')
@@ -634,14 +634,14 @@ function setupSectionControlsAndContextMenu() {
             if (isHidden) {
                 // Populate the trait list
                 ctxAddTraitList.innerHTML =
-                    projectTraits.length === 0
+                    projectStats.length === 0
                         ? `<div class="px-3 py-1.5 text-gray-500 italic" data-i18n="left_panel.no_traits">${t('left_panel.no_traits')}</div>`
-                        : projectTraits
+                        : projectStats
                               .map(
                                   tr => `
-                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-trait-id="${escapeHtml(tr.pobierzID())}">
+                        <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-trait-id="${escapeHtml(tr.getId())}">
                             <span class="text-blue-400">⚡</span>
-                            <span>${escapeHtml(tr.pobierzNazwe())}</span>
+                            <span>${escapeHtml(tr.getName())}</span>
                         </button>
                     `
                               )
@@ -651,11 +651,9 @@ function setupSectionControlsAndContextMenu() {
                 ctxAddTraitList.querySelectorAll('.ctx-sublist-item').forEach(btn => {
                     btn.addEventListener('click', () => {
                         if (!activeContextMenuTarget) return
-                        const traitObj = projectTraits.find(
-                            tr => tr.pobierzID() === btn.dataset.traitId
-                        )
+                        const traitObj = projectStats.find(tr => tr.getId() === btn.dataset.traitId)
                         if (traitObj) {
-                            activeContextMenuTarget.item.dodajCecha(traitObj)
+                            activeContextMenuTarget.item.addStat(traitObj)
                             renderCharactersList()
                         }
                         if (ctxMenu) ctxMenu.classList.add('hidden')
@@ -669,7 +667,7 @@ function setupSectionControlsAndContextMenu() {
     document.querySelectorAll('#preset-colors-grid button').forEach(btn => {
         btn.addEventListener('click', () => {
             if (activeTagForColor) {
-                activeTagForColor.ustawKolor(btn.dataset.color)
+                activeTagForColor.setColor(btn.dataset.color)
                 renderTagsList()
                 renderFilterTags()
                 renderParagraphsList()
@@ -682,7 +680,7 @@ function setupSectionControlsAndContextMenu() {
     if (customColorInput) {
         customColorInput.addEventListener('input', () => {
             if (activeTagForColor) {
-                activeTagForColor.ustawKolor(customColorInput.value)
+                activeTagForColor.setColor(customColorInput.value)
                 renderTagsList()
                 renderFilterTags()
                 renderParagraphsList()
@@ -732,17 +730,17 @@ function renderParagraphsList() {
     container.innerHTML = filtered
         .map(p => {
             const tagsBadges = p
-                .pobierzTagi()
+                .getTags()
                 .map(
                     tObj =>
-                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.pobierzKolor())}">${escapeHtml(tObj.pobierzNazwe())}</span>`
+                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.getColor())}">${escapeHtml(tObj.getName())}</span>`
                 )
                 .join(' ')
 
             return `
-            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="paragraph" data-item-id="${escapeHtml(p.pobierzID())}">
+            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
                 <div class="flex items-center justify-between">
-                    <span class="font-medium text-white text-xs truncate">📄 § ${escapeHtml(p.pobierzTytul() || p.pobierzID())}</span>
+                    <span class="font-medium text-white text-xs truncate">📄 § ${escapeHtml(p.getTitle() || p.getId())}</span>
                 </div>
                 ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges}</div>` : ''}
             </div>
@@ -763,9 +761,9 @@ function renderScenesList() {
     container.innerHTML = projectScenes
         .map(s => {
             return `
-            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="scene" data-item-id="${escapeHtml(s.pobierzID())}">
+            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="scene" data-item-id="${escapeHtml(s.getId())}">
                 <div class="flex items-center justify-between">
-                    <span class="font-medium text-white text-xs truncate">🎬 ${escapeHtml(s.pobierzNazwe() || s.pobierzID())}</span>
+                    <span class="font-medium text-white text-xs truncate">🎬 ${escapeHtml(s.getName() || s.getId())}</span>
                 </div>
             </div>
         `
@@ -787,10 +785,10 @@ function renderTagsList() {
     container.innerHTML = filtered
         .map(
             tag => `
-            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="tag" data-item-id="${escapeHtml(tag.pobierzID())}">
+            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="tag" data-item-id="${escapeHtml(tag.getId())}">
                 <div class="flex items-center gap-2 min-w-0">
-                    <span class="tag-color-badge w-3.5 h-3.5 rounded-full border border-white/20 hover:scale-125 transition-transform cursor-pointer shrink-0" style="background-color: ${escapeHtml(tag.pobierzKolor())}" title="${escapeHtml(changeColorTitle)}"></span>
-                    <span class="font-medium text-white truncate text-xs">${escapeHtml(tag.pobierzNazwe())}</span>
+                    <span class="tag-color-badge w-3.5 h-3.5 rounded-full border border-white/20 hover:scale-125 transition-transform cursor-pointer shrink-0" style="background-color: ${escapeHtml(tag.getColor())}" title="${escapeHtml(changeColorTitle)}"></span>
+                    <span class="font-medium text-white truncate text-xs">${escapeHtml(tag.getName())}</span>
                 </div>
             </div>
         `
@@ -814,24 +812,24 @@ function renderCharactersList() {
     container.innerHTML = filtered
         .map(c => {
             const tagsBadges = c
-                .pobierzTagi()
+                .getTags()
                 .map(
                     tObj =>
-                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.pobierzKolor())}">${escapeHtml(tObj.pobierzNazwe())}</span>`
+                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.getColor())}">${escapeHtml(tObj.getName())}</span>`
                 )
                 .join(' ')
             const traitsBadges = c
-                .pobierzCechy()
+                .getStats()
                 .map(
                     tr =>
-                        `<span class="px-1 py-0.5 rounded bg-blue-900/60 text-blue-200 text-[9px]">${escapeHtml(tr.pobierzNazwe())}</span>`
+                        `<span class="px-1 py-0.5 rounded bg-blue-900/60 text-blue-200 text-[9px]">${escapeHtml(tr.getName())}</span>`
                 )
                 .join(' ')
 
             return `
-                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="character" data-item-id="${escapeHtml(c.pobierzID())}">
+                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="character" data-item-id="${escapeHtml(c.getId())}">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate">👤 ${escapeHtml(c.pobierzNazwe())}</span>
+                        <span class="font-medium text-white text-xs truncate">👤 ${escapeHtml(c.getName())}</span>
                     </div>
                     ${tagsBadges || traitsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges} ${traitsBadges}</div>` : ''}
                 </div>
@@ -855,17 +853,17 @@ function renderLocationsList() {
     container.innerHTML = filtered
         .map(l => {
             const tagsBadges = l
-                .pobierzTagi()
+                .getTags()
                 .map(
                     tObj =>
-                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.pobierzKolor())}">${escapeHtml(tObj.pobierzNazwe())}</span>`
+                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.getColor())}">${escapeHtml(tObj.getName())}</span>`
                 )
                 .join(' ')
 
             return `
-                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="location" data-item-id="${escapeHtml(l.pobierzID())}">
+                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="location" data-item-id="${escapeHtml(l.getId())}">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate">📍 ${escapeHtml(l.pobierzNazwe())}</span>
+                        <span class="font-medium text-white text-xs truncate">📍 ${escapeHtml(l.getName())}</span>
                     </div>
                     ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges}</div>` : ''}
                 </div>
@@ -880,7 +878,7 @@ function renderTraitsList() {
     const container = document.getElementById('traits-list-container')
     if (!container) return
 
-    const filtered = vm.searchAndFilterTraits(projectTraits)
+    const filtered = vm.searchAndFilterStats(projectStats)
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_traits">${t('left_panel.no_traits')}</p>`
         return
@@ -889,14 +887,14 @@ function renderTraitsList() {
     container.innerHTML = filtered
         .map(
             tr => `
-            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="trait" data-item-id="${escapeHtml(tr.pobierzID())}">
-                <span class="font-medium text-white text-xs truncate">⚡ ${escapeHtml(tr.pobierzNazwe())}</span>
+            <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="trait" data-item-id="${escapeHtml(tr.getId())}">
+                <span class="font-medium text-white text-xs truncate">⚡ ${escapeHtml(tr.getName())}</span>
             </div>
         `
         )
         .join('')
 
-    attachContextMenuListeners(container, 'trait', projectTraits)
+    attachContextMenuListeners(container, 'trait', projectStats)
 }
 
 // Helpers for Context Menu & Color Picker Listeners
@@ -907,13 +905,13 @@ function attachContextMenuListeners(container, type, sourceArray) {
             e.stopPropagation()
 
             const id = el.dataset.itemId
-            const item = sourceArray.find(x => x.pobierzID() === id)
+            const item = sourceArray.find(x => x.getId() === id)
             if (!item) return
 
             activeContextMenuTarget = {
                 type: type,
                 id: id,
-                name: item.pobierzNazwe(),
+                name: item.getName(),
                 item: item,
             }
 
@@ -963,7 +961,7 @@ function attachColorPickerListeners(container) {
             const parent = badge.closest('.drawer-item')
             if (!parent) return
             const tagId = parent.dataset.itemId
-            activeTagForColor = projectTags.find(t => t.pobierzID() === tagId)
+            activeTagForColor = projectTags.find(t => t.getId() === tagId)
 
             if (colorPickerPopover) {
                 const rect = badge.getBoundingClientRect()

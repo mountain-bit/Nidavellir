@@ -1,169 +1,187 @@
-import { Cecha } from './Cecha'
-import { Opis } from './Opis'
-import { Przymiot } from './Przymiot'
+import { Description } from './Description'
+import { Feature } from './Feature'
+import { Skill } from './Skill'
+import { Stat } from './Stat'
 import { Tag } from './Tag'
-import { Umiejetnosc } from './Umiejetnosc'
 
 export class NPC {
     private id: string = ''
-    private nazwa: string = ''
-    private opis: Opis = new Opis()
-    private cechy: Cecha[] = []
-    private umiejetnosci: Umiejetnosc[] = []
-    private przymioty: Przymiot[] = []
+    private name: string = ''
+    private description: Description = new Description()
+    private stats: Stat[] = []
+    private skills: Skill[] = []
+    private features: Feature[] = []
     private tags: Tag[] = []
 
     constructor(
-        id: string,
-        nazwa: string = '',
-        opis: Opis = new Opis(),
-        cechy: Cecha[] = [],
-        umiejetnosci: Umiejetnosc[] = [],
-        przymioty: Przymiot[] = [],
+        id: string = '',
+        name: string = '',
+        description: Description = new Description(),
+        stats: Stat[] = [],
+        skills: Skill[] = [],
+        features: Feature[] = [],
         tags: Tag[] = []
     ) {
         this.id = id
-        this.nazwa = nazwa
-        this.opis = opis
-        this.cechy = cechy
-        this.umiejetnosci = umiejetnosci
-        this.przymioty = przymioty
+        this.name = name
+        this.description = description
+        this.stats = stats
+        this.skills = skills
+        this.features = features
         this.tags = tags
     }
 
-    public pobierzID(): string {
+    public getId(): string {
         return this.id
     }
 
-    public nadajID(id: string): void {
+    public setId(id: string): void {
         this.id = id
     }
 
-    public czymaID(): boolean {
+    public hasId(): boolean {
         return this.id !== ''
     }
 
-    public pobierzNazwe(): string {
-        return this.nazwa
+    public getName(): string {
+        return this.name
     }
 
-    public ustawNazwe(nazwa: string): void {
-        this.nazwa = nazwa
+    public setName(name: string): void {
+        this.name = name
     }
 
-    public pobierzOpis(): Opis {
-        return this.opis
+    public getDescription(): Description {
+        return this.description
     }
 
-    public ustawOpis(opis: Opis): void {
-        this.opis = opis
+    public setDescription(description: Description): void {
+        this.description = description
     }
 
-    public pobierzCechy(): Cecha[] {
-        return this.cechy
+    public getStats(): Stat[] {
+        return this.stats
     }
 
-    public pobierzCecha(id: string): string | number | undefined {
-        return this.cechy
-            .find(c => c.pobierzID() === id || c.pobierzNazwe() === id)
-            ?.pobierzWartosc()
+    public setStats(stats: Stat[]): void {
+        this.stats = stats
     }
 
-    public dodajCecha(cecha: Cecha): void {
-        if (!this.cechy.some(c => c.pobierzID() === cecha.pobierzID())) {
-            this.cechy.push(cecha)
+    public getStat(id: string): string | number | undefined {
+        return this.stats.find(c => c.getId() === id || c.getName() === id)?.getValue()
+    }
+
+    public addStat(stat: Stat): void {
+        if (!this.stats.some(c => c.getId() === stat.getId())) {
+            this.stats.push(stat)
         }
     }
 
-    public usunCecha(id: string): void {
-        this.cechy = this.cechy.filter(c => c.pobierzID() !== id && c.pobierzNazwe() !== id)
+    public removeStat(id: string): void {
+        this.stats = this.stats.filter(c => c.getId() !== id && c.getName() !== id)
     }
 
-    public czymaCecha(id: string): boolean {
-        return this.cechy.some(c => c.pobierzID() === id || c.pobierzNazwe() === id)
+    public hasStat(id: string): boolean {
+        return this.stats.some(c => c.getId() === id || c.getName() === id)
     }
 
-    public pobierzTagi(): Tag[] {
+    public getSkills(): Skill[] {
+        return this.skills
+    }
+
+    public setSkills(skills: Skill[]): void {
+        this.skills = skills
+    }
+
+    public getSkill(id: string): Skill | undefined {
+        return this.skills.find(u => u.getId() === id)
+    }
+
+    public addSkill(skill: Skill): void {
+        this.skills.push(skill)
+    }
+
+    public removeSkill(id: string): void {
+        this.skills = this.skills.filter(u => u.getId() !== id)
+    }
+
+    public hasSkill(id: string): boolean {
+        return this.skills.some(u => u.getId() === id)
+    }
+
+    public getFeatures(): Feature[] {
+        return this.features
+    }
+
+    public setFeatures(features: Feature[]): void {
+        this.features = features
+    }
+
+    public getFeature(id: string): Feature | undefined {
+        return this.features.find(p => p.getId() === id)
+    }
+
+    public addFeature(feature: Feature): void {
+        this.features.push(feature)
+    }
+
+    public removeFeature(id: string): void {
+        this.features = this.features.filter(p => p.getId() !== id)
+    }
+
+    public hasFeature(id: string): boolean {
+        return this.features.some(p => p.getId() === id)
+    }
+
+    public getTags(): Tag[] {
         return this.tags
     }
 
-    public ustawTagi(tags: Tag[]): void {
+    public setTags(tags: Tag[]): void {
         this.tags = tags
     }
 
-    public dodajTag(tag: Tag): void {
-        if (!this.tags.some(t => t.pobierzID() === tag.pobierzID())) {
+    public addTag(tag: Tag): void {
+        if (!this.tags.some(t => t.getId() === tag.getId())) {
             this.tags.push(tag)
         }
     }
 
-    public usunTag(tagIdOrName: string): void {
-        this.tags = this.tags.filter(
-            t => t.pobierzID() !== tagIdOrName && t.pobierzNazwe() !== tagIdOrName
-        )
+    public removeTag(tagIdOrName: string): void {
+        this.tags = this.tags.filter(t => t.getId() !== tagIdOrName && t.getName() !== tagIdOrName)
     }
 
-    public czymaTag(tagIdOrName: string): boolean {
-        return this.tags.some(
-            t => t.pobierzID() === tagIdOrName || t.pobierzNazwe() === tagIdOrName
-        )
-    }
-
-    public pobierzUmiejetnosc(id: string): Umiejetnosc | undefined {
-        return this.umiejetnosci.find(u => u.pobierzID() === id)
-    }
-
-    public dodajUmiejetnosc(umiejetnosc: Umiejetnosc): void {
-        this.umiejetnosci.push(umiejetnosc)
-    }
-
-    public usunUmiejetnosc(id: string): void {
-        this.umiejetnosci = this.umiejetnosci.filter(u => u.pobierzID() !== id)
-    }
-
-    public czymaUmiejetnosc(id: string): boolean {
-        return this.umiejetnosci.some(u => u.pobierzID() === id)
-    }
-
-    public pobierzPrzymiot(id: string): Przymiot | undefined {
-        return this.przymioty.find(p => p.pobierzID() === id)
-    }
-
-    public dodajPrzymiot(przymiot: Przymiot): void {
-        this.przymioty.push(przymiot)
-    }
-
-    public usunPrzymiot(id: string): void {
-        this.przymioty = this.przymioty.filter(p => p.pobierzID() !== id)
-    }
-
-    public czymaPrzymiot(id: string): boolean {
-        return this.przymioty.some(p => p.pobierzID() === id)
+    public hasTag(tagIdOrName: string): boolean {
+        return this.tags.some(t => t.getId() === tagIdOrName || t.getName() === tagIdOrName)
     }
 
     public static fromJSON(json: any): NPC {
         if (!json) return new NPC('')
         const tagsParsed = (json.tags || []).map((t: any) => Tag.fromJSON(t))
-        const npc = new NPC(
+        const name = json.name ?? ''
+        const descData = json.description
+        const statsData = json.stats || json.traits || []
+        const skillsData = json.skills || []
+        const featuresData = json.features || json.qualities || []
+        return new NPC(
             json.id || '',
-            json.nazwa || '',
-            Opis.fromJSON(json.opis),
-            (json.cechy || []).map((c: any) => Cecha.fromJSON(c)),
-            (json.umiejetnosci || []).map((u: any) => Umiejetnosc.fromJSON(u)),
-            (json.przymioty || []).map((p: any) => Przymiot.fromJSON(p)),
+            name,
+            Description.fromJSON(descData),
+            statsData.map((c: any) => Stat.fromJSON(c)),
+            skillsData.map((u: any) => Skill.fromJSON(u)),
+            featuresData.map((p: any) => Feature.fromJSON(p)),
             tagsParsed
         )
-        return npc
     }
 
     public toJSON(): any {
         return {
             id: this.id,
-            nazwa: this.nazwa,
-            opis: this.opis,
-            cechy: this.cechy,
-            umiejetnosci: this.umiejetnosci,
-            przymioty: this.przymioty,
+            name: this.name,
+            description: this.description,
+            stats: this.stats,
+            skills: this.skills,
+            features: this.features,
             tags: this.tags,
         }
     }

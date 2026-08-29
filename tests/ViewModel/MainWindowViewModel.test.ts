@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { DEFAULT_TAG_COLOR } from '../../Model/constants'
-import { Opis } from '../../Model/Opis'
-import { Paragraf } from '../../Model/Paragraf'
+import { Description } from '../../Model/Description'
+import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
@@ -83,17 +83,17 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveFile()).toBeNull()
         expect(vm.getOpenFiles()).toEqual([])
 
-        vm.setActiveFile('Scena 1')
-        expect(vm.getActiveFile()).toBe('Scena 1')
-        expect(vm.getOpenFiles()).toContain('Scena 1')
+        vm.setActiveFile('Scene 1')
+        expect(vm.getActiveFile()).toBe('Scene 1')
+        expect(vm.getOpenFiles()).toContain('Scene 1')
 
-        vm.setActiveFile('Scena 2')
-        expect(vm.getActiveFile()).toBe('Scena 2')
-        expect(vm.getOpenFiles()).toEqual(['Scena 1', 'Scena 2'])
+        vm.setActiveFile('Scene 2')
+        expect(vm.getActiveFile()).toBe('Scene 2')
+        expect(vm.getOpenFiles()).toEqual(['Scene 1', 'Scene 2'])
 
-        vm.closeFile('Scena 2')
-        expect(vm.getOpenFiles()).not.toContain('Scena 2')
-        expect(vm.getActiveFile()).toBe('Scena 1')
+        vm.closeFile('Scene 2')
+        expect(vm.getOpenFiles()).not.toContain('Scene 2')
+        expect(vm.getActiveFile()).toBe('Scene 1')
     })
 
     it('zmienia główny widok na graf historii i z powrotem', () => {
@@ -106,10 +106,18 @@ describe('MainWindowViewModel', () => {
 
     describe('Wyszukiwanie i filtrowanie paragrafów', () => {
         it('sortuje wyniki wyszukiwania wg priorytetu: 1. zablokowany numer, 2. pasujący tytuł, 3. pasująca treść', () => {
-            const p1 = new Paragraf('p1', 'Normalny tytuł', new Opis('Zawiera słowo smok w treści'))
-            const p2 = new Paragraf('p2', 'Smok w tytule', new Opis('Treść zwykła'))
-            const p3 = new Paragraf('p3', 'Inny tytuł', new Opis('Inna treść ze słowem smok'))
-            p3.ustawBlokadaNumeru(true)
+            const p1 = new Paragraph(
+                'p1',
+                'Normalny tytuł',
+                new Description('Zawiera słowo smok w treści')
+            )
+            const p2 = new Paragraph('p2', 'Smok w tytule', new Description('Treść zwykła'))
+            const p3 = new Paragraph(
+                'p3',
+                'Inny tytuł',
+                new Description('Inna treść ze słowem smok')
+            )
+            p3.setIsNumberLocked(true)
 
             const list = [p1, p2, p3]
 
@@ -117,99 +125,103 @@ describe('MainWindowViewModel', () => {
             const filtered = vm.searchAndFilterParagraphs(list)
 
             expect(filtered).toHaveLength(3)
-            expect(filtered[0].pobierzID()).toBe('p3')
-            expect(filtered[1].pobierzID()).toBe('p2')
-            expect(filtered[2].pobierzID()).toBe('p1')
+            expect(filtered[0].getId()).toBe('p3')
+            expect(filtered[1].getId()).toBe('p2')
+            expect(filtered[2].getId()).toBe('p1')
         })
 
         it('filtruje paragrafy po wybranym obiekcie Tag', () => {
-            const tagWalka = new Tag('t-walka', 'Walka')
-            const tagMagia = new Tag('t-magia', 'Magia')
+            const tagWalka = new Tag('t-walka', 'Combat')
+            const tagMagia = new Tag('t-magia', 'Magic')
 
-            const p1 = new Paragraf('p1', 'Starcie', new Opis(), [], false, undefined, [tagWalka])
-            const p2 = new Paragraf('p2', 'Czar', new Opis(), [], false, undefined, [tagMagia])
-            const p3 = new Paragraf('p3', 'Pojedynek', new Opis(), [], false, undefined, [
+            const p1 = new Paragraph('p1', 'Starcie', new Description(), [], false, undefined, [
+                tagWalka,
+            ])
+            const p2 = new Paragraph('p2', 'Czar', new Description(), [], false, undefined, [
+                tagMagia,
+            ])
+            const p3 = new Paragraph('p3', 'Pojedynek', new Description(), [], false, undefined, [
                 tagWalka,
                 tagMagia,
             ])
 
-            vm.setSelectedFilterTag('Walka')
+            vm.setSelectedFilterTag('Combat')
             const filtered = vm.searchAndFilterParagraphs([p1, p2, p3])
 
             expect(filtered).toHaveLength(2)
-            expect(filtered.map(p => p.pobierzID())).toEqual(['p1', 'p3'])
+            expect(filtered.map(p => p.getId())).toEqual(['p1', 'p3'])
         })
     })
 
-    describe('Tworzenie elementów i filtrowanie sekcji', () => {
+    describe('Tworzenie elementów i filtrowanie sekcji (English & Legacy methods)', () => {
         it('tworzy paragraf z własnym lub domyślnym tytułem', () => {
-            const pWlasny = vm.stworzParagraf('Prolog')
-            expect(pWlasny.pobierzTytul()).toBe('Prolog')
-            expect(pWlasny.pobierzID()).toMatch(/^paragraf_/)
+            const pWlasny = vm.createParagraph('Prologue')
+            expect(pWlasny.getTitle()).toBe('Prologue')
+            expect(pWlasny.getId()).toMatch(/^paragraph_/)
 
-            const pDomyslny = vm.stworzParagraf('')
-            expect(pDomyslny.pobierzTytul()).toBe('Nowy paragraf')
+            const pDomyslny = vm.createParagraph('')
+            expect(pDomyslny.getTitle()).toBe('New paragraph')
         })
 
         it('tworzy scenę z własną lub domyślną nazwą', () => {
-            const sWlasna = vm.stworzScene('Wstęp')
-            expect(sWlasna.pobierzNazwe()).toBe('Wstęp')
-            expect(sWlasna.pobierzID()).toMatch(/^scena_/)
+            const sWlasna = vm.createScene('Intro')
+            expect(sWlasna.getName()).toBe('Intro')
+            expect(sWlasna.getId()).toMatch(/^scene_/)
 
-            const sDomyslna = vm.stworzScene('')
-            expect(sDomyslna.pobierzNazwe()).toBe('Nowa scena')
+            const sDomyslna = vm.createScene('')
+            expect(sDomyslna.getName()).toBe('New scene')
         })
 
         it('tworzy przedmiot z własną lub domyślną nazwą', () => {
-            const prWlasny = vm.stworzPrzedmiot('Miecz')
-            expect(prWlasny.pobierzNazwe()).toBe('Miecz')
-            expect(prWlasny.pobierzID()).toMatch(/^przedmiot_/)
+            const prWlasny = vm.createItem('Sword')
+            expect(prWlasny.getName()).toBe('Sword')
+            expect(prWlasny.getId()).toMatch(/^item_/)
 
-            const prDomyslny = vm.stworzPrzedmiot('')
-            expect(prDomyslny.pobierzNazwe()).toBe('Nowy przedmiot')
+            const prDomyslny = vm.createItem('')
+            expect(prDomyslny.getName()).toBe('New item')
         })
 
         it('tworzy klasę postaci z własną lub domyślną nazwą', () => {
-            const kWlasna = vm.stworzKlasePostaci('Wojownik')
-            expect(kWlasna.pobierzNazwe()).toBe('Wojownik')
-            expect(kWlasna.pobierzID()).toMatch(/^klasa_/)
+            const kWlasna = vm.createCharacterClass('Warrior')
+            expect(kWlasna.getName()).toBe('Warrior')
+            expect(kWlasna.getId()).toMatch(/^class_/)
 
-            const kDomyslna = vm.stworzKlasePostaci('')
-            expect(kDomyslna.pobierzNazwe()).toBe('Nowa klasa')
+            const kDomyslna = vm.createCharacterClass('')
+            expect(kDomyslna.getName()).toBe('New class')
         })
 
         it('tworzy postać z własną lub domyślną nazwą gdy pole jest puste', () => {
-            const pWlasna = vm.stworzPostac('Kupiec')
-            expect(pWlasna.pobierzNazwe()).toBe('Kupiec')
+            const pWlasna = vm.createCharacter('Merchant')
+            expect(pWlasna.getName()).toBe('Merchant')
 
-            const pDomyslna = vm.stworzPostac('')
-            expect(pDomyslna.pobierzNazwe()).toBe('Nowa postać')
+            const pDomyslna = vm.createCharacter('')
+            expect(pDomyslna.getName()).toBe('New character')
         })
 
         it('tworzy lokację z własną lub domyślną nazwą gdy pole jest puste', () => {
-            const lWlasna = vm.stworzLokacje('Karczma')
-            expect(lWlasna.pobierzNazwe()).toBe('Karczma')
+            const lWlasna = vm.createLocation('Tavern')
+            expect(lWlasna.getName()).toBe('Tavern')
 
-            const lDomyslna = vm.stworzLokacje('   ')
-            expect(lDomyslna.pobierzNazwe()).toBe('Nowa lokacja')
+            const lDomyslna = vm.createLocation('   ')
+            expect(lDomyslna.getName()).toBe('New location')
         })
 
-        it('tworzy cechę z własną lub domyślną nazwą gdy pole jest puste', () => {
-            const cWlasna = vm.stworzCeche('Siła')
-            expect(cWlasna.pobierzNazwe()).toBe('Siła')
+        it('tworzy cechę/statystykę z własną lub domyślną nazwą gdy pole jest puste', () => {
+            const cWlasna = vm.createStat('Strength')
+            expect(cWlasna.getName()).toBe('Strength')
 
-            const cDomyslna = vm.stworzCeche('')
-            expect(cDomyslna.pobierzNazwe()).toBe('Nowa cecha')
+            const cDomyslna = vm.createStat('')
+            expect(cDomyslna.getName()).toBe('New stat')
         })
 
         it('tworzy tag z własną lub domyślną nazwą oraz domyślnym kolorem', () => {
-            const tWlasny = vm.stworzTag('Magia', '#8b5cf6')
-            expect(tWlasny.pobierzNazwe()).toBe('Magia')
-            expect(tWlasny.pobierzKolor()).toBe('#8b5cf6')
+            const tWlasny = vm.createTag('Magic', '#8b5cf6')
+            expect(tWlasny.getName()).toBe('Magic')
+            expect(tWlasny.getColor()).toBe('#8b5cf6')
 
-            const tDomyslny = vm.stworzTag('')
-            expect(tDomyslny.pobierzNazwe()).toBe('Nowy tag')
-            expect(tDomyslny.pobierzKolor()).toBe(DEFAULT_TAG_COLOR)
+            const tDomyslny = vm.createTag('')
+            expect(tDomyslny.getName()).toBe('New tag')
+            expect(tDomyslny.getColor()).toBe(DEFAULT_TAG_COLOR)
         })
 
         it('umożliwia wstrzyknięcie niestandardowego generatora ID dla pełnego determinizmu', () => {
@@ -218,28 +230,37 @@ describe('MainWindowViewModel', () => {
                 `${prefix || 'id'}_fixed_${++counter}`
             const deterministicVm = new MainWindowViewModel(mockGenerator)
 
-            const npc = deterministicVm.stworzPostac('Bohater')
-            expect(npc.pobierzID()).toBe('npc_fixed_1')
+            const npc = deterministicVm.createCharacter('Hero')
+            expect(npc.getId()).toBe('npc_fixed_1')
 
-            const location = deterministicVm.stworzLokacje('Góry')
-            expect(location.pobierzID()).toBe('lokacja_fixed_2')
+            const location = deterministicVm.createLocation('Mountains')
+            expect(location.getId()).toBe('location_fixed_2')
 
-            const tag = deterministicVm.stworzTag('Test')
-            expect(tag.pobierzID()).toBe('tag_fixed_3')
+            const stat = deterministicVm.createStat('Agility')
+            expect(stat.getId()).toBe('stat_fixed_3')
+
+            const tag = deterministicVm.createTag('Test')
+            expect(tag.getId()).toBe('tag_fixed_4')
         })
 
         it('filtruje sekcje po wyszukiwanym haśle', () => {
-            const p1 = vm.stworzPostac('Strażnik')
-            const p2 = vm.stworzPostac('Kupiec')
+            const p1 = vm.createCharacter('Guard')
+            const p2 = vm.createCharacter('Merchant')
 
-            vm.setCharacterSearchQuery('straż')
+            vm.setCharacterSearchQuery('guard')
             expect(vm.searchAndFilterCharacters([p1, p2])).toEqual([p1])
 
-            const l1 = vm.stworzLokacje('Zamek')
-            const l2 = vm.stworzLokacje('Karczma')
+            const l1 = vm.createLocation('Castle')
+            const l2 = vm.createLocation('Tavern')
 
-            vm.setLocationSearchQuery('karcz')
+            vm.setLocationSearchQuery('tav')
             expect(vm.searchAndFilterLocations([l1, l2])).toEqual([l2])
+
+            const s1 = vm.createStat('Strength')
+            const s2 = vm.createStat('Agility')
+
+            vm.setStatSearchQuery('stre')
+            expect(vm.searchAndFilterStats([s1, s2])).toEqual([s1])
         })
     })
 })

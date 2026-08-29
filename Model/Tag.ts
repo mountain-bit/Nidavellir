@@ -1,53 +1,57 @@
 export class Tag {
     private id: string = ''
-    private nazwa: string = ''
-    private kolor: string = '#3b82f6'
+    private name: string = ''
+    private color: string = '#3b82f6'
 
-    constructor(id: string = '', nazwa: string = '', kolor: string = '#3b82f6') {
+    constructor(id: string = '', name: string = '', color: string = '#3b82f6') {
         this.id = id
-        this.nazwa = nazwa || id
-        this.kolor = kolor
+        this.name = name || id
+        this.color = color
     }
 
-    public pobierzID(): string {
+    public getId(): string {
         return this.id
     }
 
-    public nadajID(id: string): void {
+    public setId(id: string): void {
         this.id = id
     }
 
-    public pobierzNazwe(): string {
-        return this.nazwa
+    public hasId(): boolean {
+        return this.id !== ''
     }
 
-    public ustawNazwe(nazwa: string): void {
-        this.nazwa = nazwa
+    public getName(): string {
+        return this.name
     }
 
-    public pobierzKolor(): string {
-        return this.kolor
+    public setName(name: string): void {
+        this.name = name
     }
 
-    public ustawKolor(kolor: string): void {
-        this.kolor = kolor
+    public getColor(): string {
+        return this.color
+    }
+
+    public setColor(color: string): void {
+        this.color = color
     }
 
     public static fromJSON(json: any): Tag {
         if (!json) return new Tag()
         if (typeof json === 'string') return new Tag(json, json)
         return new Tag(
-            json.id || json.nazwa || '',
-            json.nazwa || json.name || json.id || '',
-            json.kolor || json.color || '#3b82f6'
+            json.id || json.name || '',
+            json.name || json.id || '',
+            json.color || '#3b82f6'
         )
     }
 
     public toJSON(): any {
         return {
             id: this.id,
-            nazwa: this.nazwa,
-            kolor: this.kolor,
+            name: this.name,
+            color: this.color,
         }
     }
 }

@@ -1,20 +1,35 @@
 export interface ProjectData {
     id: string
-    nazwa: string
-    autor: string
-    wersja: string
-    sciezkiOpisow: string[]
-    sciezkiDanych: string[]
+    name?: string
+    author?: string
+    version?: string
+    descriptionPaths?: string[]
+    dataPaths?: string[]
+
+    // Legacy Polish properties for backwards compatibility
+    nazwa?: string
+    autor?: string
+    wersja?: string
+    sciezkiOpisow?: string[]
+    sciezkiDanych?: string[]
 }
 
 export type EntityData = Record<string, unknown>
 
 export interface EntitiesData {
-    Lokacje?: EntityData[]
+    Locations?: EntityData[]
     NPC?: EntityData[]
+    Items?: EntityData[]
+    Paragraphs?: EntityData[]
+    Templates?: EntityData[]
+    CharacterClasses?: EntityData[]
+    Rules?: EntityData[]
+    PlayerCharacter?: EntityData[]
+
+    // Legacy Polish properties for backwards compatibility
+    Lokacje?: EntityData[]
     Przedmioty?: EntityData[]
     Paragrafy?: EntityData[]
-    Templates?: EntityData[]
     KlasyPostaci?: EntityData[]
     Zasady?: EntityData[]
     PostacGracza?: EntityData[]

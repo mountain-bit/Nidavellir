@@ -1,10 +1,10 @@
-import { Projekt } from '../Model/Projekt'
+import { Project } from '../Model/Project'
 import type { EntitiesData, ProjectData } from '../types/ipc'
 
 export class ProjectManager {
     private static instance: ProjectManager
 
-    private currentProject: Projekt | null = null
+    private currentProject: Project | null = null
     private currentProjectPath: string = ''
 
     private constructor() {}
@@ -16,7 +16,7 @@ export class ProjectManager {
         return ProjectManager.instance
     }
 
-    public getProject(): Projekt | null {
+    public getProject(): Project | null {
         return this.currentProject
     }
 
@@ -32,11 +32,11 @@ export class ProjectManager {
         projectData: ProjectData,
         entities: EntitiesData = {},
         projectPath: string = ''
-    ): Projekt {
-        const projekt = Projekt.fromJSON(projectData, entities)
-        this.currentProject = projekt
+    ): Project {
+        const project = Project.fromJSON(projectData, entities)
+        this.currentProject = project
         this.currentProjectPath = projectPath
-        return projekt
+        return project
     }
 
     public clear(): void {

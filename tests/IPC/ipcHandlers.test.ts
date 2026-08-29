@@ -80,13 +80,20 @@ describe('Main Process Services & File System Operations', () => {
         })
 
         describe('validateProjectData', () => {
-            it('zwraca true dla poprawnego obiektu projektu', () => {
-                const validData = {
-                    nazwa: 'Test Game',
+            it('zwraca true dla poprawnego obiektu projektu (EN i PL)', () => {
+                const validDataEN = {
+                    name: 'Test Game',
+                    descriptionPaths: [],
+                    dataPaths: [],
+                }
+                expect(validateProjectData(validDataEN)).toBe(true)
+
+                const validDataPL = {
+                    nazwa: 'Test Game PL',
                     sciezkiOpisow: [],
                     sciezkiDanych: [],
                 }
-                expect(validateProjectData(validData)).toBe(true)
+                expect(validateProjectData(validDataPL)).toBe(true)
             })
 
             it('zwraca false dla brakujących lub błędnych pól', () => {
@@ -94,16 +101,16 @@ describe('Main Process Services & File System Operations', () => {
                 expect(validateProjectData({})).toBe(false)
                 expect(
                     validateProjectData({
-                        nazwa: 123,
-                        sciezkiOpisow: [],
-                        sciezkiDanych: [],
+                        name: 123,
+                        descriptionPaths: [],
+                        dataPaths: [],
                     })
                 ).toBe(false)
                 expect(
                     validateProjectData({
-                        nazwa: 'Test',
-                        sciezkiOpisow: 'invalid',
-                        sciezkiDanych: [],
+                        name: 'Test',
+                        descriptionPaths: 'invalid',
+                        dataPaths: [],
                     })
                 ).toBe(false)
             })
@@ -130,8 +137,8 @@ describe('Main Process Services & File System Operations', () => {
         it('tworzy strukturę nowego projektu z folderami i meta.json', async () => {
             const result = await ProjectService.createProject({
                 id: 'moj_projekt',
-                nazwa: 'Moja Przygoda',
-                autor: 'Jan Kowalski',
+                name: 'Moja Przygoda',
+                author: 'Jan Kowalski',
                 projectPath: tempDir,
             })
 
@@ -139,20 +146,22 @@ describe('Main Process Services & File System Operations', () => {
             expect(result.path).toBe(path.join(tempDir, 'project.json'))
 
             const projectJson = JSON.parse(fs.readFileSync(result.path!, 'utf8'))
-            expect(projectJson.nazwa).toBe('Moja Przygoda')
-            expect(projectJson.autor).toBe('Jan Kowalski')
-            expect(projectJson.sciezkiDanych.length).toBeGreaterThan(0)
+            expect(projectJson.name).toBe('Moja Przygoda')
+            expect(projectJson.author).toBe('Jan Kowalski')
+            expect(projectJson.dataPaths.length).toBeGreaterThan(0)
 
             // Verify NPC folder & meta.json
             const npcMetaPath = path.join(tempDir, 'NPC', 'meta.json')
             expect(fs.existsSync(npcMetaPath)).toBe(true)
             const npcMeta = JSON.parse(fs.readFileSync(npcMetaPath, 'utf8'))
-            expect(npcMeta.sciezka).toBe('./NPC')
+            expect(npcMeta.path).toBe('./NPC')
+            expect(npcMeta.description).toBe('Folder for NPC')
+            expect(Array.isArray(npcMeta.elements)).toBe(true)
         })
 
         it('otwiera poprawny projekt i wczytuje encje', async () => {
             await ProjectService.createProject({
-                nazwa: 'Gra Testowa',
+                name: 'Gra Testowa',
                 projectPath: tempDir,
             })
 
@@ -160,15 +169,15 @@ describe('Main Process Services & File System Operations', () => {
             await EntityService.createEntity({
                 projectPath: tempDir,
                 category: 'NPC',
-                entityData: { id: 'npc_1', nazwa: 'Bohater' },
+                entityData: { id: 'npc_1', name: 'Bohater' },
             })
 
             const openResult = await ProjectService.openProject(tempDir)
             expect(openResult.success).toBe(true)
-            expect(openResult.project.nazwa).toBe('Gra Testowa')
+            expect(openResult.project.name).toBe('Gra Testowa')
             expect(openResult.entities.NPC).toBeDefined()
             expect(openResult.entities.NPC.length).toBe(1)
-            expect(openResult.entities.NPC[0].nazwa).toBe('Bohater')
+            expect(openResult.entities.NPC[0].name).toBe('Bohater')
         })
 
         it('zwraca błąd dla nieistniejącej ścieżki projektu', async () => {
@@ -186,8 +195,8 @@ describe('Main Process Services & File System Operations', () => {
             await ProjectService.createProject({ projectPath: tempDir })
 
             const entityData = {
-                nazwa: 'Kupiec Jan',
-                opis: { tekst: 'Bogaty kupiec' },
+                name: 'Kupiec Jan',
+                description: { text: 'Bogaty kupiec' },
             }
 
             const result = await EntityService.createEntity({
@@ -201,11 +210,11 @@ describe('Main Process Services & File System Operations', () => {
             expect(fs.existsSync(result.entityPath!)).toBe(true)
 
             const saved = JSON.parse(fs.readFileSync(result.entityPath!, 'utf8'))
-            expect(saved.nazwa).toBe('Kupiec Jan')
-            expect(saved.opis.sciezkaTekst).toBe('./NPC/kupiec_jan/tekst.md')
+            expect(saved.name).toBe('Kupiec Jan')
+            expect(saved.description.textPath).toBe('./NPC/kupiec_jan/text.md')
 
             const meta = JSON.parse(fs.readFileSync(path.join(tempDir, 'NPC', 'meta.json'), 'utf8'))
-            expect(meta.elementy).toContain('./kupiec_jan/element.json')
+            expect(meta.elements).toContain('./kupiec_jan/element.json')
         })
 
         it('zapisuje encję przez saveEntity i odrzuca path traversal', async () => {
@@ -213,23 +222,23 @@ describe('Main Process Services & File System Operations', () => {
 
             await EntityService.createEntity({
                 projectPath: tempDir,
-                category: 'Lokacje',
-                entityData: { id: 'lok_1', nazwa: 'Karczma' },
+                category: 'Locations',
+                entityData: { id: 'lok_1', name: 'Karczma' },
                 folderName: 'karczma',
             })
 
             const updateResult = await EntityService.saveEntity({
                 projectPath: tempDir,
-                category: 'Lokacje',
+                category: 'Locations',
                 entityFolder: 'karczma',
-                entityData: { id: 'lok_1', nazwa: 'Karczma Pod Różą' },
+                entityData: { id: 'lok_1', name: 'Karczma Pod Różą' },
             })
 
             expect(updateResult.success).toBe(true)
             const updated = JSON.parse(
-                fs.readFileSync(path.join(tempDir, 'Lokacje', 'karczma', 'element.json'), 'utf8')
+                fs.readFileSync(path.join(tempDir, 'Locations', 'karczma', 'element.json'), 'utf8')
             )
-            expect(updated.nazwa).toBe('Karczma Pod Różą')
+            expect(updated.name).toBe('Karczma Pod Różą')
 
             const maliciousResult = await EntityService.saveEntity({
                 projectPath: tempDir,
@@ -245,7 +254,7 @@ describe('Main Process Services & File System Operations', () => {
         it('zwraca isVirtual: true gdy plik markdown jeszcze nie istnieje fizycznie na dysku', async () => {
             const readResult = await MarkdownService.readMarkdownFile({
                 projectPath: tempDir,
-                relativePath: './NPC/straznik/tekst.md',
+                relativePath: './NPC/straznik/text.md',
             })
             expect(readResult.success).toBe(true)
             expect(readResult.isVirtual).toBe(true)
@@ -253,7 +262,7 @@ describe('Main Process Services & File System Operations', () => {
         })
 
         it('automatycznie tworzy brakujące podkatalogi i zapisuje treść markdown atomowo', async () => {
-            const relativePath = './NPC/straznik/tekst.md'
+            const relativePath = './NPC/straznik/text.md'
             const content = '# Strażnik miejski\nOpis postaci...'
 
             const saveResult = await MarkdownService.saveMarkdownFile({

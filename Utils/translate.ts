@@ -4,7 +4,7 @@ import de from '../Locales/de/translation.json'
 import en from '../Locales/en/translation.json'
 import pl from '../Locales/pl/translation.json'
 
-export type Translations = typeof pl
+export type Translations = typeof en
 
 type NestedKeyOf<T, Prefix extends string = ''> = {
     [K in keyof T & string]: T[K] extends object
@@ -14,12 +14,12 @@ type NestedKeyOf<T, Prefix extends string = ''> = {
 
 export type TranslationKey = NestedKeyOf<Translations>
 
-export const availableLanguages = ['pl', 'en', 'de'] as const
+export const availableLanguages = ['en', 'pl', 'de'] as const
 export type SupportedLanguage = (typeof availableLanguages)[number]
 
 const resources = {
-    pl: { translation: pl as unknown as Translations },
     en: { translation: en as unknown as Translations },
+    pl: { translation: pl as unknown as Translations },
     de: { translation: de as unknown as Translations },
 }
 
@@ -28,7 +28,7 @@ let initialized = false
 export async function initTranslations(): Promise<void> {
     if (initialized) return
 
-    const locale = await window.electronAPI.getLocale()
+    const locale = (await window.electronAPI?.getLocale?.()) || 'en'
 
     await i18next.init({
         lng: locale,

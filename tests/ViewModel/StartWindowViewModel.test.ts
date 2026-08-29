@@ -45,13 +45,13 @@ const mockHTML = `
 
 const sampleValidProjectData = {
     id: 'test_proj',
-    nazwa: 'Testowy Projekt',
-    autor: 'Jan Kowalski',
-    wersja: '1.0',
-    wersjaEngine: '1.0',
-    dataUtworzenia: '2026-01-01T00:00:00.000Z',
-    dataModyfikacji: '2026-01-01T00:00:00.000Z',
-    poczatek: { scenaId: 'scena_1', paragrafId: 'par_1' },
+    name: 'Testowy Projekt',
+    author: 'Jan Kowalski',
+    version: '1.0',
+    engineVersion: '1.0',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    start: { sceneId: 'scena_1', paragraphId: 'par_1' },
 }
 
 describe('StartWindowViewModel', () => {
@@ -284,12 +284,14 @@ describe('StartWindowViewModel', () => {
             btnSubmit?.click()
             await vi.runAllTimersAsync()
 
-            expect(window.electronAPI.createProject).toHaveBeenCalledWith({
-                id: 'mj_nowy_projekt',
-                nazwa: 'Mój Nowy Projekt!',
-                autor: 'jan_user',
-                projectPath: 'C:/Projekty/Gra1',
-            })
+            expect(window.electronAPI.createProject).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    id: 'mj_nowy_projekt',
+                    name: 'Mój Nowy Projekt!',
+                    author: 'jan_user',
+                    projectPath: 'C:/Projekty/Gra1',
+                })
+            )
 
             expect(window.electronAPI.loadMainWindow).toHaveBeenCalled()
             vi.useRealTimers()
@@ -423,9 +425,7 @@ describe('StartWindowViewModel', () => {
 
             await vi.waitFor(() => {
                 expect(window.electronAPI.openProject).toHaveBeenCalled()
-                expect(ProjectManager.getInstance().getProject()?.pobierzNazwe()).toBe(
-                    'Testowy Projekt'
-                )
+                expect(ProjectManager.getInstance().getProject()?.getName()).toBe('Testowy Projekt')
                 expect(window.electronAPI.loadMainWindow).toHaveBeenCalled()
             })
         })
@@ -498,9 +498,7 @@ describe('StartWindowViewModel', () => {
 
             await vi.waitFor(() => {
                 expect(window.electronAPI.openProject).toHaveBeenCalledWith('C:/Gry/SuperGra')
-                expect(ProjectManager.getInstance().getProject()?.pobierzNazwe()).toBe(
-                    'Testowy Projekt'
-                )
+                expect(ProjectManager.getInstance().getProject()?.getName()).toBe('Testowy Projekt')
                 expect(window.electronAPI.loadMainWindow).toHaveBeenCalled()
             })
         })

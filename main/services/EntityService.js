@@ -25,15 +25,15 @@ class EntityService {
 
         const projectDir = resolveProjectDir(projectPath)
         if (!projectDir) {
-            return { success: false, error: 'Nieprawidłowa ścieżka projektu.' }
+            return { success: false, error: 'Invalid project path.' }
         }
         if (!category || typeof category !== 'string') {
-            return { success: false, error: 'Brak podanej kategorii elementu.' }
+            return { success: false, error: 'Missing element category.' }
         }
 
         const categoryDir = path.join(projectDir, category)
         if (!isPathInsideBase(projectDir, categoryDir)) {
-            return { success: false, error: 'Niedozwolona ścieżka kategorii.' }
+            return { success: false, error: 'Unauthorized category path.' }
         }
 
         if (!fs.existsSync(categoryDir)) {
@@ -42,17 +42,19 @@ class EntityService {
 
         const metaPath = path.join(categoryDir, 'meta.json')
         let metaData = {
-            opis: `Folder na ${category}`,
-            sciezka: `./${category}`,
-            sciezkiOpisow: [],
-            sciezkiZdjec: [],
-            elementy: [],
+            description: `Folder for ${category}`,
+            path: `./${category}`,
+            descriptionPaths: [],
+            imagePaths: [],
+            elements: [],
         }
 
         if (fs.existsSync(metaPath)) {
             try {
                 metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
-                if (!Array.isArray(metaData.elementy)) metaData.elementy = []
+                if (!Array.isArray(metaData.elements) && !Array.isArray(metaData.elementy)) {
+                    metaData.elements = []
+                }
             } catch (err) {
                 console.error(`Error reading meta.json in ${categoryDir}:`, err)
             }
@@ -61,9 +63,11 @@ class EntityService {
         const nameSource =
             folderName ||
             entityData?.id ||
+            entityData?.name ||
             entityData?.nazwa ||
+            entityData?.title ||
             entityData?.tytul ||
-            `nowy_${category.toLowerCase()}`
+            `new_${category.toLowerCase()}`
 
         const rawSlug = slugifyEntityName(String(nameSource))
         const entityFolderSlug = generateUniqueSlug(rawSlug, candidate =>
@@ -72,40 +76,57 @@ class EntityService {
         const entityDir = path.join(categoryDir, entityFolderSlug)
 
         if (!isPathInsideBase(projectDir, entityDir)) {
-            return { success: false, error: 'Niedozwolona ścieżka encji.' }
+            return { success: false, error: 'Unauthorized entity path.' }
         }
 
         const elementJsonPath = path.join(entityDir, 'element.json')
         if (!isPathInsideBase(projectDir, elementJsonPath)) {
-            return { success: false, error: 'Niedozwolona ścieżka zapisu encji.' }
+            return { success: false, error: 'Unauthorized entity save path.' }
         }
 
         try {
             fs.mkdirSync(entityDir, { recursive: true })
 
             if (createDescriptionPaths) {
-                const sciezkaTekst = `./${category}/${entityFolderSlug}/tekst.md`
-                const sciezkaTekstDlaAutora = `./${category}/${entityFolderSlug}/autor.md`
+                const textPath = `./${category}/${entityFolderSlug}/text.md`
+                const authorNotesPath = `./${category}/${entityFolderSlug}/author.md`
 
-                const existingOpis =
-                    typeof entityData?.opis === 'object' && entityData.opis !== null
-                        ? entityData.opis
-                        : {}
+                const existingDesc =
+                    typeof entityData?.description === 'object' && entityData.description !== null
+                        ? entityData.description
+                        : typeof entityData?.opis === 'object' && entityData.opis !== null
+                          ? entityData.opis
+                          : {}
 
-                entityData.opis = {
-                    tekst: existingOpis.tekst || '',
-                    streszczenie: existingOpis.streszczenie || '',
-                    tekstDlaAutora: existingOpis.tekstDlaAutora || '',
-                    sciezkaTekst: sciezkaTekst,
-                    sciezkaTekstDlaAutora: sciezkaTekstDlaAutora,
+                const text = existingDesc.text || existingDesc.tekst || ''
+                const summary = existingDesc.summary || existingDesc.streszczenie || ''
+                const authorNotes = existingDesc.authorNotes || existingDesc.tekstDlaAutora || ''
+
+                entityData.description = {
+                    text,
+                    summary,
+                    authorNotes,
+                    textPath,
+                    authorNotesPath,
                 }
             }
 
             atomicWriteJsonSync(elementJsonPath, entityData)
 
             const relativeElementPath = `./${entityFolderSlug}/element.json`
-            if (!metaData.elementy.includes(relativeElementPath)) {
-                metaData.elementy.push(relativeElementPath)
+            const elementsArray = Array.isArray(metaData.elements)
+                ? metaData.elements
+                : Array.isArray(metaData.elementy)
+                  ? metaData.elementy
+                  : (metaData.elements = [])
+
+            if (!elementsArray.includes(relativeElementPath)) {
+                elementsArray.push(relativeElementPath)
+                if (metaData.elements === undefined && metaData.elementy !== undefined) {
+                    metaData.elementy = elementsArray
+                } else {
+                    metaData.elements = elementsArray
+                }
                 atomicWriteJsonSync(metaPath, metaData)
             }
 
@@ -118,7 +139,7 @@ class EntityService {
             console.error('Error creating element on disk:', err)
             return {
                 success: false,
-                error: err.message || 'Wystąpił błąd podczas tworzenia elementu na dysku.',
+                error: err.message || 'An error occurred while creating the element on disk.',
             }
         }
     }
@@ -132,17 +153,17 @@ class EntityService {
     static async saveEntity(payload) {
         const { projectPath, category, entityFolder, entityData } = payload || {}
         if (!projectPath || !category || !entityFolder || !entityData) {
-            return { success: false, error: 'Brak wymaganych parametrów do zapisu encji.' }
+            return { success: false, error: 'Missing required parameters to save entity.' }
         }
 
         const projectDir = resolveProjectDir(projectPath)
         if (!projectDir) {
-            return { success: false, error: 'Nieprawidłowa ścieżka projektu.' }
+            return { success: false, error: 'Invalid project path.' }
         }
 
         const entityJsonPath = path.join(projectDir, category, entityFolder, 'element.json')
         if (!isPathInsideBase(projectDir, entityJsonPath)) {
-            return { success: false, error: 'Niedozwolona ścieżka zapisu encji.' }
+            return { success: false, error: 'Unauthorized entity save path.' }
         }
 
         try {
@@ -150,7 +171,7 @@ class EntityService {
             return { success: true }
         } catch (err) {
             console.error('Error saving entity:', err)
-            return { success: false, error: err.message || 'Nie udało się zapisać pliku encji.' }
+            return { success: false, error: err.message || 'Failed to save entity file.' }
         }
     }
 }

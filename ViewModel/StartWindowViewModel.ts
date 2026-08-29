@@ -167,6 +167,8 @@ export class StartWindowViewModel {
             try {
                 const result = await window.electronAPI.createProject({
                     id,
+                    name: nazwa,
+                    author: autor,
                     nazwa,
                     autor,
                     projectPath,

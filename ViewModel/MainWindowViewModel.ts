@@ -1,26 +1,26 @@
-import { Cecha } from '../Model/Cecha'
+import { CharacterClass } from '../Model/CharacterClass'
 import { DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
-import { KlasaPostaci } from '../Model/KlasaPostaci'
-import { Lokacja } from '../Model/Lokacja'
+import { Description } from '../Model/Description'
+import { Item } from '../Model/Item'
+import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
-import { Opis } from '../Model/Opis'
-import { Paragraf } from '../Model/Paragraf'
-import { Przedmiot } from '../Model/Przedmiot'
-import { Scena } from '../Model/Scena'
+import { Paragraph } from '../Model/Paragraph'
+import { Scene } from '../Model/Scene'
+import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
 
 export {
-    Cecha,
+    CharacterClass,
     DEFAULT_TAG_COLOR,
+    Description,
     ENTITY_CATEGORIES,
-    KlasaPostaci,
-    Lokacja,
+    Item,
+    Location,
     NPC,
-    Opis,
-    Paragraf,
-    Przedmiot,
-    Scena,
+    Paragraph,
+    Scene,
+    Stat,
     Tag,
 }
 
@@ -30,6 +30,7 @@ export type LeftTab =
     | 'scenes'
     | 'characters'
     | 'locations'
+    | 'stats'
     | 'traits'
     | 'main-character'
     | 'tags'
@@ -54,7 +55,7 @@ export class MainWindowViewModel {
 
     private characterSearchQuery: string = ''
     private locationSearchQuery: string = ''
-    private traitSearchQuery: string = ''
+    private statSearchQuery: string = ''
     private tagSearchQuery: string = ''
 
     private idGenerator: IdGenerator
@@ -194,12 +195,12 @@ export class MainWindowViewModel {
         this.locationSearchQuery = query
     }
 
-    public getTraitSearchQuery(): string {
-        return this.traitSearchQuery
+    public getStatSearchQuery(): string {
+        return this.statSearchQuery
     }
 
-    public setTraitSearchQuery(query: string): void {
-        this.traitSearchQuery = query
+    public setStatSearchQuery(query: string): void {
+        this.statSearchQuery = query
     }
 
     public getTagSearchQuery(): string {
@@ -210,76 +211,74 @@ export class MainWindowViewModel {
         this.tagSearchQuery = query
     }
 
-    public stworzParagraf(tytulInput?: string, domyslnyTytul: string = 'Nowy paragraf'): Paragraf {
-        const tytul = (tytulInput ?? '').trim() || domyslnyTytul
-        const id = this.idGenerator('paragraf')
-        return new Paragraf(id, tytul)
+    // Creation Factory Methods (English)
+    public createParagraph(titleInput?: string, defaultTitle: string = 'New paragraph'): Paragraph {
+        const title = (titleInput ?? '').trim() || defaultTitle
+        const id = this.idGenerator('paragraph')
+        return new Paragraph(id, title)
     }
 
-    public stworzScene(nazwaInput?: string, domyslnaNazwa: string = 'Nowa scena'): Scena {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = this.idGenerator('scena')
-        return new Scena(id, nazwa)
+    public createScene(nameInput?: string, defaultName: string = 'New scene'): Scene {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('scene')
+        return new Scene(id, name)
     }
 
-    public stworzPrzedmiot(
-        nazwaInput?: string,
-        domyslnaNazwa: string = 'Nowy przedmiot'
-    ): Przedmiot {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = this.idGenerator('przedmiot')
-        return new Przedmiot(id, nazwa)
+    public createItem(nameInput?: string, defaultName: string = 'New item'): Item {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('item')
+        return new Item(id, name)
     }
 
-    public stworzKlasePostaci(
-        nazwaInput?: string,
-        domyslnaNazwa: string = 'Nowa klasa'
-    ): KlasaPostaci {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = this.idGenerator('klasa')
-        return new KlasaPostaci(id, nazwa)
+    public createCharacterClass(
+        nameInput?: string,
+        defaultName: string = 'New class'
+    ): CharacterClass {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('class')
+        return new CharacterClass(id, name)
     }
 
-    public stworzPostac(nazwaInput?: string, domyslnaNazwa: string = 'Nowa postać'): NPC {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+    public createCharacter(nameInput?: string, defaultName: string = 'New character'): NPC {
+        const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('npc')
-        return new NPC(id, nazwa)
+        return new NPC(id, name)
     }
 
-    public stworzLokacje(nazwaInput?: string, domyslnaNazwa: string = 'Nowa lokacja'): Lokacja {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = this.idGenerator('lokacja')
-        return new Lokacja(id, nazwa)
+    public createLocation(nameInput?: string, defaultName: string = 'New location'): Location {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('location')
+        return new Location(id, name)
     }
 
-    public stworzCeche(nazwaInput?: string, domyslnaNazwa: string = 'Nowa cecha'): Cecha {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
-        const id = this.idGenerator('cecha')
-        return new Cecha(id, nazwa, new Opis(), '')
+    public createStat(nameInput?: string, defaultName: string = 'New stat'): Stat {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('stat')
+        return new Stat(id, name, new Description(), '')
     }
 
-    public stworzTag(
-        nazwaInput?: string,
-        kolorInput: string = DEFAULT_TAG_COLOR,
-        domyslnaNazwa: string = 'Nowy tag'
+    public createTag(
+        nameInput?: string,
+        colorInput: string = DEFAULT_TAG_COLOR,
+        defaultName: string = 'New tag'
     ): Tag {
-        const nazwa = (nazwaInput ?? '').trim() || domyslnaNazwa
+        const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('tag')
-        return new Tag(id, nazwa, kolorInput)
+        return new Tag(id, name, colorInput)
     }
 
-    public searchAndFilterParagraphs(paragraphs: Paragraf[]): Paragraf[] {
+    public searchAndFilterParagraphs(paragraphs: Paragraph[]): Paragraph[] {
         let result = [...paragraphs]
 
         if (this.selectedFilterTag) {
             const tagStr = this.selectedFilterTag.toLowerCase()
             result = result.filter(p =>
                 p
-                    .pobierzTagi()
+                    .getTags()
                     .some(
                         t =>
-                            t.pobierzID().toLowerCase() === tagStr ||
-                            t.pobierzNazwe().toLowerCase() === tagStr
+                            t.getId().toLowerCase() === tagStr ||
+                            t.getName().toLowerCase() === tagStr
                     )
             )
         }
@@ -287,27 +286,27 @@ export class MainWindowViewModel {
         const query = this.paragraphSearchQuery.trim().toLowerCase()
         if (!query) {
             return result.sort((a, b) => {
-                if (a.pobierzBlokadaNumeru() && !b.pobierzBlokadaNumeru()) return -1
-                if (!a.pobierzBlokadaNumeru() && b.pobierzBlokadaNumeru()) return 1
+                if (a.getIsNumberLocked() && !b.getIsNumberLocked()) return -1
+                if (!a.getIsNumberLocked() && b.getIsNumberLocked()) return 1
                 return 0
             })
         }
 
         result = result.filter(p => {
-            const tytulMatch = p.pobierzTytul().toLowerCase().includes(query)
-            const trescMatch = p.pobierzTresc().pobierzTekst().toLowerCase().includes(query)
-            const numerMatch = p.pobierzNumer().toString().includes(query)
+            const tytulMatch = p.getTitle().toLowerCase().includes(query)
+            const trescMatch = p.getContent().getText().toLowerCase().includes(query)
+            const numerMatch = p.getNumber().toString().includes(query)
             return tytulMatch || trescMatch || numerMatch
         })
 
         return result.sort((a, b) => {
-            const aLocked = a.pobierzBlokadaNumeru()
-            const bLocked = b.pobierzBlokadaNumeru()
+            const aLocked = a.getIsNumberLocked()
+            const bLocked = b.getIsNumberLocked()
             if (aLocked && !bLocked) return -1
             if (!aLocked && bLocked) return 1
 
-            const aTitleMatch = a.pobierzTytul().toLowerCase().includes(query)
-            const bTitleMatch = b.pobierzTytul().toLowerCase().includes(query)
+            const aTitleMatch = a.getTitle().toLowerCase().includes(query)
+            const bTitleMatch = b.getTitle().toLowerCase().includes(query)
             if (aTitleMatch && !bTitleMatch) return -1
             if (!aTitleMatch && bTitleMatch) return 1
 
@@ -315,35 +314,35 @@ export class MainWindowViewModel {
         })
     }
 
-    public searchAndFilterCharacters(postacie: NPC[]): NPC[] {
+    public searchAndFilterCharacters(characters: NPC[]): NPC[] {
         const query = this.characterSearchQuery.trim().toLowerCase()
-        if (!query) return postacie
-        return postacie.filter(
+        if (!query) return characters
+        return characters.filter(
             p =>
-                p.pobierzNazwe().toLowerCase().includes(query) ||
-                p.pobierzTagi().some(t => t.pobierzNazwe().toLowerCase().includes(query))
+                p.getName().toLowerCase().includes(query) ||
+                p.getTags().some(t => t.getName().toLowerCase().includes(query))
         )
     }
 
-    public searchAndFilterLocations(lokacje: Lokacja[]): Lokacja[] {
+    public searchAndFilterLocations(locations: Location[]): Location[] {
         const query = this.locationSearchQuery.trim().toLowerCase()
-        if (!query) return lokacje
-        return lokacje.filter(
+        if (!query) return locations
+        return locations.filter(
             l =>
-                l.pobierzNazwe().toLowerCase().includes(query) ||
-                l.pobierzTagi().some(t => t.pobierzNazwe().toLowerCase().includes(query))
+                l.getName().toLowerCase().includes(query) ||
+                l.getTags().some(t => t.getName().toLowerCase().includes(query))
         )
     }
 
-    public searchAndFilterTraits(cechy: Cecha[]): Cecha[] {
-        const query = this.traitSearchQuery.trim().toLowerCase()
-        if (!query) return cechy
-        return cechy.filter(c => c.pobierzNazwe().toLowerCase().includes(query))
+    public searchAndFilterStats(stats: Stat[]): Stat[] {
+        const query = this.statSearchQuery.trim().toLowerCase()
+        if (!query) return stats
+        return stats.filter(c => c.getName().toLowerCase().includes(query))
     }
 
-    public searchAndFilterTags(tagi: Tag[]): Tag[] {
+    public searchAndFilterTags(tags: Tag[]): Tag[] {
         const query = this.tagSearchQuery.trim().toLowerCase()
-        if (!query) return tagi
-        return tagi.filter(t => t.pobierzNazwe().toLowerCase().includes(query))
+        if (!query) return tags
+        return tags.filter(t => t.getName().toLowerCase().includes(query))
     }
 }

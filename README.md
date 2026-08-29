@@ -1,6 +1,6 @@
 # Silnik Gier Paragrafowych (SGP) — Dokumentacja Projektu
 
-Silnik Gier Paragrafowych (SGP) to zaawansowane środowisko desktopowe służące do projektowania, edycji oraz zarządzania grami paragrafowymi (ang. *gamebook games*). Aplikacja umożliwia tworzenie struktury scen, paragrafów i przeskoków, tworzenie kart postaci gracza i NPC, projektowanie systemów cech, umiejętności, przedmiotów oraz mechanik walki.
+Silnik Gier Paragrafowych (SGP) to zaawansowane środowisko desktopowe służące do projektowania, edycji oraz zarządzania grami paragrafowymi (ang. *gamebook games*). Aplikacja umożliwia tworzenie struktury scen, paragrafów i wyborów/przeskoków, tworzenie kart postaci gracza i NPC, projektowanie systemów cech, umiejętności, przedmiotów oraz mechanik walki.
 
 ---
 ## Użyte Technologie (Tech Stack)
@@ -11,7 +11,7 @@ Silnik Gier Paragrafowych (SGP) to zaawansowane środowisko desktopowe służąc
 | **Język Logiki Biznesowej** | **TypeScript 6.0.0** | Statycznie typowany język programowania dla modeli domenowych i warstwy ViewModel. |
 | **Stylizowanie UI** | **TailwindCSS 4.3.3** | Architektura Utility-First CSS ze skompresowanym plikiem produkcyjnym `MainWindow.generated.css`. |
 | **Wizualizacja Grafowa** | **Cytoscape.js 3.33.3** | Silnik renderujący grafy dla wizualizacji połączeń między paragrafami i scenami. |
-| **Umiędzynarodowienie (i18n)** | **i18next 26.3.6** + autorski moduł | System obsługi wielojęzyczności (`pl`, `en`, `de`) z pełnym typowaniem kluczy w TypeScript. |
+| **Umiędzynarodowienie (i18n)** | **i18next 26.3.6** + autorski moduł | System obsługi wielojęzyczności (`en` domyślny, `pl`, `de`) z pełnym typowaniem kluczy w TypeScript. |
 | **Build & Bundling** | **esbuild 0.28.2** + **tsc** | Błyskawiczne pakowanie skryptów dla procesów Renderer (`build-renderer.js`). |
 | **Środowisko Testowe** | **Vitest 1.6.1** + **happy-dom 20.11** | Szybki framework testowy z emulacją drzewa DOM dla testów ViewModeli i modeli. |
 | **Kontrola Jakości & Git** | **ESLint 8**, **Prettier 3**, **Husky 9** | Automatyczne formatowanie kodu przed commitem (`lint-staged`) oraz uruchamianie testów przed pushem (`pre-push`). |
@@ -24,9 +24,9 @@ W projekcie zastosowano wzorce architektoniczne gwarantujące czytelność, skal
 
 ### 1. Wzorzec MVVM (Model-View-ViewModel)
 Główny wzorzec podziału odpowiedzialności w aplikacji:
-- **Model (`/Model/*.ts`)**: Czyste klasy domenowe w TypeScript (np. `Projekt`, `Scena`, `Paragraf`, `PostacGracza`, `NPC`, `Lokacja`, `Walka`, `Warunek`).
+- **Model (`/Model/*.ts`)**: Czyste klasy domenowe w TypeScript (np. `Project`, `Scene`, `Paragraph`, `Choice`, `PlayerCharacter`, `NPC`, `Location`, `Combat`, `Condition`, `Item`, `Stat`, `Skill`, `Feature`).
   - Pozbawione jakichkolwiek zależności od Electrona czy drzewa DOM.
-  - Posiadają prywatne pola i stosują jednoznaczną polską konwencję nazewniczą (`pobierzX()`, `ustawX()`, `dodajX()`, `usunX()`, `czymaX()`).
+  - Posiadają prywatne pola i stosują jednoznaczną angielską konwencję nazewniczą (`getId()`, `setName()`, `addTag()`, `removeTag()`, `hasTag()`).
 - **View (`/View/*.html`, `MainWindow.css`)**: Warstwa prezentacyjna zbudowana w oparciu o HTML5 i TailwindCSS. Deklaruje elementy interfejsu oraz atrybuty tłumaczeniowe (`data-i18n`, `data-i18n-placeholder`).
 - **ViewModel (`/ViewModel/*.ts`)**: Logika prezentacji i obsługa zdarzeń użytkownika (np. `StartWindowViewModel.ts`, `MainWindowViewModel.ts`). Łączy zdarzenia UI z operacjami na modelach oraz komunikacją z Electron IPC.
 
@@ -34,7 +34,7 @@ Główny wzorzec podziału odpowiedzialności w aplikacji:
 - **`ProjectManager` (`Services/ProjectManager.ts`)**: Pojedyncza instancja zarządza aktualnie otwartym projektem w procesie Renderer. Gwarantuje spójny dostęp do stanu aplikacji z dowolnego miejsca.
 
 ### 3. Wzorzec Fabryki / Deserializacji (`fromJSON`)
-- Każda klasa domenowa w folderze `Model/` posiada statyczną metodę fabrykującą `.fromJSON(data)`. Pozwala to na bezpieczne przekształcanie surowych obiektów JSON odebranych z IPC Electrona w pełnoprawne instancje klas TypeScript z działającymi metodami.
+- Każda klasa domenowa w folderze `Model/` posiada statyczną metodę fabrykującą `.fromJSON(data)`. Pozwala to na bezpieczne przekształcanie surowych obiektów JSON odebranych z IPC Electrona w pełnoprawne instancje klas TypeScript z działającymi metodami, wspierając formaty polskie i angielskie.
 
 ### 4. Wzorzec IPC Bridge & Context Isolation (Bezpieczeństwo Electrona)
 - Procesy **Main Process** (`main.js`) oraz **Renderer Process** są od siebie odizolowane (`contextIsolation: true`, `nodeIntegration: false`).
@@ -56,7 +56,7 @@ Główny wzorzec podziału odpowiedzialności w aplikacji:
    - **`pre-push`**: Automatycznie wykonuje wszystkie testy jednostkowe (`pnpm test:run`). Jeśli którykolwiek test nie przejdzie, wysłanie kodu do Git jest blokowane.
 
 3. **System Wielojęzyczności (i18n & Type Safety)**:
-   - Moduł `Utils/translate.ts` weryfikuje klucze tłumaczeń na etapie kompilacji TypeScript (`TranslationKey`). Zapobiega to użyciu nieistniejących kluczy w kodzie aplikacji.
+   - Moduł `Utils/translate.ts` weryfikuje klucze tłumaczeń na etapie kompilacji TypeScript (`TranslationKey`). Zapobiega to użyciu nieistniejących kluczy w kodzie aplikacji. Domyślnym językiem interfejsu jest angielski (`en`).
 
 ---
 
@@ -70,19 +70,24 @@ SilnikGierParagrafowych/
 ├── vitest.config.ts          # Konfiguracja runnera testów Vitest
 ├── tsconfig.json             # Konfiguracja kompilatora TypeScript
 │
-├── Model/                    # Klasy domenowe (TypeScript, czysta logika bez DOM)
-│   ├── Projekt.ts            # Główny kontener projektu
-│   ├── Scena.ts              # Kontener paragrafów
-│   ├── Paragraf.ts           # Jednostka fabularna
-│   ├── Przeskok.ts           # Połączenie między paragrafami
-│   ├── PostacGracza.ts       # Statystyki i ekwipunek gracza
+├── Model/                    # Klasy domenowe (TypeScript, nazewnictwo angielskie)
+│   ├── Project.ts            # Główny kontener projektu
+│   ├── Scene.ts              # Kontener paragrafów
+│   ├── Paragraph.ts          # Jednostka fabularna
+│   ├── Choice.ts             # Połączenie między paragrafami
+│   ├── PlayerCharacter.ts    # Statystyki i ekwipunek gracza
+│   ├── CharacterClass.ts     # Klasa postaci
 │   ├── NPC.ts                # Postacie niezależne
-│   ├── Lokacja.ts            # Lokacja w świecie gry
-│   ├── Przedmiot.ts          # Przedmiot w grze
-│   ├── Cecha.ts              # Cecha postaci (np. Siła)
-│   ├── Umiejetnosc.ts        # Umiejętność postaci
-│   ├── Walka.ts              # System i mechnika walki
-│   └── Warunek.ts            # Warunki logiczne dla przeskoków
+│   ├── NPC_Template.ts       # Szablon postaci NPC
+│   ├── Location.ts           # Lokacja w świecie gry
+│   ├── Item.ts               # Przedmiot w grze
+│   ├── Stat.ts               # Cecha/statystyka postaci (np. Siła)
+│   ├── Skill.ts              # Umiejętność postaci
+│   ├── Feature.ts            # Przymiot postaci (cecha szczególna)
+│   ├── Combat.ts             # System i mechnika walki
+│   ├── Condition.ts          # Warunki logiczne dla przeskoków
+│   ├── Tag.ts                # Tag kategoryzacji
+│   └── Description.ts        # Obiekt opisu z referencjami do plików markdown
 │
 ├── ViewModel/                # Logika prezentacyjna i reagowanie na zdarzenia UI
 │   ├── StartWindowViewModel.ts # Logika panelu startowego
@@ -101,8 +106,8 @@ SilnikGierParagrafowych/
 │   └── i18n.js               # Moduł i18n dla procesu Main (Node.js)
 │
 ├── Locales/                  # Pliki słowników JSON
-│   ├── pl/translation.json   # Słownik polski (kanoniczny)
-│   ├── en/translation.json   # Słownik angielski
+│   ├── en/translation.json   # Słownik angielski (kanoniczny i domyślny)
+│   ├── pl/translation.json   # Słownik polski
 │   └── de/translation.json   # Słownik niemiecki
 │
 └── tests/                    # Testy jednostkowe i integracyjne (Vitest)

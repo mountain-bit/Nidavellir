@@ -10,13 +10,13 @@ const RecentProjectsService = require('./RecentProjectsService')
 
 const DEFAULT_PROJECT_FOLDERS = [
     'NPC',
-    'Paragrafy',
-    'Przedmioty',
-    'Lokacje',
+    'Paragraphs',
+    'Items',
+    'Locations',
     'Templates',
-    'KlasyPostaci',
-    'Zasady',
-    'PostacGracza',
+    'CharacterClasses',
+    'Rules',
+    'PlayerCharacter',
 ]
 
 class ProjectService {
@@ -27,16 +27,16 @@ class ProjectService {
      * @returns {Promise<{ success: boolean, path?: string, error?: string }>}
      */
     static async createProject(projectDetails) {
-        const { id, nazwa, autor, projectPath } = projectDetails || {}
+        const { id, name, nazwa, author, autor, projectPath } = projectDetails || {}
 
         if (!projectPath) {
-            return { success: false, error: 'Nie wybrano ścieżki projektu.' }
+            return { success: false, error: 'No project path selected.' }
         }
 
         const projectFile = path.join(projectPath, 'project.json')
 
         try {
-            const sciezkiDanych = []
+            const dataPaths = []
 
             for (const folder of DEFAULT_PROJECT_FOLDERS) {
                 const dirPath = path.join(projectPath, folder)
@@ -46,34 +46,37 @@ class ProjectService {
 
                 const metaPath = path.join(dirPath, 'meta.json')
                 const metaData = {
-                    opis: `Folder na ${folder}`,
-                    sciezka: `./${folder}`,
-                    sciezkiOpisow: [],
-                    sciezkiZdjec: [],
-                    elementy: [],
+                    description: `Folder for ${folder}`,
+                    path: `./${folder}`,
+                    descriptionPaths: [],
+                    imagePaths: [],
+                    elements: [],
                 }
                 fs.writeFileSync(metaPath, JSON.stringify(metaData, null, 2))
-                sciezkiDanych.push(`./${folder}/meta.json`)
+                dataPaths.push(`./${folder}/meta.json`)
             }
 
+            const projectName = name || nazwa || path.basename(projectPath)
+            const projectAuthor = author || autor || ''
+
             const projectData = {
-                id: id || 'nowy_projekt',
-                nazwa: nazwa || path.basename(projectPath),
-                autor: autor || '',
-                wersja: '1.0.0',
-                sciezkiOpisow: [],
-                sciezkiDanych: sciezkiDanych,
+                id: id || 'new_project',
+                name: projectName,
+                author: projectAuthor,
+                version: '1.0.0',
+                descriptionPaths: [],
+                dataPaths: dataPaths,
             }
 
             fs.writeFileSync(projectFile, JSON.stringify(projectData, null, 2))
-            RecentProjectsService.saveRecentProject(projectFile, projectData.nazwa)
+            RecentProjectsService.saveRecentProject(projectFile, projectData.name)
 
             return { success: true, path: projectFile }
         } catch (err) {
             console.error('Error creating project structure:', err)
             return {
                 success: false,
-                error: err.message || 'Wystąpił błąd podczas zapisu struktury projektu.',
+                error: err.message || 'An error occurred while saving the project structure.',
             }
         }
     }
@@ -85,7 +88,7 @@ class ProjectService {
      * @returns {Promise<{ success: boolean, path?: string, project?: any, entities?: any, error?: string }>}
      */
     static async openProject(targetPath) {
-        const defaultNotFoundError = 'Projekt nie został znaleziony.'
+        const defaultNotFoundError = 'Project not found.'
 
         if (!targetPath) {
             return { success: false, error: t('error.project_not_found') || defaultNotFoundError }
@@ -118,32 +121,33 @@ class ProjectService {
             } catch {
                 return {
                     success: false,
-                    error: 'Nie można odczytać lub sparsować pliku project.json.',
+                    error: 'Could not read or parse project.json file.',
                 }
             }
 
             if (!validateProjectData(projectData)) {
                 return {
                     success: false,
-                    error: 'Nieprawidłowa struktura pliku projektu. Plik musi zawierać: nazwa (string), sciezkiOpisow (tablica), sciezkiDanych (tablica).',
+                    error: 'Invalid project file structure. The file must contain: name (string), descriptionPaths (array), dataPaths (array).',
                 }
             }
 
             const entities = {}
+            const dataPaths = projectData.dataPaths || projectData.sciezkiDanych || []
 
-            for (const sciezka of projectData.sciezkiDanych) {
+            for (const sciezka of dataPaths) {
                 const metaPath = path.resolve(projectDir, sciezka)
                 if (!isPathInsideBase(projectDir, metaPath)) {
                     return {
                         success: false,
-                        error: `Niedozwolona ścieżka meta.json: ${sciezka}`,
+                        error: `Unauthorized meta.json path: ${sciezka}`,
                     }
                 }
 
                 if (!fs.existsSync(metaPath)) {
                     return {
                         success: false,
-                        error: `Brak pliku meta.json: ${metaPath}`,
+                        error: `Missing meta.json file: ${metaPath}`,
                     }
                 }
 
@@ -154,7 +158,7 @@ class ProjectService {
                 } catch {
                     return {
                         success: false,
-                        error: `Nie można sparsować meta.json: ${metaPath}`,
+                        error: `Could not parse meta.json: ${metaPath}`,
                     }
                 }
 
@@ -165,39 +169,43 @@ class ProjectService {
                     entities[folderName] = []
                 }
 
-                if (Array.isArray(metaData.elementy)) {
-                    for (const element of metaData.elementy) {
-                        const elementPath = path.resolve(metaDir, element)
-                        if (!isPathInsideBase(projectDir, elementPath)) {
-                            console.warn(`Skipped unauthorized element path: ${element}`)
-                            continue
-                        }
+                const elementList = Array.isArray(metaData.elements)
+                    ? metaData.elements
+                    : Array.isArray(metaData.elementy)
+                      ? metaData.elementy
+                      : []
 
-                        if (!fs.existsSync(elementPath)) {
-                            console.warn(`Skipped missing element file: ${elementPath}`)
-                            continue
-                        }
-
-                        let elementData
-                        try {
-                            const elementContent = fs.readFileSync(elementPath, 'utf8')
-                            elementData = JSON.parse(elementContent)
-                        } catch {
-                            console.warn(`Could not parse element file: ${elementPath}`)
-                            continue
-                        }
-
-                        if (typeof elementData !== 'object' || elementData === null) {
-                            console.warn(`Invalid element data structure: ${elementPath}`)
-                            continue
-                        }
-
-                        entities[folderName].push(elementData)
+                for (const element of elementList) {
+                    const elementPath = path.resolve(metaDir, element)
+                    if (!isPathInsideBase(projectDir, elementPath)) {
+                        console.warn(`Skipped unauthorized element path: ${element}`)
+                        continue
                     }
+
+                    if (!fs.existsSync(elementPath)) {
+                        console.warn(`Skipped missing element file: ${elementPath}`)
+                        continue
+                    }
+
+                    let elementData
+                    try {
+                        const elementContent = fs.readFileSync(elementPath, 'utf8')
+                        elementData = JSON.parse(elementContent)
+                    } catch {
+                        console.warn(`Could not parse element file: ${elementPath}`)
+                        continue
+                    }
+
+                    if (typeof elementData !== 'object' || elementData === null) {
+                        console.warn(`Invalid element data structure: ${elementPath}`)
+                        continue
+                    }
+
+                    entities[folderName].push(elementData)
                 }
             }
 
-            const projectName = projectData.nazwa || path.basename(projectDir)
+            const projectName = projectData.name || projectData.nazwa || path.basename(projectDir)
             RecentProjectsService.saveRecentProject(resolvedProjectFile, projectName)
 
             return {
@@ -210,7 +218,7 @@ class ProjectService {
             console.error('Unexpected error while opening project:', err)
             return {
                 success: false,
-                error: 'Wystąpił nieoczekiwany błąd podczas otwierania projektu.',
+                error: 'An unexpected error occurred while opening the project.',
             }
         }
     }

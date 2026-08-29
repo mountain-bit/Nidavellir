@@ -189,7 +189,7 @@ import { isPathInsideBase } from '../Utils/fsSecurity'
 describe('ProjectService', () => {
     it('creates project directory hierarchy and meta.json files', async () => {
         const result = await ProjectService.createProject({
-            nazwa: 'Test Gamebook',
+            name: 'Test Gamebook',
             projectPath: tempDir
         })
         expect(result.success).toBe(true)
