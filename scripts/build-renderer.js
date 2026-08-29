@@ -7,10 +7,24 @@ const watch = process.argv.includes('--watch')
 /** @type {import('esbuild').BuildOptions} */
 const config = {
     entryPoints: {
-        StartWindowViewModel: path.join(__dirname, '..', 'ViewModel', 'StartWindowViewModel.ts'),
+        'ViewModel/StartWindowViewModel': path.join(
+            __dirname,
+            '..',
+            'ViewModel',
+            'StartWindowViewModel.ts'
+        ),
+        'ViewModel/MainWindowViewModel': path.join(
+            __dirname,
+            '..',
+            'ViewModel',
+            'MainWindowViewModel.ts'
+        ),
+        'Utils/translate': path.join(__dirname, '..', 'Utils', 'translate.ts'),
+        'Utils/toast': path.join(__dirname, '..', 'Utils', 'toast.ts'),
+        'Utils/pathSanitizer': path.join(__dirname, '..', 'Utils', 'pathSanitizer.ts'),
     },
     bundle: true,
-    outdir: path.join(__dirname, '..', 'dist', 'ViewModel'),
+    outdir: path.join(__dirname, '..', 'dist'),
     platform: 'browser',
     format: 'esm',
     target: 'es2020',

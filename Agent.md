@@ -1,233 +1,256 @@
-# Agent.md — Gamebook Engine
+# Agent.md — Gamebook Engine (Silnik Gier Paragrafowych)
 
-This document describes the architecture, conventions, and processes of this project for AI agents.
-
----
-
-## Project Overview
-
-A desktop application for **creating and managing gamebook games** (gamebook engine).  
-Built on **Electron** with TypeScript for the business logic layer. Supports designing scenes, paragraphs, jumps, characters, locations, and combat.
+This document describes the architecture, project structure, conventions, and workflows for AI agents working in this repository.
 
 ---
 
-## Tech Stack
+## 1. Project Overview
 
-| Layer | Technology |
-|---|---|
-| Desktop application | Electron 41+ |
-| Business logic language | TypeScript 6+ |
-| Graph visualization | Cytoscape.js |
-| Testing | Vitest 1.x |
-| Linter | ESLint 8 + @typescript-eslint |
-| Formatter | Prettier 3 |
-| Git hooks | Husky 9 + lint-staged 15 |
-| Localization | Custom translate.ts module |
+A desktop application for **creating, editing, and managing gamebook games** (*Silnik Gier Paragrafowych*).  
+Built on **Electron** with **TypeScript** for the domain/business logic and presentation layers. It provides tools for crafting interactive branching storylines: scenes, paragraphs, choices, combat mechanics, player character sheets, NPC databases, items, traits, and skills.
 
 ---
 
-## Design Patterns
+## 2. Tech Stack
 
-### MVVM (Model–View–ViewModel)
-
-The project follows the **MVVM** pattern:
-
-- **Model** (`/Model/*.ts`) — pure domain classes with no UI dependencies. Each class has private fields and public getters/setters using Polish naming (`pobierzX`, `ustawX`, `dodajX`, `usunX`).
-- **ViewModel** (`/ViewModel/*.ts`) — presentation logic, view state, UI event handling. Has no direct knowledge of the DOM.
-- **View** (`/View/*.html`) — HTML files loaded by Electron. They communicate with the ViewModel through the renderer.
-
-### Other Patterns Used
-
-- **Repository-like pattern** — the `Projekt` class acts as an aggregate root and repository for all entities (scenes, NPCs, items, etc.).
-- **Singleton (optional)** — `translate.ts` holds the active language state as a module-level singleton.
-- **Lazy loading** — language files are loaded dynamically via `import()` only when needed.
+| Layer | Technology | Description |
+|---|---|---|
+| Desktop framework | **Electron 41+** | Multi-process desktop architecture (Chromium + Node.js). |
+| Business logic language | **TypeScript 6+** | Pure domain models and MVVM presentation logic. |
+| UI & Styling | **HTML5 + Tailwind CSS 4+** | Modern dark-theme desktop UI compiled via esbuild/Tailwind. |
+| Graph visualization | **Cytoscape.js** | Node-graph renderer for visualizing paragraph transitions and scene flows. |
+| Testing | **Vitest 1.x + happy-dom** | Fast unit and integration tests with DOM emulation. |
+| Code quality | **ESLint 8 + Prettier 3** | Code linting and formatting. |
+| Git hooks | **Husky 9 + lint-staged 15** | `pre-commit` formatting and `pre-push` test validation. |
+| Localization (i18n) | **i18next** + typed wrappers | Multi-language support (`en` default, `pl`, `de`). |
 
 ---
 
-## Directory Structure
+## 3. Core Architecture & Design Patterns
 
+### 3.1. MVVM (Model–View–ViewModel)
+
+- **Model (`/Model/*.ts`)**: Pure domain classes with no UI or Electron dependencies. Each class encapsulates private fields and exposes domain accessors (e.g. `getId()`, `setName()`, `addTag()`). Models serialize to/from JSON (`toJSON()`, `fromJSON()`).
+- **ViewModel (`/ViewModel/*.ts`)**: Presentation logic, state management, search/filter logic, and UI event binding (e.g. `StartWindowViewModel.ts`, `MainWindowViewModel.ts`).
+- **View (`/View/*.html`, `/View/*.js`, `MainWindow.generated.css`)**: HTML views loaded by Electron browser windows communicating with ViewModels.
+
+### 3.2. Modular Main Process Architecture
+
+The Electron main process is structured into decoupled layers:
+- **`main.js`**: Application bootstrap and lifecycle management.
+- **`main/windowManager.js`**: BrowserWindow instantiation with secure preload configurations.
+- **`main/ipc/`**: IPC route handlers (`projectIpc.js`, `entityIpc.js`, `markdownIpc.js`, `recentProjectsIpc.js`, `appIpc.js`).
+- **`main/services/`**: Pure Node.js filesystem services (`ProjectService.js`, `EntityService.js`, `MarkdownService.js`, `RecentProjectsService.js`).
+- **`Utils/fsSecurity.js` & `Utils/pathSanitizer.js`**: Path traversal protection, slug generation, and atomic writes (`atomicWriteJsonSync`, `atomicWriteStringSync`).
+
+### 3.3. Singleton & Aggregate Roots
+- **`ProjectManager` (`Services/ProjectManager.ts`)**: Singleton managing the currently open project instance in the renderer process.
+- **`Project` (`Model/Project.ts`)**: Aggregate root containing all project entities.
+
+---
+
+## 4. Directory Structure
+
+```text
+SilnikGierParagrafowych/
+├── main.js                     # Electron main process entry point
+├── preload.js                  # Electron preload bridge (ContextBridge / electronAPI)
+├── package.json                # Project dependencies and npm scripts
+├── tsconfig.json               # TypeScript compiler configuration
+├── vitest.config.ts            # Vitest test runner configuration
+│
+├── main/                       # Main process modular architecture
+│   ├── windowManager.js        # BrowserWindow creation & configuration
+│   ├── ipc/                    # IPC route dispatchers
+│   │   ├── index.js            # Aggregator (registerAllIpc)
+│   │   ├── projectIpc.js       # Project creation & opening handlers
+│   │   ├── entityIpc.js        # Entity creation & persistence handlers
+│   │   ├── markdownIpc.js      # Narrative markdown file handlers
+│   │   ├── recentProjectsIpc.js# Recent projects handlers
+│   │   └── appIpc.js           # App lifecycle & i18n IPC handlers
+│   └── services/               # Main process business logic services
+│       ├── ProjectService.js   # Project creation and entity loading
+│       ├── EntityService.js    # Scaffolding entity folders and element.json
+│       ├── MarkdownService.js  # Safe reading & atomic writing of .md files
+│       └── RecentProjectsService.js # Recent projects persistence in userData
+│
+├── Model/                      # Domain classes (pure TypeScript - English naming)
+│   ├── constants.ts            # Category and tag constants
+│   ├── Project.ts              # Aggregate root project container
+│   ├── Scene.ts                # Scene container
+│   ├── Paragraph.ts            # Narrative paragraph
+│   ├── Choice.ts               # Choice / jump connection between paragraphs
+│   ├── Location.ts             # Location entity
+│   ├── NPC.ts                  # Non-player character
+│   ├── NPC_Template.ts         # Archetype / template for NPC
+│   ├── PlayerCharacter.ts      # Player character sheet
+│   ├── CharacterClass.ts       # Character class
+│   ├── Item.ts                 # Item / equipment
+│   ├── Stat.ts                 # Character stat / attribute (e.g. Strength)
+│   ├── Skill.ts                # Character skill
+│   ├── Feature.ts              # Character feature / special trait
+│   ├── Combat.ts               # Combat encounter mechanics
+│   ├── Condition.ts            # Logical condition for choices
+│   ├── Tag.ts                  # Color-coded categorization tag
+│   └── Description.ts          # Rich description object with markdown references
+│
+├── ViewModel/                  # Presentation logic & UI event handlers
+│   ├── StartWindowViewModel.ts # Start window logic (create/open/recent)
+│   └── MainWindowViewModel.ts  # Main editor workspace logic
+│
+├── View/                       # HTML views & client-side scripts
+│   ├── StartWindow.html        # Start screen UI
+│   ├── MainWindow.html         # Main editor UI
+│   ├── MainWindow.js           # Client-side UI bindings
+│   └── MainWindow.css          # Source Tailwind styles
+│
+├── Locales/                    # Translation files (JSON)
+│   ├── en/translation.json     # English (canonical schema & default)
+│   ├── pl/translation.json     # Polish translation
+│   └── de/translation.json     # German translation
+│
+├── Utils/                      # Utility modules
+│   ├── translate.ts            # Frontend typed i18n module
+│   ├── i18n.js                 # Backend Node.js i18n module
+│   ├── fsSecurity.js           # Filesystem security & atomic writes
+│   ├── pathSanitizer.js        # Safe slug generation
+│   ├── toast.ts                # UI toast notification helper
+│   └── idGenerator.ts          # Unique ID generator
+│
+└── tests/                      # Unit and integration test suites (Vitest)
+    ├── IPC/                    # Main process services & IPC tests
+    ├── Model/                  # Domain model serialization tests
+    ├── Utils/                  # Utilities & i18n tests
+    └── ViewModel/              # UI ViewModel tests (happy-dom)
 ```
-/
-├── main.js               # Electron main process — creates the BrowserWindow
-├── preload.js            # Electron preload — secure bridge via contextBridge
-├── renderer.js           # Electron renderer — UI entry point
-├── index.html            # Main HTML (dev entry)
-│
-├── Model/                # Domain classes (pure TypeScript)
-│   ├── Projekt.ts        # Project aggregate — main container
-│   ├── Scena.ts          # Container for paragraphs (scene)
-│   ├── Paragraf.ts       # Narrative unit with jumps (paragraph)
-│   ├── Przeskok.ts       # Connection between paragraphs (jump)
-│   ├── Lokacja.ts        # Location in the game world
-│   ├── NPC.ts            # Non-player character
-│   ├── NPC_Template.ts   # NPC template
-│   ├── PostacGracza.ts   # Player character
-│   ├── KlasaPostaci.ts   # Character class/archetype
-│   ├── Przedmiot.ts      # Inventory item
-│   ├── Cecha.ts          # Character trait (e.g. Strength)
-│   ├── Umiejetnosc.ts    # Character skill
-│   ├── Przymiot.ts       # Character attribute/property
-│   ├── Walka.ts          # Combat mechanics
-│   ├── Warunek.ts        # Logical condition (used for jumps)
-│   └── Opis.ts           # Text description object (supports multiple language versions)
-│
-├── ViewModel/            # Presentation logic
-│   └── MainWindowViewModel.ts
-│
-├── View/                 # HTML templates
-│   └── MainWindow.html
-│
-├── Services/             # Services (I/O, persistence, application logic)
-│   └── (e.g. ProjektService.ts, FileService.ts)
-│
-├── Locales/              # Translation files (JSON)
-│   ├── pl/
-│   │   └── translation.json  # Polish (canonical — defines the Translations type)
-│   ├── en/
-│   │   └── translation.json  # English
-│   └── de/
-│       └── translation.json  # German
-│
-├── Utils/                # Helper utilities
-│   ├── translate.ts      # i18n module — primary translation API
-│   └── i18n.js           # i18n module for Electron main process (main.js)
-│
-├── Modules/              # Optional engine extension modules
-│
-└── tests/                # Unit tests (Vitest)
-    ├── Model/
-    │   └── Projekt.test.ts
-    └── Utils/
-        └── translate.test.ts
-```
 
 ---
 
-## Localization (i18n)
+## 5. Storage & Project File Structure (English Standard)
 
-### How It Works
+When a project is created, the engine scaffolds the following directory and file structure on disk:
 
-The `Utils/translate.ts` module exports:
+```text
+<ProjectFolder>/
+├── project.json                # Project metadata
+├── NPC/                        # Non-player characters
+│   ├── meta.json
+│   └── <npc_slug>/
+│       ├── element.json
+│       ├── text.md
+│       └── author.md
+├── Paragraphs/                 # Paragraphs and scenes
+│   ├── meta.json
+│   └── <paragraph_slug>/
+│       ├── element.json
+│       ├── text.md
+│       └── author.md
+├── Items/                      # Inventory items
+│   ├── meta.json
+│   └── <item_slug>/
+│       ├── element.json
+│       └── text.md
+├── Locations/                  # World locations
+│   ├── meta.json
+│   └── <location_slug>/
+│       ├── element.json
+│       └── text.md
+├── Templates/                  # Character templates
+│   └── meta.json
+├── CharacterClasses/           # Character classes
+│   └── meta.json
+├── Rules/                      # Global traits, skills, and rules
+│   └── meta.json
+└── PlayerCharacter/            # Player character configuration
+    └── meta.json
+```
 
-- `t(key: TranslationKey): string` — primary translation function
-- `setLanguage(lang)` — asynchronously loads a language file
-- `getLanguage()` — returns the currently active language
-- `availableLanguages` — list of supported language codes
+### 5.1. JSON Schemas
 
-Keys are nested and fully typed — TypeScript will throw an error for invalid keys.
+#### `project.json`
+```json
+{
+  "id": "my_game",
+  "name": "My Epic Adventure",
+  "author": "Jane Doe",
+  "version": "1.0.0",
+  "descriptionPaths": [],
+  "dataPaths": [
+    "./NPC/meta.json",
+    "./Paragraphs/meta.json",
+    "./Items/meta.json",
+    "./Locations/meta.json",
+    "./Templates/meta.json",
+    "./CharacterClasses/meta.json",
+    "./Rules/meta.json",
+    "./PlayerCharacter/meta.json"
+  ]
+}
+```
 
-### Adding a New Language
+#### `meta.json`
+```json
+{
+  "description": "Folder for Locations",
+  "path": "./Locations",
+  "descriptionPaths": [],
+  "imagePaths": [],
+  "elements": [
+    "./dark_forest/element.json"
+  ]
+}
+```
 
-1. Create `Locales/xx/translation.json` (where `xx` is the ISO language code)
-2. Copy the structure from `Locales/pl/translation.json` and translate the values
-3. Add a loader to the `loaders` map in `Utils/translate.ts`
-4. Add the code to the `availableLanguages` array in `Utils/translate.ts`
+#### `element.json` (Example for Location)
+```json
+{
+  "id": "loc_dark_forest",
+  "name": "Dark Forest",
+  "description": {
+    "text": "An ancient, misty forest.",
+    "summary": "Misty woods",
+    "authorNotes": "Player needs a torch here.",
+    "textPath": "./Locations/dark_forest/text.md",
+    "authorNotesPath": "./Locations/dark_forest/author.md"
+  },
+  "tags": ["wilderness", "danger"]
+}
+```
 
-### Usage in Code
+### 5.2. Backward Compatibility
+All `fromJSON()` methods in `Model/` and filesystem loaders in `ProjectService.js` and `EntityService.js` automatically support legacy Polish keys (`nazwa`, `autor`, `wersja`, `sciezkiOpisow`, `sciezkiDanych`, `opis: { tekst, streszczenie, tekstDlaAutora, sciezkaTekst }`, etc.) and legacy folder names (`Paragrafy`, `Przedmioty`, `Lokacje`, `KlasyPostaci`, `Zasady`, `PostacGracza`).
 
+---
+
+## 6. Localization (i18n)
+
+- **Default Language**: **English (`en`)** is the default language upon startup and when creating new projects.
+- **Canonical Schema**: `Locales/en/translation.json` defines the canonical schema and `Translations` TypeScript type.
+- **Supported Locales**: `en` (English, default), `pl` (Polish), `de` (German).
+
+### Frontend Usage (`Utils/translate.ts`)
 ```typescript
-import { t, setLanguage } from '../Utils/translate'
+import { t, setLanguage, getLanguage } from '../Utils/translate'
 
+// Translate typed keys
+const title = t('app.title')
+const errorMsg = t('error.project_not_found')
+
+// Change language dynamically
 await setLanguage('en')
-console.log(t('przyciski.zapisz')) // "Save"
-console.log(t('projekt.nowy'))     // "New project"
 ```
 
 ---
 
-## Code Conventions
+## 7. Testing & Quality Standards
 
-### Naming (Model)
+- **Test Suite**: Vitest (`npm test` or `npx vitest run`).
+- **TypeScript Checking**: `npx tsc --noEmit`.
+- **Pre-commit**: Automated formatting via Prettier and ESLint.
+- **Pre-push**: Automated test execution via Husky.
 
-The project uses **Polish names** in domain classes — this is intentional and reflects the gamebook domain:
-
-| Pattern | Example |
-|---|---|
-| Getter | `pobierzID()`, `pobierzNazwe()` |
-| Setter | `ustawNazwe(nazwa)`, `nadajID(id)` |
-| Check | `czymaID()`, `czymaScene(id)` |
-| Add | `dodajScene(scena)` |
-| Remove | `usunScene(id)` |
-| Find | `pobierzScene(id): Scena | undefined` |
-
-### Formatting
-
-Prettier is configured with:
-- `singleQuote: true`
-- `semi: false`
-- `tabWidth: 4`
-- `printWidth: 100`
-- `trailingComma: "es5"`
-
-### New Domain Classes
-
-Every new class in `/Model` should:
-- Have private fields with types
-- Expose fields through `pobierz/ustaw` methods
-- Be testable (no dependencies on Electron or the DOM)
-- Be added to `tsconfig.json` if placed outside existing folders
-
----
-
-## Git Hooks (Husky)
-
-### pre-commit
-
-Runs **lint-staged** — for staged `*.ts` files:
-1. `prettier --write` — formats the file
-2. `eslint --fix` — fixes linter issues
-
-### pre-push
-
-Runs **all tests**: `vitest run`  
-The push will be rejected if any test fails.
-
-### Bypassing Hooks (emergency only)
-
-```bash
-git commit --no-verify
-git push --no-verify
-```
-
----
-
-## Tests
-
-Framework: **Vitest 1.x**  
-Test location: `tests/**/*.test.ts`
-
-### Running Tests
-
-```bash
-npm run test          # watch mode (development)
-npm run test:run      # single run (CI, pre-push)
-npm run test:coverage # code coverage report
-```
-
-### Test Conventions
-
-- Test files live in `tests/` mirroring the source structure (`tests/Model/` → `Model/`)
-- File names: `ClassName.test.ts`
-- Use `describe` for grouping, `it` for individual cases
-- Test descriptions are written in Polish (consistency with the domain)
-- Use `beforeEach` to reset state between tests
-
----
-
-## Electron — Security
-
-- `nodeIntegration: false` — the renderer has no access to Node APIs
-- `contextIsolation: true` — JavaScript context isolation is enabled
-- All main ↔ renderer communication goes through `contextBridge` in `preload.js`
-- New APIs are exposed via `preload.js` as `window.electronAPI.*`
-
----
-
-## Adding New Features — Checklist
-
-1. [ ] New domain class in `/Model` with `pobierz/ustaw` methods
-2. [ ] Unit tests in `tests/Model/`
-3. [ ] Presentation logic in `/ViewModel`
-4. [ ] New translation keys in `Locales/pl/translation.json` (and other languages)
-5. [ ] If IPC is needed — add a handler in `main.js` and expose it in `preload.js`
-6. [ ] Run `npm run build` (TypeScript check) and `npm run test:run`
+When adding new features or modifying models:
+1. Ensure models expose both `toJSON()` and `fromJSON()`.
+2. Keep JSON field names and class methods in English.
+3. Verify backward compatibility with existing Polish projects.
+4. Add unit tests under `tests/` and ensure all tests pass.

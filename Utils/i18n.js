@@ -3,7 +3,7 @@ const fs = require('fs')
 const i18next = require('i18next')
 const FsBackend = require('i18next-fs-backend')
 
-const SUPPORTED_LOCALES = ['pl', 'en', 'de']
+const SUPPORTED_LOCALES = ['en', 'pl', 'de']
 const FALLBACK_LOCALE = 'en'
 
 let _app = null

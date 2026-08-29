@@ -4,7 +4,7 @@ import de from '../Locales/de/translation.json'
 import en from '../Locales/en/translation.json'
 import pl from '../Locales/pl/translation.json'
 
-export type Translations = typeof pl
+export type Translations = typeof en
 
 type NestedKeyOf<T, Prefix extends string = ''> = {
     [K in keyof T & string]: T[K] extends object
@@ -14,12 +14,12 @@ type NestedKeyOf<T, Prefix extends string = ''> = {
 
 export type TranslationKey = NestedKeyOf<Translations>
 
-export const availableLanguages = ['pl', 'en', 'de'] as const
+export const availableLanguages = ['en', 'pl', 'de'] as const
 export type SupportedLanguage = (typeof availableLanguages)[number]
 
 const resources = {
-    pl: { translation: pl as unknown as Translations },
     en: { translation: en as unknown as Translations },
+    pl: { translation: pl as unknown as Translations },
     de: { translation: de as unknown as Translations },
 }
 
@@ -28,7 +28,7 @@ let initialized = false
 export async function initTranslations(): Promise<void> {
     if (initialized) return
 
-    const locale = await window.electronAPI.getLocale()
+    const locale = (await window.electronAPI?.getLocale?.()) || 'en'
 
     await i18next.init({
         lng: locale,
@@ -73,4 +73,31 @@ export async function setLanguage(locale: SupportedLanguage): Promise<boolean> {
         window.electronAPI.setLocale(locale).catch(() => {})
     }
     return true
+}
+
+export function applyTranslations(): void {
+    if (typeof document !== 'undefined' && document.documentElement) {
+        document.documentElement.lang = getLanguage()
+    }
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n')
+        if (key) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            el.textContent = i18next.t(key as any) as string
+        }
+    })
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder')
+        if (key && el instanceof HTMLInputElement) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            el.placeholder = i18next.t(key as any) as string
+        }
+    })
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title')
+        if (key) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(el as HTMLElement).title = i18next.t(key as any) as string
+        }
+    })
 }

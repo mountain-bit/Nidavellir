@@ -42,7 +42,24 @@
     "class": "Character class",
     "traits": "Traits",
     "skills": "Skills",
-    "attributes": "Attributes"
+    "attributes": "Attributes",
+    "default_name": "New character"
+  },
+  "trait": {
+    "default_name": "New trait"
+  },
+  "tags": {
+    "change_color": "Change color",
+    "choose_color": "Choose tag color",
+    "custom_color": "Custom:",
+    "default_name": "New tag"
+  },
+  "editor": {
+    "no_open_file": "No open file",
+    "close_file": "Close file",
+    "unsaved_changes": "Unsaved changes",
+    "document": "Document",
+    "encoding_info": "UTF-8 · Markdown"
   },
   "item": {
     "list": "Items",
@@ -56,7 +73,8 @@
     "new": "New location",
     "delete": "Delete location",
     "name": "Name",
-    "description": "Description"
+    "description": "Description",
+    "default_name": "New location"
   },
   "errors": {
     "unknownError": "An unknown error occurred",
@@ -107,5 +125,135 @@
     "np_create_success": "Project created successfully!",
     "np_create_error": "Error creating project:",
     "np_unexpected_error": "An unexpected error occurred:"
+  },
+  "ribbon": {
+    "tabs": {
+      "main": "Home",
+      "scenes": "Scene Editing",
+      "view": "View"
+    },
+    "groups": {
+      "file": "File",
+      "game": "Game",
+      "scenes": "Scenes",
+      "world_elements": "World Elements",
+      "workspace": "Workspace",
+      "side_panels": "Side Panels"
+    },
+    "buttons": {
+      "new_file": "New file",
+      "save": "Save",
+      "open": "Open",
+      "run_game": "Test game",
+      "export_game": "Export",
+      "add_scene": "Add scene",
+      "link_scenes": "Link scenes",
+      "npcs": "NPC Characters",
+      "items": "Items",
+      "locations": "Locations",
+      "markdown_editor": "Markdown Editor",
+      "story_graph": "Story Graph",
+      "left_panel": "Left Panel",
+      "right_panel": "Right Panel"
+    }
+  },
+  "left_bar": {
+    "paragraphs": "Paragraphs",
+    "scenes": "Scenes",
+    "characters": "Characters",
+    "locations": "Locations",
+    "traits": "Traits",
+    "main_character": "Hero",
+    "tags": "Tags",
+    "search": "Search",
+    "settings": "Options"
+  },
+  "left_panel": {
+    "paragraphs": "Paragraphs",
+    "scenes": "Scenes",
+    "characters": "Characters & Templates",
+    "locations": "Locations",
+    "traits": "Traits & Attributes",
+    "main_character": "Main Character (Player)",
+    "tags": "Project Tags",
+    "explorer": "Game Structure",
+    "search": "Search",
+    "settings": "Editor Settings",
+    "all_characters": "All characters",
+    "all_scenes": "All scenes",
+    "tag_name_placeholder": "Tag name (or leave empty)",
+    "character_name_placeholder": "Character name (or leave empty)",
+    "location_name_placeholder": "Location name (or leave empty)",
+    "trait_name_placeholder": "Trait name (or leave empty)",
+    "close_panel": "Close panel",
+    "no_paragraphs": "No paragraphs in project",
+    "no_scenes": "No scenes in project",
+    "no_characters": "No characters or templates in project",
+    "no_locations": "No locations in project",
+    "no_traits": "No defined traits in project",
+    "no_main_character": "No player character configuration",
+    "no_tags": "No defined tags in project",
+    "search_placeholder": "Search phrase or scene...",
+    "paragraphs_search_placeholder": "Search in title or text...",
+    "search_characters_placeholder": "Search characters...",
+    "search_locations_placeholder": "Search locations...",
+    "search_traits_placeholder": "Search traits...",
+    "search_tags_placeholder": "Search tags...",
+    "add_character": "Add character",
+    "add_location": "Add location",
+    "add_trait": "Add trait",
+    "add_tag": "Add tag",
+    "filter_tile_title": "Filter",
+    "filter_by_tags": "Tags",
+    "filter_by_characters": "Characters",
+    "filter_by_scenes": "Scenes",
+    "clear_filters": "Clear filters"
+  },
+  "context_menu": {
+    "delete": "Delete element",
+    "edit_title": "Edit title",
+    "add_tag": "Add tag",
+    "add_trait": "Add trait",
+    "rename_prompt": "Enter new name:",
+    "confirm_delete": "Are you sure you want to delete: \"{{name}}\"?"
+  },
+  "settings": {
+    "title": "Editor Settings",
+    "language": "Interface Language",
+    "auto_save": "Auto save",
+    "show_grid": "Show grid in graph"
+  },
+  "view_mode": {
+    "text": "📝 Text",
+    "graph": "⌘ Graph"
+  },
+  "graph": {
+    "title": "Story Graph (Cytoscape.js)",
+    "instruction": "Drag nodes to organize scenes and connections"
+  },
+  "right_panel": {
+    "title": "Properties",
+    "selected_element": "Selected element",
+    "info": "Information",
+    "type": "Type:",
+    "status": "Status:",
+    "status_edited": "Edited",
+    "quick_actions": "Quick Actions",
+    "show_story_graph": "Show story graph",
+    "toggle_collapse": "Collapse / Expand properties",
+    "expand": "Expand properties"
+  },
+  "toast": {
+    "success_title": "Success",
+    "warning_title": "Warning",
+    "error_title": "Error",
+    "info_title": "Information",
+    "element_created": "Successfully created element: {{name}}",
+    "element_created_title": "Element Created",
+    "file_recreated_warning": "Warning: Markdown file did not exist and was automatically created.",
+    "file_locked_warning": "Warning: File is locked by another process. Changes kept in memory.",
+    "meta_sync_warning": "Warning: Inconsistency detected in project structure and metadata was updated.",
+    "save_success": "Changes saved successfully.",
+    "save_error": "An error occurred while saving: {{error}}"
   }
 }
