@@ -263,4 +263,181 @@ describe('MainWindowViewModel', () => {
             expect(vm.searchAndFilterStats([s1, s2])).toEqual([s1])
         })
     })
+
+    describe('Selection & History Management', () => {
+        it('obsługuje pojedyncze zaznaczenie elementu i dodawanie do historii', () => {
+            const p1 = vm.createParagraph('Intro')
+            const p2 = vm.createParagraph('Outro')
+
+            const item1 = vm.selectElement(p1, 'paragraph')
+            expect(vm.getSelectedItem()).toEqual(item1)
+            expect(vm.getHistory()).toHaveLength(1)
+            expect(vm.getHistory()[0].id).toBe(p1.getId())
+            expect(vm.isRightSidebarCollapsed()).toBe(false)
+
+            const item2 = vm.selectElement(p2, 'paragraph')
+            expect(vm.getSelectedItem()).toEqual(item2)
+            expect(vm.getSelectedItem()?.id).toBe(p2.getId())
+            expect(vm.getHistory()).toHaveLength(2)
+            expect(vm.getHistory()[0].id).toBe(p2.getId())
+
+            // Ponowne zaznaczenie pierwszego przenosi go na początek historii bez duplikatów
+            vm.selectElement(p1, 'paragraph')
+            expect(vm.getHistory()).toHaveLength(2)
+            expect(vm.getHistory()[0].id).toBe(p1.getId())
+        })
+
+        it('umożliwia wybór z historii oraz zamykanie elementów pojedynczo i hurtowo', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+
+            vm.selectElement(p1, 'paragraph')
+            vm.selectElement(p2, 'paragraph')
+            vm.selectElement(p3, 'paragraph')
+            expect(vm.getHistory()).toHaveLength(3)
+
+            vm.selectHistoryItem(p1.getId())
+            expect(vm.getSelectedItem()?.id).toBe(p1.getId())
+
+            // Zamknięcie aktywnego elementu przełącza zaznaczenie na kolejny w historii
+            vm.closeHistoryItem(p1.getId())
+            expect(vm.getHistory()).toHaveLength(2)
+            expect(vm.getSelectedItem()?.id).toBe(p3.getId())
+
+            // Zamknij wszystko
+            vm.closeAllHistory()
+            expect(vm.getHistory()).toEqual([])
+            expect(vm.getSelectedItem()).toBeNull()
+        })
+    })
+
+    describe('Paragraph Numbering & Random Generation', () => {
+        it('nie losuje numeru automatycznie podczas zaznaczenia (pozostaje do fazy eksportu)', () => {
+            const p = vm.createParagraph('Combat')
+            expect(p.getRandomizedNumber()).toBe(0)
+
+            vm.selectElement(p, 'paragraph')
+            // Podczas edycji w UI numer nie jest losowany
+            expect(p.getRandomizedNumber()).toBe(0)
+
+            // Losowanie następuje dopiero przy wywołaniu randomizeNumber (np. faza eksportu)
+            const rolled = p.randomizeNumber(1, 999999)
+            expect(rolled).toBeGreaterThan(0)
+            expect(rolled).toBeLessThanOrEqual(999999)
+            expect(p.getRandomizedNumber()).toBe(rolled)
+        })
+
+        it('umożliwia zablokowanie i wpisanie własnego statycznego numeru', () => {
+            const p = vm.createParagraph('Secret Room')
+            vm.selectElement(p, 'paragraph')
+
+            expect(p.getIsNumberLocked()).toBe(false)
+            vm.toggleNumberLock(true)
+            expect(p.getIsNumberLocked()).toBe(true)
+
+            vm.updateCustomNumber(99)
+            expect(p.getNumber()).toBe(99)
+        })
+    })
+
+    describe('Live Name Validation & Scope Collision Checking', () => {
+        it('blokuje puste nazwy oraz wykrywa kolizję w zakresie sekcji', () => {
+            const p1 = vm.createParagraph('Unique Name')
+            const p2 = vm.createParagraph('Existing Name')
+            const item = vm.selectElement(p1, 'paragraph')
+
+            const emptyRes = vm.validateName('   ', item, [p1, p2])
+            expect(emptyRes.valid).toBe(false)
+
+            const collisionRes = vm.validateName('existing name', item, [p1, p2])
+            expect(collisionRes.valid).toBe(false)
+            expect(collisionRes.message).toContain('already exists')
+
+            const validRes = vm.validateName('Brand New Name', item, [p1, p2])
+            expect(validRes.valid).toBe(true)
+        })
+
+        it('aktualizuje nazwę encji i wpisu w historii gdy walidacja przejdzie pomyślnie', () => {
+            const p1 = vm.createParagraph('Old Title')
+            vm.selectElement(p1, 'paragraph')
+
+            const updated = vm.updateName('New Super Title', [p1])
+            expect(updated).toBe(true)
+            expect(p1.getTitle()).toBe('New Super Title')
+            expect(vm.getSelectedItem()?.name).toBe('New Super Title')
+            expect(vm.getHistory()[0].name).toBe('New Super Title')
+        })
+    })
+
+    describe('Summary & Narrative Files', () => {
+        it('aktualizuje streszczenie wybranego elementu', () => {
+            const p = vm.createParagraph('Story')
+            vm.selectElement(p, 'paragraph')
+
+            vm.updateSummary('Krótkie streszczenie wątku')
+            expect(p.getContent().getSummary()).toBe('Krótkie streszczenie wątku')
+        })
+
+        it('przygotowuje i otwiera pliki narracyjne text.md oraz author.md', () => {
+            const p = vm.createParagraph('Intro')
+            vm.selectElement(p, 'paragraph')
+
+            const textFile = vm.openOrCreateDescriptionFile('text')
+            expect(textFile.fileName).toBe('Intro_text.md')
+            expect(textFile.content).toContain('Narrative text')
+            expect(vm.getActiveFile()).toBe('Intro_text.md')
+
+            const authorFile = vm.openOrCreateDescriptionFile('author')
+            expect(authorFile.fileName).toBe('Intro_author.md')
+            expect(authorFile.content).toContain('Author Notes')
+            expect(vm.getActiveFile()).toBe('Intro_author.md')
+        })
+    })
+
+    describe('Dynamic Tags & Stats Modification', () => {
+        it('dodaje i usuwa tagi dla zaznaczonego elementu', () => {
+            const p = vm.createParagraph('Tagged Paragraph')
+            const tag = vm.createTag('SpecialTag')
+            vm.selectElement(p, 'paragraph')
+
+            vm.addTagToSelected(tag)
+            expect(p.getTags()).toHaveLength(1)
+            expect(p.getTags()[0].getName()).toBe('SpecialTag')
+
+            vm.removeTagFromSelected(tag.getId())
+            expect(p.getTags()).toHaveLength(0)
+        })
+
+        it('dodaje i usuwa statystyki/cechy dla postaci', () => {
+            const c = vm.createCharacter('Hero')
+            const stat = vm.createStat('Mana')
+            vm.selectElement(c, 'character')
+
+            vm.addStatToSelected(stat)
+            expect(c.getStats()).toHaveLength(1)
+            expect(c.getStats()[0].getName()).toBe('Mana')
+
+            vm.removeStatFromSelected(stat.getId())
+            expect(c.getStats()).toHaveLength(0)
+        })
+    })
+
+    describe('Panel Resizing Bounds', () => {
+        it('pilnuje minimalnych i maksymalnych wymiarów lewego i prawego panelu', () => {
+            expect(vm.getLeftDrawerWidth()).toBe(260)
+            vm.setLeftDrawerWidth(100) // Za mało
+            expect(vm.getLeftDrawerWidth()).toBe(180)
+
+            vm.setLeftDrawerWidth(900) // Za dużo
+            expect(vm.getLeftDrawerWidth()).toBe(600)
+
+            expect(vm.getRightSidebarWidth()).toBe(280)
+            vm.setRightSidebarWidth(100) // Za mało
+            expect(vm.getRightSidebarWidth()).toBe(220)
+
+            vm.setRightSidebarWidth(1000) // Za dużo
+            expect(vm.getRightSidebarWidth()).toBe(700)
+        })
+    })
 })

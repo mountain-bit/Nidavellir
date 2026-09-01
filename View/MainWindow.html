@@ -1,592 +1,1205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Silnik Gier Paragrafowych</title>
+        <link rel="stylesheet" href="MainWindow.generated.css" />
+        <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
+    </head>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Silnik Gier Paragrafowych</title>
-    <link rel="stylesheet" href="MainWindow.generated.css">
-    <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
-</head>
-
-<body class="m-0 h-screen w-screen overflow-hidden bg-[#18181b] text-[#e4e4e7] flex flex-col font-sans select-none">
-    <!-- Top Ribbon Toolbar (MS Word style) -->
-    <div class="flex flex-col border-b border-[#333338] bg-[#202023] shrink-0" aria-label="Pasek narzędzi Ribbon">
-        <!-- Ribbon Tabs Header with App Title & Project Name -->
-        <nav class="flex items-center border-b border-[#2d2d32] px-3 gap-2 text-xs" aria-label="Zakładki wstążki">
-            <!-- App & Project Title Branding -->
-            <div class="flex items-center gap-2 pr-3 py-1 font-medium border-r border-[#333338] text-xs shrink-0">
-                <span class="text-blue-500 font-bold text-sm">§ </span>
-                <span class="text-[#a1a1aa] font-normal">Moja Gra</span>
-            </div>
-
-            <!-- Ribbon Tabs -->
-            <button
-                class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-blue-500 text-white hover:text-white bg-[#28282c]"
-                type="button" data-ribbon-tab="glowna" data-i18n="ribbon.tabs.main">Główne</button>
-            <button
-                class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-transparent text-[#a1a1aa] hover:text-white hover:bg-[#252528]"
-                type="button" data-ribbon-tab="sceny" data-i18n="ribbon.tabs.scenes">Edycja Scen</button>
-            <button
-                class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-transparent text-[#a1a1aa] hover:text-white hover:bg-[#252528]"
-                type="button" data-ribbon-tab="widok" data-i18n="ribbon.tabs.view">Widok</button>
-        </nav>
-
-        <!-- Ribbon Content Panels -->
-        <div class="h-16 flex items-center px-2 py-1 overflow-x-auto gap-1">
-            <!-- Ribbon Panel: Główne -->
-            <div class="ribbon-tab-content flex items-center gap-1 h-full" id="ribbon-panel-glowna">
-                <!-- Group: Plik -->
-                <div class="ribbon-section">
-                    <div class="flex items-center gap-1">
-                        <button class="ribbon-btn" type="button" data-action="new-file">
-                            <span class="text-base">📄</span>
-                            <span data-i18n="ribbon.buttons.new_file">Nowy plik</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="save">
-                            <span class="text-base">💾</span>
-                            <span data-i18n="ribbon.buttons.save">Zapisz</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="open-project">
-                            <span class="text-base">📂</span>
-                            <span data-i18n="ribbon.buttons.open">Otwórz</span>
-                        </button>
-                    </div>
-                    <span class="ribbon-section-title" data-i18n="ribbon.groups.file">Plik</span>
+    <body
+        class="m-0 h-screen w-screen overflow-hidden bg-[#18181b] text-[#e4e4e7] flex flex-col font-sans select-none"
+    >
+        <!-- Top Ribbon Toolbar (MS Word style) -->
+        <div
+            class="flex flex-col border-b border-[#333338] bg-[#202023] shrink-0"
+            aria-label="Pasek narzędzi Ribbon"
+        >
+            <!-- Ribbon Tabs Header with App Title & Project Name -->
+            <nav
+                class="flex items-center border-b border-[#2d2d32] px-3 gap-2 text-xs"
+                aria-label="Zakładki wstążki"
+            >
+                <!-- App & Project Title Branding -->
+                <div
+                    class="flex items-center gap-2 pr-3 py-1 font-medium border-r border-[#333338] text-xs shrink-0"
+                >
+                    <span class="text-blue-500 font-bold text-sm">§ </span>
+                    <span class="text-[#a1a1aa] font-normal">Moja Gra</span>
                 </div>
 
-                <!-- Group: Gra -->
-                <div class="ribbon-section">
-                    <div class="flex items-center gap-1">
-                        <button class="ribbon-btn" type="button" data-action="run-game">
-                            <span class="text-base">▶</span>
-                            <span data-i18n="ribbon.buttons.run_game">Testuj grę</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="export-game">
-                            <span class="text-base">📦</span>
-                            <span data-i18n="ribbon.buttons.export_game">Eksportuj</span>
-                        </button>
-                    </div>
-                    <span class="ribbon-section-title" data-i18n="ribbon.groups.game">Gra</span>
-                </div>
-            </div>
+                <!-- Ribbon Tabs -->
+                <button
+                    class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-blue-500 text-white hover:text-white bg-[#28282c]"
+                    type="button"
+                    data-ribbon-tab="glowna"
+                    data-i18n="ribbon.tabs.main"
+                >
+                    Główne
+                </button>
+                <button
+                    class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-transparent text-[#a1a1aa] hover:text-white hover:bg-[#252528]"
+                    type="button"
+                    data-ribbon-tab="sceny"
+                    data-i18n="ribbon.tabs.scenes"
+                >
+                    Edycja Scen
+                </button>
+                <button
+                    class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-transparent text-[#a1a1aa] hover:text-white hover:bg-[#252528]"
+                    type="button"
+                    data-ribbon-tab="widok"
+                    data-i18n="ribbon.tabs.view"
+                >
+                    Widok
+                </button>
+            </nav>
 
-            <!-- Ribbon Panel: Edycja Scen -->
-            <div class="ribbon-tab-content hidden flex items-center gap-1 h-full" id="ribbon-panel-sceny">
-                <!-- Group: Tworzenie -->
-                <div class="ribbon-section">
-                    <div class="flex items-center gap-1">
-                        <button class="ribbon-btn" type="button" data-action="new-scene">
-                            <span class="text-base">➕</span>
-                            <span data-i18n="ribbon.buttons.add_scene">Dodaj scenę</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="link-scenes">
-                            <span class="text-base">🔗</span>
-                            <span data-i18n="ribbon.buttons.link_scenes">Połącz sceny</span>
-                        </button>
-                    </div>
-                    <span class="ribbon-section-title" data-i18n="ribbon.groups.scenes">Sceny</span>
-                </div>
-
-                <!-- Group: Elementy Świata -->
-                <div class="ribbon-section">
-                    <div class="flex items-center gap-1">
-                        <button class="ribbon-btn" type="button" data-action="open-npcs">
-                            <span class="text-base">👤</span>
-                            <span data-i18n="ribbon.buttons.npcs">Postacie NPC</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="open-items">
-                            <span class="text-base">🎒</span>
-                            <span data-i18n="ribbon.buttons.items">Przedmioty</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="open-locations">
-                            <span class="text-base">🗺️</span>
-                            <span data-i18n="ribbon.buttons.locations">Lokacje</span>
-                        </button>
-                    </div>
-                    <span class="ribbon-section-title" data-i18n="ribbon.groups.world_elements">Elementy świata</span>
-                </div>
-            </div>
-
-            <!-- Ribbon Panel: Widok -->
-            <div class="ribbon-tab-content hidden flex items-center gap-1 h-full" id="ribbon-panel-widok">
-                <!-- Group: Widok główny -->
-                <div class="ribbon-section">
-                    <div class="flex items-center gap-1">
-                        <button class="ribbon-btn" type="button" data-action="switch-markdown">
-                            <span class="text-base">📝</span>
-                            <span data-i18n="ribbon.buttons.markdown_editor">Edytor Markdown</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="show-graph">
-                            <span class="text-base">⌘</span>
-                            <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
-                        </button>
-                    </div>
-                    <span class="ribbon-section-title" data-i18n="ribbon.groups.workspace">Obszar roboczy</span>
-                </div>
-
-                <!-- Group: Panele boczne -->
-                <div class="ribbon-section">
-                    <div class="flex items-center gap-1">
-                        <button class="ribbon-btn" type="button" data-action="toggle-left-drawer">
-                            <span class="text-base">📑</span>
-                            <span data-i18n="ribbon.buttons.left_panel">Panel lewy</span>
-                        </button>
-                        <button class="ribbon-btn" type="button" data-action="toggle-right-sidebar">
-                            <span class="text-base">📋</span>
-                            <span data-i18n="ribbon.buttons.right_panel">Panel prawy</span>
-                        </button>
-                    </div>
-                    <span class="ribbon-section-title" data-i18n="ribbon.groups.side_panels">Panele boczne</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Workspace Container (Icon Bar + Left Drawer + Center View + Right Details Panel) -->
-    <div class="flex flex-1 min-h-0 overflow-hidden relative">
-        <!-- Left Vertical Icon Bar (Spans full height of the body area) -->
-        <aside class="w-[52px] bg-[#1c1c1f] border-r border-[#333338] flex flex-col items-center py-2 shrink-0 z-20"
-            aria-label="Pasek ikon akcji">
-            <div class="flex flex-col gap-1 w-full items-center">
-                <button class="icon-bar-item active" type="button" data-left-tab="paragraphs" data-i18n-title="left_panel.paragraphs">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                        </path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.paragraphs">Paragrafy</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="scenes" data-i18n-title="left_panel.scenes">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                        </path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.scenes">Sceny</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="characters" data-i18n-title="left_panel.characters">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
-                        </path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.characters">Postacie</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="locations" data-i18n-title="left_panel.locations">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                        </path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.locations">Lokacje</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="traits" data-i18n-title="left_panel.traits">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.traits">Cechy</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="main-character" data-i18n-title="left_panel.main_character">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5 text-center leading-tight" data-i18n="left_bar.main_character">Bohater</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="tags" data-i18n-title="left_panel.tags">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
-                        </path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.tags">Tagi</span>
-                </button>
-            </div>
-            <div class="mt-auto flex flex-col gap-1 w-full items-center">
-                <button class="icon-bar-item" type="button" data-left-tab="search" data-i18n-title="left_panel.search">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.search">Szukaj</span>
-                </button>
-                <button class="icon-bar-item" type="button" data-left-tab="settings" data-i18n-title="left_panel.settings">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                        </path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    <span class="text-[9px] mt-0.5" data-i18n="left_bar.settings">Opcje</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Sliding Left Panel Drawer (Toggles open/closed when icon clicked) -->
-        <aside class="left-drawer-panel w-[260px] bg-[#202023] border-r border-[#333338] flex flex-col shrink-0 z-10"
-            id="left-drawer" aria-label="Panel boczny">
-            <div class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22]">
-                <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]" id="left-drawer-title" data-i18n="left_panel.paragraphs">
-                    Paragrafy</h2>
-                <button class="text-[#a1a1aa] hover:text-white p-1 rounded hover:bg-[#333338]" type="button"
-                    id="close-left-drawer-btn" title="Zamknij panel" data-i18n-title="left_panel.close_panel">‹</button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto p-2">
-                <!-- Content: Paragraphs -->
-                <div class="left-tab-content" id="left-content-paragraphs">
-                    <!-- Search & Filter Bar at top of Paragraphs section -->
-                    <div class="px-1 py-1 space-y-1 border-b border-[#2d2d32] pb-2 mb-2">
+            <!-- Ribbon Content Panels -->
+            <div class="h-16 flex items-center px-2 py-1 overflow-x-auto gap-1">
+                <!-- Ribbon Panel: Główne -->
+                <div
+                    class="ribbon-tab-content flex items-center gap-1 h-full"
+                    id="ribbon-panel-glowna"
+                >
+                    <!-- Group: Plik -->
+                    <div class="ribbon-section">
                         <div class="flex items-center gap-1">
-                            <input type="text" id="paragraph-search-input" placeholder="Szukaj w tytule lub treści..." data-i18n-placeholder="left_panel.paragraphs_search_placeholder"
-                                class="flex-1 min-w-0 bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
-                            
-                            <!-- Filter Tile Dropdown Button -->
-                            <button id="paragraph-filter-btn" type="button" class="relative px-2 py-1.5 rounded bg-[#2c2c30] hover:bg-[#38383f] border border-[#3f3f46] text-xs text-[#d4d4d8] flex items-center gap-1 shrink-0 cursor-pointer" title="Filtruj" data-i18n-title="left_panel.filter_tile_title">
-                                <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                                </svg>
-                                <span data-i18n="left_panel.filter_tile_title">Filtruj</span>
-                                <span id="active-filter-badge" class="hidden w-2 h-2 rounded-full bg-blue-500"></span>
+                            <button class="ribbon-btn" type="button" data-action="new-file">
+                                <span class="text-base">📄</span>
+                                <span data-i18n="ribbon.buttons.new_file">Nowy plik</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="save">
+                                <span class="text-base">💾</span>
+                                <span data-i18n="ribbon.buttons.save">Zapisz</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="open-project">
+                                <span class="text-base">📂</span>
+                                <span data-i18n="ribbon.buttons.open">Otwórz</span>
                             </button>
                         </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.file"
+                            >Plik</span
+                        >
+                    </div>
 
-                        <!-- Filter Popover Menu (Hidden by default) -->
-                        <div id="paragraph-filter-popover" class="hidden mt-1 p-2 bg-[#18181b] border border-[#333338] rounded-md shadow-xl text-xs space-y-2 relative z-30">
-                            <div>
-                                <span class="block text-[10px] font-semibold uppercase text-[#a1a1aa] mb-1" data-i18n="left_panel.filter_by_tags">Tagi</span>
-                                <div id="filter-tags-list" class="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-[#202023] rounded border border-[#2d2d32]">
-                                    <!-- Dynamic Tag badges -->
+                    <!-- Group: Gra -->
+                    <div class="ribbon-section">
+                        <div class="flex items-center gap-1">
+                            <button class="ribbon-btn" type="button" data-action="run-game">
+                                <span class="text-base">▶</span>
+                                <span data-i18n="ribbon.buttons.run_game">Testuj grę</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="export-game">
+                                <span class="text-base">📦</span>
+                                <span data-i18n="ribbon.buttons.export_game">Eksportuj</span>
+                            </button>
+                        </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.game">Gra</span>
+                    </div>
+                </div>
+
+                <!-- Ribbon Panel: Edycja Scen -->
+                <div
+                    class="ribbon-tab-content hidden flex items-center gap-1 h-full"
+                    id="ribbon-panel-sceny"
+                >
+                    <!-- Group: Tworzenie -->
+                    <div class="ribbon-section">
+                        <div class="flex items-center gap-1">
+                            <button class="ribbon-btn" type="button" data-action="new-scene">
+                                <span class="text-base">➕</span>
+                                <span data-i18n="ribbon.buttons.add_scene">Dodaj scenę</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="link-scenes">
+                                <span class="text-base">🔗</span>
+                                <span data-i18n="ribbon.buttons.link_scenes">Połącz sceny</span>
+                            </button>
+                        </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.scenes"
+                            >Sceny</span
+                        >
+                    </div>
+
+                    <!-- Group: Elementy Świata -->
+                    <div class="ribbon-section">
+                        <div class="flex items-center gap-1">
+                            <button class="ribbon-btn" type="button" data-action="open-npcs">
+                                <span class="text-base">👤</span>
+                                <span data-i18n="ribbon.buttons.npcs">Postacie NPC</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="open-items">
+                                <span class="text-base">🎒</span>
+                                <span data-i18n="ribbon.buttons.items">Przedmioty</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="open-locations">
+                                <span class="text-base">🗺️</span>
+                                <span data-i18n="ribbon.buttons.locations">Lokacje</span>
+                            </button>
+                        </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.world_elements"
+                            >Elementy świata</span
+                        >
+                    </div>
+                </div>
+
+                <!-- Ribbon Panel: Widok -->
+                <div
+                    class="ribbon-tab-content hidden flex items-center gap-1 h-full"
+                    id="ribbon-panel-widok"
+                >
+                    <!-- Group: Widok główny -->
+                    <div class="ribbon-section">
+                        <div class="flex items-center gap-1">
+                            <button class="ribbon-btn" type="button" data-action="switch-markdown">
+                                <span class="text-base">📝</span>
+                                <span data-i18n="ribbon.buttons.markdown_editor"
+                                    >Edytor Markdown</span
+                                >
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="show-graph">
+                                <span class="text-base">⌘</span>
+                                <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
+                            </button>
+                        </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.workspace"
+                            >Obszar roboczy</span
+                        >
+                    </div>
+
+                    <!-- Group: Panele boczne -->
+                    <div class="ribbon-section">
+                        <div class="flex items-center gap-1">
+                            <button
+                                class="ribbon-btn"
+                                type="button"
+                                data-action="toggle-left-drawer"
+                            >
+                                <span class="text-base">📑</span>
+                                <span data-i18n="ribbon.buttons.left_panel">Panel lewy</span>
+                            </button>
+                            <button
+                                class="ribbon-btn"
+                                type="button"
+                                data-action="toggle-right-sidebar"
+                            >
+                                <span class="text-base">📋</span>
+                                <span data-i18n="ribbon.buttons.right_panel">Panel prawy</span>
+                            </button>
+                        </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.side_panels"
+                            >Panele boczne</span
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Workspace Container (Icon Bar + Left Drawer + Center View + Right Details Panel) -->
+        <div class="flex flex-1 min-h-0 overflow-hidden relative">
+            <!-- Left Vertical Icon Bar (Spans full height of the body area) -->
+            <aside
+                class="w-[52px] bg-[#1c1c1f] border-r border-[#333338] flex flex-col items-center py-2 shrink-0 z-20"
+                aria-label="Pasek ikon akcji"
+            >
+                <div class="flex flex-col gap-1 w-full items-center">
+                    <button
+                        class="icon-bar-item active"
+                        type="button"
+                        data-left-tab="paragraphs"
+                        data-i18n-title="left_panel.paragraphs"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.paragraphs"
+                            >Paragrafy</span
+                        >
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="scenes"
+                        data-i18n-title="left_panel.scenes"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.scenes">Sceny</span>
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="characters"
+                        data-i18n-title="left_panel.characters"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.characters"
+                            >Postacie</span
+                        >
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="locations"
+                        data-i18n-title="left_panel.locations"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            ></path>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.locations"
+                            >Lokacje</span
+                        >
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="traits"
+                        data-i18n-title="left_panel.traits"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M13 10V3L4 14h7v7l9-11h-7z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.traits">Cechy</span>
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="main-character"
+                        data-i18n-title="left_panel.main_character"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                            ></path>
+                        </svg>
+                        <span
+                            class="text-[9px] mt-0.5 text-center leading-tight"
+                            data-i18n="left_bar.main_character"
+                            >Bohater</span
+                        >
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="tags"
+                        data-i18n-title="left_panel.tags"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.tags">Tagi</span>
+                    </button>
+                </div>
+                <div class="mt-auto flex flex-col gap-1 w-full items-center">
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="search"
+                        data-i18n-title="left_panel.search"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.search">Szukaj</span>
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
+                        data-left-tab="settings"
+                        data-i18n-title="left_panel.settings"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                            ></path>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.8"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            ></path>
+                        </svg>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.settings">Opcje</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Sliding Left Panel Drawer (Toggles open/closed when icon clicked) -->
+            <aside
+                class="left-drawer-panel w-[260px] bg-[#202023] border-r border-[#333338] flex flex-col shrink-0 z-10"
+                id="left-drawer"
+                aria-label="Panel boczny"
+            >
+                <div
+                    class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22]"
+                >
+                    <h2
+                        class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]"
+                        id="left-drawer-title"
+                        data-i18n="left_panel.paragraphs"
+                    >
+                        Paragrafy
+                    </h2>
+                    <button
+                        class="text-[#a1a1aa] hover:text-white p-1 rounded hover:bg-[#333338]"
+                        type="button"
+                        id="close-left-drawer-btn"
+                        title="Zamknij panel"
+                        data-i18n-title="left_panel.close_panel"
+                    >
+                        ‹
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-2">
+                    <!-- Content: Paragraphs -->
+                    <div class="left-tab-content" id="left-content-paragraphs">
+                        <!-- Search & Filter Bar at top of Paragraphs section -->
+                        <div class="px-1 py-1 space-y-1 border-b border-[#2d2d32] pb-2 mb-2">
+                            <div class="flex items-center gap-1">
+                                <input
+                                    type="text"
+                                    id="paragraph-search-input"
+                                    placeholder="Szukaj w tytule lub treści..."
+                                    data-i18n-placeholder="left_panel.paragraphs_search_placeholder"
+                                    class="flex-1 min-w-0 bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                />
+
+                                <!-- Filter Tile Dropdown Button -->
+                                <button
+                                    id="paragraph-filter-btn"
+                                    type="button"
+                                    class="relative px-2 py-1.5 rounded bg-[#2c2c30] hover:bg-[#38383f] border border-[#3f3f46] text-xs text-[#d4d4d8] flex items-center gap-1 shrink-0 cursor-pointer"
+                                    title="Filtruj"
+                                    data-i18n-title="left_panel.filter_tile_title"
+                                >
+                                    <svg
+                                        class="w-3.5 h-3.5 text-blue-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                                        ></path>
+                                    </svg>
+                                    <span data-i18n="left_panel.filter_tile_title">Filtruj</span>
+                                    <span
+                                        id="active-filter-badge"
+                                        class="hidden w-2 h-2 rounded-full bg-blue-500"
+                                    ></span>
+                                </button>
+                            </div>
+
+                            <!-- Filter Popover Menu (Hidden by default) -->
+                            <div
+                                id="paragraph-filter-popover"
+                                class="hidden mt-1 p-2 bg-[#18181b] border border-[#333338] rounded-md shadow-xl text-xs space-y-2 relative z-30"
+                            >
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-semibold uppercase text-[#a1a1aa] mb-1"
+                                        data-i18n="left_panel.filter_by_tags"
+                                        >Tagi</span
+                                    >
+                                    <div
+                                        id="filter-tags-list"
+                                        class="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-[#202023] rounded border border-[#2d2d32]"
+                                    >
+                                        <!-- Dynamic Tag badges -->
+                                    </div>
+                                </div>
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-semibold uppercase text-[#a1a1aa] mb-1"
+                                        data-i18n="left_panel.filter_by_characters"
+                                        >Postacie</span
+                                    >
+                                    <select
+                                        id="filter-character-select"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                    >
+                                        <option value="" data-i18n="left_panel.all_characters">
+                                            Wszystkie postacie
+                                        </option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <span
+                                        class="block text-[10px] font-semibold uppercase text-[#a1a1aa] mb-1"
+                                        data-i18n="left_panel.filter_by_scenes"
+                                        >Sceny</span
+                                    >
+                                    <select
+                                        id="filter-scene-select"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                    >
+                                        <option value="" data-i18n="left_panel.all_scenes">
+                                            Wszystkie sceny
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="pt-1 flex justify-end">
+                                    <button
+                                        id="btn-clear-paragraph-filters"
+                                        type="button"
+                                        class="text-[10px] text-blue-400 hover:underline cursor-pointer"
+                                        data-i18n="left_panel.clear_filters"
+                                    >
+                                        Wyczyść filtry
+                                    </button>
                                 </div>
                             </div>
-                            <div>
-                                <span class="block text-[10px] font-semibold uppercase text-[#a1a1aa] mb-1" data-i18n="left_panel.filter_by_characters">Postacie</span>
-                                <select id="filter-character-select" class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white">
-                                    <option value="" data-i18n="left_panel.all_characters">Wszystkie postacie</option>
+                        </div>
+
+                        <div
+                            class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                            data-i18n="left_panel.paragraphs"
+                        >
+                            Lista Paragrafów
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="paragraphs-list-container">
+                            <p class="italic text-gray-500" data-i18n="left_panel.no_paragraphs">
+                                Brak paragrafów w projekcie
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Tags -->
+                    <div class="left-tab-content hidden" id="left-content-tags">
+                        <div
+                            class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
+                        >
+                            <span
+                                class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                data-i18n="left_panel.tags"
+                                >Tagi w Projekcie</span
+                            >
+                            <button
+                                id="btn-add-tag"
+                                type="button"
+                                class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                data-i18n-title="left_panel.add_tag"
+                                title="Dodaj tag"
+                            >
+                                <span>+</span>
+                            </button>
+                        </div>
+                        <div class="px-1 py-1 space-y-1 mb-2">
+                            <input
+                                type="text"
+                                id="tag-search-input"
+                                placeholder="Szukaj tagów..."
+                                data-i18n-placeholder="left_panel.search_tags_placeholder"
+                                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <div
+                                id="tag-create-form"
+                                class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                            >
+                                <input
+                                    type="text"
+                                    id="tag-create-name"
+                                    placeholder="Nazwa taga (lub zostaw puste)"
+                                    data-i18n-placeholder="left_panel.tag_name_placeholder"
+                                    class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                />
+                                <div class="flex justify-end gap-1">
+                                    <button
+                                        id="tag-create-cancel"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                        data-i18n="buttons.cancel"
+                                    >
+                                        Anuluj
+                                    </button>
+                                    <button
+                                        id="tag-create-submit"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                        data-i18n="buttons.add"
+                                    >
+                                        Dodaj
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="tags-list-container">
+                            <p class="italic text-gray-500" data-i18n="left_panel.no_tags">
+                                Brak zdefiniowanych tagów w projekcie
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Scenes -->
+                    <div class="left-tab-content hidden" id="left-content-scenes">
+                        <div
+                            class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                            data-i18n="left_panel.scenes"
+                        >
+                            Lista Scen
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="scenes-list-container">
+                            <p class="italic text-gray-500" data-i18n="left_panel.no_scenes">
+                                Brak scen w projekcie
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Characters & Templates -->
+                    <div class="left-tab-content hidden" id="left-content-characters">
+                        <div
+                            class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
+                        >
+                            <span
+                                class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                data-i18n="left_panel.characters"
+                                >Postacie i Szablony</span
+                            >
+                            <button
+                                id="btn-add-character"
+                                type="button"
+                                class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                data-i18n-title="left_panel.add_character"
+                                title="Dodaj postać"
+                            >
+                                <span>+</span>
+                            </button>
+                        </div>
+                        <div class="px-1 py-1 space-y-1 mb-2">
+                            <input
+                                type="text"
+                                id="character-search-input"
+                                placeholder="Szukaj postaci..."
+                                data-i18n-placeholder="left_panel.search_characters_placeholder"
+                                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <div
+                                id="character-create-form"
+                                class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                            >
+                                <input
+                                    type="text"
+                                    id="character-create-name"
+                                    placeholder="Nazwa postaci (lub zostaw puste)"
+                                    data-i18n-placeholder="left_panel.character_name_placeholder"
+                                    class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                />
+                                <div class="flex justify-end gap-1">
+                                    <button
+                                        id="character-create-cancel"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                        data-i18n="buttons.cancel"
+                                    >
+                                        Anuluj
+                                    </button>
+                                    <button
+                                        id="character-create-submit"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                        data-i18n="buttons.add"
+                                    >
+                                        Dodaj
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="characters-list-container">
+                            <p class="italic text-gray-500" data-i18n="left_panel.no_characters">
+                                Brak postaci i szablonów w projekcie
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Locations -->
+                    <div class="left-tab-content hidden" id="left-content-locations">
+                        <div
+                            class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
+                        >
+                            <span
+                                class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                data-i18n="left_panel.locations"
+                                >Lokacje</span
+                            >
+                            <button
+                                id="btn-add-location"
+                                type="button"
+                                class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                data-i18n-title="left_panel.add_location"
+                                title="Dodaj lokację"
+                            >
+                                <span>+</span>
+                            </button>
+                        </div>
+                        <div class="px-1 py-1 space-y-1 mb-2">
+                            <input
+                                type="text"
+                                id="location-search-input"
+                                placeholder="Szukaj lokacji..."
+                                data-i18n-placeholder="left_panel.search_locations_placeholder"
+                                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <div
+                                id="location-create-form"
+                                class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                            >
+                                <input
+                                    type="text"
+                                    id="location-create-name"
+                                    placeholder="Nazwa lokacji (lub zostaw puste)"
+                                    data-i18n-placeholder="left_panel.location_name_placeholder"
+                                    class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                />
+                                <div class="flex justify-end gap-1">
+                                    <button
+                                        id="location-create-cancel"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                        data-i18n="buttons.cancel"
+                                    >
+                                        Anuluj
+                                    </button>
+                                    <button
+                                        id="location-create-submit"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                        data-i18n="buttons.add"
+                                    >
+                                        Dodaj
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="locations-list-container">
+                            <p class="italic text-gray-500" data-i18n="left_panel.no_locations">
+                                Brak lokacji w projekcie
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Traits -->
+                    <div class="left-tab-content hidden" id="left-content-traits">
+                        <div
+                            class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
+                        >
+                            <span
+                                class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                data-i18n="left_panel.traits"
+                                >Cechy i Atrybuty</span
+                            >
+                            <button
+                                id="btn-add-trait"
+                                type="button"
+                                class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                data-i18n-title="left_panel.add_trait"
+                                title="Dodaj cechę"
+                            >
+                                <span>+</span>
+                            </button>
+                        </div>
+                        <div class="px-1 py-1 space-y-1 mb-2">
+                            <input
+                                type="text"
+                                id="trait-search-input"
+                                placeholder="Szukaj cech..."
+                                data-i18n-placeholder="left_panel.search_traits_placeholder"
+                                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <div
+                                id="trait-create-form"
+                                class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                            >
+                                <input
+                                    type="text"
+                                    id="trait-create-name"
+                                    placeholder="Nazwa cechy (lub zostaw puste)"
+                                    data-i18n-placeholder="left_panel.trait_name_placeholder"
+                                    class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                />
+                                <div class="flex justify-end gap-1">
+                                    <button
+                                        id="trait-create-cancel"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                        data-i18n="buttons.cancel"
+                                    >
+                                        Anuluj
+                                    </button>
+                                    <button
+                                        id="trait-create-submit"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                        data-i18n="buttons.add"
+                                    >
+                                        Dodaj
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="traits-list-container">
+                            <p class="italic text-gray-500" data-i18n="left_panel.no_traits">
+                                Brak zdefiniowanych cech w projekcie
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Main Character -->
+                    <div class="left-tab-content hidden" id="left-content-main-character">
+                        <div
+                            class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                            data-i18n="left_panel.main_character"
+                        >
+                            Postać Główna (Gracz)
+                        </div>
+                        <div class="p-2 text-xs text-[#a1a1aa]" id="main-character-container">
+                            <p
+                                class="italic text-gray-500"
+                                data-i18n="left_panel.no_main_character"
+                            >
+                                Brak konfiguracji postaci gracza
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Content: Explorer (Legacy) -->
+                    <div class="left-tab-content hidden" id="left-content-explorer">
+                        <div
+                            class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                            data-i18n="left_panel.explorer"
+                        >
+                            Struktura Gry
+                        </div>
+                        <ul
+                            class="mt-1 space-y-0.5"
+                            id="explorer-file-list"
+                            aria-label="Pliki projektu"
+                        >
+                            <!-- Dynamic file items -->
+                        </ul>
+                    </div>
+
+                    <!-- Content: Search -->
+                    <div class="left-tab-content hidden" id="left-content-search">
+                        <div
+                            class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider mb-2"
+                            data-i18n="left_panel.search"
+                        >
+                            Wyszukiwanie
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Szukaj frazy lub sceny..."
+                            data-i18n-placeholder="left_panel.search_placeholder"
+                            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
+
+                    <!-- Content: Settings -->
+                    <div class="left-tab-content hidden" id="left-content-settings">
+                        <div
+                            class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider mb-2"
+                            data-i18n="settings.title"
+                        >
+                            Ustawienia Edytora
+                        </div>
+                        <div class="text-xs text-[#a1a1aa] p-2 space-y-3">
+                            <div class="space-y-1">
+                                <label
+                                    class="block font-medium text-[#d4d4d8]"
+                                    data-i18n="settings.language"
+                                    >Język interfejsu</label
+                                >
+                                <select
+                                    id="settings-language-select"
+                                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 cursor-pointer"
+                                >
+                                    <option value="pl" data-i18n="start_window.language_pl">
+                                        Polski
+                                    </option>
+                                    <option value="en" data-i18n="start_window.language_en">
+                                        English
+                                    </option>
+                                    <option value="de" data-i18n="start_window.language_de">
+                                        Deutsch
+                                    </option>
                                 </select>
                             </div>
-                            <div>
-                                <span class="block text-[10px] font-semibold uppercase text-[#a1a1aa] mb-1" data-i18n="left_panel.filter_by_scenes">Sceny</span>
-                                <select id="filter-scene-select" class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white">
-                                    <option value="" data-i18n="left_panel.all_scenes">Wszystkie sceny</option>
-                                </select>
-                            </div>
-                            <div class="pt-1 flex justify-end">
-                                <button id="btn-clear-paragraph-filters" type="button" class="text-[10px] text-blue-400 hover:underline cursor-pointer" data-i18n="left_panel.clear_filters">Wyczyść filtry</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.paragraphs">Lista Paragrafów
-                    </div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="paragraphs-list-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_paragraphs">Brak paragrafów w projekcie</p>
-                    </div>
-                </div>
-
-                <!-- Content: Tags -->
-                <div class="left-tab-content hidden" id="left-content-tags">
-                    <div class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5">
-                        <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.tags">Tagi w Projekcie</span>
-                        <button id="btn-add-tag" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer" data-i18n-title="left_panel.add_tag" title="Dodaj tag">
-                            <span>+</span>
-                        </button>
-                    </div>
-                    <div class="px-1 py-1 space-y-1 mb-2">
-                        <input type="text" id="tag-search-input" placeholder="Szukaj tagów..." data-i18n-placeholder="left_panel.search_tags_placeholder"
-                            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
-                        <div id="tag-create-form" class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5">
-                            <input type="text" id="tag-create-name" placeholder="Nazwa taga (lub zostaw puste)" data-i18n-placeholder="left_panel.tag_name_placeholder" class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white" />
-                            <div class="flex justify-end gap-1">
-                                <button id="tag-create-cancel" type="button" class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer" data-i18n="buttons.cancel">Anuluj</button>
-                                <button id="tag-create-submit" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer" data-i18n="buttons.add">Dodaj</button>
+                            <div class="pt-1 space-y-2 border-t border-[#2d2d32]">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked
+                                        class="rounded accent-blue-500"
+                                    />
+                                    <span data-i18n="settings.auto_save">Automatyczny zapis</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked
+                                        class="rounded accent-blue-500"
+                                    />
+                                    <span data-i18n="settings.show_grid"
+                                        >Pokazuj siatkę w grafie</span
+                                    >
+                                </label>
                             </div>
                         </div>
                     </div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="tags-list-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_tags">Brak zdefiniowanych tagów w projekcie</p>
-                    </div>
                 </div>
+            </aside>
 
-                <!-- Content: Scenes -->
-                <div class="left-tab-content hidden" id="left-content-scenes">
-                    <div class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.scenes">Lista Scen</div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="scenes-list-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_scenes">Brak scen w projekcie</p>
-                    </div>
-                </div>
+            <!-- Left Resizer Splitter -->
+            <div
+                id="left-resizer"
+                class="resizer-line"
+                title="Przeciągnij, aby zmienić szerokość"
+            ></div>
 
-                <!-- Content: Characters & Templates -->
-                <div class="left-tab-content hidden" id="left-content-characters">
-                    <div class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5">
-                        <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.characters">Postacie i Szablony</span>
-                        <button id="btn-add-character" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer" data-i18n-title="left_panel.add_character" title="Dodaj postać">
-                            <span>+</span>
-                        </button>
-                    </div>
-                    <div class="px-1 py-1 space-y-1 mb-2">
-                        <input type="text" id="character-search-input" placeholder="Szukaj postaci..." data-i18n-placeholder="left_panel.search_characters_placeholder"
-                            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
-                        <div id="character-create-form" class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5">
-                            <input type="text" id="character-create-name" placeholder="Nazwa postaci (lub zostaw puste)" data-i18n-placeholder="left_panel.character_name_placeholder" class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white" />
-                            <div class="flex justify-end gap-1">
-                                <button id="character-create-cancel" type="button" class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer" data-i18n="buttons.cancel">Anuluj</button>
-                                <button id="character-create-submit" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer" data-i18n="buttons.add">Dodaj</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="characters-list-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_characters">Brak postaci i szablonów w projekcie</p>
-                    </div>
-                </div>
-
-                <!-- Content: Locations -->
-                <div class="left-tab-content hidden" id="left-content-locations">
-                    <div class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5">
-                        <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.locations">Lokacje</span>
-                        <button id="btn-add-location" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer" data-i18n-title="left_panel.add_location" title="Dodaj lokację">
-                            <span>+</span>
-                        </button>
-                    </div>
-                    <div class="px-1 py-1 space-y-1 mb-2">
-                        <input type="text" id="location-search-input" placeholder="Szukaj lokacji..." data-i18n-placeholder="left_panel.search_locations_placeholder"
-                            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
-                        <div id="location-create-form" class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5">
-                            <input type="text" id="location-create-name" placeholder="Nazwa lokacji (lub zostaw puste)" data-i18n-placeholder="left_panel.location_name_placeholder" class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white" />
-                            <div class="flex justify-end gap-1">
-                                <button id="location-create-cancel" type="button" class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer" data-i18n="buttons.cancel">Anuluj</button>
-                                <button id="location-create-submit" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer" data-i18n="buttons.add">Dodaj</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="locations-list-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_locations">Brak lokacji w projekcie</p>
-                    </div>
-                </div>
-
-                <!-- Content: Traits -->
-                <div class="left-tab-content hidden" id="left-content-traits">
-                    <div class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5">
-                        <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.traits">Cechy i Atrybuty</span>
-                        <button id="btn-add-trait" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer" data-i18n-title="left_panel.add_trait" title="Dodaj cechę">
-                            <span>+</span>
-                        </button>
-                    </div>
-                    <div class="px-1 py-1 space-y-1 mb-2">
-                        <input type="text" id="trait-search-input" placeholder="Szukaj cech..." data-i18n-placeholder="left_panel.search_traits_placeholder"
-                            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
-                        <div id="trait-create-form" class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5">
-                            <input type="text" id="trait-create-name" placeholder="Nazwa cechy (lub zostaw puste)" data-i18n-placeholder="left_panel.trait_name_placeholder" class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white" />
-                            <div class="flex justify-end gap-1">
-                                <button id="trait-create-cancel" type="button" class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer" data-i18n="buttons.cancel">Anuluj</button>
-                                <button id="trait-create-submit" type="button" class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer" data-i18n="buttons.add">Dodaj</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="traits-list-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_traits">Brak zdefiniowanych cech w projekcie</p>
-                    </div>
-                </div>
-
-                <!-- Content: Main Character -->
-                <div class="left-tab-content hidden" id="left-content-main-character">
-                    <div class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.main_character">Postać Główna (Gracz)</div>
-                    <div class="p-2 text-xs text-[#a1a1aa]" id="main-character-container">
-                        <p class="italic text-gray-500" data-i18n="left_panel.no_main_character">Brak konfiguracji postaci gracza</p>
-                    </div>
-                </div>
-
-                <!-- Content: Explorer (Legacy) -->
-                <div class="left-tab-content hidden" id="left-content-explorer">
-                    <div class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider" data-i18n="left_panel.explorer">Struktura Gry</div>
-                    <ul class="mt-1 space-y-0.5" id="explorer-file-list" aria-label="Pliki projektu">
-                        <!-- Dynamic file items -->
-                    </ul>
-                </div>
-
-                <!-- Content: Search -->
-                <div class="left-tab-content hidden" id="left-content-search">
-                    <div class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider mb-2" data-i18n="left_panel.search">
-                        Wyszukiwanie</div>
-                    <input type="text" placeholder="Szukaj frazy lub sceny..." data-i18n-placeholder="left_panel.search_placeholder"
-                        class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
-                </div>
-
-                <!-- Content: Settings -->
-                <div class="left-tab-content hidden" id="left-content-settings">
-                    <div class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider mb-2" data-i18n="settings.title">Ustawienia
-                        Edytora</div>
-                    <div class="text-xs text-[#a1a1aa] p-2 space-y-3">
-                        <div class="space-y-1">
-                            <label class="block font-medium text-[#d4d4d8]" data-i18n="settings.language">Język interfejsu</label>
-                            <select id="settings-language-select" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 cursor-pointer">
-                                <option value="pl" data-i18n="start_window.language_pl">Polski</option>
-                                <option value="en" data-i18n="start_window.language_en">English</option>
-                                <option value="de" data-i18n="start_window.language_de">Deutsch</option>
-                            </select>
-                        </div>
-                        <div class="pt-1 space-y-2 border-t border-[#2d2d32]">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked class="rounded accent-blue-500" />
-                                <span data-i18n="settings.auto_save">Automatyczny zapis</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" checked class="rounded accent-blue-500" />
-                                <span data-i18n="settings.show_grid">Pokazuj siatkę w grafie</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Center Main Content Workspace (Dynamic Adaptability) -->
-        <main class="flex-1 flex flex-col min-w-0 bg-[#18181b] overflow-hidden" aria-label="Obszar roboczy">
-            <!-- Tabs Bar -->
-            <div class="flex items-center justify-between bg-[#202023] border-b border-[#333338] h-9 px-1 shrink-0">
-                <!-- Open Files Tabs -->
-                <div class="flex items-center gap-1 overflow-x-auto flex-1" id="editor-tabs" role="tablist"
-                    aria-label="Otwarte pliki">
-                    <!-- Dynamic tabs rendered by JavaScript -->
-                </div>
-
-                <!-- Main View Mode Switcher -->
-                <div class="flex items-center gap-1 px-2 border-l border-[#333338]">
-                    <button class="px-2.5 py-1 text-xs rounded bg-[#2e2e33] text-white hover:bg-[#38383f]"
-                        id="view-mode-markdown-btn" type="button" title="Widok Edytora Markdown" data-i18n="view_mode.text">📝 Tekst</button>
-                    <button
-                        class="px-2.5 py-1 text-xs rounded bg-transparent text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white"
-                        id="view-mode-graph-btn" type="button" title="Widok Grafu Historii" data-i18n="view_mode.graph">⌘ Graf</button>
-                </div>
-            </div>
-
-            <!-- View Container: Markdown Editor -->
-            <section class="flex-1 flex flex-col min-h-0" id="markdown-container" aria-label="Edytor pliku">
+            <!-- Center Main Content Workspace (Dynamic Adaptability) -->
+            <main
+                class="flex-1 flex flex-col min-w-0 bg-[#18181b] overflow-hidden"
+                aria-label="Obszar roboczy"
+            >
+                <!-- Tabs Bar -->
                 <div
-                    class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]">
-                    <span id="active-file-label">Wprowadzenie.md</span>
-                    <span data-i18n="editor.encoding_info">UTF-8 · Markdown</span>
+                    class="flex items-center justify-between bg-[#202023] border-b border-[#333338] h-9 px-1 shrink-0"
+                >
+                    <!-- Open Files Tabs -->
+                    <div
+                        class="flex items-center gap-1 overflow-x-auto flex-1 custom-scrollbar"
+                        id="editor-tabs"
+                        role="tablist"
+                        aria-label="Otwarte pliki"
+                    >
+                        <!-- Dynamic tabs rendered by JavaScript -->
+                    </div>
+
+                    <!-- Main View Mode Switcher -->
+                    <div class="flex items-center gap-1 px-2 border-l border-[#333338]">
+                        <button
+                            class="px-2.5 py-1 text-xs rounded bg-[#2e2e33] text-white hover:bg-[#38383f]"
+                            id="view-mode-markdown-btn"
+                            type="button"
+                            title="Widok Edytora Markdown"
+                            data-i18n="view_mode.text"
+                        >
+                            📝 Tekst
+                        </button>
+                        <button
+                            class="px-2.5 py-1 text-xs rounded bg-transparent text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white"
+                            id="view-mode-graph-btn"
+                            type="button"
+                            title="Widok Grafu Historii"
+                            data-i18n="view_mode.graph"
+                        >
+                            ⌘ Graf
+                        </button>
+                    </div>
                 </div>
-                <textarea
-                    class="flex-1 min-h-0 resize-none border-0 bg-[#18181b] p-6 font-mono text-sm leading-relaxed text-[#e4e4e7] focus:outline-none"
-                    id="file-editor" spellcheck="false" aria-label="Zawartość pliku"></textarea>
-            </section>
 
-            <!-- View Container: Story Graph View -->
-            <section class="flex-1 flex flex-col min-h-0 hidden" id="graph-container" aria-label="Graf historii">
-                <div
-                    class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]">
-                    <span data-i18n="graph.title">Graf historii (Cytoscape.js)</span>
-                    <span data-i18n="graph.instruction">Przeciągaj węzły, aby uporządkować sceny i połączenia</span>
-                </div>
-                <div class="flex-1 min-h-0 relative" id="story-graph"></div>
-            </section>
-        </main>
-
-        <!-- Right Details Panel (Collapsible via Small Arrow Button) -->
-        <aside
-            class="right-details-panel w-[280px] bg-[#202023] border-l border-[#333338] flex flex-col shrink-0 relative"
-            id="right-sidebar" aria-label="Właściwości i Szczegóły">
-            <!-- Sidebar Header with Arrow Toggle Button -->
-            <div class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22]">
-                <h2 class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]" data-i18n="right_panel.title">Właściwości</h2>
-                <button class="text-[#a1a1aa] hover:text-white p-1 rounded hover:bg-[#333338] transition-transform"
-                    id="toggle-right-sidebar-btn" type="button" title="Zwiń / Rozwiń właściwości" data-i18n-title="right_panel.toggle_collapse">›</button>
-            </div>
-
-            <!-- Content -->
-            <div class="p-4 space-y-4 overflow-y-auto flex-1">
-                <section class="border-b border-[#333338] pb-3">
-                    <h3 class="text-xs font-semibold text-[#a1a1aa] mb-2 uppercase tracking-wide" data-i18n="right_panel.selected_element">Wybrany element</h3>
-                    <p class="text-sm font-medium text-white" id="selected-element">Wprowadzenie.md</p>
+                <!-- View Container: Markdown Editor -->
+                <section
+                    class="flex-1 flex flex-col min-h-0"
+                    id="markdown-container"
+                    aria-label="Edytor pliku"
+                >
+                    <div
+                        class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]"
+                    >
+                        <span id="active-file-label">Wprowadzenie.md</span>
+                        <span data-i18n="editor.encoding_info">UTF-8 · Markdown</span>
+                    </div>
+                    <textarea
+                        class="flex-1 min-h-0 resize-none border-0 bg-[#18181b] p-6 font-mono text-sm leading-relaxed text-[#e4e4e7] focus:outline-none"
+                        id="file-editor"
+                        spellcheck="false"
+                        aria-label="Zawartość pliku"
+                    ></textarea>
                 </section>
 
-                <section class="border-b border-[#333338] pb-3">
-                    <h3 class="text-xs font-semibold text-[#a1a1aa] mb-2 uppercase tracking-wide" data-i18n="right_panel.info">Informacje</h3>
-                    <dl class="grid grid-cols-2 gap-2 text-xs text-[#d4d4d8]">
-                        <dt class="text-[#71717a]" data-i18n="right_panel.type">Typ:</dt>
-                        <dd class="m-0 font-medium text-right" id="selected-type" data-i18n="editor.document">Dokument</dd>
-                        <dt class="text-[#71717a]" data-i18n="right_panel.status">Status:</dt>
-                        <dd class="m-0 font-medium text-right text-emerald-400" data-i18n="right_panel.status_edited">Edytowany</dd>
-                    </dl>
+                <!-- View Container: Story Graph View -->
+                <section
+                    class="flex-1 flex flex-col min-h-0 hidden"
+                    id="graph-container"
+                    aria-label="Graf historii"
+                >
+                    <div
+                        class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]"
+                    >
+                        <span data-i18n="graph.title">Graf historii (Cytoscape.js)</span>
+                        <span data-i18n="graph.instruction"
+                            >Przeciągaj węzły, aby uporządkować sceny i połączenia</span
+                        >
+                    </div>
+                    <div class="flex-1 min-h-0 relative" id="story-graph"></div>
                 </section>
+            </main>
 
-                <section>
-                    <h3 class="text-xs font-semibold text-[#a1a1aa] mb-2 uppercase tracking-wide" data-i18n="right_panel.quick_actions">Szybkie akcje</h3>
+            <!-- Right Resizer Splitter -->
+            <div
+                id="right-resizer"
+                class="resizer-line"
+                title="Przeciągnij, aby zmienić szerokość"
+            ></div>
+
+            <!-- Right Details Panel (Collapsible & Modular) -->
+            <aside
+                class="right-details-panel w-[280px] bg-[#202023] border-l border-[#333338] flex flex-col shrink-0 relative overflow-hidden"
+                id="right-sidebar"
+                aria-label="Właściwości i Szczegóły"
+            >
+                <!-- Sidebar Header with Arrow Toggle Button -->
+                <div
+                    class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22] shrink-0"
+                >
+                    <h2
+                        class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]"
+                        data-i18n="right_panel.title"
+                    >
+                        Właściwości
+                    </h2>
                     <button
-                        class="w-full py-1.5 px-3 rounded bg-[#2e2e33] hover:bg-[#38383f] text-xs text-left text-white flex items-center justify-between"
-                        type="button" data-action="show-graph">
-                        <span data-i18n="right_panel.show_story_graph">Pokaż graf historii</span>
-                        <span>⌘</span>
+                        class="text-[#a1a1aa] hover:text-white p-1 rounded hover:bg-[#333338] transition-transform"
+                        id="toggle-right-sidebar-btn"
+                        type="button"
+                        title="Zwiń / Rozwiń właściwości"
+                        data-i18n-title="right_panel.toggle_collapse"
+                    >
+                        ›
                     </button>
-                </section>
-            </div>
-        </aside>
+                </div>
 
-        <!-- Floating Reopen Arrow for Right Sidebar when Collapsed -->
-        <button
-            class="absolute top-2 right-0 z-30 bg-[#252528] border border-[#333338] text-gray-400 hover:text-white px-1.5 py-1 text-xs rounded-l hidden cursor-pointer"
-            id="reopen-right-sidebar-btn" type="button" title="Rozwiń właściwości" data-i18n-title="right_panel.expand">‹</button>
-    </div>
+                <!-- Top Horizontal History Bar with Close All Button -->
+                <div
+                    id="history-tabs-container"
+                    class="flex items-center gap-1 border-b border-[#2d2d32] bg-[#1a1a1d] px-2 py-1.5 overflow-hidden shrink-0"
+                >
+                    <!-- Dynamically rendered history tabs -->
+                </div>
 
-    <!-- Custom Context Menu for Items -->
-    <div id="custom-context-menu" class="hidden fixed bg-[#1f1f23] border border-[#3f3f46] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[180px]">
-        <button id="ctx-edit-title" type="button" class="w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer">
-            <span>✏️</span> <span data-i18n="context_menu.edit_title">Edytuj nazwę</span>
-        </button>
-        <!-- Expandable: Dodaj tag -->
-        <div id="ctx-add-tag-group" class="hidden">
-            <button id="ctx-add-tag-toggle" type="button" class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer">
-                <span class="flex items-center gap-2"><span>🏷️</span> <span data-i18n="context_menu.add_tag">Dodaj tag</span></span>
-                <span id="ctx-add-tag-chevron" class="text-[10px] text-gray-400 transition-transform duration-150">▸</span>
+                <!-- Modular Details Content (Separated by dividers) -->
+                <div id="details-content" class="overflow-y-auto flex-1 custom-scrollbar p-0">
+                    <!-- Dynamically rendered detail modules -->
+                </div>
+            </aside>
+
+            <!-- Floating Reopen Arrow for Right Sidebar when Collapsed -->
+            <button
+                class="absolute top-2 right-0 z-30 bg-[#252528] border border-[#333338] text-gray-400 hover:text-white px-1.5 py-1 text-xs rounded-l hidden cursor-pointer"
+                id="reopen-right-sidebar-btn"
+                type="button"
+                title="Rozwiń właściwości"
+                data-i18n-title="right_panel.expand"
+            >
+                ‹
             </button>
-            <div id="ctx-add-tag-list" class="hidden max-h-[140px] overflow-y-auto bg-[#18181b] border-t border-b border-[#333338]">
-                <!-- Dynamic tag list items rendered by JS -->
-            </div>
         </div>
-        <!-- Expandable: Dodaj cechę -->
-        <div id="ctx-add-trait-group" class="hidden">
-            <button id="ctx-add-trait-toggle" type="button" class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer">
-                <span class="flex items-center gap-2"><span>⚡</span> <span data-i18n="context_menu.add_trait">Dodaj cechę</span></span>
-                <span id="ctx-add-trait-chevron" class="text-[10px] text-gray-400 transition-transform duration-150">▸</span>
+
+        <div
+            id="toast-container"
+            class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"
+        ></div>
+
+        <!-- Custom Context Menu for Items -->
+        <div
+            id="custom-context-menu"
+            class="hidden fixed bg-[#1f1f23] border border-[#3f3f46] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[180px]"
+        >
+            <button
+                id="ctx-edit-title"
+                type="button"
+                class="w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer"
+            >
+                <span>✏️</span> <span data-i18n="context_menu.edit_title">Edytuj nazwę</span>
             </button>
-            <div id="ctx-add-trait-list" class="hidden max-h-[140px] overflow-y-auto bg-[#18181b] border-t border-b border-[#333338]">
-                <!-- Dynamic trait list items rendered by JS -->
+            <!-- Expandable: Dodaj tag -->
+            <div id="ctx-add-tag-group" class="hidden">
+                <button
+                    id="ctx-add-tag-toggle"
+                    type="button"
+                    class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
+                >
+                    <span class="flex items-center gap-2"
+                        ><span>🏷️</span>
+                        <span data-i18n="context_menu.add_tag">Dodaj tag</span></span
+                    >
+                    <span
+                        id="ctx-add-tag-chevron"
+                        class="text-[10px] text-gray-400 transition-transform duration-150"
+                        >▸</span
+                    >
+                </button>
+                <div
+                    id="ctx-add-tag-list"
+                    class="hidden max-h-[140px] overflow-y-auto bg-[#18181b] border-t border-b border-[#333338]"
+                >
+                    <!-- Dynamic tag list items rendered by JS -->
+                </div>
+            </div>
+            <!-- Expandable: Dodaj cechę -->
+            <div id="ctx-add-trait-group" class="hidden">
+                <button
+                    id="ctx-add-trait-toggle"
+                    type="button"
+                    class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
+                >
+                    <span class="flex items-center gap-2"
+                        ><span>⚡</span>
+                        <span data-i18n="context_menu.add_trait">Dodaj cechę</span></span
+                    >
+                    <span
+                        id="ctx-add-trait-chevron"
+                        class="text-[10px] text-gray-400 transition-transform duration-150"
+                        >▸</span
+                    >
+                </button>
+                <div
+                    id="ctx-add-trait-list"
+                    class="hidden max-h-[140px] overflow-y-auto bg-[#18181b] border-t border-b border-[#333338]"
+                >
+                    <!-- Dynamic trait list items rendered by JS -->
+                </div>
+            </div>
+            <div class="my-1 border-t border-[#333338]"></div>
+            <button
+                id="ctx-delete"
+                type="button"
+                class="w-full px-3 py-1.5 text-left hover:bg-red-600 text-red-300 hover:text-white flex items-center gap-2 cursor-pointer"
+            >
+                <span>🗑️</span> <span data-i18n="context_menu.delete">Usuń element</span>
+            </button>
+        </div>
+
+        <!-- Tag Color Picker Popover -->
+        <div
+            id="tag-color-picker-popover"
+            class="hidden fixed bg-[#18181b] border border-[#3f3f46] shadow-2xl rounded-lg p-2.5 z-50 w-48 space-y-2"
+        >
+            <span
+                class="block text-[10px] font-semibold text-[#a1a1aa] uppercase tracking-wider mb-1"
+                data-i18n="tags.choose_color"
+                >Wybierz kolor taga</span
+            >
+            <div class="grid grid-cols-5 gap-1.5" id="preset-colors-grid">
+                <button
+                    type="button"
+                    data-color="#ef4444"
+                    class="w-6 h-6 rounded-full bg-[#ef4444] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#f97316"
+                    class="w-6 h-6 rounded-full bg-[#f97316] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#eab308"
+                    class="w-6 h-6 rounded-full bg-[#eab308] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#10b981"
+                    class="w-6 h-6 rounded-full bg-[#10b981] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#06b6d4"
+                    class="w-6 h-6 rounded-full bg-[#06b6d4] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#3b82f6"
+                    class="w-6 h-6 rounded-full bg-[#3b82f6] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#8b5cf6"
+                    class="w-6 h-6 rounded-full bg-[#8b5cf6] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#ec4899"
+                    class="w-6 h-6 rounded-full bg-[#ec4899] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#6b7280"
+                    class="w-6 h-6 rounded-full bg-[#6b7280] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+                <button
+                    type="button"
+                    data-color="#111827"
+                    class="w-6 h-6 rounded-full bg-[#111827] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                ></button>
+            </div>
+            <div class="flex items-center gap-2 pt-1 border-t border-[#2d2d32]">
+                <span class="text-[10px] text-[#a1a1aa]" data-i18n="tags.custom_color"
+                    >Własny:</span
+                >
+                <input
+                    type="color"
+                    id="tag-custom-color-input"
+                    class="w-full h-6 rounded bg-transparent border-0 cursor-pointer"
+                />
             </div>
         </div>
-        <div class="my-1 border-t border-[#333338]"></div>
-        <button id="ctx-delete" type="button" class="w-full px-3 py-1.5 text-left hover:bg-red-600 text-red-300 hover:text-white flex items-center gap-2 cursor-pointer">
-            <span>🗑️</span> <span data-i18n="context_menu.delete">Usuń element</span>
-        </button>
-    </div>
 
-    <!-- Tag Color Picker Popover -->
-    <div id="tag-color-picker-popover" class="hidden fixed bg-[#18181b] border border-[#3f3f46] shadow-2xl rounded-lg p-2.5 z-50 w-48 space-y-2">
-        <span class="block text-[10px] font-semibold text-[#a1a1aa] uppercase tracking-wider mb-1" data-i18n="tags.choose_color">Wybierz kolor taga</span>
-        <div class="grid grid-cols-5 gap-1.5" id="preset-colors-grid">
-            <button type="button" data-color="#ef4444" class="w-6 h-6 rounded-full bg-[#ef4444] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#f97316" class="w-6 h-6 rounded-full bg-[#f97316] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#eab308" class="w-6 h-6 rounded-full bg-[#eab308] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#10b981" class="w-6 h-6 rounded-full bg-[#10b981] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#06b6d4" class="w-6 h-6 rounded-full bg-[#06b6d4] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#3b82f6" class="w-6 h-6 rounded-full bg-[#3b82f6] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#8b5cf6" class="w-6 h-6 rounded-full bg-[#8b5cf6] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#ec4899" class="w-6 h-6 rounded-full bg-[#ec4899] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#6b7280" class="w-6 h-6 rounded-full bg-[#6b7280] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-            <button type="button" data-color="#111827" class="w-6 h-6 rounded-full bg-[#111827] border border-white/20 hover:scale-110 transition-transform cursor-pointer"></button>
-        </div>
-        <div class="flex items-center gap-2 pt-1 border-t border-[#2d2d32]">
-            <span class="text-[10px] text-[#a1a1aa]" data-i18n="tags.custom_color">Własny:</span>
-            <input type="color" id="tag-custom-color-input" class="w-full h-6 rounded bg-transparent border-0 cursor-pointer" />
-        </div>
-    </div>
-
-    <script type="module" src="MainWindow.js"></script>
-</body>
-
+        <script type="module" src="MainWindow.js"></script>
+    </body>
 </html>

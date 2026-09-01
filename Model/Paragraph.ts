@@ -53,6 +53,21 @@ export class Paragraph {
         this.title = title
     }
 
+    public getName(): string {
+        return this.title
+    }
+
+    public setName(name: string): void {
+        this.title = name
+    }
+
+    public randomizeNumber(min: number = 1, max: number = 999): number {
+        if (this.randomizedNumber === 0) {
+            this.randomizedNumber = Math.floor(Math.random() * (max - min + 1)) + min
+        }
+        return this.randomizedNumber
+    }
+
     public getContent(): Description {
         return this.content
     }
@@ -147,32 +162,34 @@ export class Paragraph {
         this.combat = combat
     }
 
-    public static fromJSON(json: any): Paragraph {
+    public static fromJSON(json: Record<string, unknown> | null | undefined): Paragraph {
         if (!json) return new Paragraph('')
-        const tagsParsed = (json.tags || []).map((t: any) => Tag.fromJSON(t))
-        const title = json.title ?? ''
-        const content = json.content
-        const jumps = json.jumps || []
-        const hasCombat = json.hasCombat ?? false
-        const combatData = json.combat
+        const rawTags = Array.isArray(json.tags) ? json.tags : []
+        const tagsParsed = rawTags.map(t => Tag.fromJSON(t as Record<string, unknown>))
+        const title = typeof json.title === 'string' ? json.title : ''
+        const content = json.content as Record<string, unknown> | undefined
+        const rawJumps = Array.isArray(json.jumps) ? json.jumps : []
+        const jumps = rawJumps.map(przeskok => Choice.fromJSON(przeskok as Record<string, unknown>))
+        const hasCombat = typeof json.hasCombat === 'boolean' ? json.hasCombat : false
+        const combatData = json.combat as Record<string, unknown> | undefined
 
         const p = new Paragraph(
-            json.id || '',
+            typeof json.id === 'string' ? json.id : '',
             title,
             Description.fromJSON(content),
-            jumps.map((przeskok: any) => Choice.fromJSON(przeskok)),
+            jumps,
             hasCombat,
             combatData ? Combat.fromJSON(combatData) : new Combat('', ''),
             tagsParsed
         )
-        if (json.number !== undefined) p.number = json.number
-        if (json.randomizedNumber !== undefined) p.randomizedNumber = json.randomizedNumber
-        if (json.isNumberLocked !== undefined) p.isNumberLocked = json.isNumberLocked
+        if (typeof json.number === 'number') p.number = json.number
+        if (typeof json.randomizedNumber === 'number') p.randomizedNumber = json.randomizedNumber
+        if (typeof json.isNumberLocked === 'boolean') p.isNumberLocked = json.isNumberLocked
 
         return p
     }
 
-    public toJSON(): any {
+    public toJSON(): Record<string, unknown> {
         return {
             id: this.id,
             title: this.title,

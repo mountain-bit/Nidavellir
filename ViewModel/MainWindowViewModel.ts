@@ -39,6 +39,42 @@ export type LeftTab =
     | 'explorer'
 export type MainViewMode = 'markdown' | 'graph'
 
+export interface IIdentifiableEntity {
+    getId?: () => string
+    getName?: () => string
+    setName?: (name: string) => void
+    getTitle?: () => string
+    setTitle?: (title: string) => void
+    getContent?: () => Description
+    getIsNumberLocked?: () => boolean
+    setIsNumberLocked?: (locked: boolean) => void
+    getNumber?: () => number
+    setNumber?: (num: number) => void
+    getTags?: () => Tag[]
+    addTag?: (tag: Tag) => void
+    removeTag?: (tagId: string) => void
+    getStats?: () => Stat[]
+    addStat?: (stat: Stat) => void
+    removeStat?: (statId: string) => void
+}
+
+export interface IHistoryItem {
+    id: string
+    name: string
+    type:
+        | 'paragraph'
+        | 'scene'
+        | 'character'
+        | 'location'
+        | 'item'
+        | 'stat'
+        | 'tag'
+        | 'class'
+        | 'document'
+    entity: IIdentifiableEntity
+    parent?: unknown
+}
+
 export class MainWindowViewModel {
     private activeRibbonTab: RibbonTab = 'glowna'
     private activeLeftTab: LeftTab | null = 'paragraphs'
@@ -46,6 +82,14 @@ export class MainWindowViewModel {
     private activeMainView: MainViewMode = 'markdown'
     private activeFile: string | null = null
     private openFiles: string[] = []
+
+    // Panel Resizing Widths
+    private leftDrawerWidth: number = 260
+    private rightSidebarWidth: number = 280
+
+    // Selection & History State
+    private selectedItem: IHistoryItem | null = null
+    private history: IHistoryItem[] = []
 
     // Section Search Queries
     private paragraphSearchQuery: string = ''
@@ -102,6 +146,224 @@ export class MainWindowViewModel {
 
     public setRightSidebarCollapsed(collapsed: boolean): void {
         this.rightSidebarCollapsed = collapsed
+    }
+
+    public getLeftDrawerWidth(): number {
+        return this.leftDrawerWidth
+    }
+
+    public setLeftDrawerWidth(width: number): void {
+        this.leftDrawerWidth = Math.max(180, Math.min(600, width))
+    }
+
+    public getRightSidebarWidth(): number {
+        return this.rightSidebarWidth
+    }
+
+    public setRightSidebarWidth(width: number): void {
+        this.rightSidebarWidth = Math.max(220, Math.min(700, width))
+    }
+
+    // --- SELECTION & HISTORY MANAGEMENT ---
+
+    public getSelectedItem(): IHistoryItem | null {
+        return this.selectedItem
+    }
+
+    public getHistory(): IHistoryItem[] {
+        return [...this.history]
+    }
+
+    public selectElement(
+        entity: IIdentifiableEntity,
+        type: IHistoryItem['type'],
+        parent?: unknown
+    ): IHistoryItem {
+        const id = entity.getId ? entity.getId() : `id_${Date.now()}`
+        const name = entity.getName ? entity.getName() : entity.getTitle ? entity.getTitle() : id
+
+        const item: IHistoryItem = {
+            id,
+            name,
+            type,
+            entity,
+            parent,
+        }
+
+        this.selectedItem = item
+        this.rightSidebarCollapsed = false
+
+        this.history = this.history.filter(h => h.id !== id || h.type !== type)
+        this.history.unshift(item)
+
+        if (this.history.length > 30) {
+            this.history.pop()
+        }
+
+        return item
+    }
+
+    public selectHistoryItem(id: string): IHistoryItem | null {
+        const found = this.history.find(h => h.id === id)
+        if (found) {
+            this.selectedItem = found
+            this.rightSidebarCollapsed = false
+            return found
+        }
+        return null
+    }
+
+    public closeHistoryItem(id: string): void {
+        const index = this.history.findIndex(h => h.id === id)
+        if (index >= 0) {
+            this.history.splice(index, 1)
+            if (this.selectedItem?.id === id) {
+                this.selectedItem = this.history.length > 0 ? this.history[0] : null
+            }
+        }
+    }
+
+    public closeAllHistory(): void {
+        this.history = []
+        this.selectedItem = null
+    }
+
+    // --- VALIDATION & PROPERTY UPDATES ---
+
+    public validateName(
+        newName: string,
+        item: IHistoryItem,
+        allEntities?: IIdentifiableEntity[]
+    ): { valid: boolean; message?: string } {
+        const trimmed = newName.trim()
+        if (!trimmed) {
+            return { valid: false, message: 'Name cannot be empty.' }
+        }
+
+        if (allEntities && allEntities.length > 0) {
+            const hasCollision = allEntities.some(
+                e =>
+                    e &&
+                    (e.getId ? e.getId() : '') !== item.id &&
+                    (e.getName ? e.getName() : e.getTitle ? e.getTitle() : '').toLowerCase() ===
+                        trimmed.toLowerCase()
+            )
+            if (hasCollision) {
+                return {
+                    valid: false,
+                    message: `An item named "${trimmed}" already exists in this scope.`,
+                }
+            }
+        }
+
+        return { valid: true }
+    }
+
+    public updateName(newName: string, allEntities?: IIdentifiableEntity[]): boolean {
+        if (!this.selectedItem?.entity) return false
+        const validation = this.validateName(newName, this.selectedItem, allEntities)
+        if (!validation.valid) return false
+
+        const trimmed = newName.trim()
+        if (this.selectedItem.entity.setName) {
+            this.selectedItem.entity.setName(trimmed)
+        } else if (this.selectedItem.entity.setTitle) {
+            this.selectedItem.entity.setTitle(trimmed)
+        }
+
+        this.selectedItem.name = trimmed
+        const hist = this.history.find(h => h.id === this.selectedItem!.id)
+        if (hist) {
+            hist.name = trimmed
+        }
+
+        return true
+    }
+
+    public updateSummary(summary: string): void {
+        if (!this.selectedItem?.entity) return
+        const entity = this.selectedItem.entity
+        if (entity.getContent && entity.getContent()) {
+            entity.getContent().setSummary(summary)
+        }
+    }
+
+    public toggleNumberLock(locked: boolean): void {
+        if (
+            this.selectedItem?.type === 'paragraph' &&
+            this.selectedItem.entity &&
+            this.selectedItem.entity.setIsNumberLocked
+        ) {
+            this.selectedItem.entity.setIsNumberLocked(locked)
+        }
+    }
+
+    public updateCustomNumber(numberVal: number): void {
+        if (
+            this.selectedItem?.type === 'paragraph' &&
+            this.selectedItem.entity &&
+            this.selectedItem.entity.setNumber
+        ) {
+            this.selectedItem.entity.setNumber(numberVal)
+        }
+    }
+
+    public addTagToSelected(tag: Tag): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addTag) {
+            this.selectedItem.entity.addTag(tag)
+        }
+    }
+
+    public removeTagFromSelected(tagIdOrName: string): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.removeTag) {
+            this.selectedItem.entity.removeTag(tagIdOrName)
+        }
+    }
+
+    public addStatToSelected(stat: Stat): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addStat) {
+            this.selectedItem.entity.addStat(stat)
+        }
+    }
+
+    public removeStatFromSelected(statId: string): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.removeStat) {
+            this.selectedItem.entity.removeStat(statId)
+        }
+    }
+
+    public openOrCreateDescriptionFile(fileType: 'text' | 'author'): {
+        fileName: string
+        content: string
+    } {
+        if (!this.selectedItem?.entity) {
+            return { fileName: '', content: '' }
+        }
+
+        const entity = this.selectedItem.entity
+        const desc: Description = entity.getContent ? entity.getContent() : new Description()
+        const safeName = this.selectedItem.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+        const fileName = `${safeName}_${fileType === 'text' ? 'text' : 'author'}.md`
+
+        let content = ''
+        if (fileType === 'text') {
+            if (!desc.getText()) {
+                desc.setText(`# ${this.selectedItem.name}\n\nNarrative text for players.`)
+            }
+            content = desc.getText()
+        } else {
+            if (!desc.getAuthorNotes()) {
+                desc.setAuthorNotes(`# Author Notes: ${this.selectedItem.name}\n\nNotes and ideas.`)
+            }
+            content = desc.getAuthorNotes()
+        }
+
+        this.setActiveFile(fileName)
+        return { fileName, content }
     }
 
     public getActiveMainView(): MainViewMode {

@@ -747,6 +747,8 @@ function renderParagraphsList() {
         `
         })
         .join('')
+
+    attachItemSelectionListeners(container, 'paragraph', projectParagraphs)
 }
 
 function renderScenesList() {
@@ -769,6 +771,8 @@ function renderScenesList() {
         `
         })
         .join('')
+
+    attachItemSelectionListeners(container, 'scene', projectScenes)
 }
 
 function renderTagsList() {
@@ -797,6 +801,7 @@ function renderTagsList() {
 
     attachContextMenuListeners(container, 'tag', projectTags)
     attachColorPickerListeners(container)
+    attachItemSelectionListeners(container, 'tag', projectTags)
 }
 
 function renderCharactersList() {
@@ -838,6 +843,7 @@ function renderCharactersList() {
         .join('')
 
     attachContextMenuListeners(container, 'character', projectCharacters)
+    attachItemSelectionListeners(container, 'character', projectCharacters)
 }
 
 function renderLocationsList() {
@@ -872,6 +878,7 @@ function renderLocationsList() {
         .join('')
 
     attachContextMenuListeners(container, 'location', projectLocations)
+    attachItemSelectionListeners(container, 'location', projectLocations)
 }
 
 function renderTraitsList() {
@@ -895,6 +902,7 @@ function renderTraitsList() {
         .join('')
 
     attachContextMenuListeners(container, 'trait', projectStats)
+    attachItemSelectionListeners(container, 'trait', projectStats)
 }
 
 // Helpers for Context Menu & Color Picker Listeners
@@ -968,6 +976,560 @@ function attachColorPickerListeners(container) {
                 colorPickerPopover.style.left = `${Math.min(rect.left, window.innerWidth - 200)}px`
                 colorPickerPopover.style.top = `${rect.bottom + 4}px`
                 colorPickerPopover.classList.remove('hidden')
+            }
+        })
+    })
+}
+
+// Selection and Details Panel UI
+function selectEntity(entity, type, parent) {
+    vm.selectElement(entity, type, parent)
+    updateRightSidebarUI()
+    renderHistoryBar()
+    renderDetailsPanel()
+}
+
+function getTypeIcon(type) {
+    switch (type) {
+        case 'paragraph':
+            return '📄 §'
+        case 'scene':
+            return '🎬'
+        case 'character':
+            return '👤'
+        case 'location':
+            return '📍'
+        case 'stat':
+        case 'trait':
+            return '⚡'
+        case 'tag':
+            return '🏷️'
+        case 'item':
+            return '🎒'
+        case 'class':
+            return '🛡️'
+        default:
+            return '📄'
+    }
+}
+
+function getTypeBadgeColor(type) {
+    switch (type) {
+        case 'paragraph':
+            return 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50'
+        case 'scene':
+            return 'bg-blue-900/60 text-blue-300 border-blue-700/50'
+        case 'character':
+            return 'bg-purple-900/60 text-purple-300 border-purple-700/50'
+        case 'location':
+            return 'bg-amber-900/60 text-amber-300 border-amber-700/50'
+        case 'stat':
+        case 'trait':
+            return 'bg-cyan-900/60 text-cyan-300 border-cyan-700/50'
+        case 'tag':
+            return 'bg-pink-900/60 text-pink-300 border-pink-700/50'
+        case 'item':
+            return 'bg-yellow-900/60 text-yellow-300 border-yellow-700/50'
+        default:
+            return 'bg-zinc-800 text-zinc-300 border-zinc-700'
+    }
+}
+
+function renderHistoryBar() {
+    const container = document.getElementById('history-tabs-container')
+    if (!container) return
+    container.innerHTML = ''
+
+    const history = vm.getHistory()
+    const selected = vm.getSelectedItem()
+
+    if (history.length === 0) {
+        container.innerHTML = `<span class="text-[10px] text-gray-500 italic px-1 select-none">${t('details.history')}: brak</span>`
+        return
+    }
+
+    const scrollWrapper = document.createElement('div')
+    scrollWrapper.className =
+        'flex items-center gap-1 min-w-0 flex-1 overflow-x-auto custom-scrollbar py-0.5'
+
+    history.forEach(item => {
+        const isActive = selected && selected.id === item.id && selected.type === item.type
+        const tab = document.createElement('button')
+        tab.type = 'button'
+        tab.className = `group flex items-center gap-1 px-2 py-0.5 rounded text-[11px] whitespace-nowrap transition-colors shrink-0 cursor-pointer ${
+            isActive
+                ? 'bg-[#2a2a2f] text-white border border-blue-500/50 font-medium'
+                : 'bg-[#1e1e22] text-[#a1a1aa] hover:bg-[#25252a] hover:text-white border border-transparent'
+        }`
+
+        const icon = document.createElement('span')
+        icon.className = 'text-[10px] opacity-80'
+        icon.textContent = getTypeIcon(item.type)
+
+        const nameSpan = document.createElement('span')
+        nameSpan.className = 'truncate max-w-[100px]'
+        nameSpan.textContent = item.name
+
+        const closeBtn = document.createElement('span')
+        closeBtn.className = 'ml-0.5 hover:text-red-400 opacity-60 hover:opacity-100 rounded px-0.5'
+        closeBtn.textContent = '×'
+        closeBtn.title = t('buttons.close')
+        closeBtn.addEventListener('click', e => {
+            e.stopPropagation()
+            vm.closeHistoryItem(item.id)
+            renderHistoryBar()
+            renderDetailsPanel()
+        })
+
+        tab.appendChild(icon)
+        tab.appendChild(nameSpan)
+        tab.appendChild(closeBtn)
+
+        tab.addEventListener('click', () => {
+            vm.selectHistoryItem(item.id)
+            renderHistoryBar()
+            renderDetailsPanel()
+        })
+
+        scrollWrapper.appendChild(tab)
+    })
+
+    const closeAllBtn = document.createElement('button')
+    closeAllBtn.type = 'button'
+    closeAllBtn.className =
+        'shrink-0 ml-auto px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-red-400 hover:bg-[#27272a] rounded transition-colors cursor-pointer'
+    closeAllBtn.title = t('details.close_all')
+    closeAllBtn.textContent = '✕✕'
+    closeAllBtn.addEventListener('click', () => {
+        vm.closeAllHistory()
+        renderHistoryBar()
+        renderDetailsPanel()
+    })
+
+    container.appendChild(scrollWrapper)
+    container.appendChild(closeAllBtn)
+}
+
+function renderDetailsPanel() {
+    const container = document.getElementById('details-content')
+    if (!container) return
+    container.innerHTML = ''
+
+    const item = vm.getSelectedItem()
+    if (!item) {
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-8 text-center text-gray-500 h-64">
+                <div class="text-3xl mb-3 text-gray-600">§</div>
+                <p class="text-xs leading-relaxed max-w-[200px]" data-i18n="details.no_selection">${t('details.no_selection')}</p>
+            </div>
+        `
+        return
+    }
+
+    const { entity, type } = item
+
+    let entityScope = []
+    if (type === 'paragraph') entityScope = projectParagraphs
+    else if (type === 'scene') entityScope = projectScenes
+    else if (type === 'character') entityScope = projectCharacters
+    else if (type === 'location') entityScope = projectLocations
+    else if (type === 'stat' || type === 'trait') entityScope = projectStats
+    else if (type === 'tag') entityScope = projectTags
+
+    // --- MODUL 1: Typ & ID ---
+    const headerMod = document.createElement('section')
+    headerMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    headerMod.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold tracking-widest text-[#71717a]">${t('details.type')}</span>
+            <span class="px-2 py-0.5 text-[11px] rounded border ${getTypeBadgeColor(type)} font-medium">${type.toUpperCase()}</span>
+        </div>
+        <div class="text-[10px] text-gray-500 font-mono truncate">ID: ${escapeHtml(item.id)}</div>
+    `
+    container.appendChild(headerMod)
+
+    // --- MODUL 2: Nazwa z walidacją Live i kolizją ---
+    const nameMod = document.createElement('section')
+    nameMod.className = 'border-b border-[#333338] p-3 space-y-1.5'
+    nameMod.innerHTML = `
+        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.name')}</label>
+        <input id="details-name-input" type="text" value="${escapeHtml(item.name)}"
+            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+        <div id="details-name-error" class="hidden text-[11px] text-red-400"></div>
+    `
+    const nameInput = nameMod.querySelector('#details-name-input')
+    const nameError = nameMod.querySelector('#details-name-error')
+
+    const validateAndSaveName = () => {
+        const val = nameInput.value.trim()
+        const res = vm.validateName(val, item, entityScope)
+        if (!res.valid) {
+            nameError.textContent = res.message || t('details.name_required')
+            nameError.classList.remove('hidden')
+            nameInput.classList.add('border-red-500')
+            return false
+        } else {
+            nameError.classList.add('hidden')
+            nameInput.classList.remove('border-red-500')
+            vm.updateName(val, entityScope)
+            renderHistoryBar()
+            refreshActiveSection(type)
+            return true
+        }
+    }
+
+    nameInput.addEventListener('input', () => {
+        const val = nameInput.value.trim()
+        const res = vm.validateName(val, item, entityScope)
+        if (!res.valid) {
+            nameError.textContent = res.message || t('details.name_required')
+            nameError.classList.remove('hidden')
+            nameInput.classList.add('border-red-500')
+        } else {
+            nameError.classList.add('hidden')
+            nameInput.classList.remove('border-red-500')
+        }
+    })
+
+    nameInput.addEventListener('blur', validateAndSaveName)
+    nameInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            if (validateAndSaveName()) nameInput.blur()
+        }
+    })
+    container.appendChild(nameMod)
+
+    // --- MODUL 3: Numeracja Paragrafu (dla Paragrafu) ---
+    if (type === 'paragraph' && entity instanceof Paragraph) {
+        const numMod = document.createElement('section')
+        numMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        const isLocked = entity.getIsNumberLocked()
+        const customNum = entity.getNumber()
+
+        numMod.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.paragraph_number')}</span>
+                <span id="details-number-mode-badge" class="text-[10px] font-medium px-2 py-0.5 rounded ${
+                    isLocked
+                        ? 'bg-amber-900/50 text-amber-300 border border-amber-700/50'
+                        : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+                }">
+                    ${isLocked ? `#${customNum || 1} (${t('details.custom_number')})` : t('details.auto_number')}
+                </span>
+            </div>
+            <div class="flex items-center gap-2 pt-1">
+                <label class="flex items-center gap-1.5 text-xs text-[#d4d4d8] cursor-pointer select-none">
+                    <input type="checkbox" id="details-number-lock" ${isLocked ? 'checked' : ''} class="rounded accent-blue-500 cursor-pointer" />
+                    <span>${t('details.lock_number')}</span>
+                </label>
+                <input id="details-custom-number" type="number" value="${isLocked && customNum ? customNum : ''}" placeholder="${t('details.custom_number_placeholder')}"
+                    ${!isLocked ? 'disabled' : ''}
+                    class="w-28 bg-[#18181b] border border-[#3f3f46] disabled:opacity-30 rounded px-2 py-0.5 text-xs text-white text-right focus:outline-none focus:border-blue-500" />
+            </div>
+        `
+
+        const lockCheckbox = numMod.querySelector('#details-number-lock')
+        const customNumInput = numMod.querySelector('#details-custom-number')
+        const modeBadge = numMod.querySelector('#details-number-mode-badge')
+
+        lockCheckbox.addEventListener('change', () => {
+            const locked = lockCheckbox.checked
+            vm.toggleNumberLock(locked)
+            customNumInput.disabled = !locked
+            if (!locked) {
+                vm.updateCustomNumber(0)
+                customNumInput.value = ''
+                if (modeBadge) {
+                    modeBadge.className =
+                        'text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700'
+                    modeBadge.textContent = t('details.auto_number')
+                }
+            } else {
+                const parsed = parseInt(customNumInput.value, 10) || 1
+                vm.updateCustomNumber(parsed)
+                customNumInput.value = String(parsed)
+                if (modeBadge) {
+                    modeBadge.className =
+                        'text-[10px] font-medium px-2 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50'
+                    modeBadge.textContent = `#${parsed} (${t('details.custom_number')})`
+                }
+            }
+            renderParagraphsList()
+        })
+
+        customNumInput.addEventListener('input', () => {
+            const val = parseInt(customNumInput.value, 10) || 0
+            vm.updateCustomNumber(val)
+            if (modeBadge && lockCheckbox.checked) {
+                modeBadge.textContent = `#${val} (${t('details.custom_number')})`
+            }
+            renderParagraphsList()
+        })
+
+        container.appendChild(numMod)
+    }
+
+    // --- MODUL 4: Streszczenie ---
+    if (entity.getContent && entity.getContent()) {
+        const summaryMod = document.createElement('section')
+        summaryMod.className = 'border-b border-[#333338] p-3 space-y-1.5'
+        const currentSummary = entity.getContent().getSummary() || ''
+
+        summaryMod.innerHTML = `
+            <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.summary')}</label>
+            <textarea id="details-summary-input" rows="2" placeholder="${t('details.summary_placeholder')}"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded p-2 text-xs text-white focus:outline-none focus:border-blue-500 resize-none">${escapeHtml(currentSummary)}</textarea>
+        `
+
+        const summaryInput = summaryMod.querySelector('#details-summary-input')
+        summaryInput.addEventListener('input', () => {
+            vm.updateSummary(summaryInput.value)
+        })
+
+        container.appendChild(summaryMod)
+    }
+
+    // --- MODUL 5: Pliki Narracyjne (text.md & author.md) ---
+    if (entity.getContent) {
+        const filesMod = document.createElement('section')
+        filesMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        filesMod.innerHTML = `
+            <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.description_files')}</div>
+            <div class="flex flex-col gap-1.5">
+                <button id="btn-open-player-text" type="button" class="w-full px-2.5 py-1.5 bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] rounded text-xs text-white text-left flex items-center justify-between cursor-pointer">
+                    <span>📄 ${t('details.open_player_text')}</span>
+                    <span class="text-blue-400 font-bold">→</span>
+                </button>
+                <button id="btn-open-author-notes" type="button" class="w-full px-2.5 py-1.5 bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] rounded text-xs text-white text-left flex items-center justify-between cursor-pointer">
+                    <span>📝 ${t('details.open_author_notes')}</span>
+                    <span class="text-blue-400 font-bold">→</span>
+                </button>
+            </div>
+        `
+
+        filesMod.querySelector('#btn-open-player-text').addEventListener('click', () => {
+            const { fileName, content } = vm.openOrCreateDescriptionFile('text')
+            if (fileName) {
+                files[fileName] = content
+                updateMainWorkspaceUI()
+                toast.success(`${t('details.open_player_text')}: ${t('details.file_created')}`)
+            }
+        })
+
+        filesMod.querySelector('#btn-open-author-notes').addEventListener('click', () => {
+            const { fileName, content } = vm.openOrCreateDescriptionFile('author')
+            if (fileName) {
+                files[fileName] = content
+                updateMainWorkspaceUI()
+                toast.success(`${t('details.open_author_notes')}: ${t('details.file_created')}`)
+            }
+        })
+
+        container.appendChild(filesMod)
+    }
+
+    // --- MODUL 6: Tagi ---
+    if (entity.getTags && entity.addTag && entity.removeTag) {
+        const tagsMod = document.createElement('section')
+        tagsMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        const currentTags = entity.getTags() || []
+
+        tagsMod.innerHTML = `
+            <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.tags')}</div>
+            <div id="details-tags-list" class="flex flex-wrap gap-1 min-h-[22px]"></div>
+            <div class="flex gap-1 pt-1">
+                <select id="details-add-tag-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
+                    <option value="">${t('left_panel.no_tags')}</option>
+                </select>
+                <button id="btn-details-add-tag" type="button" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium cursor-pointer">
+                    ${t('details.add_tag')}
+                </button>
+            </div>
+        `
+
+        const tagsListEl = tagsMod.querySelector('#details-tags-list')
+        currentTags.forEach(tObj => {
+            const chip = document.createElement('span')
+            chip.className =
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-white'
+            chip.style.backgroundColor = tObj.getColor() || DEFAULT_TAG_COLOR
+            chip.innerHTML = `<span>#${escapeHtml(tObj.getName())}</span><button class="hover:text-red-200 ml-0.5 cursor-pointer" title="${t('buttons.delete')}">×</button>`
+            chip.querySelector('button').addEventListener('click', () => {
+                vm.removeTagFromSelected(tObj.getId())
+                renderDetailsPanel()
+                refreshActiveSection(type)
+            })
+            tagsListEl.appendChild(chip)
+        })
+
+        const tagSelect = tagsMod.querySelector('#details-add-tag-select')
+        tagSelect.innerHTML =
+            `<option value="">-- ${t('details.tags')} --</option>` +
+            projectTags
+                .map(
+                    tObj =>
+                        `<option value="${escapeHtml(tObj.getId())}">${escapeHtml(tObj.getName())}</option>`
+                )
+                .join('')
+
+        tagsMod.querySelector('#btn-details-add-tag').addEventListener('click', () => {
+            const selectedId = tagSelect.value
+            const tagObj = projectTags.find(t => t.getId() === selectedId)
+            if (tagObj) {
+                vm.addTagToSelected(tagObj)
+                renderDetailsPanel()
+                refreshActiveSection(type)
+            }
+        })
+
+        container.appendChild(tagsMod)
+    }
+
+    // --- MODUL 7: Cechy / Statystyki (dla NPC / Postaci) ---
+    if (entity.getStats && entity.addStat && entity.removeStat) {
+        const statsMod = document.createElement('section')
+        statsMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        const statsList = entity.getStats() || []
+
+        statsMod.innerHTML = `
+            <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.traits')}</div>
+            <div id="details-stats-list" class="flex flex-col gap-1 min-h-[20px]"></div>
+            <div class="flex gap-1 pt-1">
+                <select id="details-add-stat-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
+                    <option value="">-- ${t('details.traits')} --</option>
+                </select>
+                <button id="btn-details-add-stat" type="button" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium cursor-pointer">
+                    ${t('details.add_trait')}
+                </button>
+            </div>
+        `
+
+        const statsListEl = statsMod.querySelector('#details-stats-list')
+        statsList.forEach(st => {
+            const row = document.createElement('div')
+            row.className =
+                'flex items-center justify-between bg-[#18181b] px-2 py-1 rounded border border-[#27272a] text-xs'
+            row.innerHTML = `
+                <span class="text-[#d4d4d8] font-medium">⚡ ${escapeHtml(st.getName())}</span>
+                <button class="text-gray-400 hover:text-red-400 font-bold ml-1 cursor-pointer" title="${t('buttons.delete')}">×</button>
+            `
+            row.querySelector('button').addEventListener('click', () => {
+                vm.removeStatFromSelected(st.getId())
+                renderDetailsPanel()
+                refreshActiveSection(type)
+            })
+            statsListEl.appendChild(row)
+        })
+
+        const statSelect = statsMod.querySelector('#details-add-stat-select')
+        statSelect.innerHTML =
+            `<option value="">-- ${t('details.traits')} --</option>` +
+            projectStats
+                .map(
+                    st =>
+                        `<option value="${escapeHtml(st.getId())}">${escapeHtml(st.getName())}</option>`
+                )
+                .join('')
+
+        statsMod.querySelector('#btn-details-add-stat').addEventListener('click', () => {
+            const statId = statSelect.value
+            const statObj = projectStats.find(s => s.getId() === statId)
+            if (statObj) {
+                vm.addStatToSelected(statObj)
+                renderDetailsPanel()
+                refreshActiveSection(type)
+            }
+        })
+
+        container.appendChild(statsMod)
+    }
+
+    // --- MODUL 8: Szybkie akcje / Graf ---
+    const actionsMod = document.createElement('section')
+    actionsMod.className = 'p-3 space-y-2'
+    actionsMod.innerHTML = `
+        <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('right_panel.quick_actions')}</div>
+        <button id="btn-details-show-graph" class="w-full py-1.5 px-3 rounded bg-[#2e2e33] hover:bg-[#38383f] text-xs text-left text-white flex items-center justify-between cursor-pointer" type="button">
+            <span>${t('right_panel.show_story_graph')}</span>
+            <span>⌘</span>
+        </button>
+    `
+    actionsMod.querySelector('#btn-details-show-graph').addEventListener('click', () => {
+        vm.setActiveMainView('graph')
+        updateMainWorkspaceUI()
+    })
+    container.appendChild(actionsMod)
+}
+
+function setupResizers() {
+    const leftResizer = document.getElementById('left-resizer')
+    const rightResizer = document.getElementById('right-resizer')
+
+    if (leftResizer && leftDrawer) {
+        let isDraggingLeft = false
+        leftResizer.addEventListener('mousedown', () => {
+            isDraggingLeft = true
+            leftResizer.classList.add('resizing')
+            document.body.style.cursor = 'col-resize'
+            document.body.style.userSelect = 'none'
+        })
+
+        window.addEventListener('mousemove', e => {
+            if (!isDraggingLeft) return
+            const newWidth = e.clientX - 52
+            if (newWidth >= 180 && newWidth <= 600) {
+                leftDrawer.style.width = `${newWidth}px`
+                vm.setLeftDrawerWidth(newWidth)
+            }
+        })
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingLeft) {
+                isDraggingLeft = false
+                leftResizer.classList.remove('resizing')
+                document.body.style.cursor = ''
+                document.body.style.userSelect = ''
+            }
+        })
+    }
+
+    if (rightResizer && rightSidebar) {
+        let isDraggingRight = false
+        rightResizer.addEventListener('mousedown', () => {
+            isDraggingRight = true
+            rightResizer.classList.add('resizing')
+            document.body.style.cursor = 'col-resize'
+            document.body.style.userSelect = 'none'
+        })
+
+        window.addEventListener('mousemove', e => {
+            if (!isDraggingRight) return
+            const newWidth = window.innerWidth - e.clientX
+            if (newWidth >= 220 && newWidth <= 700) {
+                rightSidebar.style.width = `${newWidth}px`
+                vm.setRightSidebarWidth(newWidth)
+            }
+        })
+
+        window.addEventListener('mouseup', () => {
+            if (isDraggingRight) {
+                isDraggingRight = false
+                rightResizer.classList.remove('resizing')
+                document.body.style.cursor = ''
+                document.body.style.userSelect = ''
+            }
+        })
+    }
+}
+
+function attachItemSelectionListeners(container, type, sourceArray) {
+    container.querySelectorAll('.drawer-item').forEach(el => {
+        el.addEventListener('dblclick', e => {
+            e.preventDefault()
+            const id = el.dataset.itemId
+            const item = sourceArray.find(x => x.getId() === id)
+            if (item) {
+                selectEntity(item, type === 'trait' ? 'stat' : type)
             }
         })
     })
@@ -1225,9 +1787,12 @@ async function initApp() {
     applyTranslations()
     setupParagraphSearchAndFilters()
     setupSectionControlsAndContextMenu()
+    setupResizers()
     updateRibbonUI()
     updateLeftDrawerUI()
     updateRightSidebarUI()
+    renderHistoryBar()
+    renderDetailsPanel()
     updateMainWorkspaceUI()
 
     const langSelect = document.getElementById('settings-language-select')
@@ -1246,6 +1811,8 @@ async function initApp() {
             renderCharactersList()
             renderLocationsList()
             renderTraitsList()
+            renderHistoryBar()
+            renderDetailsPanel()
             updateMainWorkspaceUI()
         })
     }
