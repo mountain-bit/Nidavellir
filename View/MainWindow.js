@@ -176,6 +176,7 @@ function updateRibbonUI() {
 function updateLeftDrawerUI() {
     const activeLeftTab = vm.getActiveLeftTab()
     const isOpen = vm.isLeftDrawerOpen()
+    const leftResizer = document.getElementById('left-resizer')
 
     document.querySelectorAll('[data-left-tab]').forEach(btn => {
         if (isOpen && btn.dataset.leftTab === activeLeftTab) {
@@ -187,6 +188,7 @@ function updateLeftDrawerUI() {
 
     if (isOpen && activeLeftTab) {
         leftDrawer.classList.remove('collapsed')
+        if (leftResizer) leftResizer.classList.remove('collapsed')
         updateLeftDrawerTitle()
 
         document.querySelectorAll('.left-tab-content').forEach(content => {
@@ -198,6 +200,7 @@ function updateLeftDrawerUI() {
         })
     } else {
         leftDrawer.classList.add('collapsed')
+        if (leftResizer) leftResizer.classList.add('collapsed')
     }
 }
 
@@ -1467,56 +1470,106 @@ function setupResizers() {
 
     if (leftResizer && leftDrawer) {
         let isDraggingLeft = false
-        leftResizer.addEventListener('mousedown', () => {
+        let startX = 0
+        let startWidth = 0
+        let rafId = null
+
+        leftResizer.addEventListener('mousedown', e => {
+            e.preventDefault()
             isDraggingLeft = true
+            startX = e.clientX
+            startWidth = leftDrawer.getBoundingClientRect().width
             leftResizer.classList.add('resizing')
-            document.body.style.cursor = 'col-resize'
-            document.body.style.userSelect = 'none'
+            document.body.classList.add('is-resizing')
         })
 
         window.addEventListener('mousemove', e => {
             if (!isDraggingLeft) return
-            const newWidth = e.clientX - 52
-            if (newWidth >= 180 && newWidth <= 600) {
+            const clientX = e.clientX
+            if (rafId) return
+            rafId = requestAnimationFrame(() => {
+                rafId = null
+                if (!isDraggingLeft) return
+                const delta = clientX - startX
+                const newWidth = Math.max(180, Math.min(600, Math.round(startWidth + delta)))
                 leftDrawer.style.width = `${newWidth}px`
+                leftDrawer.style.setProperty('--left-drawer-width', `${newWidth}px`)
                 vm.setLeftDrawerWidth(newWidth)
-            }
+                window.dispatchEvent(new Event('resize'))
+            })
         })
 
         window.addEventListener('mouseup', () => {
             if (isDraggingLeft) {
                 isDraggingLeft = false
+                if (rafId) {
+                    cancelAnimationFrame(rafId)
+                    rafId = null
+                }
                 leftResizer.classList.remove('resizing')
-                document.body.style.cursor = ''
-                document.body.style.userSelect = ''
+                document.body.classList.remove('is-resizing')
+                window.dispatchEvent(new Event('resize'))
             }
         })
     }
 
     if (rightResizer && rightSidebar) {
         let isDraggingRight = false
-        rightResizer.addEventListener('mousedown', () => {
+        let startX = 0
+        let startWidth = 0
+        let rafId = null
+
+        rightResizer.addEventListener('mousedown', e => {
+            e.preventDefault()
             isDraggingRight = true
+            startX = e.clientX
+            startWidth = rightSidebar.getBoundingClientRect().width
             rightResizer.classList.add('resizing')
-            document.body.style.cursor = 'col-resize'
-            document.body.style.userSelect = 'none'
+            document.body.classList.add('is-resizing')
         })
 
         window.addEventListener('mousemove', e => {
             if (!isDraggingRight) return
-            const newWidth = window.innerWidth - e.clientX
-            if (newWidth >= 220 && newWidth <= 700) {
+            const clientX = e.clientX
+            if (rafId) return
+            rafId = requestAnimationFrame(() => {
+                rafId = null
+                if (!isDraggingRight) return
+                const delta = startX - clientX
+                const newWidth = Math.max(220, Math.min(700, Math.round(startWidth + delta)))
                 rightSidebar.style.width = `${newWidth}px`
+                rightSidebar.style.setProperty('--right-sidebar-width', `${newWidth}px`)
                 vm.setRightSidebarWidth(newWidth)
-            }
+                window.dispatchEvent(new Event('resize'))
+            })
         })
 
         window.addEventListener('mouseup', () => {
             if (isDraggingRight) {
                 isDraggingRight = false
+                if (rafId) {
+                    cancelAnimationFrame(rafId)
+                    rafId = null
+                }
                 rightResizer.classList.remove('resizing')
-                document.body.style.cursor = ''
-                document.body.style.userSelect = ''
+                document.body.classList.remove('is-resizing')
+                window.dispatchEvent(new Event('resize'))
+            }
+        })
+    }
+
+    // Smooth transition end sync for responsive components
+    if (leftDrawer) {
+        leftDrawer.addEventListener('transitionend', e => {
+            if (e.target === leftDrawer && e.propertyName === 'width') {
+                window.dispatchEvent(new Event('resize'))
+            }
+        })
+    }
+    if (rightSidebar) {
+        rightSidebar.addEventListener('transitionend', e => {
+            if (e.target === rightSidebar && e.propertyName === 'width') {
+                window.dispatchEvent(new Event('resize'))
             }
         })
     }
@@ -1538,12 +1591,15 @@ function attachItemSelectionListeners(container, type, sourceArray) {
 // Render Right Sidebar UI
 function updateRightSidebarUI() {
     const isCollapsed = vm.isRightSidebarCollapsed()
+    const rightResizer = document.getElementById('right-resizer')
     if (isCollapsed) {
         rightSidebar.classList.add('collapsed')
+        if (rightResizer) rightResizer.classList.add('collapsed')
         toggleRightSidebarBtn.textContent = '‹'
         reopenRightSidebarBtn.classList.remove('hidden')
     } else {
         rightSidebar.classList.remove('collapsed')
+        if (rightResizer) rightResizer.classList.remove('collapsed')
         toggleRightSidebarBtn.textContent = '›'
         reopenRightSidebarBtn.classList.add('hidden')
     }
@@ -1630,7 +1686,7 @@ function showGraph() {
     if (!graphElement) return
 
     if (window.cytoscape) {
-        window.cytoscape({
+        window.cyInstance = window.cytoscape({
             container: graphElement,
             elements: [
                 { data: { id: 'p1', label: 'Paragraf 1: Prolog' } },
@@ -1672,6 +1728,12 @@ function showGraph() {
         })
     }
 }
+
+window.addEventListener('resize', () => {
+    if (window.cyInstance) {
+        window.cyInstance.resize()
+    }
+})
 
 // Event Listeners Registration
 document.querySelectorAll('[data-ribbon-tab]').forEach(btn => {
@@ -1785,6 +1847,19 @@ fileEditor.addEventListener('input', () => {
 async function initApp() {
     await initTranslations()
     applyTranslations()
+
+    const initialLeftWidth = vm.getLeftDrawerWidth()
+    if (leftDrawer) {
+        leftDrawer.style.width = `${initialLeftWidth}px`
+        leftDrawer.style.setProperty('--left-drawer-width', `${initialLeftWidth}px`)
+    }
+
+    const initialRightWidth = vm.getRightSidebarWidth()
+    if (rightSidebar) {
+        rightSidebar.style.width = `${initialRightWidth}px`
+        rightSidebar.style.setProperty('--right-sidebar-width', `${initialRightWidth}px`)
+    }
+
     setupParagraphSearchAndFilters()
     setupSectionControlsAndContextMenu()
     setupResizers()

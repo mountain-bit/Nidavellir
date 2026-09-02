@@ -377,13 +377,14 @@
 
             <!-- Sliding Left Panel Drawer (Toggles open/closed when icon clicked) -->
             <aside
-                class="left-drawer-panel w-[260px] bg-[#202023] border-r border-[#333338] flex flex-col shrink-0 z-10"
+                class="left-drawer-panel bg-[#202023] border-r border-[#333338] flex flex-col shrink-0 z-10"
                 id="left-drawer"
                 aria-label="Panel boczny"
             >
-                <div
-                    class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22]"
-                >
+                <div class="drawer-content-wrapper flex flex-col h-full min-h-0">
+                    <div
+                        class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22]"
+                    >
                     <h2
                         class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]"
                         id="left-drawer-title"
@@ -902,7 +903,8 @@
                         </div>
                     </div>
                 </div>
-            </aside>
+            </div>
+        </aside>
 
             <!-- Left Resizer Splitter -->
             <div
@@ -1000,42 +1002,44 @@
 
             <!-- Right Details Panel (Collapsible & Modular) -->
             <aside
-                class="right-details-panel w-[280px] bg-[#202023] border-l border-[#333338] flex flex-col shrink-0 relative overflow-hidden"
+                class="right-details-panel bg-[#202023] border-l border-[#333338] flex flex-col shrink-0 relative overflow-hidden"
                 id="right-sidebar"
                 aria-label="Właściwości i Szczegóły"
             >
-                <!-- Sidebar Header with Arrow Toggle Button -->
-                <div
-                    class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22] shrink-0"
-                >
-                    <h2
-                        class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]"
-                        data-i18n="right_panel.title"
+                <div class="sidebar-content-wrapper flex flex-col h-full min-h-0">
+                    <!-- Sidebar Header with Arrow Toggle Button -->
+                    <div
+                        class="flex h-10 items-center justify-between px-3 border-b border-[#2d2d32] bg-[#1f1f22] shrink-0"
                     >
-                        Właściwości
-                    </h2>
-                    <button
-                        class="text-[#a1a1aa] hover:text-white p-1 rounded hover:bg-[#333338] transition-transform"
-                        id="toggle-right-sidebar-btn"
-                        type="button"
-                        title="Zwiń / Rozwiń właściwości"
-                        data-i18n-title="right_panel.toggle_collapse"
+                        <h2
+                            class="m-0 text-xs font-semibold uppercase tracking-wider text-[#d4d4d8]"
+                            data-i18n="right_panel.title"
+                        >
+                            Właściwości
+                        </h2>
+                        <button
+                            class="text-[#a1a1aa] hover:text-white p-1 rounded hover:bg-[#333338] transition-transform"
+                            id="toggle-right-sidebar-btn"
+                            type="button"
+                            title="Zwiń / Rozwiń właściwości"
+                            data-i18n-title="right_panel.toggle_collapse"
+                        >
+                            ›
+                        </button>
+                    </div>
+
+                    <!-- Top Horizontal History Bar with Close All Button -->
+                    <div
+                        id="history-tabs-container"
+                        class="flex items-center gap-1 border-b border-[#2d2d32] bg-[#1a1a1d] px-2 py-1.5 overflow-hidden shrink-0"
                     >
-                        ›
-                    </button>
-                </div>
+                        <!-- Dynamically rendered history tabs -->
+                    </div>
 
-                <!-- Top Horizontal History Bar with Close All Button -->
-                <div
-                    id="history-tabs-container"
-                    class="flex items-center gap-1 border-b border-[#2d2d32] bg-[#1a1a1d] px-2 py-1.5 overflow-hidden shrink-0"
-                >
-                    <!-- Dynamically rendered history tabs -->
-                </div>
-
-                <!-- Modular Details Content (Separated by dividers) -->
-                <div id="details-content" class="overflow-y-auto flex-1 custom-scrollbar p-0">
-                    <!-- Dynamically rendered detail modules -->
+                    <!-- Modular Details Content (Separated by dividers) -->
+                    <div id="details-content" class="overflow-y-auto flex-1 custom-scrollbar p-0">
+                        <!-- Dynamically rendered detail modules -->
+                    </div>
                 </div>
             </aside>
 

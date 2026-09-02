@@ -2,6 +2,8 @@
 
 /* Custom Layout and UI Polish for MainWindow */
 :root {
+    --left-drawer-width: 260px;
+    --right-sidebar-width: 280px;
     --bg-dark: #18181b;
     --bg-panel: #202023;
     --bg-ribbon: #252528;
@@ -61,32 +63,76 @@ body {
 
 /* Left Drawer Panel Sliding Transition */
 .left-drawer-panel {
+    width: var(--left-drawer-width, 260px);
     transition:
-        width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.15s ease;
+        width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.2s ease,
+        border-color 0.2s ease;
     overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    will-change: width;
 }
 
 .left-drawer-panel.collapsed {
     width: 0 !important;
     min-width: 0 !important;
     opacity: 0;
-    border-right: none !important;
+    pointer-events: none;
+    border-right-color: transparent !important;
+}
+
+.left-drawer-panel .drawer-content-wrapper {
+    width: var(--left-drawer-width, 260px);
+    min-width: var(--left-drawer-width, 260px);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Right Details Panel Collapsing */
 .right-details-panel {
+    width: var(--right-sidebar-width, 280px);
     transition:
-        width 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.15s ease;
+        width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.2s ease,
+        border-color 0.2s ease;
     overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    will-change: width;
 }
 
 .right-details-panel.collapsed {
     width: 0 !important;
     min-width: 0 !important;
     opacity: 0;
-    border-left: none !important;
+    pointer-events: none;
+    border-left-color: transparent !important;
+}
+
+.right-details-panel .sidebar-content-wrapper {
+    width: var(--right-sidebar-width, 280px);
+    min-width: var(--right-sidebar-width, 280px);
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Resizing and Dragging State - Completely disables transition lag during mouse dragging */
+body.is-resizing,
+body.is-resizing * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    cursor: col-resize !important;
+}
+
+body.is-resizing .left-drawer-panel,
+body.is-resizing .right-details-panel,
+body.is-resizing .resizer-line {
+    transition: none !important;
 }
 
 /* Ribbon Button Groups (Word style) */
@@ -174,12 +220,56 @@ body {
     width: 4px;
     cursor: col-resize;
     background-color: #27272a;
-    transition: background-color 0.15s ease;
+    transition:
+        background-color 0.15s ease,
+        opacity 0.2s ease,
+        width 0.2s ease;
     flex-shrink: 0;
     z-index: 15;
+    position: relative;
+}
+
+.resizer-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -3px;
+    right: -3px;
+    z-index: 1;
 }
 
 .resizer-line:hover,
 .resizer-line.resizing {
     background-color: #3b82f6 !important;
+}
+
+.resizer-line.collapsed {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    width: 0 !important;
+}
+
+/* Smooth micro-transitions for toggle buttons */
+#close-left-drawer-btn,
+#toggle-right-sidebar-btn,
+#reopen-right-sidebar-btn {
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+#close-left-drawer-btn:hover {
+    transform: translateX(-1px);
+}
+
+#toggle-right-sidebar-btn:hover {
+    transform: translateX(1px);
+}
+
+#reopen-right-sidebar-btn:hover {
+    transform: translateX(-2px);
+    color: #ffffff;
+    background-color: #2e2e33;
 }
