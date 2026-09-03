@@ -1,4 +1,5 @@
 import { CharacterClass } from '../Model/CharacterClass'
+import { Choice } from '../Model/Choice'
 import { DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Item } from '../Model/Item'
@@ -12,6 +13,7 @@ import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
 
 export {
     CharacterClass,
+    Choice,
     DEFAULT_TAG_COLOR,
     Description,
     ENTITY_CATEGORIES,
@@ -79,7 +81,7 @@ export class MainWindowViewModel {
     private activeRibbonTab: RibbonTab = 'glowna'
     private activeLeftTab: LeftTab | null = 'paragraphs'
     private rightSidebarCollapsed = false
-    private activeMainView: MainViewMode = 'markdown'
+    private activeMainView: MainViewMode = 'graph'
     private activeFile: string | null = null
     private openFiles: string[] = []
 

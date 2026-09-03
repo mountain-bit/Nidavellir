@@ -229,7 +229,12 @@
     },
     "graph": {
         "title": "Story-Graph (Cytoscape.js)",
-        "instruction": "Knoten ziehen, um Szenen und Verbindungen zu ordnen"
+        "instruction": "Knoten ziehen, um Szenen und Verbindungen zu ordnen",
+        "add_paragraph_placeholder": "Titel des neuen Absatzes...",
+        "add_paragraph_btn": "Hinzufügen",
+        "socket_tooltip": "Verbindungsbuchse (ziehen zum Verbinden)",
+        "no_summary": "Keine Zusammenfassung",
+        "new_paragraph_default": "Neuer Absatz"
     },
     "right_panel": {
         "title": "Eigenschaften",

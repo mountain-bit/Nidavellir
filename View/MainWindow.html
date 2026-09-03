@@ -98,6 +98,21 @@
                         </div>
                         <span class="ribbon-section-title" data-i18n="ribbon.groups.game">Gra</span>
                     </div>
+
+                    <!-- Group: Widok główny -->
+                    <div class="ribbon-section">
+                        <div class="flex items-center gap-1">
+                            <button class="ribbon-btn" type="button" data-action="show-graph">
+                                <span class="text-base">⌘</span>
+                                <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="switch-markdown">
+                                <span class="text-base">📝</span>
+                                <span data-i18n="ribbon.buttons.markdown_editor">Edytor tekstu</span>
+                            </button>
+                        </div>
+                        <span class="ribbon-section-title" data-i18n="ribbon.groups.workspace">Obszar roboczy</span>
+                    </div>
                 </div>
 
                 <!-- Ribbon Panel: Edycja Scen -->
@@ -918,33 +933,24 @@
                 class="flex-1 flex flex-col min-w-0 bg-[#18181b] overflow-hidden"
                 aria-label="Obszar roboczy"
             >
-                <!-- Tabs Bar -->
+                <!-- Workspace Top Mode Switcher Bar -->
                 <div
-                    class="flex items-center justify-between bg-[#202023] border-b border-[#333338] h-9 px-1 shrink-0"
+                    class="flex items-center justify-between bg-[#202023] border-b border-[#333338] h-9 px-3 shrink-0"
+                    id="workspace-top-bar"
                 >
-                    <!-- Open Files Tabs -->
-                    <div
-                        class="flex items-center gap-1 overflow-x-auto flex-1 custom-scrollbar"
-                        id="editor-tabs"
-                        role="tablist"
-                        aria-label="Otwarte pliki"
-                    >
-                        <!-- Dynamic tabs rendered by JavaScript -->
+                    <div class="flex items-center gap-2 text-xs text-[#a1a1aa]" id="workspace-mode-title-container">
+                        <span class="font-medium text-white flex items-center gap-1.5" id="workspace-mode-title">
+                            <span>⌘</span>
+                            <span data-i18n="graph.title">Graf historii</span>
+                        </span>
+                        <span class="text-[#52525b]">/</span>
+                        <span class="text-[11px] text-[#71717a]" data-i18n="graph.instruction">Przeciągaj węzły, aby uporządkować sceny i połączenia</span>
                     </div>
 
                     <!-- Main View Mode Switcher -->
-                    <div class="flex items-center gap-1 px-2 border-l border-[#333338]">
+                    <div class="flex items-center gap-1">
                         <button
                             class="px-2.5 py-1 text-xs rounded bg-[#2e2e33] text-white hover:bg-[#38383f]"
-                            id="view-mode-markdown-btn"
-                            type="button"
-                            title="Widok Edytora Markdown"
-                            data-i18n="view_mode.text"
-                        >
-                            📝 Tekst
-                        </button>
-                        <button
-                            class="px-2.5 py-1 text-xs rounded bg-transparent text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white"
                             id="view-mode-graph-btn"
                             type="button"
                             title="Widok Grafu Historii"
@@ -952,20 +958,62 @@
                         >
                             ⌘ Graf
                         </button>
+                        <button
+                            class="px-2.5 py-1 text-xs rounded bg-transparent text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white"
+                            id="view-mode-markdown-btn"
+                            type="button"
+                            title="Widok Edytora Markdown"
+                            data-i18n="view_mode.text"
+                        >
+                            📝 Tekst
+                        </button>
                     </div>
                 </div>
 
+                <!-- View Container: Story Graph View (PRIMARY MAIN VIEW) -->
+                <section
+                    class="flex-1 flex flex-col min-h-0 relative w-full h-full"
+                    id="graph-container"
+                    aria-label="Graf historii"
+                >
+                    <div class="flex-1 min-h-0 relative overflow-hidden w-full h-full" id="story-graph-wrapper">
+                        <!-- Dashed Grid Canvas Background -->
+                        <svg id="graph-grid-svg" class="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="graph-dashed-grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#2c2c34" stroke-width="1" stroke-dasharray="3 3" />
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#graph-dashed-grid-pattern)" />
+                        </svg>
+                        <div class="absolute inset-0 w-full h-full" id="story-graph"></div>
+                        <div class="absolute inset-0 w-full h-full pointer-events-none overflow-visible" id="graph-nodes-layer"></div>
+                    </div>
+                </section>
+
                 <!-- View Container: Markdown Editor -->
                 <section
-                    class="flex-1 flex flex-col min-h-0"
+                    class="flex-1 flex flex-col min-h-0 hidden"
                     id="markdown-container"
                     aria-label="Edytor pliku"
                 >
+                    <!-- Open Files Tabs Bar (inside Markdown editor) -->
+                    <div
+                        class="flex items-center justify-between bg-[#1f1f22] border-b border-[#2d2d32] h-8 px-1 shrink-0"
+                    >
+                        <div
+                            class="flex items-center gap-1 overflow-x-auto flex-1 custom-scrollbar"
+                            id="editor-tabs"
+                            role="tablist"
+                            aria-label="Otwarte pliki"
+                        ></div>
+                        <div class="px-3 text-[11px] text-[#71717a]" data-i18n="editor.encoding_info">UTF-8 · Markdown</div>
+                    </div>
+
                     <div
                         class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]"
                     >
                         <span id="active-file-label">Wprowadzenie.md</span>
-                        <span data-i18n="editor.encoding_info">UTF-8 · Markdown</span>
                     </div>
                     <textarea
                         class="flex-1 min-h-0 resize-none border-0 bg-[#18181b] p-6 font-mono text-sm leading-relaxed text-[#e4e4e7] focus:outline-none"
@@ -973,23 +1021,6 @@
                         spellcheck="false"
                         aria-label="Zawartość pliku"
                     ></textarea>
-                </section>
-
-                <!-- View Container: Story Graph View -->
-                <section
-                    class="flex-1 flex flex-col min-h-0 hidden"
-                    id="graph-container"
-                    aria-label="Graf historii"
-                >
-                    <div
-                        class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]"
-                    >
-                        <span data-i18n="graph.title">Graf historii (Cytoscape.js)</span>
-                        <span data-i18n="graph.instruction"
-                            >Przeciągaj węzły, aby uporządkować sceny i połączenia</span
-                        >
-                    </div>
-                    <div class="flex-1 min-h-0 relative" id="story-graph"></div>
                 </section>
             </main>
 

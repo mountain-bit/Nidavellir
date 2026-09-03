@@ -1,3 +1,4 @@
+import { StoryGraph } from '../dist/Modules/Graph/index.js'
 import { toast } from '../dist/Utils/toast.js'
 import {
     applyTranslations,
@@ -7,6 +8,7 @@ import {
     t,
 } from '../dist/Utils/translate.js'
 import {
+    Choice,
     DEFAULT_TAG_COLOR,
     Description,
     ENTITY_CATEGORIES,
@@ -79,8 +81,11 @@ let projectParagraphs = [
     new Paragraph(
         'p1',
         'Prolog: Przebudzenie',
-        new Description('Budzisz się w starej karczmie. Za oknem szaleje burza.'),
-        [],
+        new Description(
+            'Budzisz się w starej karczmie. Za oknem szaleje burza.',
+            'Przebudzenie w gospodzie podczas nocnej nawałnicy.'
+        ),
+        [new Choice('p2', 'Idź do lasu'), new Choice('p3', 'Zbadaj komnatę')],
         false,
         undefined,
         [projectTags[0]]
@@ -88,7 +93,10 @@ let projectParagraphs = [
     new Paragraph(
         'p2',
         'Mroczny trakt leśny',
-        new Description('Ścieżka prowadzi przez gęsty las pełen niebezpieczeństw.'),
+        new Description(
+            'Ścieżka prowadzi przez gęsty las pełen niebezpieczeństw.',
+            'Wkroczenie na niebezpieczny trakt w leśnych ostępach.'
+        ),
         [],
         false,
         undefined,
@@ -97,13 +105,20 @@ let projectParagraphs = [
     new Paragraph(
         'p3',
         'Komnata runiczna',
-        new Description('Blask runów oświetla starożytne zwoje i artefakty.'),
+        new Description(
+            'Blask runów oświetla starożytne zwoje i artefakty.',
+            'Odnalezienie sekretnej komnaty z mistycznymi runami.'
+        ),
         [],
         false,
         undefined,
         [projectTags[2]]
     ),
 ]
+
+projectParagraphs[0].setPosition({ x: 180, y: 180 })
+projectParagraphs[1].setPosition({ x: 480, y: 90 })
+projectParagraphs[2].setPosition({ x: 480, y: 290 })
 let projectScenes = [
     new Scene(
         's1',
@@ -1608,21 +1623,36 @@ function updateRightSidebarUI() {
 // Render Central Workspace
 function updateMainWorkspaceUI() {
     const mainView = vm.getActiveMainView()
+    const modeTitle = document.getElementById('workspace-mode-title')
     if (mainView === 'graph') {
-        markdownContainer.classList.add('hidden')
-        graphContainer.classList.remove('hidden')
-        viewGraphBtn.classList.add('bg-[#2e2e33]', 'text-white')
-        viewGraphBtn.classList.remove('bg-transparent', 'text-[#a1a1aa]')
-        viewMarkdownBtn.classList.add('bg-transparent', 'text-[#a1a1aa]')
-        viewMarkdownBtn.classList.remove('bg-[#2e2e33]', 'text-white')
+        if (markdownContainer) markdownContainer.classList.add('hidden')
+        if (graphContainer) graphContainer.classList.remove('hidden')
+        if (viewGraphBtn) {
+            viewGraphBtn.classList.add('bg-[#2e2e33]', 'text-white')
+            viewGraphBtn.classList.remove('bg-transparent', 'text-[#a1a1aa]')
+        }
+        if (viewMarkdownBtn) {
+            viewMarkdownBtn.classList.add('bg-transparent', 'text-[#a1a1aa]')
+            viewMarkdownBtn.classList.remove('bg-[#2e2e33]', 'text-white')
+        }
+        if (modeTitle) {
+            modeTitle.innerHTML = `<span>⌘</span><span>${escapeHtml(t('graph.title'))}</span>`
+        }
         showGraph()
     } else {
-        markdownContainer.classList.remove('hidden')
-        graphContainer.classList.add('hidden')
-        viewMarkdownBtn.classList.add('bg-[#2e2e33]', 'text-white')
-        viewMarkdownBtn.classList.remove('bg-transparent', 'text-[#a1a1aa]')
-        viewGraphBtn.classList.add('bg-transparent', 'text-[#a1a1aa]')
-        viewGraphBtn.classList.remove('bg-[#2e2e33]', 'text-white')
+        if (markdownContainer) markdownContainer.classList.remove('hidden')
+        if (graphContainer) graphContainer.classList.add('hidden')
+        if (viewMarkdownBtn) {
+            viewMarkdownBtn.classList.add('bg-[#2e2e33]', 'text-white')
+            viewMarkdownBtn.classList.remove('bg-transparent', 'text-[#a1a1aa]')
+        }
+        if (viewGraphBtn) {
+            viewGraphBtn.classList.add('bg-transparent', 'text-[#a1a1aa]')
+            viewGraphBtn.classList.remove('bg-[#2e2e33]', 'text-white')
+        }
+        if (modeTitle) {
+            modeTitle.innerHTML = `<span>📝</span><span>${escapeHtml(t('view_mode.text'))}</span>`
+        }
     }
 
     const active = vm.getActiveFile()
@@ -1681,57 +1711,49 @@ function renderEditorTabs() {
     })
 }
 
-function showGraph() {
-    const graphElement = document.getElementById('story-graph')
-    if (!graphElement) return
+// Story Graph Module Integration
+let storyGraphInstance = null
 
-    if (window.cytoscape) {
-        window.cyInstance = window.cytoscape({
-            container: graphElement,
-            elements: [
-                { data: { id: 'p1', label: 'Paragraf 1: Prolog' } },
-                { data: { id: 'p2', label: 'Paragraf 2: Las' } },
-                { data: { id: 'p3', label: 'Paragraf 3: Jaskinia' } },
-                { data: { id: 'e1', source: 'p1', target: 'p2', label: 'Wybór 1' } },
-                { data: { id: 'e2', source: 'p1', target: 'p3', label: 'Wybór 2' } },
-            ],
-            style: [
-                {
-                    selector: 'node',
-                    style: {
-                        'background-color': '#3b82f6',
-                        label: 'data(label)',
-                        color: '#fff',
-                        'font-size': '12px',
-                        'text-valign': 'center',
-                        'text-halign': 'center',
-                        width: '120px',
-                        height: '40px',
-                        shape: 'roundrectangle',
-                    },
-                },
-                {
-                    selector: 'edge',
-                    style: {
-                        width: 2,
-                        'line-color': '#60a5fa',
-                        'target-arrow-color': '#60a5fa',
-                        'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier',
-                        label: 'data(label)',
-                        color: '#9ca3af',
-                        'font-size': '10px',
-                    },
-                },
-            ],
-            layout: { name: 'grid', rows: 2 },
+function showGraph(forceRebuild = false) {
+    const canvasContainer = document.getElementById('story-graph')
+    const nodesLayer = document.getElementById('graph-nodes-layer')
+    if (!canvasContainer || !nodesLayer) return
+
+    if (!storyGraphInstance) {
+        storyGraphInstance = new StoryGraph({
+            canvasContainer,
+            nodesLayer,
+            getParagraphs: () => projectParagraphs,
+            getScenes: () => projectScenes,
+            onSelectParagraph: (p, scene) => {
+                if (vm.isRightSidebarCollapsed()) {
+                    vm.setRightSidebarCollapsed(false)
+                    updateRightSidebarUI()
+                }
+                selectEntity(p, 'paragraph', scene)
+            },
+            onCreateParagraph: title => {
+                const newP = vm.createParagraph(title)
+                projectParagraphs.push(newP)
+                renderParagraphsList()
+                return newP
+            },
+            onToast: (type, msg, title) => {
+                if (type === 'success') toast.success(msg, title)
+                else if (type === 'error') toast.error(msg, title)
+                else if (type === 'warning') toast.warning(msg, title)
+                else toast.info(msg, title)
+            },
+            t,
         })
     }
+
+    storyGraphInstance.render(forceRebuild)
 }
 
 window.addEventListener('resize', () => {
-    if (window.cyInstance) {
-        window.cyInstance.resize()
+    if (storyGraphInstance) {
+        storyGraphInstance.resize()
     }
 })
 
@@ -1791,6 +1813,20 @@ viewMarkdownBtn.addEventListener('click', () => {
 viewGraphBtn.addEventListener('click', () => {
     vm.setActiveMainView('graph')
     updateMainWorkspaceUI()
+})
+
+document.querySelectorAll('[data-action="show-graph"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        vm.setActiveMainView('graph')
+        updateMainWorkspaceUI()
+    })
+})
+
+document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        vm.setActiveMainView('markdown')
+        updateMainWorkspaceUI()
+    })
 })
 
 async function saveActiveFile() {

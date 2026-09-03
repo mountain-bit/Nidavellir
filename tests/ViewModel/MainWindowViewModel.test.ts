@@ -18,7 +18,7 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveLeftTab()).toBe('paragraphs')
         expect(vm.isLeftDrawerOpen()).toBe(true)
         expect(vm.isRightSidebarCollapsed()).toBe(false)
-        expect(vm.getActiveMainView()).toBe('markdown')
+        expect(vm.getActiveMainView()).toBe('graph')
     })
 
     it('zmienia aktywną zakładkę wstążki', () => {
@@ -97,11 +97,13 @@ describe('MainWindowViewModel', () => {
     })
 
     it('zmienia główny widok na graf historii i z powrotem', () => {
-        vm.setActiveMainView('graph')
         expect(vm.getActiveMainView()).toBe('graph')
 
         vm.setActiveMainView('markdown')
         expect(vm.getActiveMainView()).toBe('markdown')
+
+        vm.setActiveMainView('graph')
+        expect(vm.getActiveMainView()).toBe('graph')
     })
 
     describe('Wyszukiwanie i filtrowanie paragrafów', () => {

@@ -229,7 +229,12 @@
     },
     "graph": {
         "title": "Story Graph (Cytoscape.js)",
-        "instruction": "Drag nodes to organize scenes and connections"
+        "instruction": "Drag nodes to organize scenes and connections",
+        "add_paragraph_placeholder": "New paragraph title...",
+        "add_paragraph_btn": "Add",
+        "socket_tooltip": "Connection socket (drag to connect)",
+        "no_summary": "No summary (click to add in properties panel)",
+        "new_paragraph_default": "New paragraph"
     },
     "right_panel": {
         "title": "Properties",

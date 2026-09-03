@@ -14,6 +14,7 @@ export class Paragraph {
     private choices: Choice[] = []
     private hasCombat: boolean = false
     private combat: Combat = new Combat('', '')
+    private position: { x: number; y: number } | null = null
 
     constructor(
         id: string = '',
@@ -162,6 +163,14 @@ export class Paragraph {
         this.combat = combat
     }
 
+    public getPosition(): { x: number; y: number } | null {
+        return this.position
+    }
+
+    public setPosition(pos: { x: number; y: number } | null): void {
+        this.position = pos
+    }
+
     public static fromJSON(json: Record<string, unknown> | null | undefined): Paragraph {
         if (!json) return new Paragraph('')
         const rawTags = Array.isArray(json.tags) ? json.tags : []
@@ -186,6 +195,13 @@ export class Paragraph {
         if (typeof json.randomizedNumber === 'number') p.randomizedNumber = json.randomizedNumber
         if (typeof json.isNumberLocked === 'boolean') p.isNumberLocked = json.isNumberLocked
 
+        if (json.position && typeof json.position === 'object') {
+            const pos = json.position as Record<string, unknown>
+            if (typeof pos.x === 'number' && typeof pos.y === 'number') {
+                p.position = { x: pos.x, y: pos.y }
+            }
+        }
+
         return p
     }
 
@@ -201,6 +217,7 @@ export class Paragraph {
             number: this.number,
             randomizedNumber: this.randomizedNumber,
             isNumberLocked: this.isNumberLocked,
+            position: this.position,
         }
     }
 }

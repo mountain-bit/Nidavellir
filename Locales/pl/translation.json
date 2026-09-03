@@ -229,7 +229,12 @@
     },
     "graph": {
         "title": "Graf historii (Cytoscape.js)",
-        "instruction": "Przeciągaj węzły, aby uporządkować sceny i połączenia"
+        "instruction": "Przeciągaj węzły, aby uporządkować sceny i połączenia",
+        "add_paragraph_placeholder": "Tytuł nowego paragrafu...",
+        "add_paragraph_btn": "Dodaj",
+        "socket_tooltip": "Gniazdo połączenia (przeciągnij, aby połączyć)",
+        "no_summary": "Brak streszczenia (kliknij, aby dodać w panelu bocznym)",
+        "new_paragraph_default": "Nowy paragraf"
     },
     "right_panel": {
         "title": "Właściwości",
