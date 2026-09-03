@@ -1,7 +1,20 @@
 import path from 'path'
 import { defineConfig } from 'vitest/config'
 
+const rawHtmlPlugin = {
+    name: 'raw-html-plugin',
+    transform(code: string, id: string): { code: string; map: null } | undefined {
+        if (id.endsWith('.html')) {
+            return {
+                code: `export default ${JSON.stringify(code)};`,
+                map: null,
+            }
+        }
+    },
+}
+
 export default defineConfig({
+    plugins: [rawHtmlPlugin],
     resolve: {
         alias: {
             electron: path.resolve(__dirname, '__mocks__/electron.js'),

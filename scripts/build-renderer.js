@@ -31,7 +31,7 @@ const config = {
     target: 'es2020',
     sourcemap: true,
     external: [],
-    loader: { '.json': 'json' },
+    loader: { '.json': 'json', '.html': 'text' },
     logLevel: 'info',
 }
 

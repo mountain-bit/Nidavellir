@@ -3,6 +3,7 @@ import './ParagraphNode'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { ParagraphNode } from './ParagraphNode'
+import { getStoryGraphStylesheet, GRAPH_THEME } from './StoryGraphStyles'
 import { IStoryGraphOptions } from './types'
 
 export interface ICytoscapeInstance {
@@ -54,7 +55,7 @@ export class StoryGraph {
         // Synchronize dashed grid pattern with Cytoscape pan and zoom
         const gridPattern = document.getElementById('graph-dashed-grid-pattern')
         if (gridPattern) {
-            const baseSize = 40
+            const baseSize = GRAPH_THEME.dimensions.gridBaseSize
             const scaledSize = baseSize * zoom
             const offsetX = ((pan.x % scaledSize) + scaledSize) % scaledSize
             const offsetY = ((pan.y % scaledSize) + scaledSize) % scaledSize
@@ -71,6 +72,17 @@ export class StoryGraph {
         }
     }
 
+    private calculateDefaultPosition(index: number): { x: number; y: number } {
+        const { initialOffsetX, initialOffsetY, gridColSpacing, gridRowSpacing, columnsCount } =
+            GRAPH_THEME.layout
+        const col = index % columnsCount
+        const row = Math.floor(index / columnsCount)
+        return {
+            x: initialOffsetX + col * gridColSpacing,
+            y: initialOffsetY + row * gridRowSpacing,
+        }
+    }
+
     public render(forceRebuild = false): void {
         if (!this.canvasContainer || !this.nodesLayer) return
         if (typeof window === 'undefined' || !window.cytoscape) return
@@ -84,9 +96,7 @@ export class StoryGraph {
         paragraphs.forEach((p, index) => {
             let pos = p.getPosition()
             if (!pos) {
-                const col = index % 3
-                const row = Math.floor(index / 3)
-                pos = { x: 180 + col * 280, y: 140 + row * 190 }
+                pos = this.calculateDefaultPosition(index)
                 p.setPosition(pos)
             }
             elements.push({
@@ -113,40 +123,11 @@ export class StoryGraph {
         this.cy = window.cytoscape({
             container: this.canvasContainer,
             elements,
-            style: [
-                {
-                    selector: 'node',
-                    style: {
-                        shape: 'rectangle',
-                        'background-opacity': 0,
-                        'border-opacity': 0,
-                        width: 220,
-                        height: 80,
-                        label: '',
-                    },
-                },
-                {
-                    selector: 'edge',
-                    style: {
-                        width: 2.5,
-                        'line-color': '#4f46e5',
-                        'target-arrow-color': '#4f46e5',
-                        'target-arrow-shape': 'triangle',
-                        'curve-style': 'bezier',
-                        label: 'data(label)',
-                        color: '#a1a1aa',
-                        'font-size': '10px',
-                        'text-background-color': '#18181b',
-                        'text-background-opacity': 0.85,
-                        'text-background-padding': '2px 4px',
-                        'text-background-shape': 'roundrectangle',
-                    },
-                },
-            ],
+            style: getStoryGraphStylesheet(this.options.customStyles),
             layout: { name: 'preset' },
-            minZoom: 0.2,
-            maxZoom: 2.5,
-            wheelSensitivity: 0.3,
+            minZoom: GRAPH_THEME.zoom.min,
+            maxZoom: GRAPH_THEME.zoom.max,
+            wheelSensitivity: GRAPH_THEME.zoom.wheelSensitivity,
         })
 
         window.cyInstance = this.cy
@@ -164,20 +145,17 @@ export class StoryGraph {
         paragraphs.forEach((p, index) => {
             let pos = p.getPosition()
             if (!pos) {
-                const col = index % 3
-                const row = Math.floor(index / 3)
-                pos = { x: 180 + col * 280, y: 140 + row * 190 }
+                pos = this.calculateDefaultPosition(index)
                 p.setPosition(pos)
             }
 
             const parentScene = scenes.find(s => s.hasParagraph && s.hasParagraph(p.getId()))
-            const sceneColor = '#3b82f6'
+            const sceneColor = GRAPH_THEME.colors.defaultScene
 
             const nodeEl = document.createElement('paragraph-node') as ParagraphNode
             nodeEl.paragraph = p
             nodeEl.themeColor = sceneColor
-            nodeEl.style.left = `${pos.x}px`
-            nodeEl.style.top = `${pos.y}px`
+            nodeEl.setPosition(pos.x, pos.y)
             nodeEl.dataset.nodeId = p.getId()
 
             // Drag handling
@@ -224,8 +202,7 @@ export class StoryGraph {
                 if (hasMoved) {
                     const newX = Math.round(nodeStartX + dx)
                     const newY = Math.round(nodeStartY + dy)
-                    nodeEl.style.left = `${newX}px`
-                    nodeEl.style.top = `${newY}px`
+                    nodeEl.setPosition(newX, newY)
 
                     if (this.cy) {
                         const cyNode = this.cy.getElementById(p.getId())
@@ -299,8 +276,14 @@ export class StoryGraph {
                 const { sourceParagraph, title } = customEvent.detail
 
                 const newParagraph = this.options.onCreateParagraph(title, sourceParagraph)
-                const parentPos = sourceParagraph.getPosition() || { x: 200, y: 200 }
-                const newPos = { x: parentPos.x + 270, y: parentPos.y + 40 }
+                const parentPos = sourceParagraph.getPosition() || {
+                    x: GRAPH_THEME.layout.initialOffsetX,
+                    y: GRAPH_THEME.layout.initialOffsetY,
+                }
+                const newPos = {
+                    x: parentPos.x + GRAPH_THEME.layout.newConnectedNodeOffsetX,
+                    y: parentPos.y + GRAPH_THEME.layout.newConnectedNodeOffsetY,
+                }
                 newParagraph.setPosition(newPos)
 
                 // Re-render

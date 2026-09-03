@@ -224,8 +224,8 @@
         "show_grid": "Pokazuj siatkę w grafie"
     },
     "view_mode": {
-        "text": "📝 Tekst",
-        "graph": "⌘ Graf"
+        "text": "Tekst",
+        "graph": "Graf"
     },
     "graph": {
         "title": "Graf historii (Cytoscape.js)",
@@ -234,7 +234,19 @@
         "add_paragraph_btn": "Dodaj",
         "socket_tooltip": "Gniazdo połączenia (przeciągnij, aby połączyć)",
         "no_summary": "Brak streszczenia (kliknij, aby dodać w panelu bocznym)",
-        "new_paragraph_default": "Nowy paragraf"
+        "new_paragraph_default": "Nowy paragraf",
+        "node": {
+            "default_title": "Paragraf",
+            "default_tag": "Tag",
+            "no_tags": "Brak tagów",
+            "no_summary": "Brak streszczenia",
+            "socket_title": "Gniazdo połączenia (wyciągnij połączenie)",
+            "socket_aria_label": "Gniazdo połączenia",
+            "add_btn_title": "Dodaj nowy powiązany paragraf",
+            "add_btn_aria_label": "Dodaj paragraf",
+            "add_input_placeholder": "Tytuł paragrafu...",
+            "add_submit_title": "Zatwierdź"
+        }
     },
     "right_panel": {
         "title": "Właściwości",

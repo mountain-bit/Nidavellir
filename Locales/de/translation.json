@@ -224,8 +224,8 @@
         "show_grid": "Gitter im Graph anzeigen"
     },
     "view_mode": {
-        "text": "📝 Text",
-        "graph": "⌘ Graph"
+        "text": "Text",
+        "graph": "Graph"
     },
     "graph": {
         "title": "Story-Graph (Cytoscape.js)",
@@ -234,7 +234,19 @@
         "add_paragraph_btn": "Hinzufügen",
         "socket_tooltip": "Verbindungsbuchse (ziehen zum Verbinden)",
         "no_summary": "Keine Zusammenfassung",
-        "new_paragraph_default": "Neuer Absatz"
+        "new_paragraph_default": "Neuer Absatz",
+        "node": {
+            "default_title": "Absatz",
+            "default_tag": "Tag",
+            "no_tags": "Keine Tags",
+            "no_summary": "Keine Zusammenfassung",
+            "socket_title": "Verbindungsbuchse (ziehen zum Verbinden)",
+            "socket_aria_label": "Verbindungsbuchse",
+            "add_btn_title": "Neuen verknüpften Absatz hinzufügen",
+            "add_btn_aria_label": "Absatz hinzufügen",
+            "add_input_placeholder": "Absatztitel...",
+            "add_submit_title": "Bestätigen"
+        }
     },
     "right_panel": {
         "title": "Eigenschaften",

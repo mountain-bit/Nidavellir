@@ -30,6 +30,67 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;')
 }
 
+// Lucide SVG Icons helper
+function getIconSvg(name, extraClasses = 'w-3.5 h-3.5') {
+    switch (name) {
+        case 'paragraph':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`
+        case 'scene':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18" stroke-width="1.8"></rect><line x1="7" y1="2" x2="7" y2="22" stroke-width="1.8"></line><line x1="17" y1="2" x2="17" y2="22" stroke-width="1.8"></line><line x1="2" y1="12" x2="22" y2="12" stroke-width="1.8"></line><line x1="2" y1="7" x2="7" y2="7" stroke-width="1.8"></line><line x1="2" y1="17" x2="7" y2="17" stroke-width="1.8"></line><line x1="17" y1="17" x2="22" y2="17" stroke-width="1.8"></line><line x1="17" y1="7" x2="22" y2="7" stroke-width="1.8"></line></svg>`
+        case 'character':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4" stroke-width="1.8"></circle></svg>`
+        case 'location':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>`
+        case 'trait':
+        case 'stat':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`
+        case 'tag':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>`
+        case 'item':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 21v-5a2 2 0 012-2h4a2 2 0 012 2v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h8"></path></svg>`
+        case 'class':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`
+        case 'check':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>`
+        case 'close':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`
+        case 'close-all':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 9l6 6m0-6l-6 6"></path></svg>`
+        case 'markdown':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`
+        case 'graph':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3" stroke-width="1.8"></circle><circle cx="6" cy="6" r="3" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 6h3a2 2 0 012 2v7M6 9v12"></path></svg>`
+        case 'arrow-right':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>`
+        default:
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`
+    }
+}
+
+function getTypeIconSvg(type, extraClasses = 'w-3.5 h-3.5 shrink-0') {
+    switch (type) {
+        case 'paragraph':
+            return getIconSvg('paragraph', extraClasses)
+        case 'scene':
+            return getIconSvg('scene', extraClasses)
+        case 'character':
+            return getIconSvg('character', extraClasses)
+        case 'location':
+            return getIconSvg('location', extraClasses)
+        case 'stat':
+        case 'trait':
+            return getIconSvg('trait', extraClasses)
+        case 'tag':
+            return getIconSvg('tag', extraClasses)
+        case 'item':
+            return getIconSvg('item', extraClasses)
+        case 'class':
+            return getIconSvg('class', extraClasses)
+        default:
+            return getIconSvg('paragraph', extraClasses)
+    }
+}
+
 // DOM elements
 const leftDrawer = document.getElementById('left-drawer')
 const leftDrawerTitle = document.getElementById('left-drawer-title')
@@ -243,7 +304,7 @@ function renderFilterTags() {
                 style="background-color: ${escapeHtml(tag.getColor())}" 
                 data-tag-id="${escapeHtml(tag.getId())}" 
                 data-tag-name="${escapeHtml(tag.getName())}">
-                ${isSelected ? '✓ ' : ''}${escapeHtml(tag.getName())}
+                ${isSelected ? getIconSvg('check', 'w-3 h-3 shrink-0') : ''}<span>${escapeHtml(tag.getName())}</span>
             </button>
         `
         })
@@ -658,7 +719,7 @@ function setupSectionControlsAndContextMenu() {
                               .map(
                                   tr => `
                         <button type="button" class="ctx-sublist-item w-full px-4 py-1.5 text-left hover:bg-blue-600 hover:text-white flex items-center gap-2 cursor-pointer text-[#d4d4d8]" data-trait-id="${escapeHtml(tr.getId())}">
-                            <span class="text-blue-400">⚡</span>
+                            <span class="text-blue-400 shrink-0">${getIconSvg('trait', 'w-3.5 h-3.5')}</span>
                             <span>${escapeHtml(tr.getName())}</span>
                         </button>
                     `
@@ -758,7 +819,10 @@ function renderParagraphsList() {
             return `
             <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
                 <div class="flex items-center justify-between">
-                    <span class="font-medium text-white text-xs truncate">📄 § ${escapeHtml(p.getTitle() || p.getId())}</span>
+                    <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
+                        <span class="text-emerald-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
+                        <span>§ ${escapeHtml(p.getTitle() || p.getId())}</span>
+                    </span>
                 </div>
                 ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges}</div>` : ''}
             </div>
@@ -783,7 +847,10 @@ function renderScenesList() {
             return `
             <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="scene" data-item-id="${escapeHtml(s.getId())}">
                 <div class="flex items-center justify-between">
-                    <span class="font-medium text-white text-xs truncate">🎬 ${escapeHtml(s.getName() || s.getId())}</span>
+                    <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
+                        <span class="text-blue-400 shrink-0">${getIconSvg('scene', 'w-3.5 h-3.5')}</span>
+                        <span>${escapeHtml(s.getName() || s.getId())}</span>
+                    </span>
                 </div>
             </div>
         `
@@ -852,7 +919,10 @@ function renderCharactersList() {
             return `
                 <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="character" data-item-id="${escapeHtml(c.getId())}">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate">👤 ${escapeHtml(c.getName())}</span>
+                        <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
+                            <span class="text-purple-400 shrink-0">${getIconSvg('character', 'w-3.5 h-3.5')}</span>
+                            <span>${escapeHtml(c.getName())}</span>
+                        </span>
                     </div>
                     ${tagsBadges || traitsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges} ${traitsBadges}</div>` : ''}
                 </div>
@@ -887,7 +957,10 @@ function renderLocationsList() {
             return `
                 <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="location" data-item-id="${escapeHtml(l.getId())}">
                     <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate">📍 ${escapeHtml(l.getName())}</span>
+                        <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
+                            <span class="text-rose-400 shrink-0">${getIconSvg('location', 'w-3.5 h-3.5')}</span>
+                            <span>${escapeHtml(l.getName())}</span>
+                        </span>
                     </div>
                     ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges}</div>` : ''}
                 </div>
@@ -913,7 +986,10 @@ function renderTraitsList() {
         .map(
             tr => `
             <div class="drawer-item group flex items-center justify-between p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer" data-item-type="trait" data-item-id="${escapeHtml(tr.getId())}">
-                <span class="font-medium text-white text-xs truncate">⚡ ${escapeHtml(tr.getName())}</span>
+                <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
+                    <span class="text-amber-400 shrink-0">${getIconSvg('trait', 'w-3.5 h-3.5')}</span>
+                    <span>${escapeHtml(tr.getName())}</span>
+                </span>
             </div>
         `
         )
@@ -1007,30 +1083,6 @@ function selectEntity(entity, type, parent) {
     renderDetailsPanel()
 }
 
-function getTypeIcon(type) {
-    switch (type) {
-        case 'paragraph':
-            return '📄 §'
-        case 'scene':
-            return '🎬'
-        case 'character':
-            return '👤'
-        case 'location':
-            return '📍'
-        case 'stat':
-        case 'trait':
-            return '⚡'
-        case 'tag':
-            return '🏷️'
-        case 'item':
-            return '🎒'
-        case 'class':
-            return '🛡️'
-        default:
-            return '📄'
-    }
-}
-
 function getTypeBadgeColor(type) {
     switch (type) {
         case 'paragraph':
@@ -1081,16 +1133,17 @@ function renderHistoryBar() {
         }`
 
         const icon = document.createElement('span')
-        icon.className = 'text-[10px] opacity-80'
-        icon.textContent = getTypeIcon(item.type)
+        icon.className = 'text-[10px] opacity-80 shrink-0 inline-flex items-center'
+        icon.innerHTML = getTypeIconSvg(item.type, 'w-3 h-3')
 
         const nameSpan = document.createElement('span')
         nameSpan.className = 'truncate max-w-[100px]'
         nameSpan.textContent = item.name
 
         const closeBtn = document.createElement('span')
-        closeBtn.className = 'ml-0.5 hover:text-red-400 opacity-60 hover:opacity-100 rounded px-0.5'
-        closeBtn.textContent = '×'
+        closeBtn.className =
+            'ml-0.5 hover:text-red-400 opacity-60 hover:opacity-100 rounded px-0.5 inline-flex items-center'
+        closeBtn.innerHTML = getIconSvg('close', 'w-3 h-3')
         closeBtn.title = t('buttons.close')
         closeBtn.addEventListener('click', e => {
             e.stopPropagation()
@@ -1115,9 +1168,9 @@ function renderHistoryBar() {
     const closeAllBtn = document.createElement('button')
     closeAllBtn.type = 'button'
     closeAllBtn.className =
-        'shrink-0 ml-auto px-1.5 py-0.5 text-[10px] text-gray-400 hover:text-red-400 hover:bg-[#27272a] rounded transition-colors cursor-pointer'
+        'shrink-0 ml-auto px-1.5 py-0.5 text-gray-400 hover:text-red-400 hover:bg-[#27272a] rounded transition-colors cursor-pointer flex items-center gap-1 text-[10px]'
     closeAllBtn.title = t('details.close_all')
-    closeAllBtn.textContent = '✕✕'
+    closeAllBtn.innerHTML = getIconSvg('close-all', 'w-3.5 h-3.5')
     closeAllBtn.addEventListener('click', () => {
         vm.closeAllHistory()
         renderHistoryBar()
@@ -1315,12 +1368,18 @@ function renderDetailsPanel() {
             <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.description_files')}</div>
             <div class="flex flex-col gap-1.5">
                 <button id="btn-open-player-text" type="button" class="w-full px-2.5 py-1.5 bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] rounded text-xs text-white text-left flex items-center justify-between cursor-pointer">
-                    <span>📄 ${t('details.open_player_text')}</span>
-                    <span class="text-blue-400 font-bold">→</span>
+                    <span class="flex items-center gap-2">
+                        <span class="text-blue-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
+                        <span>${t('details.open_player_text')}</span>
+                    </span>
+                    <span class="text-blue-400 shrink-0">${getIconSvg('arrow-right', 'w-3.5 h-3.5')}</span>
                 </button>
                 <button id="btn-open-author-notes" type="button" class="w-full px-2.5 py-1.5 bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] rounded text-xs text-white text-left flex items-center justify-between cursor-pointer">
-                    <span>📝 ${t('details.open_author_notes')}</span>
-                    <span class="text-blue-400 font-bold">→</span>
+                    <span class="flex items-center gap-2">
+                        <span class="text-amber-400 shrink-0">${getIconSvg('markdown', 'w-3.5 h-3.5')}</span>
+                        <span>${t('details.open_author_notes')}</span>
+                    </span>
+                    <span class="text-blue-400 shrink-0">${getIconSvg('arrow-right', 'w-3.5 h-3.5')}</span>
                 </button>
             </div>
         `
@@ -1371,7 +1430,7 @@ function renderDetailsPanel() {
             chip.className =
                 'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] text-white'
             chip.style.backgroundColor = tObj.getColor() || DEFAULT_TAG_COLOR
-            chip.innerHTML = `<span>#${escapeHtml(tObj.getName())}</span><button class="hover:text-red-200 ml-0.5 cursor-pointer" title="${t('buttons.delete')}">×</button>`
+            chip.innerHTML = `<span>#${escapeHtml(tObj.getName())}</span><button class="hover:text-red-200 ml-0.5 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-2.5 h-2.5')}</button>`
             chip.querySelector('button').addEventListener('click', () => {
                 vm.removeTagFromSelected(tObj.getId())
                 renderDetailsPanel()
@@ -1428,8 +1487,11 @@ function renderDetailsPanel() {
             row.className =
                 'flex items-center justify-between bg-[#18181b] px-2 py-1 rounded border border-[#27272a] text-xs'
             row.innerHTML = `
-                <span class="text-[#d4d4d8] font-medium">⚡ ${escapeHtml(st.getName())}</span>
-                <button class="text-gray-400 hover:text-red-400 font-bold ml-1 cursor-pointer" title="${t('buttons.delete')}">×</button>
+                <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5">
+                    <span class="text-amber-400 shrink-0">${getIconSvg('trait', 'w-3.5 h-3.5')}</span>
+                    <span>${escapeHtml(st.getName())}</span>
+                </span>
+                <button class="text-gray-400 hover:text-red-400 ml-1 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
             `
             row.querySelector('button').addEventListener('click', () => {
                 vm.removeStatFromSelected(st.getId())
@@ -1469,7 +1531,7 @@ function renderDetailsPanel() {
         <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('right_panel.quick_actions')}</div>
         <button id="btn-details-show-graph" class="w-full py-1.5 px-3 rounded bg-[#2e2e33] hover:bg-[#38383f] text-xs text-left text-white flex items-center justify-between cursor-pointer" type="button">
             <span>${t('right_panel.show_story_graph')}</span>
-            <span>⌘</span>
+            <span class="text-blue-400 shrink-0">${getIconSvg('graph', 'w-3.5 h-3.5')}</span>
         </button>
     `
     actionsMod.querySelector('#btn-details-show-graph').addEventListener('click', () => {
@@ -1636,7 +1698,7 @@ function updateMainWorkspaceUI() {
             viewMarkdownBtn.classList.remove('bg-[#2e2e33]', 'text-white')
         }
         if (modeTitle) {
-            modeTitle.innerHTML = `<span>⌘</span><span>${escapeHtml(t('graph.title'))}</span>`
+            modeTitle.innerHTML = `<span class="text-blue-400 shrink-0">${getIconSvg('graph', 'w-3.5 h-3.5')}</span><span>${escapeHtml(t('graph.title'))}</span>`
         }
         showGraph()
     } else {
@@ -1651,7 +1713,7 @@ function updateMainWorkspaceUI() {
             viewGraphBtn.classList.remove('bg-[#2e2e33]', 'text-white')
         }
         if (modeTitle) {
-            modeTitle.innerHTML = `<span>📝</span><span>${escapeHtml(t('view_mode.text'))}</span>`
+            modeTitle.innerHTML = `<span class="text-blue-400 shrink-0">${getIconSvg('markdown', 'w-3.5 h-3.5')}</span><span>${escapeHtml(t('view_mode.text'))}</span>`
         }
     }
 
@@ -1685,8 +1747,11 @@ function renderEditorTabs() {
             return `
             <div class="flex items-center gap-1.5 px-3 py-1 text-xs rounded-t cursor-pointer border-r border-[#333338] ${activeClasses}"
                 data-tab-file="${escapeHtml(file)}">
-                <span>📄 ${escapeHtml(file)}</span>
-                <button class="close-tab-btn hover:text-red-400 p-0.5 rounded" data-close-file="${escapeHtml(file)}" title="${escapeHtml(closeFileTitle)}">×</button>
+                <span class="flex items-center gap-1.5">
+                    <span class="text-blue-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
+                    <span>${escapeHtml(file)}</span>
+                </span>
+                <button class="close-tab-btn hover:text-red-400 p-0.5 rounded inline-flex items-center" data-close-file="${escapeHtml(file)}" title="${escapeHtml(closeFileTitle)}">${getIconSvg('close', 'w-3 h-3')}</button>
             </div>
         `
         })

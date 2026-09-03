@@ -224,8 +224,8 @@
         "show_grid": "Show grid in graph"
     },
     "view_mode": {
-        "text": "📝 Text",
-        "graph": "⌘ Graph"
+        "text": "Text",
+        "graph": "Graph"
     },
     "graph": {
         "title": "Story Graph (Cytoscape.js)",
@@ -234,7 +234,19 @@
         "add_paragraph_btn": "Add",
         "socket_tooltip": "Connection socket (drag to connect)",
         "no_summary": "No summary (click to add in properties panel)",
-        "new_paragraph_default": "New paragraph"
+        "new_paragraph_default": "New paragraph",
+        "node": {
+            "default_title": "Paragraph",
+            "default_tag": "Tag",
+            "no_tags": "No tags",
+            "no_summary": "No summary",
+            "socket_title": "Connection socket (drag to connect)",
+            "socket_aria_label": "Connection socket",
+            "add_btn_title": "Add new connected paragraph",
+            "add_btn_aria_label": "Add paragraph",
+            "add_input_placeholder": "Paragraph title...",
+            "add_submit_title": "Confirm"
+        }
     },
     "right_panel": {
         "title": "Properties",

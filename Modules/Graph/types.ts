@@ -1,5 +1,6 @@
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
+import { ICytoscapeStyleRule } from './StoryGraphStyles'
 
 export interface IStoryGraphOptions {
     canvasContainer: HTMLElement
@@ -14,6 +15,7 @@ export interface IStoryGraphOptions {
         title?: string
     ) => void
     t: (key: string, options?: Record<string, unknown>) => string
+    customStyles?: ICytoscapeStyleRule[]
 }
 
 export interface INodeDragState {
