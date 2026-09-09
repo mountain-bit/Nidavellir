@@ -1,5 +1,6 @@
 import { CharacterClass } from '../Model/CharacterClass'
 import { Choice } from '../Model/Choice'
+import { Condition, TextCondition } from '../Model/Condition'
 import { DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Item } from '../Model/Item'
@@ -9,11 +10,13 @@ import { Paragraph } from '../Model/Paragraph'
 import { Scene } from '../Model/Scene'
 import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
+import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
 
 export {
     CharacterClass,
     Choice,
+    Condition,
     DEFAULT_TAG_COLOR,
     Description,
     ENTITY_CATEGORIES,
@@ -24,6 +27,7 @@ export {
     Scene,
     Stat,
     Tag,
+    TextCondition,
 }
 
 export type RibbonTab = 'glowna' | 'sceny' | 'widok'
@@ -36,6 +40,7 @@ export type LeftTab =
     | 'traits'
     | 'main-character'
     | 'tags'
+    | 'connections'
     | 'search'
     | 'settings'
     | 'explorer'
@@ -58,6 +63,15 @@ export interface IIdentifiableEntity {
     getStats?: () => Stat[]
     addStat?: (stat: Stat) => void
     removeStat?: (statId: string) => void
+    getFromParagraphId?: () => string
+    setFromParagraphId?: (id: string) => void
+    getToParagraphId?: () => string
+    setToParagraphId?: (id: string) => void
+    getCondition?: () => Condition | null
+    setCondition?: (cond: Condition | null) => void
+    getChoices?: () => Choice[]
+    addChoice?: (choice: Choice) => void
+    removeChoice?: (id: string) => void
 }
 
 export interface IHistoryItem {
@@ -73,6 +87,7 @@ export interface IHistoryItem {
         | 'tag'
         | 'class'
         | 'document'
+        | 'choice'
     entity: IIdentifiableEntity
     parent?: unknown
 }
@@ -103,6 +118,11 @@ export class MainWindowViewModel {
     private locationSearchQuery: string = ''
     private statSearchQuery: string = ''
     private tagSearchQuery: string = ''
+    private connectionSearchQuery: string = ''
+
+    // Graph Settings
+    private connectionLineStyle: ConnectionLineStyle = 'curved'
+    private zoomSensitivity: number = 0.2
 
     private idGenerator: IdGenerator
 
@@ -164,6 +184,22 @@ export class MainWindowViewModel {
 
     public setRightSidebarWidth(width: number): void {
         this.rightSidebarWidth = Math.max(220, Math.min(700, width))
+    }
+
+    public getConnectionLineStyle(): ConnectionLineStyle {
+        return this.connectionLineStyle
+    }
+
+    public setConnectionLineStyle(style: ConnectionLineStyle): void {
+        this.connectionLineStyle = style
+    }
+
+    public getZoomSensitivity(): number {
+        return this.zoomSensitivity
+    }
+
+    public setZoomSensitivity(val: number): void {
+        this.zoomSensitivity = Math.max(0.01, Math.min(1.0, val))
     }
 
     // --- SELECTION & HISTORY MANAGEMENT ---
@@ -475,7 +511,15 @@ export class MainWindowViewModel {
         this.tagSearchQuery = query
     }
 
-    // Creation Factory Methods (English)
+    public getConnectionSearchQuery(): string {
+        return this.connectionSearchQuery
+    }
+
+    public setConnectionSearchQuery(query: string): void {
+        this.connectionSearchQuery = query
+    }
+
+    // Creation Factory Methods
     public createParagraph(titleInput?: string, defaultTitle: string = 'New paragraph'): Paragraph {
         const title = (titleInput ?? '').trim() || defaultTitle
         const id = this.idGenerator('paragraph')
@@ -529,6 +573,159 @@ export class MainWindowViewModel {
         const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('tag')
         return new Tag(id, name, colorInput)
+    }
+
+    // --- CONNECTION / CHOICE MANAGEMENT METHODS ---
+
+    public getAllChoices(paragraphs: Paragraph[]): Choice[] {
+        const all: Choice[] = []
+        paragraphs.forEach(p => {
+            const choices = p.getChoices ? p.getChoices() : []
+            choices.forEach(c => {
+                if (!c.getFromParagraphId()) {
+                    c.setFromParagraphId(p.getId())
+                }
+                all.push(c)
+            })
+        })
+        return all
+    }
+
+    public createChoice(
+        fromParagraph: Paragraph,
+        toParagraph: Paragraph,
+        nameInput?: string,
+        defaultName: string = 'New jump',
+        conditionText?: string
+    ): Choice {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('choice')
+        const fromId = fromParagraph.getId()
+        const toId = toParagraph.getId()
+
+        let condition: TextCondition | null = null
+        if (conditionText && conditionText.trim()) {
+            condition = new TextCondition(
+                this.idGenerator('condition'),
+                'Requirement',
+                conditionText.trim()
+            )
+        }
+
+        const choice = new Choice(id, name, fromId, toId, condition)
+        fromParagraph.addChoice(choice)
+        return choice
+    }
+
+    public deleteChoice(choiceId: string, paragraphs: Paragraph[]): boolean {
+        let removed = false
+        for (const p of paragraphs) {
+            if (p.hasChoice && p.hasChoice(choiceId)) {
+                p.removeChoice(choiceId)
+                removed = true
+                break
+            }
+        }
+        if (this.selectedItem?.id === choiceId && this.selectedItem.type === 'choice') {
+            this.closeHistoryItem(choiceId)
+        }
+        return removed
+    }
+
+    public reverseChoice(choice: Choice, paragraphs: Paragraph[]): boolean {
+        const oldFromId = choice.getFromParagraphId()
+        const oldToId = choice.getToParagraphId()
+        if (!oldFromId || !oldToId) return false
+
+        const oldSourceParagraph = paragraphs.find(p => p.getId() === oldFromId)
+        const oldTargetParagraph = paragraphs.find(p => p.getId() === oldToId)
+        if (!oldSourceParagraph || !oldTargetParagraph) return false
+
+        oldSourceParagraph.removeChoice(choice.getId())
+        choice.setFromParagraphId(oldToId)
+        choice.setToParagraphId(oldFromId)
+        oldTargetParagraph.addChoice(choice)
+
+        return true
+    }
+
+    public updateChoiceDetails(choice: Choice, name: string, conditionText: string): boolean {
+        const trimmedName = name.trim()
+        if (!trimmedName) return false
+        choice.setName(trimmedName)
+
+        const trimmedCondition = conditionText.trim()
+        if (trimmedCondition) {
+            const currentCond = choice.getCondition()
+            if (currentCond instanceof TextCondition) {
+                currentCond.setText(trimmedCondition)
+            } else {
+                choice.setCondition(
+                    new TextCondition(
+                        this.idGenerator('condition'),
+                        'Requirement',
+                        trimmedCondition
+                    )
+                )
+            }
+        } else {
+            choice.setCondition(null)
+        }
+
+        if (this.selectedItem?.id === choice.getId()) {
+            this.selectedItem.name = trimmedName
+        }
+        return true
+    }
+
+    public getOutgoingChoices(paragraph: Paragraph): Choice[] {
+        if (!paragraph || !paragraph.getChoices) return []
+        const choices = paragraph.getChoices() || []
+        choices.forEach(c => {
+            if (!c.getFromParagraphId()) {
+                c.setFromParagraphId(paragraph.getId())
+            }
+        })
+        return choices
+    }
+
+    public updateChoiceTarget(choice: Choice, newTargetParagraphId: string): boolean {
+        const trimmedId = (newTargetParagraphId ?? '').trim()
+        if (!trimmedId) return false
+        choice.setToParagraphId(trimmedId)
+        return true
+    }
+
+    public updateChoice(
+        choice: Choice,
+        name: string,
+        toParagraphId: string,
+        conditionText: string
+    ): boolean {
+        const nameUpdated = this.updateChoiceDetails(choice, name, conditionText)
+        if (!nameUpdated) return false
+        if (toParagraphId && toParagraphId.trim()) {
+            choice.setToParagraphId(toParagraphId.trim())
+        }
+        return true
+    }
+
+    public searchAndFilterChoices(choices: Choice[], paragraphs: Paragraph[]): Choice[] {
+        const query = this.connectionSearchQuery.trim().toLowerCase()
+        if (!query) return choices
+
+        return choices.filter(c => {
+            const nameMatch = c.getName().toLowerCase().includes(query)
+            const condSummary = c.getCondition()?.getSummary().toLowerCase() || ''
+            const condMatch = condSummary.includes(query)
+
+            const fromP = paragraphs.find(p => p.getId() === c.getFromParagraphId())
+            const toP = paragraphs.find(p => p.getId() === c.getToParagraphId())
+            const fromMatch = fromP ? fromP.getTitle().toLowerCase().includes(query) : false
+            const toMatch = toP ? toP.getTitle().toLowerCase().includes(query) : false
+
+            return nameMatch || condMatch || fromMatch || toMatch
+        })
     }
 
     public searchAndFilterParagraphs(paragraphs: Paragraph[]): Paragraph[] {

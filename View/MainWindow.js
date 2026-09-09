@@ -15,6 +15,7 @@ import {
     MainWindowViewModel,
     Paragraph,
     Scene,
+    TextCondition,
 } from '../dist/ViewModel/MainWindowViewModel.js'
 
 const vm = new MainWindowViewModel()
@@ -37,6 +38,9 @@ function getIconSvg(name, extraClasses = 'w-3.5 h-3.5') {
             return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`
         case 'scene':
             return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2.18" stroke-width="1.8"></rect><line x1="7" y1="2" x2="7" y2="22" stroke-width="1.8"></line><line x1="17" y1="2" x2="17" y2="22" stroke-width="1.8"></line><line x1="2" y1="12" x2="22" y2="12" stroke-width="1.8"></line><line x1="2" y1="7" x2="7" y2="7" stroke-width="1.8"></line><line x1="2" y1="17" x2="7" y2="17" stroke-width="1.8"></line><line x1="17" y1="17" x2="22" y2="17" stroke-width="1.8"></line><line x1="17" y1="7" x2="22" y2="7" stroke-width="1.8"></line></svg>`
+        case 'choice':
+        case 'connection':
+            return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>`
         case 'character':
             return `<svg class="${extraClasses}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4" stroke-width="1.8"></circle></svg>`
         case 'location':
@@ -73,6 +77,9 @@ function getTypeIconSvg(type, extraClasses = 'w-3.5 h-3.5 shrink-0') {
             return getIconSvg('paragraph', extraClasses)
         case 'scene':
             return getIconSvg('scene', extraClasses)
+        case 'choice':
+        case 'connection':
+            return getIconSvg('choice', extraClasses)
         case 'character':
             return getIconSvg('character', extraClasses)
         case 'location':
@@ -146,7 +153,16 @@ let projectParagraphs = [
             'Budzisz się w starej karczmie. Za oknem szaleje burza.',
             'Przebudzenie w gospodzie podczas nocnej nawałnicy.'
         ),
-        [new Choice('p2', 'Idź do lasu'), new Choice('p3', 'Zbadaj komnatę')],
+        [
+            new Choice(
+                'c1',
+                'Idź do lasu',
+                'p1',
+                'p2',
+                new TextCondition('cond1', 'Pochodnia', 'Wymagana zapalona pochodnia')
+            ),
+            new Choice('c2', 'Zbadaj komnatę', 'p1', 'p3'),
+        ],
         false,
         undefined,
         [projectTags[0]]
@@ -214,6 +230,7 @@ function updateLeftDrawerTitle() {
         traits: 'left_panel.traits',
         'main-character': 'left_panel.main_character',
         tags: 'left_panel.tags',
+        connections: 'left_panel.connections',
         explorer: 'left_panel.explorer',
         search: 'left_panel.search',
         settings: 'left_panel.settings',
@@ -767,6 +784,9 @@ function setupSectionControlsAndContextMenu() {
         })
     }
 
+    // Setup Connections Left Panel Controls
+    setupConnectionsSection()
+
     // Initial List Rendering
     renderTagsList()
     renderCharactersList()
@@ -774,6 +794,7 @@ function setupSectionControlsAndContextMenu() {
     renderTraitsList()
     renderParagraphsList()
     renderScenesList()
+    renderConnectionsList()
 }
 
 function refreshActiveSection(type) {
@@ -788,10 +809,196 @@ function refreshActiveSection(type) {
     }
     if (type === 'location') renderLocationsList()
     if (type === 'trait') renderTraitsList()
-    if (type === 'paragraph') renderParagraphsList()
+    if (type === 'paragraph') {
+        renderParagraphsList()
+        renderConnectionsList()
+    }
+    if (type === 'choice' || type === 'connection') {
+        renderConnectionsList()
+        renderParagraphsList()
+    }
     if (type === 'scene') {
         renderScenesList()
         populateFilterSelects()
+    }
+}
+
+// Renderers for Connections / Jumps
+function renderConnectionsList() {
+    const container = document.getElementById('connections-list-container')
+    if (!container) return
+
+    const allChoices = vm.getAllChoices(projectParagraphs)
+    const filtered = vm.searchAndFilterChoices(allChoices, projectParagraphs)
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_connections">${t('left_panel.no_connections')}</p>`
+        return
+    }
+
+    container.innerHTML = filtered
+        .map(c => {
+            const fromP = projectParagraphs.find(p => p.getId() === c.getFromParagraphId())
+            const toP = projectParagraphs.find(p => p.getId() === c.getToParagraphId())
+            const fromTitle = fromP
+                ? fromP.getTitle() || fromP.getId()
+                : c.getFromParagraphId() || '?'
+            const toTitle = toP ? toP.getTitle() || toP.getId() : c.getToParagraphId() || '?'
+            const cond = c.getCondition()
+            const condBadge = cond
+                ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] bg-amber-900/40 text-amber-300 border border-amber-700/40 truncate max-w-full">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                    <span class="truncate">${escapeHtml(cond.getSummary())}</span>
+                   </span>`
+                : ''
+
+            return `
+            <div class="drawer-item group p-2 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1.5 cursor-pointer transition-colors" data-item-type="choice" data-item-id="${escapeHtml(c.getId())}">
+                <div class="flex items-center justify-between gap-1">
+                    <span class="font-medium text-white text-xs truncate flex items-center gap-1.5 min-w-0">
+                        <span class="text-teal-400 shrink-0">${getIconSvg('choice', 'w-3.5 h-3.5')}</span>
+                        <span class="truncate">${escapeHtml(c.getName() || c.getId())}</span>
+                    </span>
+                    <button type="button" class="btn-delete-choice opacity-0 group-hover:opacity-100 hover:text-red-400 p-0.5 rounded text-gray-400 cursor-pointer inline-flex items-center transition-opacity" data-choice-id="${escapeHtml(c.getId())}" title="${t('buttons.delete')}">
+                        ${getIconSvg('close', 'w-3 h-3')}
+                    </button>
+                </div>
+                <div class="flex items-center gap-1 mt-1 text-[10px] text-[#71717a] font-mono">
+                    <span class="truncate text-[#a1a1aa]">§ ${escapeHtml(fromTitle)}</span>
+                    <span class="text-blue-400 shrink-0">→</span>
+                    <span class="truncate text-[#a1a1aa]">§ ${escapeHtml(toTitle)}</span>
+                </div>
+                ${condBadge ? `<div class="mt-1 flex items-center">${condBadge}</div>` : ''}
+            </div>
+            `
+        })
+        .join('')
+
+    // Double click to inspect choice in right details panel
+    container.querySelectorAll('.drawer-item').forEach(el => {
+        el.addEventListener('dblclick', e => {
+            e.preventDefault()
+            const id = el.dataset.itemId
+            const choice = allChoices.find(x => x.getId() === id)
+            if (choice) {
+                const fromP = projectParagraphs.find(p => p.getId() === choice.getFromParagraphId())
+                selectEntity(choice, 'choice', fromP)
+            }
+        })
+    })
+
+    // Delete button
+    container.querySelectorAll('.btn-delete-choice').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.stopPropagation()
+            const id = btn.dataset.choiceId
+            const choice = allChoices.find(x => x.getId() === id)
+            const choiceName = choice ? choice.getName() : id
+            if (confirm(t('context_menu.confirm_delete', { name: choiceName }))) {
+                vm.deleteChoice(id, projectParagraphs)
+                renderConnectionsList()
+                renderParagraphsList()
+                renderHistoryBar()
+                renderDetailsPanel()
+                if (storyGraphInstance) storyGraphInstance.render(true)
+                toast.success(t('toast.connection_deleted'))
+            }
+        })
+    })
+}
+
+function setupConnectionsSection() {
+    const searchInput = document.getElementById('connection-search-input')
+    const addBtn = document.getElementById('btn-add-connection')
+    const form = document.getElementById('connection-create-form')
+    const cancelBtn = document.getElementById('connection-create-cancel')
+    const submitBtn = document.getElementById('connection-create-submit')
+    const sourceSelect = document.getElementById('connection-create-source')
+    const targetSelect = document.getElementById('connection-create-target')
+    const nameInput = document.getElementById('connection-create-name')
+    const condInput = document.getElementById('connection-create-condition')
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            vm.setConnectionSearchQuery(searchInput.value)
+            renderConnectionsList()
+        })
+    }
+
+    const populateConnectionSelects = () => {
+        if (!sourceSelect || !targetSelect) return
+        const optionsHtml = projectParagraphs
+            .map(
+                p =>
+                    `<option value="${escapeHtml(p.getId())}">§ ${escapeHtml(p.getTitle() || p.getId())}</option>`
+            )
+            .join('')
+        sourceSelect.innerHTML = optionsHtml
+        targetSelect.innerHTML = optionsHtml
+        if (projectParagraphs.length > 1 && targetSelect.options.length > 1) {
+            targetSelect.selectedIndex = 1
+        }
+    }
+
+    if (addBtn && form) {
+        addBtn.addEventListener('click', () => {
+            form.classList.toggle('hidden')
+            if (!form.classList.contains('hidden')) {
+                populateConnectionSelects()
+                if (nameInput) {
+                    nameInput.value = ''
+                    nameInput.focus()
+                }
+                if (condInput) condInput.value = ''
+            }
+        })
+    }
+
+    if (cancelBtn && form) {
+        cancelBtn.addEventListener('click', () => {
+            form.classList.add('hidden')
+        })
+    }
+
+    if (submitBtn && form) {
+        const handleAdd = () => {
+            if (projectParagraphs.length < 2) {
+                toast.warning(t('toast.connection_needs_paragraphs'))
+                return
+            }
+            const fromId = sourceSelect ? sourceSelect.value : ''
+            const toId = targetSelect ? targetSelect.value : ''
+            if (!fromId || !toId) return
+
+            const fromP = projectParagraphs.find(p => p.getId() === fromId)
+            const toP = projectParagraphs.find(p => p.getId() === toId)
+            if (!fromP || !toP) return
+
+            const name = nameInput?.value.trim() || t('details.default_jump_name')
+            const condText = condInput ? condInput.value.trim() : ''
+
+            vm.createChoice(fromP, toP, name, t('details.default_jump_name'), condText)
+            renderConnectionsList()
+            renderParagraphsList()
+            if (storyGraphInstance) storyGraphInstance.render(true)
+            toast.success(t('toast.connection_created', { name }), t('toast.element_created_title'))
+
+            if (nameInput) nameInput.value = ''
+            if (condInput) condInput.value = ''
+            form.classList.add('hidden')
+        }
+
+        submitBtn.addEventListener('click', handleAdd)
+        if (nameInput) {
+            nameInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') handleAdd()
+            })
+        }
+        if (condInput) {
+            condInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') handleAdd()
+            })
+        }
     }
 }
 
@@ -1100,6 +1307,9 @@ function getTypeBadgeColor(type) {
             return 'bg-pink-900/60 text-pink-300 border-pink-700/50'
         case 'item':
             return 'bg-yellow-900/60 text-yellow-300 border-yellow-700/50'
+        case 'choice':
+        case 'connection':
+            return 'bg-teal-900/60 text-teal-300 border-teal-700/50'
         default:
             return 'bg-zinc-800 text-zinc-300 border-zinc-700'
     }
@@ -1198,6 +1408,189 @@ function renderDetailsPanel() {
     }
 
     const { entity, type } = item
+
+    // ==========================================
+    // SPECIAL HANDLER: CHOICE (PRZESKOK)
+    // ==========================================
+    if (type === 'choice' && entity instanceof Choice) {
+        const choice = entity
+        const fromId = choice.getFromParagraphId()
+        const toId = choice.getToParagraphId()
+        const fromP = projectParagraphs.find(p => p.getId() === fromId)
+        const toP = projectParagraphs.find(p => p.getId() === toId)
+        const fromTitle = fromP ? fromP.getTitle() || fromP.getId() : fromId || '?'
+        const toTitle = toP ? toP.getTitle() || toP.getId() : toId || '?'
+        const cond = choice.getCondition()
+        const condText =
+            cond instanceof TextCondition ? cond.getText() : cond ? cond.getSummary() : ''
+
+        // --- MODUL 1: Typ & ID ---
+        const headerMod = document.createElement('section')
+        headerMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        headerMod.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] uppercase font-bold tracking-widest text-[#71717a]">${t('details.type')}</span>
+                <span class="px-2 py-0.5 text-[11px] rounded border ${getTypeBadgeColor(type)} font-medium">${t('details.type_choice')}</span>
+            </div>
+            <div class="text-[10px] text-gray-500 font-mono truncate">ID: ${escapeHtml(item.id)}</div>
+        `
+        container.appendChild(headerMod)
+
+        // --- MODUL 2: Nazwa / Etykieta przeskoku ---
+        const nameMod = document.createElement('section')
+        nameMod.className = 'border-b border-[#333338] p-3 space-y-1.5'
+        nameMod.innerHTML = `
+            <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.choice_name')}</label>
+            <input id="details-choice-name-input" type="text" value="${escapeHtml(choice.getName())}" placeholder="${t('details.choice_name_placeholder')}"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+            <div id="details-choice-name-error" class="hidden text-[11px] text-red-400"></div>
+        `
+        const nameInput = nameMod.querySelector('#details-choice-name-input')
+        const nameError = nameMod.querySelector('#details-choice-name-error')
+
+        const saveChoiceName = () => {
+            const val = nameInput.value.trim()
+            if (!val) {
+                nameError.textContent = t('details.name_required')
+                nameError.classList.remove('hidden')
+                nameInput.classList.add('border-red-500')
+                return false
+            } else {
+                nameError.classList.add('hidden')
+                nameInput.classList.remove('border-red-500')
+                const currentCondEl = container.querySelector('#details-condition-text')
+                const currentCondText = currentCondEl ? currentCondEl.value : condText
+                vm.updateChoiceDetails(choice, val, currentCondText)
+                renderHistoryBar()
+                renderConnectionsList()
+                renderParagraphsList()
+                if (storyGraphInstance) storyGraphInstance.render(true)
+                return true
+            }
+        }
+
+        nameInput.addEventListener('input', () => {
+            const val = nameInput.value.trim()
+            if (!val) {
+                nameError.textContent = t('details.name_required')
+                nameError.classList.remove('hidden')
+                nameInput.classList.add('border-red-500')
+            } else {
+                nameError.classList.add('hidden')
+                nameInput.classList.remove('border-red-500')
+            }
+        })
+        nameInput.addEventListener('blur', saveChoiceName)
+        nameInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (saveChoiceName()) nameInput.blur()
+            }
+        })
+        container.appendChild(nameMod)
+
+        // --- MODUL 3: Węzły Źródłowy i Docelowy (z możliwością otwarcia szczegółów) ---
+        const nodesMod = document.createElement('section')
+        nodesMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        nodesMod.innerHTML = `
+            <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.nodes_section')}</div>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" id="btn-node-source" class="group bg-[#18181b] hover:bg-[#222226] border border-[#27272a] hover:border-emerald-500/50 rounded p-2 text-left cursor-pointer transition-all duration-150 flex flex-col justify-between min-w-0" title="${fromP ? t('details.open_node_details') : ''}">
+                    <div class="flex items-center justify-between gap-1 w-full">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">${t('details.source_node')}</span>
+                        <span class="text-gray-500 group-hover:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">${getIconSvg('arrow-right', 'w-2.5 h-2.5')}</span>
+                    </div>
+                    <div class="text-xs text-emerald-400 font-medium truncate mt-1 w-full" title="${escapeHtml(fromTitle)}">§ ${escapeHtml(fromTitle)}</div>
+                </button>
+                <button type="button" id="btn-node-target" class="group bg-[#18181b] hover:bg-[#222226] border border-[#27272a] hover:border-blue-500/50 rounded p-2 text-left cursor-pointer transition-all duration-150 flex flex-col justify-between min-w-0" title="${toP ? t('details.open_node_details') : ''}">
+                    <div class="flex items-center justify-between gap-1 w-full">
+                        <span class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">${t('details.target_node')}</span>
+                        <span class="text-gray-500 group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">${getIconSvg('arrow-right', 'w-2.5 h-2.5')}</span>
+                    </div>
+                    <div class="text-xs text-blue-400 font-medium truncate mt-1 w-full" title="${escapeHtml(toTitle)}">§ ${escapeHtml(toTitle)}</div>
+                </button>
+            </div>
+        `
+
+        const sourceBtn = nodesMod.querySelector('#btn-node-source')
+        const targetBtn = nodesMod.querySelector('#btn-node-target')
+
+        if (sourceBtn) {
+            sourceBtn.addEventListener('click', () => {
+                if (fromP) {
+                    selectEntity(fromP, 'paragraph')
+                }
+            })
+        }
+
+        if (targetBtn) {
+            targetBtn.addEventListener('click', () => {
+                if (toP) {
+                    selectEntity(toP, 'paragraph')
+                }
+            })
+        }
+
+        container.appendChild(nodesMod)
+
+        // --- MODUL 4: Warunek Polimorficzny (Warunek Autora) ---
+        const condMod = document.createElement('section')
+        condMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        condMod.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.condition_title')}</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-900/40 text-amber-300 border border-amber-700/40 font-medium">${t('condition.type_text')}</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-snug">${t('details.condition_help')}</p>
+            <textarea id="details-condition-text" rows="3" placeholder="${t('details.condition_placeholder')}"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded p-2 text-xs text-white focus:outline-none focus:border-blue-500 resize-none">${escapeHtml(condText)}</textarea>
+        `
+        const condInput = condMod.querySelector('#details-condition-text')
+        condInput.addEventListener('input', () => {
+            vm.updateChoiceDetails(choice, choice.getName(), condInput.value)
+            renderConnectionsList()
+            if (storyGraphInstance) storyGraphInstance.render(true)
+        })
+        container.appendChild(condMod)
+
+        // --- MODUL 5: Szybkie akcje / Usuń ---
+        const actionsMod = document.createElement('section')
+        actionsMod.className = 'p-3 space-y-2'
+        actionsMod.innerHTML = `
+            <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('right_panel.quick_actions')}</div>
+            <button id="btn-details-show-graph" class="w-full py-1.5 px-3 rounded bg-[#2e2e33] hover:bg-[#38383f] text-xs text-left text-white flex items-center justify-between cursor-pointer" type="button">
+                <span>${t('right_panel.show_story_graph')}</span>
+                <span class="text-blue-400 shrink-0">${getIconSvg('graph', 'w-3.5 h-3.5')}</span>
+            </button>
+            <button id="btn-details-delete-choice" class="w-full py-1.5 px-3 rounded bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-xs text-left text-red-300 flex items-center justify-between cursor-pointer" type="button">
+                <span>${t('details.delete_connection')}</span>
+                <span class="text-red-400 shrink-0">${getIconSvg('close', 'w-3.5 h-3.5')}</span>
+            </button>
+        `
+        actionsMod.querySelector('#btn-details-show-graph').addEventListener('click', () => {
+            vm.setActiveMainView('graph')
+            updateMainWorkspaceUI()
+            const targetId = choice.getFromParagraphId() || choice.getId()
+            if (storyGraphInstance) {
+                storyGraphInstance.focusOnElement(targetId)
+                requestAnimationFrame(() => {
+                    if (storyGraphInstance) storyGraphInstance.focusOnElement(targetId)
+                })
+            }
+        })
+        actionsMod.querySelector('#btn-details-delete-choice').addEventListener('click', () => {
+            if (confirm(t('context_menu.confirm_delete', { name: choice.getName() }))) {
+                vm.deleteChoice(choice.getId(), projectParagraphs)
+                renderConnectionsList()
+                renderParagraphsList()
+                renderHistoryBar()
+                renderDetailsPanel()
+                if (storyGraphInstance) storyGraphInstance.render(true)
+                toast.success(t('toast.connection_deleted'))
+            }
+        })
+        container.appendChild(actionsMod)
+        return
+    }
 
     let entityScope = []
     if (type === 'paragraph') entityScope = projectParagraphs
@@ -1524,6 +1917,259 @@ function renderDetailsPanel() {
         container.appendChild(statsMod)
     }
 
+    // --- MODUL: Połączenia / Wyjścia z Paragrafu (dla Paragrafu) ---
+    if (type === 'paragraph' && entity instanceof Paragraph) {
+        const exitsMod = document.createElement('section')
+        exitsMod.className = 'border-b border-[#333338] p-3 space-y-2'
+        const choices = entity.getChoices() || []
+
+        exitsMod.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-teal-400 shrink-0">${getIconSvg('choice', 'w-3.5 h-3.5')}</span>
+                    <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide truncate">${t('details.paragraph_exits')}</span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 text-zinc-400 border border-zinc-700 font-mono">${choices.length}</span>
+                </div>
+                <button id="btn-toggle-add-exit" type="button" class="px-2 py-0.5 bg-blue-600 hover:bg-blue-500 rounded text-[11px] text-white font-medium cursor-pointer transition-colors flex items-center gap-1 shrink-0">
+                    <span>${t('details.add_exit')}</span>
+                </button>
+            </div>
+
+            <!-- Formularz dodawania nowego wyjścia -->
+            <div id="details-add-exit-form" class="hidden bg-[#18181b] border border-[#3f3f46] rounded p-2.5 space-y-2">
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-semibold mb-1">${t('details.target_node')}</label>
+                    <select id="details-add-exit-target" class="w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-semibold mb-1">${t('details.choice_name')}</label>
+                    <input id="details-add-exit-name" type="text" placeholder="${t('details.choice_name_placeholder')}" class="w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+                </div>
+                <div>
+                    <label class="block text-[10px] text-gray-400 uppercase font-semibold mb-1">${t('details.condition_text')} (${t('left_panel.condition_text_optional')})</label>
+                    <input id="details-add-exit-condition" type="text" placeholder="${t('details.condition_placeholder')}" class="w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+                </div>
+                <div class="flex items-center justify-end gap-1.5 pt-1">
+                    <button id="btn-cancel-add-exit" type="button" class="px-2.5 py-1 bg-[#27272a] hover:bg-[#323238] rounded text-xs text-gray-300 cursor-pointer">${t('buttons.cancel')}</button>
+                    <button id="btn-submit-add-exit" type="button" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium cursor-pointer">${t('buttons.add')}</button>
+                </div>
+            </div>
+
+            <!-- Lista wyjść -->
+            <div id="details-exits-list" class="space-y-2"></div>
+        `
+
+        const addExitForm = exitsMod.querySelector('#details-add-exit-form')
+        const toggleAddBtn = exitsMod.querySelector('#btn-toggle-add-exit')
+        const targetSelect = exitsMod.querySelector('#details-add-exit-target')
+        const nameInput = exitsMod.querySelector('#details-add-exit-name')
+        const condInput = exitsMod.querySelector('#details-add-exit-condition')
+        const cancelBtn = exitsMod.querySelector('#btn-cancel-add-exit')
+        const submitBtn = exitsMod.querySelector('#btn-submit-add-exit')
+
+        const populateTargets = () => {
+            const options = projectParagraphs
+                .map(p => {
+                    const isSelf = p.getId() === entity.getId()
+                    const title = p.getTitle() || p.getId()
+                    return `<option value="${escapeHtml(p.getId())}">§ ${escapeHtml(title)}${isSelf ? ' (ten paragraf)' : ''}</option>`
+                })
+                .join('')
+            targetSelect.innerHTML = options
+            const otherP = projectParagraphs.find(p => p.getId() !== entity.getId())
+            if (otherP) {
+                targetSelect.value = otherP.getId()
+            }
+        }
+
+        toggleAddBtn.addEventListener('click', () => {
+            addExitForm.classList.toggle('hidden')
+            if (!addExitForm.classList.contains('hidden')) {
+                populateTargets()
+                if (nameInput) {
+                    nameInput.value = ''
+                    nameInput.focus()
+                }
+                if (condInput) condInput.value = ''
+            }
+        })
+
+        cancelBtn.addEventListener('click', () => {
+            addExitForm.classList.add('hidden')
+        })
+
+        const handleAddExit = () => {
+            const targetId = targetSelect.value
+            if (!targetId) return
+            const targetP = projectParagraphs.find(p => p.getId() === targetId)
+            if (!targetP) return
+
+            const choiceName = nameInput.value.trim() || t('details.default_jump_name')
+            const condText = condInput.value.trim()
+
+            vm.createChoice(entity, targetP, choiceName, t('details.default_jump_name'), condText)
+            renderDetailsPanel()
+            renderConnectionsList()
+            renderParagraphsList()
+            if (storyGraphInstance) storyGraphInstance.render(true)
+            toast.success(
+                t('toast.connection_created', {
+                    from: entity.getTitle() || entity.getId(),
+                    to: targetP.getTitle() || targetP.getId(),
+                }),
+                t('toast.element_created_title')
+            )
+        }
+
+        submitBtn.addEventListener('click', handleAddExit)
+        nameInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') handleAddExit()
+        })
+        condInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') handleAddExit()
+        })
+
+        const exitsListContainer = exitsMod.querySelector('#details-exits-list')
+
+        if (choices.length === 0) {
+            exitsListContainer.innerHTML = `
+                <div class="text-xs text-gray-500 italic py-2 text-center bg-[#18181b]/50 rounded border border-[#27272a] border-dashed" data-i18n="details.no_exits">
+                    ${t('details.no_exits')}
+                </div>
+            `
+        } else {
+            choices.forEach(choice => {
+                const toId = choice.getToParagraphId()
+                const toP = projectParagraphs.find(p => p.getId() === toId)
+                const toTitle = toP ? toP.getTitle() || toP.getId() : toId || '?'
+                const cond = choice.getCondition()
+                const condText =
+                    cond instanceof TextCondition ? cond.getText() : cond ? cond.getSummary() : ''
+
+                const card = document.createElement('div')
+                card.className =
+                    'bg-[#18181b] border border-[#27272a] hover:border-[#3f3f46] rounded p-2.5 space-y-2 transition-colors'
+
+                const targetOptionsHtml = projectParagraphs
+                    .map(p => {
+                        const isSelected = p.getId() === toId
+                        const title = p.getTitle() || p.getId()
+                        return `<option value="${escapeHtml(p.getId())}" ${isSelected ? 'selected' : ''}>§ ${escapeHtml(title)}</option>`
+                    })
+                    .join('')
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-1">
+                        <span class="text-xs text-emerald-400 font-medium truncate flex items-center gap-1 min-w-0" title="${escapeHtml(toTitle)}">
+                            <span class="text-blue-400 shrink-0">→</span>
+                            <span class="truncate">§ ${escapeHtml(toTitle)}</span>
+                        </span>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button type="button" class="btn-inspect-exit p-1 text-gray-400 hover:text-blue-400 rounded cursor-pointer transition-colors" title="${t('details.open_choice_details')}">
+                                ${getIconSvg('arrow-right', 'w-3 h-3')}
+                            </button>
+                            <button type="button" class="btn-delete-exit p-1 text-gray-400 hover:text-red-400 rounded cursor-pointer transition-colors" title="${t('buttons.delete')}">
+                                ${getIconSvg('close', 'w-3 h-3')}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Etykieta przeskoku -->
+                    <div class="space-y-1">
+                        <label class="block text-[10px] text-gray-400 uppercase font-semibold">${t('details.choice_name')}</label>
+                        <input type="text" class="exit-name-input w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" value="${escapeHtml(choice.getName())}" placeholder="${t('details.choice_name_placeholder')}" />
+                    </div>
+
+                    <!-- Cel przeskoku -->
+                    <div class="space-y-1">
+                        <label class="block text-[10px] text-gray-400 uppercase font-semibold">${t('details.target_node')}</label>
+                        <select class="exit-target-select w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                            ${targetOptionsHtml}
+                        </select>
+                    </div>
+
+                    <!-- Warunek autora -->
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[10px] text-gray-400 uppercase font-semibold">${t('details.condition_section')}</label>
+                            <span class="text-[9px] text-amber-400 font-mono">${t('condition.type_text')}</span>
+                        </div>
+                        <input type="text" class="exit-condition-input w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" value="${escapeHtml(condText)}" placeholder="${t('details.condition_placeholder')}" />
+                    </div>
+                `
+
+                const exitNameInput = card.querySelector('.exit-name-input')
+                const exitTargetSelect = card.querySelector('.exit-target-select')
+                const exitCondInput = card.querySelector('.exit-condition-input')
+                const inspectBtn = card.querySelector('.btn-inspect-exit')
+                const deleteBtn = card.querySelector('.btn-delete-exit')
+
+                exitNameInput.addEventListener('input', () => {
+                    const newName = exitNameInput.value.trim()
+                    if (newName) {
+                        vm.updateChoiceDetails(choice, newName, exitCondInput.value)
+                        renderConnectionsList()
+                        if (storyGraphInstance) storyGraphInstance.render(true)
+                    }
+                })
+                exitNameInput.addEventListener('blur', () => {
+                    const newName = exitNameInput.value.trim()
+                    if (!newName) {
+                        exitNameInput.value = choice.getName()
+                    } else {
+                        vm.updateChoiceDetails(choice, newName, exitCondInput.value)
+                        renderConnectionsList()
+                        if (storyGraphInstance) storyGraphInstance.render(true)
+                    }
+                })
+
+                exitTargetSelect.addEventListener('change', () => {
+                    const newTargetId = exitTargetSelect.value
+                    if (newTargetId && newTargetId !== choice.getToParagraphId()) {
+                        choice.setToParagraphId(newTargetId)
+                        renderDetailsPanel()
+                        renderConnectionsList()
+                        if (storyGraphInstance) storyGraphInstance.render(true)
+                        toast.success(t('toast.target_updated'))
+                    }
+                })
+
+                exitCondInput.addEventListener('input', () => {
+                    vm.updateChoiceDetails(choice, choice.getName(), exitCondInput.value)
+                    renderConnectionsList()
+                    if (storyGraphInstance) storyGraphInstance.render(true)
+                })
+
+                inspectBtn.addEventListener('click', () => {
+                    selectEntity(choice, 'choice', entity)
+                })
+
+                deleteBtn.addEventListener('click', () => {
+                    if (
+                        confirm(
+                            t('context_menu.confirm_delete', {
+                                name: choice.getName() || choice.getId(),
+                            })
+                        )
+                    ) {
+                        vm.deleteChoice(choice.getId(), projectParagraphs)
+                        renderDetailsPanel()
+                        renderConnectionsList()
+                        renderParagraphsList()
+                        renderHistoryBar()
+                        if (storyGraphInstance) storyGraphInstance.render(true)
+                        toast.success(t('toast.connection_deleted'))
+                    }
+                })
+
+                exitsListContainer.appendChild(card)
+            })
+        }
+
+        container.appendChild(exitsMod)
+    }
+
     // --- MODUL 8: Szybkie akcje / Graf ---
     const actionsMod = document.createElement('section')
     actionsMod.className = 'p-3 space-y-2'
@@ -1537,6 +2183,13 @@ function renderDetailsPanel() {
     actionsMod.querySelector('#btn-details-show-graph').addEventListener('click', () => {
         vm.setActiveMainView('graph')
         updateMainWorkspaceUI()
+        const targetId = item.id
+        if (storyGraphInstance) {
+            storyGraphInstance.focusOnElement(targetId)
+            requestAnimationFrame(() => {
+                if (storyGraphInstance) storyGraphInstance.focusOnElement(targetId)
+            })
+        }
     })
     container.appendChild(actionsMod)
 }
@@ -1779,6 +2432,30 @@ function renderEditorTabs() {
 // Story Graph Module Integration
 let storyGraphInstance = null
 
+function updateZoomToolbarUI(zoomLevel) {
+    const badge = document.getElementById('graph-zoom-level-badge')
+    const zoomOutBtn = document.getElementById('btn-graph-zoom-out')
+    const zoomInBtn = document.getElementById('btn-graph-zoom-in')
+
+    const currentZoom =
+        zoomLevel !== undefined ? zoomLevel : storyGraphInstance ? storyGraphInstance.getZoom() : 1
+    const percentage = Math.round(currentZoom * 100)
+
+    if (badge) {
+        badge.textContent = `${percentage}%`
+    }
+    if (zoomOutBtn) {
+        const isMin = currentZoom <= 0.051
+        zoomOutBtn.classList.toggle('opacity-40', isMin)
+        zoomOutBtn.classList.toggle('pointer-events-none', isMin)
+    }
+    if (zoomInBtn) {
+        const isMax = currentZoom >= 3.99
+        zoomInBtn.classList.toggle('opacity-40', isMax)
+        zoomInBtn.classList.toggle('pointer-events-none', isMax)
+    }
+}
+
 function showGraph(forceRebuild = false) {
     const canvasContainer = document.getElementById('story-graph')
     const nodesLayer = document.getElementById('graph-nodes-layer')
@@ -1788,6 +2465,9 @@ function showGraph(forceRebuild = false) {
         storyGraphInstance = new StoryGraph({
             canvasContainer,
             nodesLayer,
+            lineStyle: vm.getConnectionLineStyle(),
+            wheelSensitivity: vm.getZoomSensitivity(),
+            onZoomChange: lvl => updateZoomToolbarUI(lvl),
             getParagraphs: () => projectParagraphs,
             getScenes: () => projectScenes,
             onSelectParagraph: (p, scene) => {
@@ -1797,11 +2477,24 @@ function showGraph(forceRebuild = false) {
                 }
                 selectEntity(p, 'paragraph', scene)
             },
+            onSelectChoice: (choice, fromP) => {
+                if (vm.isRightSidebarCollapsed()) {
+                    vm.setRightSidebarCollapsed(false)
+                    updateRightSidebarUI()
+                }
+                selectEntity(choice, 'choice', fromP)
+            },
             onCreateParagraph: title => {
                 const newP = vm.createParagraph(title)
                 projectParagraphs.push(newP)
                 renderParagraphsList()
                 return newP
+            },
+            onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
+                const choice = vm.createChoice(fromParagraph, toParagraph, choiceName)
+                renderConnectionsList()
+                renderParagraphsList()
+                return choice
             },
             onToast: (type, msg, title) => {
                 if (type === 'success') toast.success(msg, title)
@@ -1814,6 +2507,48 @@ function showGraph(forceRebuild = false) {
     }
 
     storyGraphInstance.render(forceRebuild)
+    updateZoomToolbarUI()
+}
+
+// Graph Zoom Toolbar Controls
+const btnGraphZoomOut = document.getElementById('btn-graph-zoom-out')
+if (btnGraphZoomOut) {
+    btnGraphZoomOut.addEventListener('click', () => {
+        if (storyGraphInstance) {
+            storyGraphInstance.zoomOut()
+            updateZoomToolbarUI()
+        }
+    })
+}
+
+const btnGraphZoomIn = document.getElementById('btn-graph-zoom-in')
+if (btnGraphZoomIn) {
+    btnGraphZoomIn.addEventListener('click', () => {
+        if (storyGraphInstance) {
+            storyGraphInstance.zoomIn()
+            updateZoomToolbarUI()
+        }
+    })
+}
+
+const btnGraphZoomReset = document.getElementById('btn-graph-zoom-reset')
+if (btnGraphZoomReset) {
+    btnGraphZoomReset.addEventListener('click', () => {
+        if (storyGraphInstance) {
+            storyGraphInstance.resetZoom()
+            updateZoomToolbarUI()
+        }
+    })
+}
+
+const btnGraphZoomFit = document.getElementById('btn-graph-zoom-fit')
+if (btnGraphZoomFit) {
+    btnGraphZoomFit.addEventListener('click', () => {
+        if (storyGraphInstance) {
+            storyGraphInstance.fit()
+            updateZoomToolbarUI()
+        }
+    })
 }
 
 window.addEventListener('resize', () => {
@@ -1870,15 +2605,19 @@ document.querySelectorAll('[data-file]').forEach(btn => {
     })
 })
 
-viewMarkdownBtn.addEventListener('click', () => {
-    vm.setActiveMainView('markdown')
-    updateMainWorkspaceUI()
-})
+if (viewMarkdownBtn) {
+    viewMarkdownBtn.addEventListener('click', () => {
+        vm.setActiveMainView('markdown')
+        updateMainWorkspaceUI()
+    })
+}
 
-viewGraphBtn.addEventListener('click', () => {
-    vm.setActiveMainView('graph')
-    updateMainWorkspaceUI()
-})
+if (viewGraphBtn) {
+    viewGraphBtn.addEventListener('click', () => {
+        vm.setActiveMainView('graph')
+        updateMainWorkspaceUI()
+    })
+}
 
 document.querySelectorAll('[data-action="show-graph"]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1936,61 +2675,88 @@ document.addEventListener('keydown', e => {
     }
 })
 
-fileEditor.addEventListener('input', () => {
-    const active = vm.getActiveFile()
-    if (active) {
-        files[active] = fileEditor.value
-        if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
-    }
-})
+if (fileEditor) {
+    fileEditor.addEventListener('input', () => {
+        const active = vm.getActiveFile()
+        if (active) {
+            files[active] = fileEditor.value
+            if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
+        }
+    })
+}
 
 // Initial Render & i18n setup
 async function initApp() {
-    await initTranslations()
-    applyTranslations()
+    try {
+        await initTranslations()
+        applyTranslations()
 
-    const initialLeftWidth = vm.getLeftDrawerWidth()
-    if (leftDrawer) {
-        leftDrawer.style.width = `${initialLeftWidth}px`
-        leftDrawer.style.setProperty('--left-drawer-width', `${initialLeftWidth}px`)
-    }
+        const initialLeftWidth = vm.getLeftDrawerWidth()
+        if (leftDrawer) {
+            leftDrawer.style.width = `${initialLeftWidth}px`
+            leftDrawer.style.setProperty('--left-drawer-width', `${initialLeftWidth}px`)
+        }
 
-    const initialRightWidth = vm.getRightSidebarWidth()
-    if (rightSidebar) {
-        rightSidebar.style.width = `${initialRightWidth}px`
-        rightSidebar.style.setProperty('--right-sidebar-width', `${initialRightWidth}px`)
-    }
+        const initialRightWidth = vm.getRightSidebarWidth()
+        if (rightSidebar) {
+            rightSidebar.style.width = `${initialRightWidth}px`
+            rightSidebar.style.setProperty('--right-sidebar-width', `${initialRightWidth}px`)
+        }
 
-    setupParagraphSearchAndFilters()
-    setupSectionControlsAndContextMenu()
-    setupResizers()
-    updateRibbonUI()
-    updateLeftDrawerUI()
-    updateRightSidebarUI()
-    renderHistoryBar()
-    renderDetailsPanel()
-    updateMainWorkspaceUI()
+        setupParagraphSearchAndFilters()
+        setupSectionControlsAndContextMenu()
+        setupResizers()
+        updateRibbonUI()
+        updateLeftDrawerUI()
+        updateRightSidebarUI()
+        renderHistoryBar()
+        renderDetailsPanel()
+        updateMainWorkspaceUI()
 
-    const langSelect = document.getElementById('settings-language-select')
-    if (langSelect) {
-        langSelect.value = getLanguage()
-        langSelect.addEventListener('change', async () => {
-            const newLang = langSelect.value
-            await setLanguage(newLang)
-            applyTranslations()
-            updateLeftDrawerUI()
-            renderFilterTags()
-            populateFilterSelects()
-            renderParagraphsList()
-            renderScenesList()
-            renderTagsList()
-            renderCharactersList()
-            renderLocationsList()
-            renderTraitsList()
-            renderHistoryBar()
-            renderDetailsPanel()
-            updateMainWorkspaceUI()
-        })
+        const langSelect = document.getElementById('settings-language-select')
+        if (langSelect) {
+            langSelect.value = getLanguage()
+            langSelect.addEventListener('change', async () => {
+                const newLang = langSelect.value
+                await setLanguage(newLang)
+                applyTranslations()
+                updateLeftDrawerUI()
+                renderFilterTags()
+                populateFilterSelects()
+                renderParagraphsList()
+                renderScenesList()
+                renderConnectionsList()
+                renderTagsList()
+                renderCharactersList()
+                renderLocationsList()
+                renderTraitsList()
+                renderHistoryBar()
+                renderDetailsPanel()
+                updateMainWorkspaceUI()
+            })
+        }
+
+        const zoomSensSlider = document.getElementById('settings-zoom-sensitivity')
+        const zoomSensValue = document.getElementById('settings-zoom-sensitivity-value')
+        if (zoomSensSlider) {
+            const currentSens = vm.getZoomSensitivity()
+            zoomSensSlider.value = String(currentSens)
+            if (zoomSensValue) {
+                zoomSensValue.textContent = `${Math.round(currentSens * 100)}%`
+            }
+            zoomSensSlider.addEventListener('input', () => {
+                const val = parseFloat(zoomSensSlider.value)
+                vm.setZoomSensitivity(val)
+                if (storyGraphInstance) {
+                    storyGraphInstance.setWheelSensitivity(val)
+                }
+                if (zoomSensValue) {
+                    zoomSensValue.textContent = `${Math.round(val * 100)}%`
+                }
+            })
+        }
+    } catch (err) {
+        console.error('Fatal initialization error in MainWindow:', err)
     }
 }
 

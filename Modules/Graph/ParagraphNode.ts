@@ -165,6 +165,21 @@ export class ParagraphNode extends BaseElement {
         body.addEventListener('click', handleNodeClick)
         body.addEventListener('dblclick', handleNodeDblClick)
 
+        socketBtn.addEventListener('pointerdown', e => {
+            e.stopPropagation()
+            this.dispatchEvent(
+                new CustomEvent('node-socket-pointerdown', {
+                    bubbles: true,
+                    composed: true,
+                    detail: {
+                        paragraph: this._paragraph,
+                        socketElement: socketBtn,
+                        originalEvent: e,
+                    },
+                })
+            )
+        })
+
         socketBtn.addEventListener('click', e => {
             e.stopPropagation()
             this.dispatchEvent(

@@ -38,11 +38,12 @@ describe('MainWindowViewModel', () => {
         expect(vm.isLeftDrawerOpen()).toBe(false)
     })
 
-    it('kliknięcie innej ikony na lewym pasku zmienia otwartą zakładkę w panelu dla wszystkich sekcji w tym tags', () => {
+    it('kliknięcie innej ikony na lewym pasku zmienia otwartą zakładkę w panelu dla wszystkich sekcji w tym tags i connections', () => {
         vm.closeLeftDrawer()
         const tabs = [
             'paragraphs',
             'scenes',
+            'connections',
             'characters',
             'locations',
             'traits',
@@ -425,6 +426,167 @@ describe('MainWindowViewModel', () => {
         })
     })
 
+    describe('Connection / Choice Management', () => {
+        it('tworzy nowe połączenie z automatycznym przypisaniem fromParagraph i toParagraph', () => {
+            const p1 = vm.createParagraph('Start')
+            const p2 = vm.createParagraph('Cel')
+
+            const choice = vm.createChoice(p1, p2, 'Idź do celu', 'Domyślny skok', 'Wymagany klucz')
+            expect(choice.getId()).toBeDefined()
+            expect(choice.getName()).toBe('Idź do celu')
+            expect(choice.getFromParagraphId()).toBe(p1.getId())
+            expect(choice.getToParagraphId()).toBe(p2.getId())
+            expect(choice.getCondition()?.getSummary()).toBe('Wymagany klucz')
+            expect(p1.getChoices()).toContain(choice)
+        })
+
+        it('pobiera wszystkie wybory ze wszystkich paragrafów projektu', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+
+            const c1 = vm.createChoice(p1, p2, 'Skok 1')
+            const c2 = vm.createChoice(p1, p3, 'Skok 2')
+            const c3 = vm.createChoice(p2, p3, 'Skok 3')
+
+            const all = vm.getAllChoices([p1, p2, p3])
+            expect(all).toHaveLength(3)
+            expect(all).toContain(c1)
+            expect(all).toContain(c2)
+            expect(all).toContain(c3)
+        })
+
+        it('usuwa połączenie ze źródłowego paragrafu oraz zamyka z historii jeśli było wybrane', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const choice = vm.createChoice(p1, p2, 'Skok do usunięcia')
+
+            vm.selectElement(choice, 'choice')
+            expect(vm.getSelectedItem()?.id).toBe(choice.getId())
+
+            const deleted = vm.deleteChoice(choice.getId(), [p1, p2])
+            expect(deleted).toBe(true)
+            expect(p1.getChoices()).not.toContain(choice)
+            expect(vm.getSelectedItem()?.id).not.toBe(choice.getId())
+        })
+
+        it('odwraca kierunek połączenia przenosząc wybór do docelowego węzła', () => {
+            const p1 = vm.createParagraph('Źródło')
+            const p2 = vm.createParagraph('Cel')
+            const choice = vm.createChoice(p1, p2, 'Droga powrotna')
+
+            expect(p1.getChoices()).toContain(choice)
+            expect(p2.getChoices()).not.toContain(choice)
+
+            const reversed = vm.reverseChoice(choice, [p1, p2])
+            expect(reversed).toBe(true)
+            expect(choice.getFromParagraphId()).toBe(p2.getId())
+            expect(choice.getToParagraphId()).toBe(p1.getId())
+            expect(p1.getChoices()).not.toContain(choice)
+            expect(p2.getChoices()).toContain(choice)
+        })
+
+        it('aktualizuje nazwę i warunek przeskoku', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const choice = vm.createChoice(p1, p2, 'Stara nazwa')
+
+            vm.selectElement(choice, 'choice')
+            vm.updateChoiceDetails(choice, 'Nowa nazwa', 'Nowy warunek pisemny')
+
+            expect(choice.getName()).toBe('Nowa nazwa')
+            expect(choice.getCondition()?.getSummary()).toBe('Nowy warunek pisemny')
+            expect(vm.getSelectedItem()?.name).toBe('Nowa nazwa')
+
+            // Usunięcie warunku poprzez pusty string
+            vm.updateChoiceDetails(choice, 'Nowa nazwa', '   ')
+            expect(choice.getCondition()).toBeNull()
+        })
+
+        it('filtruje i wyszukuje przeskoki po nazwie, warunku oraz tytułach węzłów', () => {
+            const p1 = vm.createParagraph('Karczma')
+            const p2 = vm.createParagraph('Las')
+            const p3 = vm.createParagraph('Jaskinia')
+
+            const c1 = vm.createChoice(p1, p2, 'Wyjdź na trakt', 'Skok', 'Pochodnia')
+            const c2 = vm.createChoice(p2, p3, 'Zejdź w głąb', 'Skok', 'Lina')
+
+            const choices = [c1, c2]
+            const paragraphs = [p1, p2, p3]
+
+            // Szukanie po nazwie wyboru
+            vm.setConnectionSearchQuery('trakt')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c1])
+
+            // Szukanie po warunku
+            vm.setConnectionSearchQuery('lina')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c2])
+
+            // Szukanie po tytule węzła źródłowego
+            vm.setConnectionSearchQuery('karczma')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c1])
+
+            // Szukanie po tytule węzła docelowego
+            vm.setConnectionSearchQuery('jaskinia')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c2])
+        })
+
+        it('zwraca wszystkie wychodzące przeskoki dla danego paragrafu za pomocą getOutgoingChoices', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+
+            expect(vm.getOutgoingChoices(p1)).toEqual([])
+
+            const c1 = vm.createChoice(p1, p2, 'Wyjście 1')
+            const c2 = vm.createChoice(p1, p3, 'Wyjście 2')
+
+            const exits = vm.getOutgoingChoices(p1)
+            expect(exits).toHaveLength(2)
+            expect(exits).toEqual([c1, c2])
+        })
+
+        it('zmienia cel przeskoku za pomocą updateChoiceTarget', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+            const choice = vm.createChoice(p1, p2, 'Skok')
+
+            expect(choice.getToParagraphId()).toBe(p2.getId())
+
+            const updated = vm.updateChoiceTarget(choice, p3.getId())
+            expect(updated).toBe(true)
+            expect(choice.getToParagraphId()).toBe(p3.getId())
+
+            // Walidacja pustego ID
+            const invalid = vm.updateChoiceTarget(choice, '   ')
+            expect(invalid).toBe(false)
+        })
+
+        it('aktualizuje nazwę, cel i warunek przeskoku za pomocą updateChoice', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+            const choice = vm.createChoice(p1, p2, 'Stara nazwa')
+
+            const updated = vm.updateChoice(choice, 'Nowa nazwa', p3.getId(), 'Wymóg testowy')
+            expect(updated).toBe(true)
+            expect(choice.getName()).toBe('Nowa nazwa')
+            expect(choice.getToParagraphId()).toBe(p3.getId())
+            expect(choice.getCondition()?.getSummary()).toBe('Wymóg testowy')
+
+            // Nie pozwala na pustą nazwę
+            const failed = vm.updateChoice(choice, '  ', p2.getId(), 'Warunek')
+            expect(failed).toBe(false)
+        })
+
+        it('zarządza domyślnym stylem linii połączeń (curved)', () => {
+            expect(vm.getConnectionLineStyle()).toBe('curved')
+            vm.setConnectionLineStyle('curved')
+            expect(vm.getConnectionLineStyle()).toBe('curved')
+        })
+    })
+
     describe('Panel Resizing Bounds', () => {
         it('pilnuje minimalnych i maksymalnych wymiarów lewego i prawego panelu', () => {
             expect(vm.getLeftDrawerWidth()).toBe(260)
@@ -440,6 +602,19 @@ describe('MainWindowViewModel', () => {
 
             vm.setRightSidebarWidth(1000) // Za dużo
             expect(vm.getRightSidebarWidth()).toBe(700)
+        })
+
+        it('zarządza czułością przybliżania kółkiem myszy (zoom sensitivity)', () => {
+            expect(vm.getZoomSensitivity()).toBe(0.2)
+            vm.setZoomSensitivity(0.35)
+            expect(vm.getZoomSensitivity()).toBe(0.35)
+
+            // Clamping
+            vm.setZoomSensitivity(-0.5)
+            expect(vm.getZoomSensitivity()).toBe(0.01)
+
+            vm.setZoomSensitivity(2.5)
+            expect(vm.getZoomSensitivity()).toBe(1.0)
         })
     })
 })

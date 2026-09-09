@@ -1,10 +1,11 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
 import { getContrastTextColor, ParagraphNode } from '../../Modules/Graph/ParagraphNode'
 import { instantiateParagraphNodeTemplate } from '../../Modules/Graph/ParagraphNodeTemplate'
+import { StoryGraph } from '../../Modules/Graph/StoryGraph'
 import { initTranslationsWithLocale, setLanguage, t } from '../../Utils/translate'
 
 describe('getContrastTextColor utility', () => {
@@ -201,5 +202,175 @@ describe('ParagraphNode Web Component', () => {
 
         expect(openedDetails).toBe(true)
         node.remove()
+    })
+})
+
+describe('StoryGraph focusOnElement', () => {
+    it('should focus and center on the target paragraph node element', () => {
+        const canvasContainer = document.createElement('div')
+        const nodesLayer = document.createElement('div')
+        document.body.appendChild(canvasContainer)
+        document.body.appendChild(nodesLayer)
+
+        const p1 = new Paragraph('p-focus-1', 'Focus Test 1')
+        p1.setPosition({ x: 200, y: 150 })
+
+        const storyGraph = new StoryGraph({
+            canvasContainer,
+            nodesLayer,
+            lineStyle: 'curved',
+            getParagraphs: () => [p1],
+            getScenes: () => [],
+            onSelectParagraph: () => {},
+            onSelectChoice: () => {},
+            onCreateParagraph: (title: string) => new Paragraph('new-p', title),
+            onToast: () => {},
+            t: (k: string) => k,
+        })
+
+        let animatedCenterEles: unknown = null
+        const mockCy = {
+            pan: () => ({ x: 0, y: 0 }),
+            zoom: () => 1,
+            resize: () => {},
+            destroy: () => {},
+            on: () => {},
+            removeListener: () => {},
+            getElementById: (id: string) => {
+                if (id === 'p-focus-1') {
+                    return {
+                        position: () => ({ x: 200, y: 150 }),
+                        data: () => ({}),
+                    }
+                }
+                return undefined
+            },
+            style: () => {},
+            center: (eles: unknown) => {
+                animatedCenterEles = eles
+            },
+            animate: (options: { center?: { eles: unknown }; pan?: unknown }) => {
+                if (options.center) animatedCenterEles = options.center.eles
+            },
+        }
+
+        window.cytoscape = () => mockCy as any
+
+        storyGraph.render(true)
+        storyGraph.focusOnElement('p-focus-1')
+
+        expect(animatedCenterEles).not.toBeNull()
+        storyGraph.destroy()
+        canvasContainer.remove()
+        nodesLayer.remove()
+    })
+
+    describe('StoryGraph zoom and wheel sensitivity operations', () => {
+        it('should perform zoomIn, zoomOut, zoomTo, resetZoom and getZoomPercentage', () => {
+            const canvasContainer = document.createElement('div')
+            const nodesLayer = document.createElement('div')
+            document.body.appendChild(canvasContainer)
+            document.body.appendChild(nodesLayer)
+
+            let currentZoomLevel = 1.0
+            let zoomChangeReceived: number | null = null
+
+            const mockCy = {
+                pan: (): { x: number; y: number } => ({ x: 0, y: 0 }),
+                zoom: (lvl?: number): number => {
+                    if (typeof lvl === 'number') {
+                        currentZoomLevel = lvl
+                    }
+                    return currentZoomLevel
+                },
+                fit: vi.fn(),
+                resize: (): void => {},
+                destroy: (): void => {},
+                on: (_ev: string, selectorOrHandler: unknown): void => {
+                    if (typeof selectorOrHandler === 'function') {
+                        selectorOrHandler()
+                    }
+                },
+                removeListener: (): void => {},
+                getElementById: (): undefined => undefined,
+                style: (): void => {},
+                animate: (
+                    opts: { zoom?: { level?: number } },
+                    params?: { complete?: () => void }
+                ): void => {
+                    if (opts.zoom?.level) {
+                        currentZoomLevel = opts.zoom.level
+                    }
+                    if (params?.complete) params.complete()
+                },
+                _private: {
+                    options: { wheelSensitivity: 0.2 },
+                    renderer: { wheelSensitivity: 0.2 },
+                },
+            }
+
+            window.cytoscape = () => mockCy as any
+
+            const storyGraph = new StoryGraph({
+                canvasContainer,
+                nodesLayer,
+                wheelSensitivity: 0.25,
+                onZoomChange: lvl => {
+                    zoomChangeReceived = lvl
+                },
+                getParagraphs: () => [],
+                getScenes: () => [],
+                onSelectParagraph: () => {},
+                onCreateParagraph: () => new Paragraph('p', 'P'),
+                onToast: () => {},
+                t: k => k,
+            })
+
+            storyGraph.render(true)
+
+            expect(storyGraph.getZoom()).toBe(1.0)
+            expect(storyGraph.getZoomPercentage()).toBe(100)
+            expect(storyGraph.getWheelSensitivity()).toBe(0.25)
+
+            // Test setWheelSensitivity
+            storyGraph.setWheelSensitivity(0.35)
+            expect(storyGraph.getWheelSensitivity()).toBe(0.35)
+            expect(mockCy._private.options.wheelSensitivity).toBe(0.35)
+            expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
+
+            // Test zoomIn
+            storyGraph.zoomIn(1.2)
+            expect(currentZoomLevel).toBeCloseTo(1.2)
+            expect(storyGraph.getZoomPercentage()).toBe(120)
+            expect(zoomChangeReceived).toBeCloseTo(1.2)
+
+            // Test zoomOut
+            storyGraph.zoomOut(1.2)
+            expect(currentZoomLevel).toBeCloseTo(1.0)
+            expect(storyGraph.getZoomPercentage()).toBe(100)
+
+            // Test resetZoom
+            storyGraph.zoomTo(2.5)
+            expect(storyGraph.getZoomPercentage()).toBe(250)
+            storyGraph.resetZoom()
+            expect(storyGraph.getZoomPercentage()).toBe(100)
+
+            // Test zoom clamping between 0.05 and 4.0
+            storyGraph.zoomTo(0.01)
+            expect(currentZoomLevel).toBe(0.05)
+            expect(storyGraph.getZoomPercentage()).toBe(5)
+
+            storyGraph.zoomTo(10.0)
+            expect(currentZoomLevel).toBe(4.0)
+            expect(storyGraph.getZoomPercentage()).toBe(400)
+
+            // Test fit
+            storyGraph.fit(50)
+            expect(mockCy.fit).toHaveBeenCalledWith(undefined, 50)
+
+            storyGraph.destroy()
+            canvasContainer.remove()
+            nodesLayer.remove()
+        })
     })
 })

@@ -313,7 +313,7 @@ paragraph-node,
     display: block;
     user-select: none;
     position: absolute;
-    transform: translate(-50%, 0);
+    transform: translate(-50%, -50%);
     pointer-events: auto;
     width: 220px;
     background-color: #18181b;
@@ -595,3 +595,10 @@ paragraph-node,
     background-color: #16a34a;
 }
 
+/* Drag-to-connect hover highlight on node */
+.paragraph-node.is-drag-target {
+    box-shadow:
+        0 0 0 2.5px #38bdf8,
+        0 0 20px rgba(56, 189, 248, 0.45) !important;
+    transform: translate(-50%, -50%) scale(1.03) !important;
+}

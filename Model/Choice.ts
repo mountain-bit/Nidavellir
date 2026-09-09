@@ -4,14 +4,25 @@ import { Description } from './Description'
 export class Choice {
     private id: string = ''
     private name: string = ''
-    private condition: Condition = new Condition('', '')
+    private fromParagraphId: string = ''
+    private toParagraphId: string = ''
+    private condition: Condition | null = null
     private description: Description = new Description()
 
-    constructor(id: string = '', name: string = '') {
+    constructor(
+        id: string = '',
+        name: string = '',
+        fromParagraphId: string = '',
+        toParagraphId: string = '',
+        condition: Condition | null = null,
+        description: Description = new Description()
+    ) {
         this.id = id
         this.name = name
-        this.condition = new Condition('', '')
-        this.description = new Description()
+        this.fromParagraphId = fromParagraphId
+        this.toParagraphId = toParagraphId || (id && !fromParagraphId ? id : '')
+        this.condition = condition
+        this.description = description
     }
 
     public getId(): string {
@@ -34,11 +45,27 @@ export class Choice {
         this.name = name
     }
 
-    public getCondition(): Condition {
+    public getFromParagraphId(): string {
+        return this.fromParagraphId
+    }
+
+    public setFromParagraphId(id: string): void {
+        this.fromParagraphId = id
+    }
+
+    public getToParagraphId(): string {
+        return this.toParagraphId
+    }
+
+    public setToParagraphId(id: string): void {
+        this.toParagraphId = id
+    }
+
+    public getCondition(): Condition | null {
         return this.condition
     }
 
-    public setCondition(condition: Condition): void {
+    public setCondition(condition: Condition | null): void {
         this.condition = condition
     }
 
@@ -50,21 +77,48 @@ export class Choice {
         this.description = description
     }
 
-    public static fromJSON(json: any): Choice {
+    public static fromJSON(json: Record<string, unknown> | null | undefined): Choice {
         if (!json) return new Choice('')
-        const name = json.name ?? ''
-        const p = new Choice(json.id || '', name)
-        if (json.condition) p.setCondition(Condition.fromJSON(json.condition))
-        if (json.description) p.setDescription(Description.fromJSON(json.description))
-        return p
+        const id = typeof json.id === 'string' ? json.id : ''
+        const name =
+            typeof json.name === 'string'
+                ? json.name
+                : typeof json.nazwa === 'string'
+                  ? json.nazwa
+                  : ''
+        const fromParagraphId =
+            typeof json.fromParagraphId === 'string'
+                ? json.fromParagraphId
+                : typeof json.sourceParagraphId === 'string'
+                  ? json.sourceParagraphId
+                  : ''
+        const toParagraphId =
+            typeof json.toParagraphId === 'string'
+                ? json.toParagraphId
+                : typeof json.targetParagraphId === 'string'
+                  ? json.targetParagraphId
+                  : typeof json.cel === 'string'
+                    ? json.cel
+                    : id
+
+        const choice = new Choice(id, name, fromParagraphId, toParagraphId)
+        if (json.condition && typeof json.condition === 'object') {
+            choice.setCondition(Condition.fromJSON(json.condition as Record<string, unknown>))
+        }
+        if (json.description && typeof json.description === 'object') {
+            choice.setDescription(Description.fromJSON(json.description as Record<string, unknown>))
+        }
+        return choice
     }
 
-    public toJSON(): any {
+    public toJSON(): Record<string, unknown> {
         return {
             id: this.id,
             name: this.name,
-            condition: this.condition,
-            description: this.description,
+            fromParagraphId: this.fromParagraphId,
+            toParagraphId: this.toParagraphId,
+            condition: this.condition ? this.condition.toJSON() : null,
+            description: this.description ? this.description.toJSON() : null,
         }
     }
 }

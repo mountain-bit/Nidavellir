@@ -136,15 +136,18 @@ export class Paragraph {
     }
 
     public addChoice(choice: Choice): void {
+        if (!choice.getFromParagraphId() && this.id) {
+            choice.setFromParagraphId(this.id)
+        }
         this.choices.push(choice)
     }
 
     public removeChoice(id: string): void {
-        this.choices = this.choices.filter(p => p.getId() !== id)
+        this.choices = this.choices.filter(p => p.getId() !== id && p.getToParagraphId() !== id)
     }
 
     public getChoice(id: string): Choice | undefined {
-        return this.choices.find(p => p.getId() === id)
+        return this.choices.find(p => p.getId() === id || p.getToParagraphId() === id)
     }
 
     public getHasCombat(): boolean {
@@ -175,15 +178,33 @@ export class Paragraph {
         if (!json) return new Paragraph('')
         const rawTags = Array.isArray(json.tags) ? json.tags : []
         const tagsParsed = rawTags.map(t => Tag.fromJSON(t as Record<string, unknown>))
-        const title = typeof json.title === 'string' ? json.title : ''
-        const content = json.content as Record<string, unknown> | undefined
-        const rawJumps = Array.isArray(json.jumps) ? json.jumps : []
-        const jumps = rawJumps.map(przeskok => Choice.fromJSON(przeskok as Record<string, unknown>))
+        const title =
+            typeof json.title === 'string'
+                ? json.title
+                : typeof json.nazwa === 'string'
+                  ? json.nazwa
+                  : ''
+        const content = (json.content || json.opis) as Record<string, unknown> | undefined
+        const rawJumps = Array.isArray(json.jumps)
+            ? json.jumps
+            : Array.isArray(json.choices)
+              ? json.choices
+              : Array.isArray(json.przeskoki)
+                ? json.przeskoki
+                : []
+        const paragraphId = typeof json.id === 'string' ? json.id : ''
+        const jumps = rawJumps.map(przeskok => {
+            const ch = Choice.fromJSON(przeskok as Record<string, unknown>)
+            if (!ch.getFromParagraphId() && paragraphId) {
+                ch.setFromParagraphId(paragraphId)
+            }
+            return ch
+        })
         const hasCombat = typeof json.hasCombat === 'boolean' ? json.hasCombat : false
         const combatData = json.combat as Record<string, unknown> | undefined
 
         const p = new Paragraph(
-            typeof json.id === 'string' ? json.id : '',
+            paragraphId,
             title,
             Description.fromJSON(content),
             jumps,
