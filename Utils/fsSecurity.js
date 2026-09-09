@@ -50,12 +50,11 @@ function isPathInsideBase(basePath, targetPath) {
  */
 function validateProjectData(data) {
     if (typeof data !== 'object' || data === null) return false
-    const name = data.name !== undefined ? data.name : data.nazwa
+    const name = data.name
     if (typeof name !== 'string') return false
-    const descriptionPaths =
-        data.descriptionPaths !== undefined ? data.descriptionPaths : data.sciezkiOpisow
+    const descriptionPaths = data.descriptionPaths
     if (!Array.isArray(descriptionPaths)) return false
-    const dataPaths = data.dataPaths !== undefined ? data.dataPaths : data.sciezkiDanych
+    const dataPaths = data.dataPaths
     if (!Array.isArray(dataPaths)) return false
     return true
 }

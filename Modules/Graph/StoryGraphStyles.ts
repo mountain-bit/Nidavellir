@@ -44,14 +44,6 @@ export interface ICytoscapeStyleRule {
     style: Record<string, string | number>
 }
 
-/**
- * Calculates vertical Y offsets on the right edge for K outgoing connections
- * such that they are stacked with minimal spacing and vertically centered on average.
- *
- * For k=1: [0]
- * For k=2: [-spacing/2, +spacing/2]
- * For k=3: [-spacing, 0, +spacing]
- */
 export function calculateEdgeSourceOffsets(
     count: number,
     spacing: number = GRAPH_THEME.dimensions.edgeSourceSpacing
@@ -66,10 +58,6 @@ export function calculateEdgeSourceOffsets(
     return offsets
 }
 
-/**
- * Calculates curved control point distance for an edge between source and target coordinates.
- * Generates smooth, aesthetic, aerodynamic curves (półkoliste) that bend naturally without excessive convexity/bulging.
- */
 export function calculateCurvedEdgeControlPointDistance(
     sourcePos: { x: number; y: number },
     targetPos: { x: number; y: number },
@@ -78,31 +66,21 @@ export function calculateCurvedEdgeControlPointDistance(
 ): number {
     const dx = targetPos.x - sourcePos.x
     const dy = targetPos.y - sourcePos.y
-
-    // Multi-edge fanout offset so parallel/divergent choices do not overlap (subtle, clean separation)
     const fanout = (choiceIndex - (totalChoices - 1) / 2) * 10
 
-    // If target is to the right (forward flow)
     if (dx >= 0) {
-        // When horizontally aligned, keep flat/smooth without bulging domes
         if (Math.abs(dy) <= 10) {
             return fanout
         }
-        // Subtle natural arc proportional to vertical separation (clamped between 6px and 18px)
         const arcHeight = Math.min(18, Math.max(6, Math.round(Math.abs(dy) * 0.08)))
         const dir = dy < 0 ? -1 : 1
         return arcHeight * dir + fanout
     } else {
-        // Backwards jump: clean, sleek loop above nodes
         const loopHeight = Math.max(30, Math.min(50, Math.round(Math.abs(dy) * 0.12 + 32)))
         return -(loopHeight + Math.abs(fanout))
     }
 }
 
-/**
- * Returns Cytoscape.js stylesheet rules for rendering nodes and edges.
- * Uses smooth curved (unbundled-bezier) lines with multi-output offsets.
- */
 export function getStoryGraphStylesheet(
     _lineStyle: ConnectionLineStyle = 'curved',
     customOverrides: ICytoscapeStyleRule[] = []
@@ -129,7 +107,6 @@ export function getStoryGraphStylesheet(
                 'target-arrow-shape': 'triangle',
                 'arrow-scale': 0.9,
                 'curve-style': 'unbundled-bezier',
-                // Curved (unbundled-bezier) properties
                 'control-point-distances': 'data(ctrlDist)',
                 'control-point-weights': '0.5',
                 'source-endpoint': 'data(sourceEndpoint)',
@@ -170,15 +147,6 @@ export function getStoryGraphStylesheet(
     return [...defaultRules, ...customOverrides]
 }
 
-/**
- * Reorders choices of a parent paragraph according to the vertical (Y) and horizontal (X)
- * positions of their target paragraphs. This ensures outgoing connection lines from stacked
- * source sockets exit in top-to-bottom order without crossing each other.
- *
- * @param parentParagraph The parent paragraph whose choices to inspect and reorder.
- * @param paragraphs Array of all paragraphs in the story graph to resolve target positions.
- * @returns boolean True if the choice order was changed, false otherwise.
- */
 export function reorderChoicesToPreventCrossings(
     parentParagraph: Paragraph,
     paragraphs: Paragraph[]
@@ -186,7 +154,6 @@ export function reorderChoicesToPreventCrossings(
     const choices = parentParagraph.getChoices ? parentParagraph.getChoices() : []
     if (!choices || choices.length <= 1) return false
 
-    // Map each choice to its resolved target position and initial index
     const choiceWithTarget = choices.map((choice, originalIndex) => {
         const targetId = choice.getToParagraphId()
         const targetP = paragraphs.find(p => p.getId() === targetId)
@@ -200,7 +167,6 @@ export function reorderChoicesToPreventCrossings(
         }
     })
 
-    // Sort ascending by target Y coordinate (higher on screen first), then target X, then originalIndex
     const sorted = [...choiceWithTarget].sort((a, b) => {
         if (a.y !== b.y) {
             return a.y - b.y
@@ -220,14 +186,6 @@ export function reorderChoicesToPreventCrossings(
     return false
 }
 
-/**
- * Checks all parent paragraphs (or specific parents connected to a moved paragraph)
- * and reorders their choices to prevent connection line crossings.
- *
- * @param paragraphs Array of all paragraphs in the story graph.
- * @param movedParagraphId Optional ID of the paragraph that was moved or created.
- * @returns boolean True if any paragraph had its choices reordered.
- */
 export function preventChoiceLineCrossings(
     paragraphs: Paragraph[],
     movedParagraphId?: string
@@ -236,7 +194,6 @@ export function preventChoiceLineCrossings(
     let anyChanged = false
 
     if (movedParagraphId) {
-        // Find parents that have an outgoing choice to movedParagraphId, plus movedParagraphId itself
         const relevantParents = paragraphs.filter(p => {
             if (p.getId() === movedParagraphId) return true
             const choices = p.getChoices ? p.getChoices() : []
@@ -248,7 +205,6 @@ export function preventChoiceLineCrossings(
             if (changed) anyChanged = true
         }
     } else {
-        // Check every paragraph
         for (const p of paragraphs) {
             const changed = reorderChoicesToPreventCrossings(p, paragraphs)
             if (changed) anyChanged = true

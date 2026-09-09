@@ -402,6 +402,45 @@ export class StoryGraph {
         })
     }
 
+    private getOrCreateDragLineSvg(): { svg: SVGSVGElement; path: SVGPathElement } {
+        let svg = document.getElementById('story-graph-drag-svg') as SVGSVGElement | null
+        if (!svg) {
+            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+            svg.id = 'story-graph-drag-svg'
+            svg.setAttribute('class', 'absolute inset-0 w-full h-full pointer-events-none z-40')
+
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker')
+            marker.id = 'drag-arrow'
+            marker.setAttribute('markerWidth', '6')
+            marker.setAttribute('markerHeight', '6')
+            marker.setAttribute('refX', '5')
+            marker.setAttribute('refY', '3')
+            marker.setAttribute('orient', 'auto')
+
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
+            polygon.setAttribute('points', '0 0, 6 3, 0 6')
+            polygon.setAttribute('fill', GRAPH_THEME.colors.edgeSelected)
+            marker.appendChild(polygon)
+            defs.appendChild(marker)
+            svg.appendChild(defs)
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+            path.id = 'drag-preview-path'
+            path.setAttribute('fill', 'none')
+            path.setAttribute('stroke', GRAPH_THEME.colors.edgeSelected)
+            path.setAttribute('stroke-width', '2.5')
+            path.setAttribute('stroke-dasharray', '4 3')
+            path.setAttribute('marker-end', 'url(#drag-arrow)')
+            svg.appendChild(path)
+
+            this.canvasContainer.appendChild(svg)
+        }
+
+        const pathEl = svg.querySelector('#drag-preview-path') as SVGPathElement
+        return { svg, path: pathEl }
+    }
+
     /**
      * Interactive Drag-to-Connect from Node Socket to another Paragraph Node.
      */
@@ -420,24 +459,7 @@ export class StoryGraph {
         const startScreenX = socketRect.left + socketRect.width / 2 - containerRect.left
         const startScreenY = socketRect.top + socketRect.height / 2 - containerRect.top
 
-        // Create or get floating SVG container
-        let svg = document.getElementById('story-graph-drag-svg') as SVGSVGElement | null
-        if (!svg) {
-            svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-            svg.id = 'story-graph-drag-svg'
-            svg.setAttribute('class', 'absolute inset-0 w-full h-full pointer-events-none z-40')
-            this.canvasContainer.appendChild(svg)
-        }
-        svg.innerHTML = `
-            <defs>
-                <marker id="drag-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                    <polygon points="0 0, 6 3, 0 6" fill="${GRAPH_THEME.colors.edgeSelected}" />
-                </marker>
-            </defs>
-            <path id="drag-preview-path" fill="none" stroke="${GRAPH_THEME.colors.edgeSelected}" stroke-width="2.5" stroke-dasharray="4 3" marker-end="url(#drag-arrow)" />
-        `
-
-        const pathEl = svg.querySelector('#drag-preview-path') as SVGPathElement | null
+        const { path: pathEl } = this.getOrCreateDragLineSvg()
 
         let currentTargetNode: ParagraphNode | null = null
 
@@ -477,8 +499,8 @@ export class StoryGraph {
             window.removeEventListener('pointermove', onMove)
             window.removeEventListener('pointerup', onUp)
 
-            if (svg) {
-                svg.innerHTML = ''
+            if (pathEl) {
+                pathEl.removeAttribute('d')
             }
             if (currentTargetNode) {
                 currentTargetNode.classList.remove('is-drag-target')

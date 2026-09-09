@@ -1,3 +1,5 @@
+import '../../Utils/icons'
+
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
 import { t } from '../../Utils/translate'

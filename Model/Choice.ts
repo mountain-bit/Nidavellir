@@ -80,12 +80,7 @@ export class Choice {
     public static fromJSON(json: Record<string, unknown> | null | undefined): Choice {
         if (!json) return new Choice('')
         const id = typeof json.id === 'string' ? json.id : ''
-        const name =
-            typeof json.name === 'string'
-                ? json.name
-                : typeof json.nazwa === 'string'
-                  ? json.nazwa
-                  : ''
+        const name = typeof json.name === 'string' ? json.name : ''
         const fromParagraphId =
             typeof json.fromParagraphId === 'string'
                 ? json.fromParagraphId
@@ -97,9 +92,7 @@ export class Choice {
                 ? json.toParagraphId
                 : typeof json.targetParagraphId === 'string'
                   ? json.targetParagraphId
-                  : typeof json.cel === 'string'
-                    ? json.cel
-                    : id
+                  : id
 
         const choice = new Choice(id, name, fromParagraphId, toParagraphId)
         if (json.condition && typeof json.condition === 'object') {

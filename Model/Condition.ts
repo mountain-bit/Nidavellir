@@ -98,11 +98,9 @@ export class TextCondition extends Condition {
         const text =
             typeof json.text === 'string'
                 ? json.text
-                : typeof json.warunek === 'string'
-                  ? json.warunek
-                  : typeof json.name === 'string'
-                    ? json.name
-                    : ''
+                : typeof json.name === 'string'
+                  ? json.name
+                  : ''
         return new TextCondition(id, name, text)
     }
 }

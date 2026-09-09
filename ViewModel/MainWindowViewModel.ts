@@ -754,10 +754,10 @@ export class MainWindowViewModel {
         }
 
         result = result.filter(p => {
-            const tytulMatch = p.getTitle().toLowerCase().includes(query)
-            const trescMatch = p.getContent().getText().toLowerCase().includes(query)
-            const numerMatch = p.getNumber().toString().includes(query)
-            return tytulMatch || trescMatch || numerMatch
+            const titleMatch = p.getTitle().toLowerCase().includes(query)
+            const contentMatch = p.getContent().getText().toLowerCase().includes(query)
+            const numberMatch = p.getNumber().toString().includes(query)
+            return titleMatch || contentMatch || numberMatch
         })
 
         return result.sort((a, b) => {

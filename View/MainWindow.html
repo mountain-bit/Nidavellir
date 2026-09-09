@@ -6,6 +6,7 @@
         <title>Silnik Gier Paragrafowych</title>
         <link rel="stylesheet" href="MainWindow.generated.css" />
         <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
+        <script type="module" src="../dist/Utils/icons.js"></script>
     </head>
 
     <body
@@ -67,69 +68,15 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="new-file">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                    ></path>
-                                </svg>
+                                <app-icon name="new-file" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.new_file">Nowy plik</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="save">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8l-4-4H8z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M16 20v-6a2 2 0 00-2-2H10a2 2 0 00-2 2v6"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M8 4v4h6V4"
-                                    ></path>
-                                </svg>
+                                <app-icon name="save" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.save">Zapisz</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="open-project">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M3 7v13a1 1 0 001 1h16a1 1 0 001-1V9a1 1 0 00-1-1h-7.172a2 2 0 01-1.414-.586l-1.828-1.828A2 2 0 009.172 5H4a1 1 0 00-1 1z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M3 11h18"
-                                    ></path>
-                                </svg>
+                                <app-icon name="open" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.open">Otwórz</span>
                             </button>
                         </div>
@@ -142,35 +89,11 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="run-game">
-                                <svg
-                                    class="w-4 h-4 text-emerald-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <polygon
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        points="5 3 19 12 5 21 5 3"
-                                    ></polygon>
-                                </svg>
+                                <app-icon name="arrow-right" class="w-4 h-4 text-emerald-400"></app-icon>
                                 <span data-i18n="ribbon.buttons.run_game">Testuj grę</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="export-game">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                                    ></path>
-                                </svg>
+                                <app-icon name="export" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.export_game">Eksportuj</span>
                             </button>
                         </div>
@@ -181,43 +104,11 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="show-graph">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle cx="18" cy="18" r="3" stroke-width="1.8"></circle>
-                                    <circle cx="6" cy="6" r="3" stroke-width="1.8"></circle>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M13 6h3a2 2 0 012 2v7M6 9v12"
-                                    ></path>
-                                </svg>
+                                <app-icon name="graph" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="switch-markdown">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                                    ></path>
-                                </svg>
+                                <app-icon name="markdown" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.markdown_editor"
                                     >Edytor tekstu</span
                                 >
@@ -238,43 +129,11 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="new-scene">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <rect
-                                        x="3"
-                                        y="3"
-                                        width="18"
-                                        height="18"
-                                        rx="2"
-                                        stroke-width="1.8"
-                                    ></rect>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M12 8v8m-4-4h8"
-                                    ></path>
-                                </svg>
+                                <app-icon name="scene" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.add_scene">Dodaj scenę</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="link-scenes">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                                    ></path>
-                                </svg>
+                                <app-icon name="choice" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.link_scenes">Połącz sceny</span>
                             </button>
                         </div>
@@ -287,75 +146,15 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="open-npcs">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                                    ></path>
-                                </svg>
+                                <app-icon name="character" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.npcs">Postacie NPC</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="open-items">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M8 21v-5a2 2 0 012-2h4a2 2 0 012 2v5"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M8 10h8"
-                                    ></path>
-                                </svg>
+                                <app-icon name="item" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.items">Przedmioty</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="open-locations">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                    ></path>
-                                </svg>
+                                <app-icon name="location" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.locations">Lokacje</span>
                             </button>
                         </div>
@@ -374,45 +173,13 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="switch-markdown">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                                    ></path>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                                    ></path>
-                                </svg>
+                                <app-icon name="markdown" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.markdown_editor"
                                     >Edytor Markdown</span
                                 >
                             </button>
                             <button class="ribbon-btn" type="button" data-action="show-graph">
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <circle cx="18" cy="18" r="3" stroke-width="1.8"></circle>
-                                    <circle cx="6" cy="6" r="3" stroke-width="1.8"></circle>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M13 6h3a2 2 0 012 2v7M6 9v12"
-                                    ></path>
-                                </svg>
+                                <app-icon name="graph" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
                             </button>
                         </div>
@@ -429,27 +196,7 @@
                                 type="button"
                                 data-action="toggle-left-drawer"
                             >
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <rect
-                                        x="3"
-                                        y="3"
-                                        width="18"
-                                        height="18"
-                                        rx="2"
-                                        stroke-width="1.8"
-                                    ></rect>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M9 3v18"
-                                    ></path>
-                                </svg>
+                                <app-icon name="open" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.left_panel">Panel lewy</span>
                             </button>
                             <button
@@ -457,27 +204,7 @@
                                 type="button"
                                 data-action="toggle-right-sidebar"
                             >
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <rect
-                                        x="3"
-                                        y="3"
-                                        width="18"
-                                        height="18"
-                                        rx="2"
-                                        stroke-width="1.8"
-                                    ></rect>
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M15 3v18"
-                                    ></path>
-                                </svg>
+                                <app-icon name="settings" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.right_panel">Panel prawy</span>
                             </button>
                         </div>
@@ -503,14 +230,7 @@
                         data-left-tab="paragraphs"
                         data-i18n-title="left_panel.paragraphs"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            ></path>
-                        </svg>
+                        <app-icon name="paragraph" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.paragraphs"
                             >Paragrafy</span
                         >
@@ -521,14 +241,7 @@
                         data-left-tab="scenes"
                         data-i18n-title="left_panel.scenes"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                            ></path>
-                        </svg>
+                        <app-icon name="scene" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.scenes">Sceny</span>
                     </button>
                     <button
@@ -537,14 +250,7 @@
                         data-left-tab="connections"
                         data-i18n-title="left_panel.connections"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-                            ></path>
-                        </svg>
+                        <app-icon name="choice" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.connections"
                             >Przeskoki</span
                         >
@@ -555,14 +261,7 @@
                         data-left-tab="characters"
                         data-i18n-title="left_panel.characters"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                            ></path>
-                        </svg>
+                        <app-icon name="character" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.characters"
                             >Postacie</span
                         >
@@ -573,20 +272,7 @@
                         data-left-tab="locations"
                         data-i18n-title="left_panel.locations"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            ></path>
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            ></path>
-                        </svg>
+                        <app-icon name="location" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.locations"
                             >Lokacje</span
                         >
@@ -597,14 +283,7 @@
                         data-left-tab="traits"
                         data-i18n-title="left_panel.traits"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                            ></path>
-                        </svg>
+                        <app-icon name="trait" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.traits">Cechy</span>
                     </button>
                     <button
@@ -613,14 +292,7 @@
                         data-left-tab="main-character"
                         data-i18n-title="left_panel.main_character"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                            ></path>
-                        </svg>
+                        <app-icon name="character" class="w-5 h-5"></app-icon>
                         <span
                             class="text-[9px] mt-0.5 text-center leading-tight"
                             data-i18n="left_bar.main_character"
@@ -633,14 +305,7 @@
                         data-left-tab="tags"
                         data-i18n-title="left_panel.tags"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                            ></path>
-                        </svg>
+                        <app-icon name="tag" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.tags">Tagi</span>
                     </button>
                 </div>
@@ -651,14 +316,7 @@
                         data-left-tab="search"
                         data-i18n-title="left_panel.search"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            ></path>
-                        </svg>
+                        <app-icon name="search" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.search">Szukaj</span>
                     </button>
                     <button
@@ -667,20 +325,7 @@
                         data-left-tab="settings"
                         data-i18n-title="left_panel.settings"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                            ></path>
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            ></path>
-                        </svg>
+                        <app-icon name="settings" class="w-5 h-5"></app-icon>
                         <span class="text-[9px] mt-0.5" data-i18n="left_bar.settings">Opcje</span>
                     </button>
                 </div>
@@ -736,19 +381,7 @@
                                         title="Filtruj"
                                         data-i18n-title="left_panel.filter_tile_title"
                                     >
-                                        <svg
-                                            class="w-3.5 h-3.5 text-blue-400"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-                                            ></path>
-                                        </svg>
+                                        <app-icon name="filter" class="w-3.5 h-3.5 text-blue-400"></app-icon>
                                         <span data-i18n="left_panel.filter_tile_title"
                                             >Filtruj</span
                                         >
@@ -1398,21 +1031,7 @@
                             class="font-medium text-white flex items-center gap-1.5"
                             id="workspace-mode-title"
                         >
-                            <svg
-                                class="w-3.5 h-3.5 text-blue-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle cx="18" cy="18" r="3" stroke-width="1.8"></circle>
-                                <circle cx="6" cy="6" r="3" stroke-width="1.8"></circle>
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="M13 6h3a2 2 0 012 2v7M6 9v12"
-                                ></path>
-                            </svg>
+                            <app-icon name="graph" class="w-3.5 h-3.5 text-blue-400"></app-icon>
                             <span data-i18n="graph.title">Graf historii</span>
                         </span>
                         <span class="text-[#52525b]">/</span>
@@ -1429,21 +1048,7 @@
                             type="button"
                             title="Widok Grafu Historii"
                         >
-                            <svg
-                                class="w-3.5 h-3.5 text-blue-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle cx="18" cy="18" r="3" stroke-width="1.8"></circle>
-                                <circle cx="6" cy="6" r="3" stroke-width="1.8"></circle>
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="M13 6h3a2 2 0 012 2v7M6 9v12"
-                                ></path>
-                            </svg>
+                            <app-icon name="graph" class="w-3.5 h-3.5 text-blue-400"></app-icon>
                             <span data-i18n="view_mode.graph">Graf</span>
                         </button>
                         <button
@@ -1452,25 +1057,7 @@
                             type="button"
                             title="Widok Edytora Markdown"
                         >
-                            <svg
-                                class="w-3.5 h-3.5 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"
-                                ></path>
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="1.8"
-                                    d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"
-                                ></path>
-                            </svg>
+                            <app-icon name="markdown" class="w-3.5 h-3.5 text-gray-400"></app-icon>
                             <span data-i18n="view_mode.text">Tekst</span>
                         </button>
                     </div>
@@ -1534,19 +1121,7 @@
                                 data-i18n-title="graph.zoom_out"
                                 aria-label="Oddal"
                             >
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M20 12H4"
-                                    ></path>
-                                </svg>
+                                <app-icon name="zoom-out" class="w-4 h-4"></app-icon>
                             </button>
 
                             <button
@@ -1568,19 +1143,7 @@
                                 data-i18n-title="graph.zoom_in"
                                 aria-label="Przybliż"
                             >
-                                <svg
-                                    class="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 4v16m8-8H4"
-                                    ></path>
-                                </svg>
+                                <app-icon name="zoom-in" class="w-4 h-4"></app-icon>
                             </button>
 
                             <div class="w-[1px] h-4 bg-[#333338] mx-0.5"></div>
@@ -1593,19 +1156,7 @@
                                 data-i18n-title="graph.zoom_fit"
                                 aria-label="Dopasuj do ekranu"
                             >
-                                <svg
-                                    class="w-3.5 h-3.5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="1.8"
-                                        d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-                                    ></path>
-                                </svg>
+                                <app-icon name="zoom-reset" class="w-3.5 h-3.5"></app-icon>
                             </button>
                         </div>
                     </div>
@@ -1726,19 +1277,7 @@
                 type="button"
                 class="w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer"
             >
-                <svg
-                    class="w-3.5 h-3.5 text-gray-400 group-hover:text-white shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.8"
-                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    ></path>
-                </svg>
+                <app-icon name="edit" class="w-3.5 h-3.5 text-gray-400 group-hover:text-white shrink-0"></app-icon>
                 <span data-i18n="context_menu.edit_title">Edytuj nazwę</span>
             </button>
             <!-- Expandable: Dodaj tag -->
@@ -1749,19 +1288,7 @@
                     class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
                 >
                     <span class="flex items-center gap-2">
-                        <svg
-                            class="w-3.5 h-3.5 text-gray-400 shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                            ></path>
-                        </svg>
+                        <app-icon name="tag" class="w-3.5 h-3.5 text-gray-400 shrink-0"></app-icon>
                         <span data-i18n="context_menu.add_tag">Dodaj tag</span>
                     </span>
                     <span
@@ -1785,19 +1312,7 @@
                     class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
                 >
                     <span class="flex items-center gap-2">
-                        <svg
-                            class="w-3.5 h-3.5 text-blue-400 shrink-0"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1.8"
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                            ></path>
-                        </svg>
+                        <app-icon name="trait" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                         <span data-i18n="context_menu.add_trait">Dodaj cechę</span>
                     </span>
                     <span
@@ -1819,19 +1334,7 @@
                 type="button"
                 class="w-full px-3 py-1.5 text-left hover:bg-red-600 text-red-300 hover:text-white flex items-center gap-2 cursor-pointer"
             >
-                <svg
-                    class="w-3.5 h-3.5 text-red-400 shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.8"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    ></path>
-                </svg>
+                <app-icon name="trash" class="w-3.5 h-3.5 text-red-400 shrink-0"></app-icon>
                 <span data-i18n="context_menu.delete">Usuń element</span>
             </button>
         </div>

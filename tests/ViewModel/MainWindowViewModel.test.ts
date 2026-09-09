@@ -97,6 +97,15 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveFile()).toBe('Scene 1')
     })
 
+    it('closing the last open file leaves no active file', () => {
+        vm.setActiveFile('Only File')
+        expect(vm.getOpenFiles()).toHaveLength(1)
+
+        vm.closeFile('Only File')
+        expect(vm.getOpenFiles()).toHaveLength(0)
+        expect(vm.getActiveFile()).toBeNull()
+    })
+
     it('zmienia główny widok na graf historii i z powrotem', () => {
         expect(vm.getActiveMainView()).toBe('graph')
 
@@ -470,6 +479,14 @@ describe('MainWindowViewModel', () => {
             expect(vm.getSelectedItem()?.id).not.toBe(choice.getId())
         })
 
+        it('deleteChoice returns false for a non-existent choice ID', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+
+            const result = vm.deleteChoice('non-existent-id', [p1, p2])
+            expect(result).toBe(false)
+        })
+
         it('odwraca kierunek połączenia przenosząc wybór do docelowego węzła', () => {
             const p1 = vm.createParagraph('Źródło')
             const p2 = vm.createParagraph('Cel')
@@ -580,8 +597,9 @@ describe('MainWindowViewModel', () => {
             expect(failed).toBe(false)
         })
 
-        it('zarządza domyślnym stylem linii połączeń (curved)', () => {
+        it('zarządza stylem linii połączeń', () => {
             expect(vm.getConnectionLineStyle()).toBe('curved')
+
             vm.setConnectionLineStyle('curved')
             expect(vm.getConnectionLineStyle()).toBe('curved')
         })

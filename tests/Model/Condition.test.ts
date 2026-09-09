@@ -26,7 +26,7 @@ describe('Condition Polymorphic Model', () => {
         expect(parsed.getSummary()).toBe('Torch must be lit')
     })
 
-    it('should handle legacy condition JSON without type field', () => {
+    it('should handle legacy condition JSON without type field — falls back to TextCondition using name as text', () => {
         const legacy = {
             id: 'legacy_1',
             name: 'Posiadanie klucza',
@@ -34,6 +34,10 @@ describe('Condition Polymorphic Model', () => {
         const parsed = Condition.fromJSON(legacy)
         expect(parsed).toBeInstanceOf(TextCondition)
         expect(parsed.getId()).toBe('legacy_1')
+        // name is used as the summary/text fallback
         expect(parsed.getSummary()).toBe('Posiadanie klucza')
+        expect((parsed as import('../../Model/Condition').TextCondition).getText()).toBe(
+            'Posiadanie klucza'
+        )
     })
 })

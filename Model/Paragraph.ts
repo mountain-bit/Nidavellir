@@ -178,23 +178,12 @@ export class Paragraph {
         if (!json) return new Paragraph('')
         const rawTags = Array.isArray(json.tags) ? json.tags : []
         const tagsParsed = rawTags.map(t => Tag.fromJSON(t as Record<string, unknown>))
-        const title =
-            typeof json.title === 'string'
-                ? json.title
-                : typeof json.nazwa === 'string'
-                  ? json.nazwa
-                  : ''
-        const content = (json.content || json.opis) as Record<string, unknown> | undefined
-        const rawJumps = Array.isArray(json.jumps)
-            ? json.jumps
-            : Array.isArray(json.choices)
-              ? json.choices
-              : Array.isArray(json.przeskoki)
-                ? json.przeskoki
-                : []
+        const title = typeof json.title === 'string' ? json.title : ''
+        const content = json.content as Record<string, unknown> | undefined
+        const rawChoices = Array.isArray(json.choices) ? json.choices : []
         const paragraphId = typeof json.id === 'string' ? json.id : ''
-        const jumps = rawJumps.map(przeskok => {
-            const ch = Choice.fromJSON(przeskok as Record<string, unknown>)
+        const choices = rawChoices.map(rawChoice => {
+            const ch = Choice.fromJSON(rawChoice as Record<string, unknown>)
             if (!ch.getFromParagraphId() && paragraphId) {
                 ch.setFromParagraphId(paragraphId)
             }
@@ -207,7 +196,7 @@ export class Paragraph {
             paragraphId,
             title,
             Description.fromJSON(content),
-            jumps,
+            choices,
             hasCombat,
             combatData ? Combat.fromJSON(combatData) : new Combat('', ''),
             tagsParsed
@@ -230,11 +219,11 @@ export class Paragraph {
         return {
             id: this.id,
             title: this.title,
-            content: this.content,
-            jumps: this.choices,
+            content: this.content ? this.content.toJSON() : null,
+            choices: this.choices.map(c => c.toJSON()),
             hasCombat: this.hasCombat,
-            combat: this.combat,
-            tags: this.tags,
+            combat: this.combat ? this.combat.toJSON() : null,
+            tags: this.tags.map(t => t.toJSON()),
             number: this.number,
             randomizedNumber: this.randomizedNumber,
             isNumberLocked: this.isNumberLocked,

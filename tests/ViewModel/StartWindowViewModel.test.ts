@@ -31,7 +31,7 @@ const mockHTML = `
 
     <div id="new-project-modal" class="hidden">
         <button id="btn-close-new-project-modal"></button>
-        <input type="text" id="np-nazwa" data-i18n-placeholder="start_window.np_name_placeholder" />
+        <input type="text" id="np-name" data-i18n-placeholder="start_window.np_name_placeholder" />
         <div id="np-folder-display" data-i18n="start_window.np_folder_placeholder">Nie wybrano folderu...</div>
         <button id="btn-browse-folder">Przeglądaj</button>
         <button id="btn-cancel-new-project">Anuluj</button>
@@ -100,7 +100,7 @@ describe('StartWindowViewModel', () => {
         const titleEl = document.querySelector('[data-i18n="app.title"]')
         expect(titleEl?.textContent).toBe(t('app.title'))
 
-        const inputEl = document.getElementById('np-nazwa') as HTMLInputElement
+        const inputEl = document.getElementById('np-name') as HTMLInputElement
         expect(inputEl.placeholder).toBe(t('start_window.np_name_placeholder'))
     })
 
@@ -188,16 +188,16 @@ describe('StartWindowViewModel', () => {
 
             const btnCreate = document.getElementById('btn-create-project')
             const modal = document.getElementById('new-project-modal')
-            const inputNazwa = document.getElementById('np-nazwa') as HTMLInputElement
+            const inputName = document.getElementById('np-name') as HTMLInputElement
             const btnSubmit = document.getElementById('btn-submit-new-project') as HTMLButtonElement
 
-            inputNazwa.value = 'Stara wartość'
+            inputName.value = 'Stara wartość'
             btnSubmit.disabled = false
 
             btnCreate?.click()
 
             expect(modal?.classList.contains('hidden')).toBe(false)
-            expect(inputNazwa.value).toBe('')
+            expect(inputName.value).toBe('')
             expect(btnSubmit.disabled).toBe(true)
         })
 
@@ -226,7 +226,7 @@ describe('StartWindowViewModel', () => {
 
             const btnBrowse = document.getElementById('btn-browse-folder')
             const btnSubmit = document.getElementById('btn-submit-new-project') as HTMLButtonElement
-            const inputNazwa = document.getElementById('np-nazwa') as HTMLInputElement
+            const inputName = document.getElementById('np-name') as HTMLInputElement
 
             btnBrowse?.click()
 
@@ -235,7 +235,7 @@ describe('StartWindowViewModel', () => {
             })
 
             const submitSpy = vi.spyOn(btnSubmit, 'click')
-            inputNazwa.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+            inputName.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
 
             expect(submitSpy).toHaveBeenCalled()
         })
@@ -273,10 +273,10 @@ describe('StartWindowViewModel', () => {
             const btnCreate = document.getElementById('btn-create-project')
             const btnBrowse = document.getElementById('btn-browse-folder')
             const btnSubmit = document.getElementById('btn-submit-new-project')
-            const inputNazwa = document.getElementById('np-nazwa') as HTMLInputElement
+            const inputName = document.getElementById('np-name') as HTMLInputElement
 
             btnCreate?.click()
-            inputNazwa.value = 'Mój Nowy Projekt!'
+            inputName.value = 'Mój Nowy Projekt!'
 
             btnBrowse?.click()
             await vi.runAllTimersAsync()
@@ -297,16 +297,16 @@ describe('StartWindowViewModel', () => {
             vi.useRealTimers()
         })
 
-        it('używa "nowy_projekt" jako fallback ID gdy nazwa jest pusta', async () => {
+        it('używa "new_project" jako fallback ID gdy nazwa jest pusta', async () => {
             await createViewModel()
 
             const btnCreate = document.getElementById('btn-create-project')
             const btnBrowse = document.getElementById('btn-browse-folder')
             const btnSubmit = document.getElementById('btn-submit-new-project')
-            const inputNazwa = document.getElementById('np-nazwa') as HTMLInputElement
+            const inputName = document.getElementById('np-name') as HTMLInputElement
 
             btnCreate?.click()
-            inputNazwa.value = '   '
+            inputName.value = '   '
             btnBrowse?.click()
 
             await vi.waitFor(() => {
@@ -318,8 +318,8 @@ describe('StartWindowViewModel', () => {
             await vi.waitFor(() => {
                 expect(window.electronAPI.createProject).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        id: 'nowy_projekt',
-                        nazwa: '',
+                        id: 'new_project',
+                        name: '',
                     })
                 )
             })
@@ -347,7 +347,7 @@ describe('StartWindowViewModel', () => {
             await vi.waitFor(() => {
                 expect(window.electronAPI.createProject).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        autor: '',
+                        author: '',
                     })
                 )
             })

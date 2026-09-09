@@ -61,4 +61,14 @@ describe('Description Model', () => {
         expect(desc.getText()).toBe('')
         expect(desc.getTextPath()).toBe('')
     })
+
+    it('should handle partial JSON \u2014 missing optional fields default to empty string', () => {
+        const partial = { text: 'Only text provided' }
+        const desc = Description.fromJSON(partial)
+        expect(desc.getText()).toBe('Only text provided')
+        expect(desc.getSummary()).toBe('')
+        expect(desc.getAuthorNotes()).toBe('')
+        expect(desc.getTextPath()).toBe('')
+        expect(desc.getAuthorNotesPath()).toBe('')
+    })
 })

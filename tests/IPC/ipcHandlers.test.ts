@@ -75,25 +75,18 @@ describe('Main Process Services & File System Operations', () => {
             it('zwraca false dla nieprawidłowych argumentów', () => {
                 expect(isPathInsideBase('', tempDir)).toBe(false)
                 expect(isPathInsideBase(tempDir, '')).toBe(false)
-                expect(isPathInsideBase(null as any, tempDir)).toBe(false)
+                expect(isPathInsideBase(null as unknown as string, tempDir)).toBe(false)
             })
         })
 
         describe('validateProjectData', () => {
-            it('zwraca true dla poprawnego obiektu projektu (EN i PL)', () => {
+            it('zwraca true dla poprawnego obiektu projektu (EN)', () => {
                 const validDataEN = {
                     name: 'Test Game',
                     descriptionPaths: [],
                     dataPaths: [],
                 }
                 expect(validateProjectData(validDataEN)).toBe(true)
-
-                const validDataPL = {
-                    nazwa: 'Test Game PL',
-                    sciezkiOpisow: [],
-                    sciezkiDanych: [],
-                }
-                expect(validateProjectData(validDataPL)).toBe(true)
             })
 
             it('zwraca false dla brakujących lub błędnych pól', () => {
@@ -306,9 +299,9 @@ describe('Main Process Services & File System Operations', () => {
 
             const recent = RecentProjectsService.getRecentProjects()
             expect(Array.isArray(recent)).toBe(true)
-            const item = recent.find((p: any) => p.path === projectPath)
+            const item = recent.find((p: { path: string }) => p.path === projectPath)
             expect(item).toBeDefined()
-            expect(item.name).toBe('Test Project')
+            expect(item?.name).toBe('Test Project')
         })
     })
 })

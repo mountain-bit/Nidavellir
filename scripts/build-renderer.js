@@ -22,6 +22,7 @@ const config = {
         'Utils/translate': path.join(__dirname, '..', 'Utils', 'translate.ts'),
         'Utils/toast': path.join(__dirname, '..', 'Utils', 'toast.ts'),
         'Utils/pathSanitizer': path.join(__dirname, '..', 'Utils', 'pathSanitizer.ts'),
+        'Utils/icons': path.join(__dirname, '..', 'Utils', 'icons.ts'),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
     },
     bundle: true,

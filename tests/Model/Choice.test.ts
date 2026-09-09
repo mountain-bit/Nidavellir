@@ -71,10 +71,24 @@ describe('Choice Model', () => {
     it('should support legacy fromJSON format where id was targetParagraphId', () => {
         const legacyJson = {
             id: 'p2',
-            name: 'Idź do lasu',
+            name: 'Go to the forest',
         }
         const choice = Choice.fromJSON(legacyJson)
-        expect(choice.getName()).toBe('Idź do lasu')
+        expect(choice.getName()).toBe('Go to the forest')
+        expect(choice.getToParagraphId()).toBe('p2')
+    })
+
+    it('should support legacy fromJSON format with sourceParagraphId and targetParagraphId', () => {
+        const legacyJson = {
+            id: 'c1',
+            name: 'Go to the forest',
+            sourceParagraphId: 'p1',
+            targetParagraphId: 'p2',
+        }
+        const choice = Choice.fromJSON(legacyJson)
+        expect(choice.getId()).toBe('c1')
+        expect(choice.getName()).toBe('Go to the forest')
+        expect(choice.getFromParagraphId()).toBe('p1')
         expect(choice.getToParagraphId()).toBe('p2')
     })
 })
