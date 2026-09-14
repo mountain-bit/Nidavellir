@@ -239,7 +239,7 @@
         "graph": "Graph"
     },
     "graph": {
-        "title": "Story-Graph (Cytoscape.js)",
+        "title": "Story-Graph",
         "instruction": "Knoten ziehen, um Szenen und Verbindungen zu ordnen",
         "add_paragraph_placeholder": "Titel des neuen Absatzes...",
         "add_paragraph_btn": "Hinzufügen",
@@ -314,6 +314,7 @@
         "lock_number": "Sperren / Eigene Nummer",
         "custom_number": "Eigene Nummer",
         "custom_number_placeholder": "Nummer eingeben...",
+        "number_taken": "Diese Nummer ist bereits vergeben, bitte wählen Sie eine andere",
         "summary": "Zusammenfassung",
         "summary_placeholder": "Kurze Zusammenfassung eingeben...",
         "description_files": "Narrative Dateien",

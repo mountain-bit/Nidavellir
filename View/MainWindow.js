@@ -1624,15 +1624,40 @@ function renderDetailsPanel() {
                     <input type="checkbox" id="details-number-lock" ${isLocked ? 'checked' : ''} class="rounded accent-blue-500 cursor-pointer" />
                     <span>${t('details.lock_number')}</span>
                 </label>
-                <input id="details-custom-number" type="number" value="${isLocked && customNum ? customNum : ''}" placeholder="${t('details.custom_number_placeholder')}"
+                <input id="details-custom-number" type="number" min="1" value="${isLocked && customNum ? customNum : ''}" placeholder="${t('details.custom_number_placeholder')}"
                     ${!isLocked ? 'disabled' : ''}
                     class="w-28 bg-[#18181b] border border-[#3f3f46] disabled:opacity-30 rounded px-2 py-0.5 text-xs text-white text-right focus:outline-none focus:border-blue-500" />
             </div>
+            <div id="details-number-error" class="hidden text-[11px] text-red-400 mt-1"></div>
         `
 
         const lockCheckbox = numMod.querySelector('#details-number-lock')
         const customNumInput = numMod.querySelector('#details-custom-number')
         const modeBadge = numMod.querySelector('#details-number-mode-badge')
+        const numberError = numMod.querySelector('#details-number-error')
+
+        const validateNumber = val => {
+            if (!lockCheckbox.checked || !val) {
+                numberError.classList.add('hidden')
+                customNumInput.classList.remove('border-red-500')
+                return true
+            }
+            const res = vm.validateParagraphNumber(val, entity.getId(), projectParagraphs)
+            if (!res.valid) {
+                numberError.textContent = res.message || t('details.number_taken')
+                numberError.classList.remove('hidden')
+                customNumInput.classList.add('border-red-500')
+                return false
+            } else {
+                numberError.classList.add('hidden')
+                customNumInput.classList.remove('border-red-500')
+                return true
+            }
+        }
+
+        if (isLocked && customNum) {
+            validateNumber(customNum)
+        }
 
         lockCheckbox.addEventListener('change', () => {
             const locked = lockCheckbox.checked
@@ -1641,6 +1666,7 @@ function renderDetailsPanel() {
             if (!locked) {
                 vm.updateCustomNumber(0)
                 customNumInput.value = ''
+                validateNumber(0)
                 if (modeBadge) {
                     modeBadge.className =
                         'text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700'
@@ -1650,6 +1676,7 @@ function renderDetailsPanel() {
                 const parsed = parseInt(customNumInput.value, 10) || 1
                 vm.updateCustomNumber(parsed)
                 customNumInput.value = String(parsed)
+                validateNumber(parsed)
                 if (modeBadge) {
                     modeBadge.className =
                         'text-[10px] font-medium px-2 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50'
@@ -1661,9 +1688,10 @@ function renderDetailsPanel() {
 
         customNumInput.addEventListener('input', () => {
             const val = parseInt(customNumInput.value, 10) || 0
+            validateNumber(val)
             vm.updateCustomNumber(val)
             if (modeBadge && lockCheckbox.checked) {
-                modeBadge.textContent = `#${val} (${t('details.custom_number')})`
+                modeBadge.textContent = `#${val || 1} (${t('details.custom_number')})`
             }
             renderParagraphsList()
         })

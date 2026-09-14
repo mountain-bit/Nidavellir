@@ -12,6 +12,7 @@ import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
+import { t } from '../Utils/translate'
 
 export {
     CharacterClass,
@@ -344,6 +345,30 @@ export class MainWindowViewModel {
         ) {
             this.selectedItem.entity.setNumber(numberVal)
         }
+    }
+
+    public validateParagraphNumber(
+        numVal: number,
+        paragraphId: string,
+        allParagraphs?: Paragraph[]
+    ): { valid: boolean; message?: string } {
+        if (!numVal || numVal <= 0 || isNaN(numVal)) {
+            return { valid: true }
+        }
+
+        if (allParagraphs && allParagraphs.length > 0) {
+            const hasCollision = allParagraphs.some(
+                p => p && p.getId() !== paragraphId && p.getNumber() === numVal
+            )
+            if (hasCollision) {
+                return {
+                    valid: false,
+                    message: t('details.number_taken'),
+                }
+            }
+        }
+
+        return { valid: true }
     }
 
     public addTagToSelected(tag: Tag): void {

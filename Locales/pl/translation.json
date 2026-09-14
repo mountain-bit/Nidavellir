@@ -239,7 +239,7 @@
         "graph": "Graf"
     },
     "graph": {
-        "title": "Graf historii (Cytoscape.js)",
+        "title": "Graf historii",
         "instruction": "Przeciągaj węzły, aby uporządkować sceny i połączenia",
         "add_paragraph_placeholder": "Tytuł nowego paragrafu...",
         "add_paragraph_btn": "Dodaj",
@@ -314,6 +314,7 @@
         "lock_number": "Zablokuj / Własny numer",
         "custom_number": "Własny numer",
         "custom_number_placeholder": "Wpisz numer...",
+        "number_taken": "Ten numer jest już zajęty, wybierz inny",
         "summary": "Streszczenie",
         "summary_placeholder": "Wpisz krótkie streszczenie...",
         "description_files": "Pliki narracyjne",

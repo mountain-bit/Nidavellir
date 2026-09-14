@@ -4,12 +4,14 @@ import { DEFAULT_TAG_COLOR } from '../../Model/constants'
 import { Description } from '../../Model/Description'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
+import { initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('MainWindowViewModel', () => {
     let vm: MainWindowViewModel
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await initTranslationsWithLocale('pl')
         vm = new MainWindowViewModel()
     })
 
@@ -350,6 +352,47 @@ describe('MainWindowViewModel', () => {
 
             vm.updateCustomNumber(99)
             expect(p.getNumber()).toBe(99)
+        })
+
+        it('wykrywa kolizję gdy inny paragraf ma już ten sam numer', () => {
+            const p1 = vm.createParagraph('P1')
+            p1.setNumber(5)
+            const p2 = vm.createParagraph('P2')
+            p2.setNumber(10)
+
+            const collisionRes = vm.validateParagraphNumber(5, p2.getId(), [p1, p2])
+            expect(collisionRes.valid).toBe(false)
+            expect(collisionRes.message).toBe('Ten numer jest już zajęty, wybierz inny')
+
+            const sameParagraphRes = vm.validateParagraphNumber(5, p1.getId(), [p1, p2])
+            expect(sameParagraphRes.valid).toBe(true)
+
+            const uniqueRes = vm.validateParagraphNumber(42, p2.getId(), [p1, p2])
+            expect(uniqueRes.valid).toBe(true)
+
+            const zeroRes = vm.validateParagraphNumber(0, p2.getId(), [p1, p2])
+            expect(zeroRes.valid).toBe(true)
+        })
+
+        it('zwraca przetłumaczony komunikat o kolizji zależnie od aktywnego języka', () => {
+            const p1 = vm.createParagraph('P1')
+            p1.setNumber(7)
+            const p2 = vm.createParagraph('P2')
+
+            setLanguage('pl')
+            expect(vm.validateParagraphNumber(7, p2.getId(), [p1]).message).toBe(
+                'Ten numer jest już zajęty, wybierz inny'
+            )
+
+            setLanguage('en')
+            expect(vm.validateParagraphNumber(7, p2.getId(), [p1]).message).toBe(
+                'This number is already taken, please choose another'
+            )
+
+            setLanguage('de')
+            expect(vm.validateParagraphNumber(7, p2.getId(), [p1]).message).toBe(
+                'Diese Nummer ist bereits vergeben, bitte wählen Sie eine andere'
+            )
         })
     })
 
