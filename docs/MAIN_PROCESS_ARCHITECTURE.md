@@ -13,7 +13,7 @@ graph TD
     subgraph RendererProcess["Renderer Process (UI / MVVM)"]
         View["HTML Views / Tailwind CSS"]
         ViewModel["ViewModels (e.g. MainWindowViewModel)"]
-        Model["Domain Models (Projekt, Scena, NPC, etc.)"]
+        Model["Domain Models (Project, Scene, Paragraph, etc.)"]
         Services["Frontend Services (ProjectManager)"]
         View --> ViewModel
         ViewModel --> Model
@@ -53,7 +53,7 @@ graph TD
 
     subgraph Storage["File System Storage"]
         ProjectJSON["project.json"]
-        CategoryFolders["Folders (NPC, Paragrafy, etc.)"]
+        CategoryFolders["Category Folders (NPC, Paragraphs, Items, etc.)"]
         MetaJSON["meta.json"]
         ElementJSON["element.json"]
         MarkdownFiles["*.md narrative files"]
@@ -76,6 +76,9 @@ graph TD
     MarkdownService --> MarkdownFiles
     RecentProjectsService --> RecentProjectsJSON
 ```
+
+> [!NOTE]
+> For a full end-to-end overview across all application layers, see [System Architecture](ARCHITECTURE.md). For details on the UI and renderer subsystem, see [Frontend Architecture](FRONTEND_ARCHITECTURE.md).
 
 ---
 
@@ -104,8 +107,8 @@ graph TD
 │
 └── Utils/
     ├── fsSecurity.js               # Path traversal protection, directory resolver, atomic writes
-    ├── pathSanitizer.js            # Diacritic removal, slugification, unique candidate generation
-    └── i18n.js                     # Main process internationalization helper
+    ├── pathSanitizer.js            # Diacritic removal, slugification, unique candidate generation (Node.js)
+    └── i18n.js                     # Main process internationalization helper (i18next backend)
 ```
 
 ---
@@ -141,10 +144,10 @@ Translates incoming `ipcRenderer.invoke(channel, payload)` calls from the render
 Pure Node.js business logic that operates independently of Electron IPC objects:
 
 - **`ProjectService`**:
-    - `createProject(projectDetails)`: Generates directory hierarchy (`NPC`, `Paragrafy`, `Przedmioty`, `Lokacje`, `Templates`, `KlasyPostaci`, `Zasady`, `PostacGracza`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
-    - `openProject(targetPath)`: Validates path safety, parses `project.json`, reads all related `meta.json` records, parses each `element.json`, and returns structured entity data.
+    - `createProject(projectDetails)`: Generates directory hierarchy (`NPC`, `Paragraphs`, `Items`, `Locations`, `Templates`, `CharacterClasses`, `Rules`, `PlayerCharacter`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
+    - `openProject(targetPath)`: Validates path safety, parses `project.json`, reads all related `meta.json` records, parses each `element.json`, and returns structured entity data (supports backward compatibility with legacy Polish schema keys).
 - **`EntityService`**:
-    - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json`, creates markdown references, and updates the category `meta.json` elements list atomically.
+    - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json` with `{ text, summary, authorNotes, textPath, authorNotesPath }`, creates markdown references, and updates the category `meta.json` elements list atomically.
     - `saveEntity(payload)`: Atomically updates an existing `element.json` file.
 - **`MarkdownService`**:
     - `readMarkdownFile(payload)`: Reads `.md` narrative text files within project boundaries; returns virtual empty state when file does not exist yet.
