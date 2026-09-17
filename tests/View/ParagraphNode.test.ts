@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { Location } from '../../Model/Location'
+import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
 import { getContrastTextColor, ParagraphNode } from '../../Modules/Graph/ParagraphNode'
@@ -201,6 +203,56 @@ describe('ParagraphNode Web Component', () => {
         header.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))
 
         expect(openedDetails).toBe(true)
+        node.remove()
+    })
+
+    it('should render location and character pills correctly', () => {
+        const node = document.createElement('paragraph-node') as ParagraphNode
+        document.body.appendChild(node)
+
+        const p = new Paragraph('p-rich', 'Rich Node')
+        p.setLocation(new Location('loc-1', 'Ancient Ruins'))
+        p.addCharacter(new NPC('npc-1', 'Elder Mage'))
+        node.paragraph = p
+
+        const locPill = node.querySelector('.node-location-pill') as HTMLElement
+        expect(locPill).not.toBeNull()
+        expect(locPill.textContent).toContain('Ancient Ruins')
+
+        const charPill = node.querySelector('.node-character-pill') as HTMLElement
+        expect(charPill).not.toBeNull()
+        expect(charPill.textContent).toContain('Elder Mage')
+
+        node.remove()
+    })
+
+    it('should handle drop event and dispatch node-item-drop event', () => {
+        const node = document.createElement('paragraph-node') as ParagraphNode
+        document.body.appendChild(node)
+
+        const p = new Paragraph('p-drop', 'Drop Target')
+        node.paragraph = p
+
+        let dropDetail: any = null
+        node.addEventListener('node-item-drop', ((e: CustomEvent) => {
+            dropDetail = e.detail
+        }) as EventListener)
+
+        const dropEvent = new Event('drop', { bubbles: true, cancelable: true }) as any
+        dropEvent.dataTransfer = {
+            getData: (type: string) => {
+                if (type === 'application/x-entity-type') return 'location'
+                if (type === 'application/x-entity-id') return 'loc-1'
+                return ''
+            },
+        }
+
+        node.dispatchEvent(dropEvent)
+        expect(dropDetail).not.toBeNull()
+        expect(dropDetail.targetParagraph).toBe(p)
+        expect(dropDetail.entityType).toBe('location')
+        expect(dropDetail.entityId).toBe('loc-1')
+
         node.remove()
     })
 })

@@ -81,3 +81,41 @@ export function instantiateParagraphNodeTemplate(container: HTMLElement): IParag
         addSubmitBtn,
     }
 }
+
+export function createLocationPill(name: string, title?: string): HTMLSpanElement {
+    const pill = document.createElement('span')
+    pill.className = 'node-location-pill'
+    if (title) pill.title = title
+    pill.textContent = name
+    return pill
+}
+
+export function createCharacterPill(name: string, title?: string): HTMLSpanElement {
+    const pill = document.createElement('span')
+    pill.className = 'node-character-pill'
+    if (title) pill.title = title
+    pill.textContent = name
+    return pill
+}
+
+export function createTagPill(name: string, color: string): HTMLSpanElement {
+    const pill = document.createElement('span')
+    pill.className = 'node-tag-pill'
+    pill.style.setProperty('--tag-color', color)
+    pill.textContent = name
+    return pill
+}
+
+export function createNoTagsPlaceholder(text: string): HTMLSpanElement {
+    const span = document.createElement('span')
+    span.className = 'paragraph-node-no-tags'
+    span.textContent = text
+    return span
+}
+
+export function createNoSummaryPlaceholder(text: string): HTMLSpanElement {
+    const span = document.createElement('span')
+    span.className = 'paragraph-node-no-summary'
+    span.textContent = text
+    return span
+}

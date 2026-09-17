@@ -538,10 +538,61 @@
                         <!-- Content: Scenes -->
                         <div class="left-tab-content hidden" id="left-content-scenes">
                             <div
-                                class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
-                                data-i18n="left_panel.scenes"
+                                class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
                             >
-                                Lista Scen
+                                <span
+                                    class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                    data-i18n="left_panel.scenes"
+                                    >Lista Scen</span
+                                >
+                                <button
+                                    id="btn-add-scene"
+                                    type="button"
+                                    class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                    data-i18n-title="left_panel.add_scene"
+                                    title="Dodaj scenę"
+                                >
+                                    <span>+</span>
+                                </button>
+                            </div>
+                            <div class="px-1 py-1 space-y-1 mb-2">
+                                <input
+                                    type="text"
+                                    id="scene-search-input"
+                                    placeholder="Szukaj scen..."
+                                    data-i18n-placeholder="left_panel.search_scenes_placeholder"
+                                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                />
+                                <div
+                                    id="scene-create-form"
+                                    class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                                >
+                                    <input
+                                        type="text"
+                                        id="scene-create-name"
+                                        placeholder="Nazwa sceny (lub zostaw puste)"
+                                        data-i18n-placeholder="left_panel.scene_name_placeholder"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                    />
+                                    <div class="flex justify-end gap-1">
+                                        <button
+                                            id="scene-create-cancel"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                            data-i18n="buttons.cancel"
+                                        >
+                                            Anuluj
+                                        </button>
+                                        <button
+                                            id="scene-create-submit"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                            data-i18n="buttons.add"
+                                        >
+                                            Dodaj
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="p-2 text-xs text-[#a1a1aa]" id="scenes-list-container">
                                 <p class="italic text-gray-500" data-i18n="left_panel.no_scenes">

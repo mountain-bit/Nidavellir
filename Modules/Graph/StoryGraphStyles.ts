@@ -1,4 +1,5 @@
 import { Paragraph } from '../../Model/Paragraph'
+import { Scene } from '../../Model/Scene'
 
 export type ConnectionLineStyle = 'curved'
 
@@ -22,6 +23,10 @@ export const GRAPH_THEME = {
         edgeSelectedWidth: 3.5,
         edgeSourceSpacing: 14,
         gridBaseSize: 40,
+        sceneDefaultWidth: 400,
+        sceneDefaultHeight: 280,
+        sceneMinWidth: 160,
+        sceneMinHeight: 110,
     },
     layout: {
         initialOffsetX: 180,
@@ -42,6 +47,38 @@ export const GRAPH_THEME = {
 export interface ICytoscapeStyleRule {
     selector: string
     style: Record<string, string | number>
+}
+
+export function isParagraphInScene(
+    paragraph: Paragraph,
+    scene: Scene,
+    nodeWidth: number = GRAPH_THEME.dimensions.nodeWidth,
+    nodeHeight: number = GRAPH_THEME.dimensions.nodeHeight
+): boolean {
+    if (!scene || !paragraph) return false
+    return scene.intersectsParagraph(paragraph, nodeWidth, nodeHeight)
+}
+
+/**
+ * Calculates accessible high-contrast text color (#ffffff or #18181b)
+ * based on the background color luminance (YIQ formula).
+ */
+export function getContrastTextColor(hexColor: string): string {
+    if (!hexColor || typeof hexColor !== 'string') return '#ffffff'
+    let hex = hexColor.trim().replace('#', '')
+    if (hex.length === 3) {
+        hex = hex
+            .split('')
+            .map(c => c + c)
+            .join('')
+    }
+    if (hex.length !== 6) return '#ffffff'
+    const r = parseInt(hex.substring(0, 2), 16)
+    const g = parseInt(hex.substring(2, 4), 16)
+    const b = parseInt(hex.substring(4, 6), 16)
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return '#ffffff'
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000
+    return yiq >= 145 ? '#18181b' : '#ffffff'
 }
 
 export function calculateEdgeSourceOffsets(

@@ -1,11 +1,15 @@
 import { Choice } from './Choice'
 import { Combat } from './Combat'
 import { Description } from './Description'
+import { Location } from './Location'
+import { NPC } from './NPC'
 import { Tag } from './Tag'
 
 export class Paragraph {
     private id: string = ''
     private tags: Tag[] = []
+    private characters: NPC[] = []
+    private locations: Location[] = []
     private number: number = 0
     private randomizedNumber: number = 0
     private isNumberLocked: boolean = false
@@ -23,7 +27,9 @@ export class Paragraph {
         choices: Choice[] = [],
         hasCombat: boolean = false,
         combat: Combat = new Combat('', ''),
-        tags: Tag[] = []
+        tags: Tag[] = [],
+        characters: NPC[] = [],
+        locations: Location[] | Location | null = []
     ) {
         this.id = id
         this.title = title
@@ -32,6 +38,14 @@ export class Paragraph {
         this.hasCombat = hasCombat
         this.combat = combat
         this.tags = tags
+        this.characters = characters
+        if (Array.isArray(locations)) {
+            this.locations = locations
+        } else if (locations) {
+            this.locations = [locations]
+        } else {
+            this.locations = []
+        }
     }
 
     public getId(): string {
@@ -97,6 +111,70 @@ export class Paragraph {
 
     public hasTag(tagIdOrName: string): boolean {
         return this.tags.some(t => t.getId() === tagIdOrName || t.getName() === tagIdOrName)
+    }
+
+    public getCharacters(): NPC[] {
+        return this.characters
+    }
+
+    public setCharacters(characters: NPC[]): void {
+        this.characters = characters
+    }
+
+    public addCharacter(character: NPC): void {
+        if (!this.characters.some(c => c.getId() === character.getId())) {
+            this.characters.push(character)
+        }
+    }
+
+    public removeCharacter(idOrName: string): void {
+        this.characters = this.characters.filter(
+            c => c.getId() !== idOrName && c.getName() !== idOrName
+        )
+    }
+
+    public getCharacter(idOrName: string): NPC | undefined {
+        return this.characters.find(c => c.getId() === idOrName || c.getName() === idOrName)
+    }
+
+    public hasCharacter(idOrName: string): boolean {
+        return this.characters.some(c => c.getId() === idOrName || c.getName() === idOrName)
+    }
+
+    public getLocations(): Location[] {
+        return this.locations
+    }
+
+    public setLocations(locations: Location[]): void {
+        this.locations = locations
+    }
+
+    public addLocation(location: Location): void {
+        if (!this.locations.some(l => l.getId() === location.getId())) {
+            this.locations.push(location)
+        }
+    }
+
+    public removeLocation(idOrName: string): void {
+        this.locations = this.locations.filter(
+            l => l.getId() !== idOrName && l.getName() !== idOrName
+        )
+    }
+
+    public hasLocation(idOrName: string): boolean {
+        return this.locations.some(l => l.getId() === idOrName || l.getName() === idOrName)
+    }
+
+    public getLocation(): Location | null {
+        return this.locations.length > 0 ? this.locations[0] : null
+    }
+
+    public setLocation(location: Location | null): void {
+        if (!location) {
+            this.locations = []
+        } else {
+            this.locations = [location]
+        }
     }
 
     public getNumber(): number {
@@ -178,7 +256,12 @@ export class Paragraph {
         if (!json) return new Paragraph('')
         const rawTags = Array.isArray(json.tags) ? json.tags : []
         const tagsParsed = rawTags.map(t => Tag.fromJSON(t as Record<string, unknown>))
-        const title = typeof json.title === 'string' ? json.title : ''
+        const title =
+            typeof json.title === 'string'
+                ? json.title
+                : typeof json.name === 'string'
+                  ? json.name
+                  : ''
         const content = json.content as Record<string, unknown> | undefined
         const rawChoices = Array.isArray(json.choices) ? json.choices : []
         const paragraphId = typeof json.id === 'string' ? json.id : ''
@@ -192,6 +275,19 @@ export class Paragraph {
         const hasCombat = typeof json.hasCombat === 'boolean' ? json.hasCombat : false
         const combatData = json.combat as Record<string, unknown> | undefined
 
+        const rawCharacters = Array.isArray(json.characters) ? json.characters : []
+        const charactersParsed = rawCharacters.map(c => NPC.fromJSON(c as Record<string, unknown>))
+        const rawLocations = Array.isArray(json.locations) ? json.locations : []
+        let locationsParsed: Location[] = rawLocations.map(l =>
+            Location.fromJSON(l as Record<string, unknown>)
+        )
+        if (locationsParsed.length === 0) {
+            const locationData = json.location as Record<string, unknown> | undefined
+            if (locationData) {
+                locationsParsed = [Location.fromJSON(locationData)]
+            }
+        }
+
         const p = new Paragraph(
             paragraphId,
             title,
@@ -199,7 +295,9 @@ export class Paragraph {
             choices,
             hasCombat,
             combatData ? Combat.fromJSON(combatData) : new Combat('', ''),
-            tagsParsed
+            tagsParsed,
+            charactersParsed,
+            locationsParsed
         )
         if (typeof json.number === 'number') p.number = json.number
         if (typeof json.randomizedNumber === 'number') p.randomizedNumber = json.randomizedNumber
@@ -224,6 +322,9 @@ export class Paragraph {
             hasCombat: this.hasCombat,
             combat: this.combat ? this.combat.toJSON() : null,
             tags: this.tags.map(t => t.toJSON()),
+            characters: this.characters.map(c => c.toJSON()),
+            locations: this.locations.map(l => l.toJSON()),
+            location: this.locations.length > 0 ? this.locations[0].toJSON() : null,
             number: this.number,
             randomizedNumber: this.randomizedNumber,
             isNumberLocked: this.isNumberLocked,

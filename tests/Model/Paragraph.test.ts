@@ -4,6 +4,8 @@ import { Choice } from '../../Model/Choice'
 import { Combat } from '../../Model/Combat'
 import { TextCondition } from '../../Model/Condition'
 import { Description } from '../../Model/Description'
+import { Location } from '../../Model/Location'
+import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
 
@@ -218,17 +220,85 @@ describe('Paragraph Model', () => {
         expect(p.getTags()).toHaveLength(0)
     })
 
-    it('handles randomizeNumber with min/max and preserves existing number', () => {
-        const p = new Paragraph('p_rnd', 'Random Test')
-        expect(p.getRandomizedNumber()).toBe(0)
+    it('manages characters via addCharacter, removeCharacter, getCharacters, and hasCharacter', () => {
+        const p = new Paragraph('p_chars', 'Character Test')
+        const npc1 = new NPC('npc1', 'Guard')
+        const npc2 = new NPC('npc2', 'Merchant')
 
-        const rnd = p.randomizeNumber(10, 20)
-        expect(rnd).toBeGreaterThanOrEqual(10)
-        expect(rnd).toBeLessThanOrEqual(20)
-        expect(p.getRandomizedNumber()).toBe(rnd)
+        expect(p.getCharacters()).toEqual([])
+        p.addCharacter(npc1)
+        p.addCharacter(npc2)
+        // Adding duplicate NPC should be ignored
+        p.addCharacter(new NPC('npc1', 'Guard Duplicate'))
 
-        // Calling again should return the already generated number
-        const secondCall = p.randomizeNumber(100, 200)
-        expect(secondCall).toBe(rnd)
+        expect(p.getCharacters()).toHaveLength(2)
+        expect(p.hasCharacter('npc1')).toBe(true)
+        expect(p.hasCharacter('Guard')).toBe(true)
+        expect(p.hasCharacter('Merchant')).toBe(true)
+        expect(p.hasCharacter('Missing')).toBe(false)
+
+        p.removeCharacter('Guard')
+        expect(p.hasCharacter('npc1')).toBe(false)
+        expect(p.getCharacters()).toHaveLength(1)
+
+        p.removeCharacter('npc2')
+        expect(p.hasCharacter('npc2')).toBe(false)
+        expect(p.getCharacters()).toHaveLength(0)
+    })
+
+    it('manages locations via addLocation, removeLocation, getLocations, and hasLocation', () => {
+        const p = new Paragraph('p_loc', 'Location Test')
+        const loc1 = new Location('loc1', 'Tavern')
+        const loc2 = new Location('loc2', 'Dark Forest')
+
+        expect(p.getLocations()).toEqual([])
+        expect(p.getLocation()).toBeNull()
+        expect(p.hasLocation('loc1')).toBe(false)
+
+        p.addLocation(loc1)
+        p.addLocation(loc2)
+        // Adding duplicate should be ignored
+        p.addLocation(new Location('loc1', 'Tavern Duplicate'))
+
+        expect(p.getLocations()).toHaveLength(2)
+        expect(p.getLocation()?.getName()).toBe('Tavern')
+        expect(p.hasLocation('loc1')).toBe(true)
+        expect(p.hasLocation('Tavern')).toBe(true)
+        expect(p.hasLocation('Dark Forest')).toBe(true)
+        expect(p.hasLocation('Forest')).toBe(false)
+
+        p.removeLocation('Tavern')
+        expect(p.hasLocation('loc1')).toBe(false)
+        expect(p.getLocations()).toHaveLength(1)
+
+        p.removeLocation('loc2')
+        expect(p.hasLocation('loc2')).toBe(false)
+        expect(p.getLocations()).toHaveLength(0)
+    })
+
+    it('serializes characters and multiple locations to JSON and restores via fromJSON', () => {
+        const loc1 = new Location('loc_castle', 'Royal Castle')
+        const loc2 = new Location('loc_dungeon', 'Dungeon')
+        const npc = new NPC('npc_king', 'King Arthur')
+        const p = new Paragraph('p_royal', 'Throne Room')
+        p.addLocation(loc1)
+        p.addLocation(loc2)
+        p.addCharacter(npc)
+
+        const json = p.toJSON() as any
+        expect(json.locations).toBeDefined()
+        expect(json.locations).toHaveLength(2)
+        expect(json.locations[0].id).toBe('loc_castle')
+        expect(json.locations[1].id).toBe('loc_dungeon')
+        expect(json.characters).toHaveLength(1)
+        expect(json.characters[0].id).toBe('npc_king')
+
+        const restored = Paragraph.fromJSON(json)
+        expect(restored.getLocations()).toHaveLength(2)
+        expect(restored.getLocations()[0].getId()).toBe('loc_castle')
+        expect(restored.getLocations()[1].getId()).toBe('loc_dungeon')
+        expect(restored.getCharacters()).toHaveLength(1)
+        expect(restored.getCharacters()[0].getId()).toBe('npc_king')
+        expect(restored.getCharacters()[0].getName()).toBe('King Arthur')
     })
 })

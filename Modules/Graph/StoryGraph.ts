@@ -1,9 +1,11 @@
 import './ParagraphNode'
+import './SceneNode'
 
 import { Choice } from '../../Model/Choice'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { ParagraphNode } from './ParagraphNode'
+import { SceneNode } from './SceneNode'
 import {
     calculateCurvedEdgeControlPointDistance,
     calculateEdgeSourceOffsets,
@@ -28,6 +30,9 @@ export interface ICytoscapeInstance {
         | {
               position: (pos?: { x: number; y: number }) => { x: number; y: number }
               data: (key?: string, val?: unknown) => unknown
+              length?: number
+              nonempty?: () => boolean
+              empty?: () => boolean
           }
         | undefined
     style: (newStyle?: unknown) => void
@@ -47,6 +52,7 @@ export class StoryGraph {
     private options: IStoryGraphOptions
     private cy: ICytoscapeInstance | null = null
     private boundSyncTransform: () => void
+    private boundNodesLayerWheel: (e: WheelEvent) => void
     private dragLineSvg: SVGSVGElement | null = null
 
     constructor(options: IStoryGraphOptions) {
@@ -54,6 +60,12 @@ export class StoryGraph {
         this.nodesLayer = options.nodesLayer
         this.options = options
         this.boundSyncTransform = this.syncTransform.bind(this)
+        this.boundNodesLayerWheel = this.handleNodesLayerWheel.bind(this)
+        if (this.nodesLayer) {
+            this.nodesLayer.addEventListener('wheel', this.boundNodesLayerWheel, {
+                passive: false,
+            })
+        }
     }
 
     public getCyInstance(): ICytoscapeInstance | null {
@@ -220,10 +232,376 @@ export class StoryGraph {
         this.syncTransform()
     }
 
+    /**
+     * Finds all child scenes recursively contained within the given parent scene.
+     */
+    public getNestedChildScenes(parentScene: Scene, allScenes: Scene[]): Scene[] {
+        const activeScenes = allScenes.filter(
+            s => s.getPosition() !== null && s.getId() !== parentScene.getId()
+        )
+        const result: Scene[] = []
+        const visited = new Set<string>()
+
+        const findChildren = (currentParent: Scene): void => {
+            activeScenes.forEach(candidate => {
+                if (!visited.has(candidate.getId()) && currentParent.containsScene(candidate)) {
+                    visited.add(candidate.getId())
+                    result.push(candidate)
+                    findChildren(candidate)
+                }
+            })
+        }
+
+        findChildren(parentScene)
+        return result
+    }
+
+    public syncParagraphSceneAssignments(
+        paragraphs: Paragraph[],
+        scenes: Scene[]
+    ): { changed: boolean } {
+        let changed = false
+        const activeScenes = scenes.filter(s => s.getPosition() !== null)
+
+        paragraphs.forEach(p => {
+            const matchingScenes = activeScenes.filter(s => s.intersectsParagraph(p))
+
+            scenes.forEach(s => {
+                const shouldHave = matchingScenes.some(m => m.getId() === s.getId())
+                const currentlyHas = s.hasParagraph(p.getId())
+
+                if (shouldHave && !currentlyHas) {
+                    s.addParagraph(p)
+                    changed = true
+                } else if (!shouldHave && currentlyHas) {
+                    s.removeParagraph(p.getId())
+                    changed = true
+                }
+            })
+        })
+
+        return { changed }
+    }
+
+    public updateParagraphNodeColors(paragraphs: Paragraph[], scenes: Scene[]): void {
+        if (!this.nodesLayer) return
+        const activeScenes = scenes.filter(s => s.getPosition() !== null)
+
+        paragraphs.forEach(p => {
+            const containingScenes = activeScenes.filter(s => s.hasParagraph(p.getId()))
+            // Pick innermost (smallest area) scene color
+            containingScenes.sort((a, b) => a.getArea() - b.getArea())
+            const primaryScene = containingScenes[0]
+            const color = primaryScene ? primaryScene.getColor() : GRAPH_THEME.colors.defaultScene
+
+            const el = this.nodesLayer.querySelector(
+                `paragraph-node[data-node-id="${p.getId()}"]`
+            ) as ParagraphNode | null
+            if (el) {
+                el.themeColor = color
+            }
+        })
+    }
+
+    public updateSceneNodeBadges(scenes: Scene[]): void {
+        if (!this.nodesLayer) return
+        scenes.forEach(s => {
+            const el = this.nodesLayer.querySelector(
+                `scene-node[data-scene-id="${s.getId()}"]`
+            ) as SceneNode | null
+            if (el) {
+                el.render()
+            }
+        })
+    }
+
+    public updateSceneZIndices(scenes: Scene[]): void {
+        if (!this.nodesLayer) return
+        const activeScenes = scenes.filter(s => s.getPosition() !== null)
+        activeScenes.sort((a, b) => b.getArea() - a.getArea())
+        activeScenes.forEach((scene, index) => {
+            const el = this.nodesLayer.querySelector(
+                `scene-node[data-scene-id="${scene.getId()}"]`
+            ) as HTMLElement | null
+            if (el) {
+                el.style.zIndex = String(2 + index)
+            }
+        })
+    }
+
+    public addSceneToGraph(
+        scene: Scene,
+        position: { x: number; y: number },
+        width: number = GRAPH_THEME.dimensions.sceneDefaultWidth,
+        height: number = GRAPH_THEME.dimensions.sceneDefaultHeight
+    ): void {
+        scene.setPosition(position)
+        scene.setWidth(width)
+        scene.setHeight(height)
+        const paras = this.options.getParagraphs()
+        const scenes = this.options.getScenes()
+        this.syncParagraphSceneAssignments(paras, scenes)
+        this.render(true)
+    }
+
     public renderCustomNodes(paragraphs: Paragraph[], scenes: Scene[]): void {
         if (!this.nodesLayer) return
         this.nodesLayer.innerHTML = ''
 
+        // 1. Sync paragraph-scene assignments based on graph geometry
+        this.syncParagraphSceneAssignments(paragraphs, scenes)
+
+        // 2. Render active scenes sorted by area descending (largest outer scenes rendered first, sitting underneath child scenes)
+        const activeScenes = scenes.filter(s => s.getPosition() !== null)
+        activeScenes.sort((a, b) => b.getArea() - a.getArea())
+
+        activeScenes.forEach((scene, index) => {
+            const sPos = scene.getPosition() || { x: 0, y: 0 }
+            const sceneNodeEl = document.createElement('scene-node') as SceneNode
+            sceneNodeEl.scene = scene
+            sceneNodeEl.themeColor = scene.getColor() || GRAPH_THEME.colors.defaultScene
+            sceneNodeEl.setBounds(sPos.x, sPos.y, scene.getWidth(), scene.getHeight())
+            sceneNodeEl.dataset.sceneId = scene.getId()
+            sceneNodeEl.style.zIndex = String(2 + index)
+
+            // Drag handling for Scene
+            let isDragging = false
+            let hasMoved = false
+            let startX = 0
+            let startY = 0
+            let sceneStartX = sPos.x
+            let sceneStartY = sPos.y
+            const pStartPositions = new Map<string, { x: number; y: number }>()
+            const childSceneStartPositions = new Map<string, { x: number; y: number }>()
+            let activeChildScenes: Scene[] = []
+
+            const onScenePointerDown = (e: PointerEvent | MouseEvent): void => {
+                const target = e.target as HTMLElement
+                if (
+                    target.closest('.scene-resize-handle') ||
+                    target.closest('.scene-node-lock-btn') ||
+                    target.closest('button') ||
+                    target.closest('input')
+                ) {
+                    return
+                }
+
+                e.stopPropagation()
+
+                isDragging = true
+                hasMoved = false
+                startX = e.clientX
+                startY = e.clientY
+                const currentScenePos = scene.getPosition() || sPos
+                sceneStartX = currentScenePos.x
+                sceneStartY = currentScenePos.y
+
+                // Find all recursively contained child scenes
+                const allScenes = this.options.getScenes()
+                activeChildScenes = this.getNestedChildScenes(scene, allScenes)
+
+                // Record start positions for all child scenes
+                childSceneStartPositions.clear()
+                activeChildScenes.forEach(cs => {
+                    const cPos = cs.getPosition()
+                    if (cPos) {
+                        childSceneStartPositions.set(cs.getId(), { x: cPos.x, y: cPos.y })
+                    }
+                })
+
+                // Record initial positions of paragraphs belonging to this scene AND child scenes
+                pStartPositions.clear()
+                const allContainedParagraphs = new Map<string, Paragraph>()
+                scene.getParagraphs().forEach(p => allContainedParagraphs.set(p.getId(), p))
+                activeChildScenes.forEach(cs => {
+                    cs.getParagraphs().forEach(p => allContainedParagraphs.set(p.getId(), p))
+                })
+
+                allContainedParagraphs.forEach(p => {
+                    const pPos = p.getPosition()
+                    if (pPos) {
+                        pStartPositions.set(p.getId(), { x: pPos.x, y: pPos.y })
+                    }
+                })
+
+                window.addEventListener('pointermove', onScenePointerMove)
+                window.addEventListener('pointerup', onScenePointerUp)
+            }
+
+            const onScenePointerMove = (e: PointerEvent | MouseEvent): void => {
+                if (!isDragging) return
+                const zoom = this.cy ? this.cy.zoom() : 1
+                const dx = (e.clientX - startX) / zoom
+                const dy = (e.clientY - startY) / zoom
+
+                if (!hasMoved && Math.hypot(dx, dy) > 3) {
+                    hasMoved = true
+                }
+
+                if (hasMoved) {
+                    const newSX = Math.round(sceneStartX + dx)
+                    const newSY = Math.round(sceneStartY + dy)
+                    scene.setPosition({ x: newSX, y: newSY })
+                    sceneNodeEl.setPosition(newSX, newSY)
+
+                    // If movement is locked (kłódka zamknięta), move child scenes and contained paragraphs together with scene
+                    if (scene.getIsMovementLocked()) {
+                        // Move child scenes
+                        activeChildScenes.forEach(cs => {
+                            const csStart = childSceneStartPositions.get(cs.getId())
+                            if (csStart) {
+                                const newCSX = Math.round(csStart.x + dx)
+                                const newCSY = Math.round(csStart.y + dy)
+                                cs.setPosition({ x: newCSX, y: newCSY })
+
+                                const csEl = this.nodesLayer.querySelector(
+                                    `scene-node[data-scene-id="${cs.getId()}"]`
+                                ) as SceneNode | null
+                                if (csEl) {
+                                    csEl.setPosition(newCSX, newCSY)
+                                }
+                            }
+                        })
+
+                        // Move paragraphs
+                        pStartPositions.forEach((pStart, pId) => {
+                            const newPX = Math.round(pStart.x + dx)
+                            const newPY = Math.round(pStart.y + dy)
+                            const paras = this.options.getParagraphs()
+                            const p = paras.find(x => x.getId() === pId)
+                            if (p) {
+                                p.setPosition({ x: newPX, y: newPY })
+                            }
+
+                            const pEl = this.nodesLayer.querySelector(
+                                `paragraph-node[data-node-id="${pId}"]`
+                            ) as ParagraphNode | null
+                            if (pEl) {
+                                pEl.setPosition(newPX, newPY)
+                            }
+
+                            if (this.cy) {
+                                const cyNode = this.cy.getElementById(pId)
+                                if (cyNode) {
+                                    cyNode.position({ x: newPX, y: newPY })
+                                }
+                            }
+                        })
+
+                        const paras = this.options.getParagraphs()
+                        preventChoiceLineCrossings(paras)
+                        this.updateEdgeGeometry(paras)
+                    }
+                }
+            }
+
+            const onScenePointerUp = (e: PointerEvent | MouseEvent): void => {
+                if (!isDragging) return
+                isDragging = false
+                window.removeEventListener('pointermove', onScenePointerMove)
+                window.removeEventListener('pointerup', onScenePointerUp)
+
+                if (hasMoved) {
+                    const zoom = this.cy ? this.cy.zoom() : 1
+                    const dx = (e.clientX - startX) / zoom
+                    const dy = (e.clientY - startY) / zoom
+                    const finalSX = Math.round(sceneStartX + dx)
+                    const finalSY = Math.round(sceneStartY + dy)
+                    scene.setPosition({ x: finalSX, y: finalSY })
+
+                    if (!scene.getIsMovementLocked()) {
+                        // Kłódka otwarta: ruszano tylko ramką sceny, przelicz które sceny i paragrafy w niej są
+                        const paras = this.options.getParagraphs()
+                        const allScenes = this.options.getScenes()
+                        this.syncParagraphSceneAssignments(paras, allScenes)
+                        this.updateParagraphNodeColors(paras, allScenes)
+                        this.updateSceneNodeBadges(allScenes)
+                        this.updateSceneZIndices(allScenes)
+                        if (this.options.onSceneAssignmentChange) {
+                            this.options.onSceneAssignmentChange(scene, scene.getParagraphs())
+                        }
+                    } else {
+                        // Kłódka zamknięta: sfinalizuj pozycje przesuniętych scen i paragrafów
+                        activeChildScenes.forEach(cs => {
+                            const csStart = childSceneStartPositions.get(cs.getId())
+                            if (csStart) {
+                                const finalCSX = Math.round(csStart.x + dx)
+                                const finalCSY = Math.round(csStart.y + dy)
+                                cs.setPosition({ x: finalCSX, y: finalCSY })
+                            }
+                        })
+
+                        pStartPositions.forEach((pStart, pId) => {
+                            const finalPX = Math.round(pStart.x + dx)
+                            const finalPY = Math.round(pStart.y + dy)
+                            const paras = this.options.getParagraphs()
+                            const p = paras.find(x => x.getId() === pId)
+                            if (p) {
+                                p.setPosition({ x: finalPX, y: finalPY })
+                            }
+                            if (this.cy) {
+                                const cyNode = this.cy.getElementById(pId)
+                                if (cyNode) {
+                                    cyNode.position({ x: finalPX, y: finalPY })
+                                }
+                            }
+                        })
+
+                        const paras = this.options.getParagraphs()
+                        const allScenes = this.options.getScenes()
+                        this.syncParagraphSceneAssignments(paras, allScenes)
+                        this.updateParagraphNodeColors(paras, allScenes)
+                        this.updateSceneNodeBadges(allScenes)
+                        this.updateSceneZIndices(allScenes)
+                        preventChoiceLineCrossings(paras)
+                        this.updateEdgeGeometry(paras)
+                        if (this.options.onSceneAssignmentChange) {
+                            this.options.onSceneAssignmentChange(scene, scene.getParagraphs())
+                        }
+                    }
+                }
+            }
+
+            sceneNodeEl.addEventListener('pointerdown', onScenePointerDown as EventListener)
+
+            // Resize events from SceneNode handles
+            const handleSceneResize = (): void => {
+                const paras = this.options.getParagraphs()
+                const allScenes = this.options.getScenes()
+                this.syncParagraphSceneAssignments(paras, allScenes)
+                this.updateParagraphNodeColors(paras, allScenes)
+                this.updateSceneNodeBadges(allScenes)
+                this.updateSceneZIndices(allScenes)
+            }
+
+            sceneNodeEl.addEventListener('scene-resize', handleSceneResize)
+            sceneNodeEl.addEventListener('scene-resize-end', () => {
+                handleSceneResize()
+                if (this.options.onSceneAssignmentChange) {
+                    this.options.onSceneAssignmentChange(scene, scene.getParagraphs())
+                }
+            })
+
+            sceneNodeEl.addEventListener('scene-open-details', () => {
+                if (this.options.onSelectScene) {
+                    this.options.onSelectScene(scene)
+                }
+            })
+
+            sceneNodeEl.addEventListener('scene-item-drop', (e: Event) => {
+                const customEvent = e as CustomEvent<{
+                    scene: Scene
+                    entityType: 'tag' | 'character' | 'location'
+                    entityId: string
+                }>
+                const { scene: targetScene, entityType, entityId } = customEvent.detail
+                this.handleItemDropOnScene(targetScene, entityType, entityId)
+            })
+
+            this.nodesLayer.appendChild(sceneNodeEl)
+        })
+
+        // 3. Render paragraph nodes (rendered after scenes, z-index 10)
         paragraphs.forEach((p, index) => {
             let pos = p.getPosition()
             if (!pos) {
@@ -231,8 +609,12 @@ export class StoryGraph {
                 p.setPosition(pos)
             }
 
-            const parentScene = scenes.find(s => s.hasParagraph && s.hasParagraph(p.getId()))
-            const sceneColor = GRAPH_THEME.colors.defaultScene
+            const containingScenes = scenes.filter(s => s.hasParagraph && s.hasParagraph(p.getId()))
+            containingScenes.sort((a, b) => a.getArea() - b.getArea())
+            const parentScene = containingScenes[0]
+            const sceneColor = parentScene
+                ? parentScene.getColor()
+                : GRAPH_THEME.colors.defaultScene
 
             const nodeEl = document.createElement('paragraph-node') as ParagraphNode
             nodeEl.paragraph = p
@@ -258,6 +640,8 @@ export class StoryGraph {
                 ) {
                     return
                 }
+
+                e.stopPropagation()
 
                 isDragging = true
                 hasMoved = false
@@ -338,8 +722,22 @@ export class StoryGraph {
                     }
 
                     const paras = this.options.getParagraphs()
+                    const allScenes = this.options.getScenes()
+                    this.syncParagraphSceneAssignments(paras, allScenes)
+                    this.updateParagraphNodeColors(paras, allScenes)
+                    this.updateSceneNodeBadges(allScenes)
+
                     preventChoiceLineCrossings(paras, p.getId())
                     this.updateEdgeGeometry(paras)
+
+                    if (this.options.onSceneAssignmentChange) {
+                        const containingScenes = allScenes.filter(s => s.hasParagraph(p.getId()))
+                        containingScenes.forEach(s => {
+                            if (this.options.onSceneAssignmentChange) {
+                                this.options.onSceneAssignmentChange(s, s.getParagraphs())
+                            }
+                        })
+                    }
                 }
             }
 
@@ -347,13 +745,27 @@ export class StoryGraph {
 
             // Selection / Details event (triggered on double click)
             const openDetails = (): void => {
-                this.options.onSelectParagraph(p, parentScene)
+                const containingScenes = scenes.filter(s => s.hasParagraph(p.getId()))
+                containingScenes.sort((a, b) => a.getArea() - b.getArea())
+                const currentPScene = containingScenes[0]
+                this.options.onSelectParagraph(p, currentPScene)
                 this.nodesLayer.querySelectorAll('.paragraph-node').forEach(n => {
                     n.classList.toggle('is-selected', n === nodeEl.querySelector('.paragraph-node'))
                 })
             }
             nodeEl.addEventListener('node-open-details', openDetails)
             nodeEl.addEventListener('node-select', openDetails)
+
+            // Item drop handler (drag and drop tag/character/location onto node)
+            nodeEl.addEventListener('node-item-drop', (e: Event) => {
+                const customEvent = e as CustomEvent<{
+                    paragraph: Paragraph
+                    entityType: 'tag' | 'character' | 'location'
+                    entityId: string
+                }>
+                const { paragraph: targetParagraph, entityType, entityId } = customEvent.detail
+                this.handleItemDropOnParagraph(targetParagraph, entityType, entityId)
+            })
 
             // Socket pointerdown -> start interactive drag-and-drop connection
             nodeEl.addEventListener('node-socket-pointerdown', (e: Event) => {
@@ -608,7 +1020,16 @@ export class StoryGraph {
         this.cy.resize()
 
         const cyEle = this.cy.getElementById(elementId)
-        if (cyEle) {
+        const isCyEleFound = Boolean(
+            cyEle &&
+            (typeof cyEle.nonempty === 'function'
+                ? cyEle.nonempty()
+                : typeof (cyEle as any).empty === 'function'
+                  ? !(cyEle as any).empty()
+                  : cyEle.length === undefined || cyEle.length > 0)
+        )
+
+        if (isCyEleFound && cyEle) {
             if (animate && typeof this.cy.animate === 'function') {
                 this.cy.animate(
                     {
@@ -655,10 +1076,20 @@ export class StoryGraph {
                 }
             } else {
                 // Check if elementId is a choice inside any paragraph
+                let choiceFound = false
                 for (const srcP of paragraphs) {
                     if (srcP.hasChoice && srcP.hasChoice(elementId)) {
+                        choiceFound = true
                         const cySrcEle = this.cy.getElementById(srcP.getId())
-                        if (cySrcEle) {
+                        const isSrcFound = Boolean(
+                            cySrcEle &&
+                            (typeof cySrcEle.nonempty === 'function'
+                                ? cySrcEle.nonempty()
+                                : typeof (cySrcEle as any).empty === 'function'
+                                  ? !(cySrcEle as any).empty()
+                                  : cySrcEle.length === undefined || cySrcEle.length > 0)
+                        )
+                        if (isSrcFound && cySrcEle) {
                             if (animate && typeof this.cy.animate === 'function') {
                                 this.cy.animate(
                                     { center: { eles: cySrcEle } },
@@ -676,6 +1107,49 @@ export class StoryGraph {
                         break
                     }
                 }
+
+                if (!choiceFound) {
+                    // Check if elementId is a scene ID
+                    const scenes = this.options.getScenes()
+                    const s = scenes.find(x => x.getId() === elementId)
+                    if (s) {
+                        let sPos = s.getPosition()
+                        if (!sPos) {
+                            const activeCount = scenes.filter(x => x.getPosition() !== null).length
+                            sPos = {
+                                x: 50 + (activeCount % 5) * 60,
+                                y: 50 + Math.floor(activeCount / 5) * 60,
+                            }
+                            s.setPosition(sPos)
+                            this.render(true)
+                        }
+                        const centerX = sPos.x + s.getWidth() / 2
+                        const centerY = sPos.y + s.getHeight() / 2
+                        const zoom = (typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1) || 1
+                        const containerRect = this.canvasContainer?.getBoundingClientRect()
+                        const width =
+                            containerRect?.width || this.canvasContainer?.clientWidth || 800
+                        const height =
+                            containerRect?.height || this.canvasContainer?.clientHeight || 600
+                        const targetPan = {
+                            x: Math.round(width / 2 - centerX * zoom),
+                            y: Math.round(height / 2 - centerY * zoom),
+                        }
+                        if (animate && typeof this.cy.animate === 'function') {
+                            this.cy.animate(
+                                { pan: targetPan },
+                                {
+                                    duration: 350,
+                                    easing: 'ease-out-cubic',
+                                    complete: () => this.syncTransform(),
+                                }
+                            )
+                        } else if (typeof this.cy.pan === 'function') {
+                            this.cy.pan(targetPan)
+                            this.syncTransform()
+                        }
+                    }
+                }
             }
         }
 
@@ -685,6 +1159,10 @@ export class StoryGraph {
                 const parent = nodeEl.closest('paragraph-node') as HTMLElement
                 const isSelected = parent && parent.dataset.nodeId === elementId
                 nodeEl.classList.toggle('is-selected', Boolean(isSelected))
+            })
+            this.nodesLayer.querySelectorAll('.scene-node').forEach(sceneEl => {
+                const isSelected = (sceneEl as HTMLElement).dataset.sceneId === elementId
+                sceneEl.classList.toggle('is-selected', Boolean(isSelected))
             })
         }
 
@@ -790,7 +1268,71 @@ export class StoryGraph {
         }
     }
 
+    public handleNodesLayerWheel(e: WheelEvent): void {
+        if (!this.cy || !this.canvasContainer) return
+        e.preventDefault()
+        e.stopPropagation()
+
+        // 1. Forward the exact WheelEvent to Cytoscape's canvas container so Cytoscape's internal
+        // wheel listener handles the event natively with 100% identical math, speed and sensitivity.
+        const clonedEvent = new WheelEvent('wheel', {
+            bubbles: true,
+            cancelable: true,
+            composed: true,
+            view: window,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            screenX: e.screenX,
+            screenY: e.screenY,
+            deltaX: e.deltaX,
+            deltaY: e.deltaY,
+            deltaZ: e.deltaZ,
+            deltaMode: e.deltaMode,
+            ctrlKey: e.ctrlKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey,
+            metaKey: e.metaKey,
+        })
+
+        const initialZoom = typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1
+        this.canvasContainer.dispatchEvent(clonedEvent)
+
+        // 2. Fallback in case Cytoscape DOM listener is not triggered (e.g. In unit test mocks):
+        // use Cytoscape's exact official formula: diff = (delta / -250) * sensitivity, newZoom = zoom * 10^diff
+        const afterZoom = typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1
+        if (afterZoom === initialZoom && typeof this.cy.zoom === 'function') {
+            const containerRect = this.canvasContainer.getBoundingClientRect()
+            const renderedPosition = {
+                x: containerRect ? e.clientX - containerRect.left : e.clientX,
+                y: containerRect ? e.clientY - containerRect.top : e.clientY,
+            }
+            const sensitivity = this.getWheelSensitivity()
+            let diff = (e.deltaY / -250) * sensitivity
+            if (e.deltaMode === 1) {
+                diff *= 33
+            }
+            const newZoom = Math.max(
+                GRAPH_THEME.zoom.min,
+                Math.min(GRAPH_THEME.zoom.max, initialZoom * Math.pow(10, diff))
+            )
+
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ;(this.cy as any).zoom({
+                    level: newZoom,
+                    renderedPosition,
+                })
+            } catch {
+                this.cy.zoom(newZoom)
+            }
+            this.syncTransform()
+        }
+    }
+
     public destroy(): void {
+        if (this.nodesLayer && this.boundNodesLayerWheel) {
+            this.nodesLayer.removeEventListener('wheel', this.boundNodesLayerWheel)
+        }
         if (this.cy) {
             this.cy.removeListener('pan zoom', this.boundSyncTransform)
             this.cy.destroy()
@@ -803,6 +1345,152 @@ export class StoryGraph {
         const svg = document.getElementById('story-graph-drag-svg')
         if (svg) {
             svg.remove()
+        }
+    }
+
+    public handleItemDropOnParagraph(
+        targetParagraph: Paragraph,
+        entityType: 'tag' | 'character' | 'location' | string,
+        entityId: string
+    ): void {
+        const tags = this.options.getTags ? this.options.getTags() : []
+        const characters = this.options.getCharacters ? this.options.getCharacters() : []
+        const locations = this.options.getLocations ? this.options.getLocations() : []
+        const t = this.options.t
+
+        if (entityType === 'tag') {
+            const tagObj = tags.find(x => x.getId() === entityId)
+            if (tagObj) {
+                targetParagraph.addTag(tagObj)
+                const nodeEl = this.nodesLayer.querySelector(
+                    `paragraph-node[data-node-id="${targetParagraph.getId()}"]`
+                ) as ParagraphNode | null
+                if (nodeEl) nodeEl.render()
+                if (this.options.onItemAssigned) {
+                    this.options.onItemAssigned(targetParagraph, tagObj, 'tag')
+                }
+                this.options.onToast(
+                    'success',
+                    t('toast.tag_assigned', {
+                        tag: tagObj.getName(),
+                        target: targetParagraph.getTitle() || targetParagraph.getId(),
+                    }),
+                    t('toast.element_created_title')
+                )
+            }
+        } else if (entityType === 'character') {
+            const charObj = characters.find(x => x.getId() === entityId)
+            if (charObj) {
+                targetParagraph.addCharacter(charObj)
+                const nodeEl = this.nodesLayer.querySelector(
+                    `paragraph-node[data-node-id="${targetParagraph.getId()}"]`
+                ) as ParagraphNode | null
+                if (nodeEl) nodeEl.render()
+                if (this.options.onItemAssigned) {
+                    this.options.onItemAssigned(targetParagraph, charObj, 'character')
+                }
+                this.options.onToast(
+                    'success',
+                    t('toast.character_assigned', {
+                        character: charObj.getName(),
+                        target: targetParagraph.getTitle() || targetParagraph.getId(),
+                    }),
+                    t('toast.element_created_title')
+                )
+            }
+        } else if (entityType === 'location') {
+            const locObj = locations.find(x => x.getId() === entityId)
+            if (locObj) {
+                targetParagraph.addLocation(locObj)
+                const nodeEl = this.nodesLayer.querySelector(
+                    `paragraph-node[data-node-id="${targetParagraph.getId()}"]`
+                ) as ParagraphNode | null
+                if (nodeEl) nodeEl.render()
+                if (this.options.onItemAssigned) {
+                    this.options.onItemAssigned(targetParagraph, locObj, 'location')
+                }
+                this.options.onToast(
+                    'success',
+                    t('toast.location_assigned', {
+                        location: locObj.getName(),
+                        target: targetParagraph.getTitle() || targetParagraph.getId(),
+                    }),
+                    t('toast.element_created_title')
+                )
+            }
+        }
+    }
+
+    public handleItemDropOnScene(
+        targetScene: Scene,
+        entityType: 'tag' | 'character' | 'location' | string,
+        entityId: string
+    ): void {
+        const tags = this.options.getTags ? this.options.getTags() : []
+        const characters = this.options.getCharacters ? this.options.getCharacters() : []
+        const locations = this.options.getLocations ? this.options.getLocations() : []
+        const t = this.options.t
+
+        if (entityType === 'tag') {
+            const tagObj = tags.find(x => x.getId() === entityId)
+            if (tagObj) {
+                targetScene.addTag(tagObj)
+                const sceneEl = this.nodesLayer.querySelector(
+                    `scene-node[data-scene-id="${targetScene.getId()}"]`
+                ) as SceneNode | null
+                if (sceneEl) sceneEl.render()
+                if (this.options.onItemAssigned) {
+                    this.options.onItemAssigned(targetScene, tagObj, 'tag')
+                }
+                this.options.onToast(
+                    'success',
+                    t('toast.tag_assigned', {
+                        tag: tagObj.getName(),
+                        target: targetScene.getName() || targetScene.getId(),
+                    }),
+                    t('toast.element_created_title')
+                )
+            }
+        } else if (entityType === 'character') {
+            const charObj = characters.find(x => x.getId() === entityId)
+            if (charObj) {
+                targetScene.addCharacter(charObj)
+                const sceneEl = this.nodesLayer.querySelector(
+                    `scene-node[data-scene-id="${targetScene.getId()}"]`
+                ) as SceneNode | null
+                if (sceneEl) sceneEl.render()
+                if (this.options.onItemAssigned) {
+                    this.options.onItemAssigned(targetScene, charObj, 'character')
+                }
+                this.options.onToast(
+                    'success',
+                    t('toast.character_assigned', {
+                        character: charObj.getName(),
+                        target: targetScene.getName() || targetScene.getId(),
+                    }),
+                    t('toast.element_created_title')
+                )
+            }
+        } else if (entityType === 'location') {
+            const locObj = locations.find(x => x.getId() === entityId)
+            if (locObj) {
+                targetScene.addLocation(locObj)
+                const sceneEl = this.nodesLayer.querySelector(
+                    `scene-node[data-scene-id="${targetScene.getId()}"]`
+                ) as SceneNode | null
+                if (sceneEl) sceneEl.render()
+                if (this.options.onItemAssigned) {
+                    this.options.onItemAssigned(targetScene, locObj, 'location')
+                }
+                this.options.onToast(
+                    'success',
+                    t('toast.location_assigned', {
+                        location: locObj.getName(),
+                        target: targetScene.getName() || targetScene.getId(),
+                    }),
+                    t('toast.element_created_title')
+                )
+            }
         }
     }
 }

@@ -43,6 +43,8 @@ export type IconName =
     | 'redo'
     | 'export'
     | 'import'
+    | 'lock'
+    | 'unlock'
 
 export interface IIconConfig {
     viewBox?: string
@@ -197,6 +199,14 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     import: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>',
+    },
+    lock: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="1.8"></rect><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11V7a5 5 0 0110 0v4"></path>',
+    },
+    unlock: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="1.8"></rect><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11V7a5 5 0 019.9-1"></path>',
     },
 }
 

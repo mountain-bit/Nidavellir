@@ -258,6 +258,13 @@ describe('MainWindowViewModel', () => {
         })
 
         it('filtruje sekcje po wyszukiwanym haśle', () => {
+            const sc1 = vm.createScene('Prolog')
+            const sc2 = vm.createScene('Epilog')
+            expect(sc1.getId()).toMatch(/^scene_/)
+
+            vm.setSceneSearchQuery('prol')
+            expect(vm.searchAndFilterScenes([sc1, sc2])).toEqual([sc1])
+
             const p1 = vm.createCharacter('Guard')
             const p2 = vm.createCharacter('Merchant')
 
@@ -275,6 +282,23 @@ describe('MainWindowViewModel', () => {
 
             vm.setStatSearchQuery('stre')
             expect(vm.searchAndFilterStats([s1, s2])).toEqual([s1])
+        })
+
+        it('filtruje paragrafy po przypisanej scenie oraz tagu postaci', () => {
+            const charTag = vm.createTag('Wiedźma')
+            const sc = vm.createScene('Mokradła')
+            const p1 = vm.createParagraph('Bagna')
+            const p2 = vm.createParagraph('Góry')
+
+            sc.addParagraph(p1)
+            p1.addTag(charTag)
+
+            vm.setSelectedFilterScene(sc.getId())
+            expect(vm.searchAndFilterParagraphs([p1, p2], [sc])).toEqual([p1])
+
+            vm.setSelectedFilterScene(null)
+            vm.setSelectedFilterTag(charTag.getId())
+            expect(vm.searchAndFilterParagraphs([p1, p2])).toEqual([p1])
         })
     })
 
@@ -425,6 +449,43 @@ describe('MainWindowViewModel', () => {
         })
     })
 
+    describe('Color Management & Validation', () => {
+        it('waliduje poprawne i niepoprawne formaty HEX koloru', () => {
+            expect(vm.validateColor('#3b82f6').valid).toBe(true)
+            expect(vm.validateColor('#FFF').valid).toBe(true)
+            expect(vm.validateColor('10b981').valid).toBe(true)
+            expect(vm.validateColor('#10b98122').valid).toBe(false)
+            expect(vm.validateColor('invalid-color').valid).toBe(false)
+            expect(vm.validateColor('').valid).toBe(false)
+        })
+
+        it('aktualizuje kolor dla wybranej sceny', () => {
+            const scene = vm.createScene('Testowa Scena')
+            expect(scene.getColor()).toBe('#3b82f6')
+
+            vm.selectElement(scene, 'scene')
+            const updated = vm.updateColor('#ef4444')
+            expect(updated).toBe(true)
+            expect(scene.getColor()).toBe('#ef4444')
+        })
+
+        it('aktualizuje kolor dla wybranego tagu', () => {
+            const tag = vm.createTag('Ważny')
+            vm.selectElement(tag, 'tag')
+            const updated = vm.updateColor('#8b5cf6')
+            expect(updated).toBe(true)
+            expect(tag.getColor()).toBe('#8b5cf6')
+        })
+
+        it('zwraca false gdy brak zaznaczenia lub encja nie obsługuje setColor', () => {
+            expect(vm.updateColor('#3b82f6')).toBe(false)
+
+            const p = vm.createParagraph('Paragraf')
+            vm.selectElement(p, 'paragraph')
+            expect(vm.updateColor('#3b82f6')).toBe(false)
+        })
+    })
+
     describe('Summary & Narrative Files', () => {
         it('aktualizuje streszczenie wybranego elementu', () => {
             const p = vm.createParagraph('Story')
@@ -475,6 +536,63 @@ describe('MainWindowViewModel', () => {
 
             vm.removeStatFromSelected(stat.getId())
             expect(c.getStats()).toHaveLength(0)
+        })
+
+        it('dodaje i usuwa postacie dla zaznaczonego paragrafu i sceny', () => {
+            const p = vm.createParagraph('Tavern Scene')
+            const c1 = vm.createCharacter('Barkeep')
+            const c2 = vm.createCharacter('Patron')
+            vm.selectElement(p, 'paragraph')
+
+            vm.addCharacterToSelected(c1)
+            vm.addCharacterToSelected(c2)
+            expect(p.getCharacters()).toHaveLength(2)
+            expect(p.getCharacters()[0].getName()).toBe('Barkeep')
+
+            vm.removeCharacterFromSelected(c1.getId())
+            expect(p.getCharacters()).toHaveLength(1)
+            expect(p.getCharacters()[0].getName()).toBe('Patron')
+
+            const scene = vm.createScene('Town Square')
+            vm.selectElement(scene, 'scene')
+            vm.addCharacterToSelected(c1)
+            expect(scene.getCharacters()).toHaveLength(1)
+            vm.removeCharacterFromSelected(c1.getId())
+            expect(scene.getCharacters()).toHaveLength(0)
+        })
+
+        it('dodaje, ustawia i usuwa lokacje dla zaznaczonego paragrafu i sceny (obsługa wielu lokacji)', () => {
+            const p = vm.createParagraph('Forest Path')
+            const loc1 = vm.createLocation('Deep Woods')
+            const loc2 = vm.createLocation('Old Ruins')
+            vm.selectElement(p, 'paragraph')
+
+            vm.addLocationToSelected(loc1)
+            vm.addLocationToSelected(loc2)
+            expect(p.getLocations()).toHaveLength(2)
+            expect(p.getLocation()?.getName()).toBe('Deep Woods')
+
+            vm.removeLocationFromSelected(loc1.getId())
+            expect(p.getLocations()).toHaveLength(1)
+            expect(p.getLocations()[0].getName()).toBe('Old Ruins')
+
+            vm.removeLocationFromSelected()
+            expect(p.getLocations()).toEqual([])
+            expect(p.getLocation()).toBeNull()
+
+            const scene = vm.createScene('Prologue')
+            vm.selectElement(scene, 'scene')
+            vm.addLocationToSelected(loc1)
+            vm.addLocationToSelected(loc2)
+            expect(scene.getLocations()).toHaveLength(2)
+
+            vm.removeLocationFromSelected(loc2.getId())
+            expect(scene.getLocations()).toHaveLength(1)
+            expect(scene.getLocation()?.getName()).toBe('Deep Woods')
+
+            vm.setLocationToSelected(null)
+            expect(scene.getLocations()).toEqual([])
+            expect(scene.getLocation()).toBeNull()
         })
     })
 

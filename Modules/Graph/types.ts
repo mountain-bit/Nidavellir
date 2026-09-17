@@ -1,6 +1,9 @@
 import { Choice } from '../../Model/Choice'
+import { Location } from '../../Model/Location'
+import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
+import { Tag } from '../../Model/Tag'
 import { ConnectionLineStyle, ICytoscapeStyleRule } from './StoryGraphStyles'
 
 export interface IStoryGraphOptions {
@@ -8,8 +11,18 @@ export interface IStoryGraphOptions {
     nodesLayer: HTMLElement
     getParagraphs: () => Paragraph[]
     getScenes: () => Scene[]
+    getTags?: () => Tag[]
+    getCharacters?: () => NPC[]
+    getLocations?: () => Location[]
     lineStyle?: ConnectionLineStyle
     onSelectParagraph: (p: Paragraph, scene?: Scene) => void
+    onSelectScene?: (scene: Scene) => void
+    onSceneAssignmentChange?: (scene: Scene, paragraphs: Paragraph[]) => void
+    onItemAssigned?: (
+        target: Paragraph | Scene,
+        item: Tag | NPC | Location,
+        type: 'tag' | 'character' | 'location'
+    ) => void
     onSelectChoice?: (
         choice: Choice,
         sourceParagraph?: Paragraph,

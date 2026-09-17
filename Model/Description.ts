@@ -71,11 +71,11 @@ export class Description {
         if (!json || typeof json !== 'object') {
             return new Description()
         }
-        const text = json.text ?? ''
-        const summary = json.summary ?? ''
-        const authorNotes = json.authorNotes ?? ''
-        const textPath = json.textPath ?? ''
-        const authorNotesPath = json.authorNotesPath ?? ''
+        const text = typeof json.text === 'string' ? json.text : ''
+        const summary = typeof json.summary === 'string' ? json.summary : ''
+        const authorNotes = typeof json.authorNotes === 'string' ? json.authorNotes : ''
+        const textPath = typeof json.textPath === 'string' ? json.textPath : ''
+        const authorNotesPath = typeof json.authorNotesPath === 'string' ? json.authorNotesPath : ''
 
         return new Description(text, summary, authorNotes, textPath, authorNotesPath)
     }

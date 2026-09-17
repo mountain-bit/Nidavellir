@@ -1,7 +1,7 @@
 import { CharacterClass } from '../Model/CharacterClass'
 import { Choice } from '../Model/Choice'
 import { Condition, TextCondition } from '../Model/Condition'
-import { DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
+import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Item } from '../Model/Item'
 import { Location } from '../Model/Location'
@@ -18,6 +18,7 @@ export {
     CharacterClass,
     Choice,
     Condition,
+    DEFAULT_SCENE_COLOR,
     DEFAULT_TAG_COLOR,
     Description,
     ENTITY_CATEGORIES,
@@ -54,6 +55,8 @@ export interface IIdentifiableEntity {
     getTitle?: () => string
     setTitle?: (title: string) => void
     getContent?: () => Description
+    getColor?: () => string
+    setColor?: (color: string) => void
     getIsNumberLocked?: () => boolean
     setIsNumberLocked?: (locked: boolean) => void
     getNumber?: () => number
@@ -73,6 +76,17 @@ export interface IIdentifiableEntity {
     getChoices?: () => Choice[]
     addChoice?: (choice: Choice) => void
     removeChoice?: (id: string) => void
+    getCharacters?: () => NPC[]
+    setCharacters?: (characters: NPC[]) => void
+    addCharacter?: (character: NPC) => void
+    removeCharacter?: (id: string) => void
+    getLocations?: () => Location[]
+    setLocations?: (locations: Location[]) => void
+    addLocation?: (location: Location) => void
+    removeLocation?: (id: string) => void
+    hasLocation?: (id: string) => boolean
+    getLocation?: () => Location | null
+    setLocation?: (location: Location | null) => void
 }
 
 export interface IHistoryItem {
@@ -116,6 +130,7 @@ export class MainWindowViewModel {
     private selectedFilterScene: string | null = null
 
     private characterSearchQuery: string = ''
+    private sceneSearchQuery: string = ''
     private locationSearchQuery: string = ''
     private statSearchQuery: string = ''
     private tagSearchQuery: string = ''
@@ -371,6 +386,25 @@ export class MainWindowViewModel {
         return { valid: true }
     }
 
+    public updateColor(color: string): boolean {
+        if (!this.selectedItem?.entity) return false
+        const entity = this.selectedItem.entity
+        if (typeof entity.setColor === 'function') {
+            entity.setColor(color)
+            return true
+        }
+        return false
+    }
+
+    public validateColor(color: string): { valid: boolean; message?: string } {
+        const trimmed = (color || '').trim()
+        const hex = trimmed.startsWith('#') ? trimmed : `#${trimmed}`
+        if (/^#[0-9A-Fa-f]{6}$/.test(hex) || /^#[0-9A-Fa-f]{3}$/.test(hex)) {
+            return { valid: true }
+        }
+        return { valid: false, message: 'Invalid HEX color' }
+    }
+
     public addTagToSelected(tag: Tag): void {
         if (!this.selectedItem?.entity) return
         if (this.selectedItem.entity.addTag) {
@@ -396,6 +430,45 @@ export class MainWindowViewModel {
         if (!this.selectedItem?.entity) return
         if (this.selectedItem.entity.removeStat) {
             this.selectedItem.entity.removeStat(statId)
+        }
+    }
+
+    public addCharacterToSelected(character: NPC): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addCharacter) {
+            this.selectedItem.entity.addCharacter(character)
+        }
+    }
+
+    public removeCharacterFromSelected(characterId: string): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.removeCharacter) {
+            this.selectedItem.entity.removeCharacter(characterId)
+        }
+    }
+
+    public addLocationToSelected(location: Location): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addLocation) {
+            this.selectedItem.entity.addLocation(location)
+        } else if (this.selectedItem.entity.setLocation) {
+            this.selectedItem.entity.setLocation(location)
+        }
+    }
+
+    public removeLocationFromSelected(locationIdOrName?: string): void {
+        if (!this.selectedItem?.entity) return
+        if (locationIdOrName && this.selectedItem.entity.removeLocation) {
+            this.selectedItem.entity.removeLocation(locationIdOrName)
+        } else if (this.selectedItem.entity.setLocation) {
+            this.selectedItem.entity.setLocation(null)
+        }
+    }
+
+    public setLocationToSelected(location: Location | null): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.setLocation) {
+            this.selectedItem.entity.setLocation(location)
         }
     }
 
@@ -510,6 +583,14 @@ export class MainWindowViewModel {
 
     public setCharacterSearchQuery(query: string): void {
         this.characterSearchQuery = query
+    }
+
+    public getSceneSearchQuery(): string {
+        return this.sceneSearchQuery
+    }
+
+    public setSceneSearchQuery(query: string): void {
+        this.sceneSearchQuery = query
     }
 
     public getLocationSearchQuery(): string {
@@ -753,7 +834,11 @@ export class MainWindowViewModel {
         })
     }
 
-    public searchAndFilterParagraphs(paragraphs: Paragraph[]): Paragraph[] {
+    public searchAndFilterParagraphs(
+        paragraphs: Paragraph[],
+        scenes?: Scene[],
+        characters?: NPC[]
+    ): Paragraph[] {
         let result = [...paragraphs]
 
         if (this.selectedFilterTag) {
@@ -766,6 +851,22 @@ export class MainWindowViewModel {
                             t.getId().toLowerCase() === tagStr ||
                             t.getName().toLowerCase() === tagStr
                     )
+            )
+        }
+
+        if (this.selectedFilterScene && scenes && scenes.length > 0) {
+            const sceneId = this.selectedFilterScene
+            const scene = scenes.find(s => s.getId() === sceneId)
+            if (scene) {
+                result = result.filter(p => scene.hasParagraph(p.getId()))
+            }
+        }
+
+        if (this.selectedFilterCharacter && characters && characters.length > 0) {
+            const charId = this.selectedFilterCharacter
+            // Paragraph can be linked to character via tags or characters list if applicable
+            result = result.filter(p =>
+                p.getTags().some(t => t.getId() === charId || t.getName() === charId)
             )
         }
 
@@ -798,6 +899,16 @@ export class MainWindowViewModel {
 
             return 0
         })
+    }
+
+    public searchAndFilterScenes(scenes: Scene[]): Scene[] {
+        const query = this.sceneSearchQuery.trim().toLowerCase()
+        if (!query) return scenes
+        return scenes.filter(
+            s =>
+                s.getName().toLowerCase().includes(query) ||
+                s.getTags().some(t => t.getName().toLowerCase().includes(query))
+        )
     }
 
     public searchAndFilterCharacters(characters: NPC[]): NPC[] {

@@ -4,38 +4,19 @@ import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
 import { t } from '../../Utils/translate'
 import {
-    escapeHtml,
+    createCharacterPill,
+    createLocationPill,
+    createNoSummaryPlaceholder,
+    createNoTagsPlaceholder,
+    createTagPill,
     instantiateParagraphNodeTemplate,
     IParagraphNodeElements,
 } from './ParagraphNodeTemplate'
-import { GRAPH_THEME } from './StoryGraphStyles'
+import { getContrastTextColor, GRAPH_THEME } from './StoryGraphStyles'
 
-/**
- * Calculates accessible high-contrast text color (#ffffff or #18181b)
- * based on the background color luminance (YIQ formula).
- */
-export function getContrastTextColor(hexColor: string): string {
-    if (!hexColor || typeof hexColor !== 'string') return '#ffffff'
-    let hex = hexColor.trim().replace('#', '')
-    if (hex.length === 3) {
-        hex = hex
-            .split('')
-            .map(c => c + c)
-            .join('')
-    }
-    if (hex.length !== 6) return '#ffffff'
-    const r = parseInt(hex.substring(0, 2), 16)
-    const g = parseInt(hex.substring(2, 4), 16)
-    const b = parseInt(hex.substring(4, 6), 16)
-    if (isNaN(r) || isNaN(g) || isNaN(b)) return '#ffffff'
-    const yiq = (r * 299 + g * 587 + b * 114) / 1000
-    return yiq >= 145 ? '#18181b' : '#ffffff'
-}
+export { getContrastTextColor }
 
-const BaseElement =
-    typeof HTMLElement !== 'undefined' ? HTMLElement : (class {} as typeof HTMLElement)
-
-export class ParagraphNode extends BaseElement {
+export class ParagraphNode extends HTMLElement {
     private _paragraph: Paragraph | null = null
     private _themeColor: string = GRAPH_THEME.colors.defaultScene
     private _isExpanded: boolean = false
@@ -213,9 +194,66 @@ export class ParagraphNode extends BaseElement {
             }
         })
 
-        addInput.addEventListener('input', () => {
-            addInput.classList.remove('has-error')
-        })
+        const onDragOver = (e: DragEvent): void => {
+            if (e.dataTransfer) {
+                e.preventDefault()
+                e.stopPropagation()
+                e.dataTransfer.dropEffect = 'copy'
+                this.classList.add('is-drag-target')
+            }
+        }
+
+        const onDragLeave = (e: DragEvent): void => {
+            const related = e.relatedTarget as Node | null
+            if (!this.contains(related)) {
+                this.classList.remove('is-drag-target')
+            }
+        }
+
+        const onDrop = (e: DragEvent): void => {
+            e.preventDefault()
+            e.stopPropagation()
+            this.classList.remove('is-drag-target')
+            if (!this._paragraph) return
+            const dt = e.dataTransfer
+            if (!dt) return
+
+            let entityType = dt.getData('application/x-entity-type')
+            let entityId = dt.getData('application/x-entity-id')
+
+            if (!entityType) {
+                if (dt.getData('application/x-tag-id')) {
+                    entityType = 'tag'
+                    entityId = dt.getData('application/x-tag-id')
+                } else if (dt.getData('application/x-character-id')) {
+                    entityType = 'character'
+                    entityId = dt.getData('application/x-character-id')
+                } else if (dt.getData('application/x-location-id')) {
+                    entityType = 'location'
+                    entityId = dt.getData('application/x-location-id')
+                }
+            }
+
+            if (entityType && entityId) {
+                this.dispatchEvent(
+                    new CustomEvent('node-item-drop', {
+                        bubbles: true,
+                        composed: true,
+                        detail: {
+                            paragraph: this._paragraph,
+                            targetParagraph: this._paragraph,
+                            entityType,
+                            entityId,
+                        },
+                    })
+                )
+            }
+        }
+
+        this.addEventListener('dragover', onDragOver)
+        this.addEventListener('dragenter', onDragOver)
+        this.addEventListener('dragleave', onDragLeave)
+        this.addEventListener('drop', onDrop)
     }
 
     private _handleDocumentClick(e: MouseEvent): void {
@@ -275,8 +313,8 @@ export class ParagraphNode extends BaseElement {
 
         if (!this._paragraph) {
             this._elements.title.textContent = ''
-            this._elements.tagsContainer.innerHTML = ''
-            this._elements.summaryContainer.innerHTML = ''
+            this._elements.tagsContainer.replaceChildren()
+            this._elements.summaryContainer.replaceChildren()
             return
         }
 
@@ -286,6 +324,12 @@ export class ParagraphNode extends BaseElement {
         const defaultTitle = t('graph.node.default_title')
         const title = p.getTitle ? p.getTitle() : defaultTitle
         const tags: Tag[] = p.getTags ? p.getTags() : []
+        const characters = p.getCharacters ? p.getCharacters() : []
+        const locations = p.getLocations
+            ? p.getLocations()
+            : p.getLocation && p.getLocation()
+              ? [p.getLocation()!]
+              : []
         const content = p.getContent ? p.getContent() : null
         const summaryText = content && content.getSummary ? content.getSummary() : ''
         const textFallback = content && content.getText ? content.getText().slice(0, 100) : ''
@@ -303,25 +347,52 @@ export class ParagraphNode extends BaseElement {
         this._elements.socketBtn.title = t('graph.node.socket_title')
         this._elements.socketBtn.setAttribute('aria-label', t('graph.node.socket_aria_label'))
 
-        // 4. Tags with CSS variable per pill
+        // 4. Badges (Locations, Characters, Tags)
+        this._elements.tagsContainer.replaceChildren()
+        const badgesFragment = document.createDocumentFragment()
+
+        if (locations && locations.length > 0) {
+            locations.forEach(loc => {
+                const locName = loc.getName ? loc.getName() : 'Location'
+                badgesFragment.appendChild(
+                    createLocationPill(locName, `${t('location.list')}: ${locName}`)
+                )
+            })
+        }
+
+        if (characters && characters.length > 0) {
+            characters.forEach(c => {
+                const charName = c.getName ? c.getName() : 'Character'
+                badgesFragment.appendChild(
+                    createCharacterPill(charName, `${t('character.npc')}: ${charName}`)
+                )
+            })
+        }
+
         if (tags.length > 0) {
             const defaultTagName = t('graph.node.default_tag')
-            this._elements.tagsContainer.innerHTML = tags
-                .map(tObj => {
-                    const name = tObj.getName ? tObj.getName() : defaultTagName
-                    const color = tObj.getColor ? tObj.getColor() : '#3b82f6'
-                    return `<span class="node-tag-pill" style="--tag-color: ${escapeHtml(color)}">${escapeHtml(name)}</span>`
-                })
-                .join('')
+            tags.forEach(tObj => {
+                const name = tObj.getName ? tObj.getName() : defaultTagName
+                const color = tObj.getColor ? tObj.getColor() : '#3b82f6'
+                badgesFragment.appendChild(createTagPill(name, color))
+            })
+        }
+
+        if (badgesFragment.childNodes.length > 0) {
+            this._elements.tagsContainer.appendChild(badgesFragment)
         } else {
-            this._elements.tagsContainer.innerHTML = `<span class="paragraph-node-no-tags">${escapeHtml(t('graph.node.no_tags'))}</span>`
+            this._elements.tagsContainer.appendChild(
+                createNoTagsPlaceholder(t('graph.node.no_tags'))
+            )
         }
 
         // 5. Summary with clean semantic classes
         if (summaryText || textFallback) {
             this._elements.summaryContainer.textContent = summaryText || textFallback
         } else {
-            this._elements.summaryContainer.innerHTML = `<span class="paragraph-node-no-summary">${escapeHtml(t('graph.node.no_summary'))}</span>`
+            this._elements.summaryContainer.replaceChildren(
+                createNoSummaryPlaceholder(t('graph.node.no_summary'))
+            )
         }
 
         // 6. Add button & form i18n
