@@ -7,15 +7,8 @@ import {
     setLanguage,
     t,
 } from '../dist/Utils/translate.js'
-import {
-    Choice,
-    DEFAULT_SCENE_COLOR,
-    Description,
-    MainWindowViewModel,
-    Paragraph,
-    Scene,
-    TextCondition,
-} from '../dist/ViewModel/MainWindowViewModel.js'
+import { MainWindowViewModel } from '../dist/ViewModel/MainWindowViewModel.js'
+import { loadProjectData } from './projectData.js'
 import {
     handleColorSelection,
     openColorPicker,
@@ -65,103 +58,8 @@ const viewGraphBtn = document.getElementById('view-mode-graph-btn')
 const fileEditor = document.getElementById('file-editor')
 const saveStatus = document.getElementById('save-status')
 
-// Mock files state
-const files = {
-    'Wprowadzenie.md': '# Wprowadzenie\n\nWitaj w edytorze gry paragrafowej...',
-    'Zasady.md': '# Zasady Gry\n\nTwój bohater posiada cechy oraz ekwipunek...',
-}
-
-// In-memory project entities state
-let projectTags = [
-    vm.createTag('Ważne', '#ef4444'),
-    vm.createTag('Walka', '#dc2626'),
-    vm.createTag('Magia', '#8b5cf6'),
-]
-let projectCharacters = [vm.createCharacter('Strażnik miejski'), vm.createCharacter('Kupiec Jan')]
-let projectLocations = [vm.createLocation('Karczma Pod Różą'), vm.createLocation('Mroczny Las')]
-let projectStats = [vm.createStat('Siła'), vm.createStat('Zręczność')]
-let projectParagraphs = [
-    new Paragraph(
-        'p1',
-        'Prolog: Przebudzenie',
-        new Description(
-            'Budzisz się w starej karczmie. Za oknem szaleje burza.',
-            'Przebudzenie w gospodzie podczas nocnej nawałnicy.'
-        ),
-        [
-            new Choice(
-                'c1',
-                'Idź do lasu',
-                'p1',
-                'p2',
-                new TextCondition('cond1', 'Pochodnia', 'Wymagana zapalona pochodnia')
-            ),
-            new Choice('c2', 'Zbadaj komnatę', 'p1', 'p3'),
-        ],
-        false,
-        undefined,
-        [projectTags[0]]
-    ),
-    new Paragraph(
-        'p2',
-        'Mroczny trakt leśny',
-        new Description(
-            'Ścieżka prowadzi przez gęsty las pełen niebezpieczeństw.',
-            'Wkroczenie na niebezpieczny trakt w leśnych ostępach.'
-        ),
-        [],
-        false,
-        undefined,
-        [projectTags[1]]
-    ),
-    new Paragraph(
-        'p3',
-        'Komnata runiczna',
-        new Description(
-            'Blask runów oświetla starożytne zwoje i artefakty.',
-            'Odnalezienie sekretnej komnaty z mistycznymi runami.'
-        ),
-        [],
-        false,
-        undefined,
-        [projectTags[2]]
-    ),
-]
-
-projectParagraphs[0].setPosition({ x: 180, y: 180 })
-projectParagraphs[1].setPosition({ x: 480, y: 90 })
-projectParagraphs[2].setPosition({ x: 480, y: 290 })
-
-let projectScenes = [
-    new Scene(
-        's1',
-        'Wstęp do przygody',
-        new Description(),
-        [projectParagraphs[0]],
-        [projectCharacters[0]],
-        null,
-        [],
-        '',
-        { x: 50, y: 70 },
-        260,
-        220,
-        DEFAULT_SCENE_COLOR || '#3b82f6'
-    ),
-    new Scene(
-        's2',
-        'Eksploracja lasu',
-        new Description(),
-        [projectParagraphs[1], projectParagraphs[2]],
-        [projectCharacters[1]],
-        null,
-        [],
-        '',
-        { x: 350, y: 20 },
-        260,
-        360,
-        '#10b981'
-    ),
-]
+// Active project data state (defaults to mock data; easily switchable to real data via loadProjectData)
+let projectData = loadProjectData(vm)
 
 let storyGraphInstance = null
 
@@ -170,26 +68,32 @@ let storyGraphInstance = null
  */
 const appContext = {
     vm,
+    get projectData() {
+        return projectData
+    },
+    setProjectData(newData) {
+        projectData = newData
+    },
     get projectTags() {
-        return projectTags
+        return projectData.projectTags
     },
     get projectCharacters() {
-        return projectCharacters
+        return projectData.projectCharacters
     },
     get projectLocations() {
-        return projectLocations
+        return projectData.projectLocations
     },
     get projectStats() {
-        return projectStats
+        return projectData.projectStats
     },
     get projectParagraphs() {
-        return projectParagraphs
+        return projectData.projectParagraphs
     },
     get projectScenes() {
-        return projectScenes
+        return projectData.projectScenes
     },
     get files() {
-        return files
+        return projectData.files
     },
     get storyGraphInstance() {
         return storyGraphInstance
@@ -358,11 +262,11 @@ function showGraph(forceRebuild = false) {
             lineStyle: vm.getConnectionLineStyle(),
             wheelSensitivity: vm.getZoomSensitivity(),
             onZoomChange: lvl => updateZoomToolbarUI(storyGraphInstance, lvl),
-            getParagraphs: () => projectParagraphs,
-            getScenes: () => projectScenes,
-            getTags: () => projectTags,
-            getCharacters: () => projectCharacters,
-            getLocations: () => projectLocations,
+            getParagraphs: () => projectData.projectParagraphs,
+            getScenes: () => projectData.projectScenes,
+            getTags: () => projectData.projectTags,
+            getCharacters: () => projectData.projectCharacters,
+            getLocations: () => projectData.projectLocations,
             onItemAssigned: () => {
                 renderParagraphsList(appContext)
                 renderScenesList(appContext)
@@ -415,7 +319,7 @@ function showGraph(forceRebuild = false) {
             },
             onCreateParagraph: title => {
                 const newP = vm.createParagraph(title)
-                projectParagraphs.push(newP)
+                projectData.projectParagraphs.push(newP)
                 renderParagraphsList(appContext)
                 return newP
             },
@@ -449,7 +353,7 @@ function showGraph(forceRebuild = false) {
                 (e.dataTransfer && e.dataTransfer.getData('application/x-scene-id')) ||
                 (e.dataTransfer && e.dataTransfer.getData('text/plain'))
             if (!sceneId) return
-            const scene = projectScenes.find(s => s.getId() === sceneId)
+            const scene = projectData.projectScenes.find(s => s.getId() === sceneId)
             if (!scene) return
 
             const rect = canvasContainer.getBoundingClientRect()
@@ -684,7 +588,7 @@ if (fileEditor) {
     fileEditor.addEventListener('input', () => {
         const active = vm.getActiveFile()
         if (active) {
-            files[active] = fileEditor.value
+            projectData.files[active] = fileEditor.value
             if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
         }
     })
