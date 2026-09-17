@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Description } from '../../Model/Description'
 
 describe('Description Model', () => {
-    it('powinien poprawnie tworzyć instancję z domyślnymi wartościami', () => {
+    it('should correctly create an instance with default values', () => {
         const desc = new Description()
         expect(desc.getText()).toBe('')
         expect(desc.getSummary()).toBe('')
@@ -12,7 +12,7 @@ describe('Description Model', () => {
         expect(desc.getAuthorNotesPath()).toBe('')
     })
 
-    it('powinien poprawnie ustawiać i pobierać wartości pól i ścieżek', () => {
+    it('should correctly set and get field values and paths', () => {
         const desc = new Description()
         desc.setText('Main content')
         desc.setSummary('Short summary')
@@ -27,7 +27,7 @@ describe('Description Model', () => {
         expect(desc.getAuthorNotesPath()).toBe('./Paragraphs/p1/author.md')
     })
 
-    it('powinien poprawnie serializować do JSON', () => {
+    it('should correctly serialize to JSON', () => {
         const desc = new Description('Content', 'Summary', 'Author', './text.md', './author.md')
         const json = desc.toJSON()
         expect(json).toEqual({
@@ -39,7 +39,7 @@ describe('Description Model', () => {
         })
     })
 
-    it('powinien poprawnie deserializować z JSON', () => {
+    it('should correctly deserialize from JSON', () => {
         const data = {
             text: 'A',
             summary: 'B',
@@ -55,10 +55,20 @@ describe('Description Model', () => {
         expect(desc.getAuthorNotesPath()).toBe('./a/author.md')
     })
 
-    it('powinien obsłużyć pusty/niezdefiniowany obiekt w fromJSON', () => {
+    it('should handle empty or undefined object in fromJSON', () => {
         const desc = Description.fromJSON(null)
         expect(desc).toBeInstanceOf(Description)
         expect(desc.getText()).toBe('')
         expect(desc.getTextPath()).toBe('')
+    })
+
+    it('should handle partial JSON — missing optional fields default to empty string', () => {
+        const partial = { text: 'Only text provided' }
+        const desc = Description.fromJSON(partial)
+        expect(desc.getText()).toBe('Only text provided')
+        expect(desc.getSummary()).toBe('')
+        expect(desc.getAuthorNotes()).toBe('')
+        expect(desc.getTextPath()).toBe('')
+        expect(desc.getAuthorNotesPath()).toBe('')
     })
 })

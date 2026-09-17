@@ -27,7 +27,7 @@ class ProjectService {
      * @returns {Promise<{ success: boolean, path?: string, error?: string }>}
      */
     static async createProject(projectDetails) {
-        const { id, name, nazwa, author, autor, projectPath } = projectDetails || {}
+        const { id, name, author, projectPath } = projectDetails || {}
 
         if (!projectPath) {
             return { success: false, error: 'No project path selected.' }
@@ -56,8 +56,8 @@ class ProjectService {
                 dataPaths.push(`./${folder}/meta.json`)
             }
 
-            const projectName = name || nazwa || path.basename(projectPath)
-            const projectAuthor = author || autor || ''
+            const projectName = name || path.basename(projectPath)
+            const projectAuthor = author || ''
 
             const projectData = {
                 id: id || 'new_project',
@@ -205,7 +205,7 @@ class ProjectService {
                 }
             }
 
-            const projectName = projectData.name || projectData.nazwa || path.basename(projectDir)
+            const projectName = projectData.name || path.basename(projectDir)
             RecentProjectsService.saveRecentProject(resolvedProjectFile, projectName)
 
             return {

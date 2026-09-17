@@ -1,102 +1,75 @@
 {
-  "root": true,
-  "plugins": [
-    "@typescript-eslint",
-    "prettier",
-    "simple-import-sort"
-  ],
-  "extends": [
-    "eslint:recommended",
-    "prettier"
-  ],
-  "rules": {
-    "prettier/prettier": "error",
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error",
-    "no-console": [
-      "warn",
-      {
-        "allow": [
-          "warn",
-          "error"
+    "root": true,
+    "plugins": ["@typescript-eslint", "prettier", "simple-import-sort"],
+    "extends": ["eslint:recommended", "prettier"],
+    "rules": {
+        "prettier/prettier": "error",
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "no-console": [
+            "warn",
+            {
+                "allow": ["warn", "error"]
+            }
         ]
-      }
+    },
+    "env": {
+        "node": true,
+        "browser": true,
+        "es2020": true
+    },
+    "ignorePatterns": ["dist/", "node_modules/"],
+    "overrides": [
+        {
+            "files": ["**/*.ts"],
+            "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+                "ecmaVersion": 2020,
+                "sourceType": "module",
+                "project": "./tsconfig.json"
+            },
+            "extends": ["plugin:@typescript-eslint/recommended"],
+            "rules": {
+                "@typescript-eslint/explicit-function-return-type": "warn",
+                "@typescript-eslint/no-explicit-any": "warn",
+                "@typescript-eslint/no-unsafe-call": "off",
+                "@typescript-eslint/no-unsafe-assignment": "off",
+                "@typescript-eslint/no-unsafe-member-access": "off",
+                "@typescript-eslint/no-unused-vars": [
+                    "error",
+                    {
+                        "argsIgnorePattern": "^_"
+                    }
+                ],
+                "@typescript-eslint/naming-convention": [
+                    "warn",
+                    {
+                        "selector": "class",
+                        "format": ["PascalCase"]
+                    },
+                    {
+                        "selector": "interface",
+                        "format": ["PascalCase"],
+                        "prefix": ["I"]
+                    }
+                ]
+            }
+        },
+        {
+            "files": ["**/*.js"],
+            "parser": "espree",
+            "parserOptions": {
+                "ecmaVersion": 2020,
+                "sourceType": "commonjs"
+            }
+        },
+        {
+            "files": ["View/**/*.js"],
+            "parser": "espree",
+            "parserOptions": {
+                "ecmaVersion": 2020,
+                "sourceType": "module"
+            }
+        }
     ]
-  },
-  "env": {
-    "node": true,
-    "browser": true,
-    "es2020": true
-  },
-  "ignorePatterns": [
-    "dist/",
-    "node_modules/"
-  ],
-  "overrides": [
-    {
-      "files": [
-        "**/*.ts"
-      ],
-      "parser": "@typescript-eslint/parser",
-      "parserOptions": {
-        "ecmaVersion": 2020,
-        "sourceType": "module",
-        "project": "./tsconfig.json"
-      },
-      "extends": [
-        "plugin:@typescript-eslint/recommended"
-      ],
-      "rules": {
-        "@typescript-eslint/explicit-function-return-type": "warn",
-        "@typescript-eslint/no-explicit-any": "warn",
-        "@typescript-eslint/no-unsafe-call": "off",
-        "@typescript-eslint/no-unsafe-assignment": "off",
-        "@typescript-eslint/no-unsafe-member-access": "off",
-        "@typescript-eslint/no-unused-vars": [
-          "error",
-          {
-            "argsIgnorePattern": "^_"
-          }
-        ],
-        "@typescript-eslint/naming-convention": [
-          "warn",
-          {
-            "selector": "class",
-            "format": [
-              "PascalCase"
-            ]
-          },
-          {
-            "selector": "interface",
-            "format": [
-              "PascalCase"
-            ],
-            "prefix": [
-              "I"
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "files": [
-        "**/*.js"
-      ],
-      "parser": "espree",
-      "parserOptions": {
-        "ecmaVersion": 2020,
-        "sourceType": "commonjs"
-      }
-    },
-    {
-      "files": [
-        "View/**/*.js"
-      ],
-      "parser": "espree",
-      "parserOptions": {
-        "ecmaVersion": 2020,
-        "sourceType": "module"
-      }
-    }
-  ]
 }

@@ -4,12 +4,14 @@ import { DEFAULT_TAG_COLOR } from '../../Model/constants'
 import { Description } from '../../Model/Description'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
+import { initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('MainWindowViewModel', () => {
     let vm: MainWindowViewModel
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await initTranslationsWithLocale('pl')
         vm = new MainWindowViewModel()
     })
 
@@ -18,7 +20,7 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveLeftTab()).toBe('paragraphs')
         expect(vm.isLeftDrawerOpen()).toBe(true)
         expect(vm.isRightSidebarCollapsed()).toBe(false)
-        expect(vm.getActiveMainView()).toBe('markdown')
+        expect(vm.getActiveMainView()).toBe('graph')
     })
 
     it('zmienia aktywną zakładkę wstążki', () => {
@@ -38,11 +40,12 @@ describe('MainWindowViewModel', () => {
         expect(vm.isLeftDrawerOpen()).toBe(false)
     })
 
-    it('kliknięcie innej ikony na lewym pasku zmienia otwartą zakładkę w panelu dla wszystkich sekcji w tym tags', () => {
+    it('kliknięcie innej ikony na lewym pasku zmienia otwartą zakładkę w panelu dla wszystkich sekcji w tym tags i connections', () => {
         vm.closeLeftDrawer()
         const tabs = [
             'paragraphs',
             'scenes',
+            'connections',
             'characters',
             'locations',
             'traits',
@@ -96,12 +99,23 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveFile()).toBe('Scene 1')
     })
 
+    it('closing the last open file leaves no active file', () => {
+        vm.setActiveFile('Only File')
+        expect(vm.getOpenFiles()).toHaveLength(1)
+
+        vm.closeFile('Only File')
+        expect(vm.getOpenFiles()).toHaveLength(0)
+        expect(vm.getActiveFile()).toBeNull()
+    })
+
     it('zmienia główny widok na graf historii i z powrotem', () => {
-        vm.setActiveMainView('graph')
         expect(vm.getActiveMainView()).toBe('graph')
 
         vm.setActiveMainView('markdown')
         expect(vm.getActiveMainView()).toBe('markdown')
+
+        vm.setActiveMainView('graph')
+        expect(vm.getActiveMainView()).toBe('graph')
     })
 
     describe('Wyszukiwanie i filtrowanie paragrafów', () => {
@@ -244,6 +258,13 @@ describe('MainWindowViewModel', () => {
         })
 
         it('filtruje sekcje po wyszukiwanym haśle', () => {
+            const sc1 = vm.createScene('Prolog')
+            const sc2 = vm.createScene('Epilog')
+            expect(sc1.getId()).toMatch(/^scene_/)
+
+            vm.setSceneSearchQuery('prol')
+            expect(vm.searchAndFilterScenes([sc1, sc2])).toEqual([sc1])
+
             const p1 = vm.createCharacter('Guard')
             const p2 = vm.createCharacter('Merchant')
 
@@ -261,6 +282,518 @@ describe('MainWindowViewModel', () => {
 
             vm.setStatSearchQuery('stre')
             expect(vm.searchAndFilterStats([s1, s2])).toEqual([s1])
+        })
+
+        it('filtruje paragrafy po przypisanej scenie oraz tagu postaci', () => {
+            const charTag = vm.createTag('Wiedźma')
+            const sc = vm.createScene('Mokradła')
+            const p1 = vm.createParagraph('Bagna')
+            const p2 = vm.createParagraph('Góry')
+
+            sc.addParagraph(p1)
+            p1.addTag(charTag)
+
+            vm.setSelectedFilterScene(sc.getId())
+            expect(vm.searchAndFilterParagraphs([p1, p2], [sc])).toEqual([p1])
+
+            vm.setSelectedFilterScene(null)
+            vm.setSelectedFilterTag(charTag.getId())
+            expect(vm.searchAndFilterParagraphs([p1, p2])).toEqual([p1])
+        })
+    })
+
+    describe('Selection & History Management', () => {
+        it('obsługuje pojedyncze zaznaczenie elementu i dodawanie do historii', () => {
+            const p1 = vm.createParagraph('Intro')
+            const p2 = vm.createParagraph('Outro')
+
+            const item1 = vm.selectElement(p1, 'paragraph')
+            expect(vm.getSelectedItem()).toEqual(item1)
+            expect(vm.getHistory()).toHaveLength(1)
+            expect(vm.getHistory()[0].id).toBe(p1.getId())
+            expect(vm.isRightSidebarCollapsed()).toBe(false)
+
+            const item2 = vm.selectElement(p2, 'paragraph')
+            expect(vm.getSelectedItem()).toEqual(item2)
+            expect(vm.getSelectedItem()?.id).toBe(p2.getId())
+            expect(vm.getHistory()).toHaveLength(2)
+            expect(vm.getHistory()[0].id).toBe(p2.getId())
+
+            // Ponowne zaznaczenie pierwszego przenosi go na początek historii bez duplikatów
+            vm.selectElement(p1, 'paragraph')
+            expect(vm.getHistory()).toHaveLength(2)
+            expect(vm.getHistory()[0].id).toBe(p1.getId())
+        })
+
+        it('umożliwia wybór z historii oraz zamykanie elementów pojedynczo i hurtowo', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+
+            vm.selectElement(p1, 'paragraph')
+            vm.selectElement(p2, 'paragraph')
+            vm.selectElement(p3, 'paragraph')
+            expect(vm.getHistory()).toHaveLength(3)
+
+            vm.selectHistoryItem(p1.getId())
+            expect(vm.getSelectedItem()?.id).toBe(p1.getId())
+
+            // Zamknięcie aktywnego elementu przełącza zaznaczenie na kolejny w historii
+            vm.closeHistoryItem(p1.getId())
+            expect(vm.getHistory()).toHaveLength(2)
+            expect(vm.getSelectedItem()?.id).toBe(p3.getId())
+
+            // Zamknij wszystko
+            vm.closeAllHistory()
+            expect(vm.getHistory()).toEqual([])
+            expect(vm.getSelectedItem()).toBeNull()
+        })
+    })
+
+    describe('Paragraph Numbering & Random Generation', () => {
+        it('nie losuje numeru automatycznie podczas zaznaczenia (pozostaje do fazy eksportu)', () => {
+            const p = vm.createParagraph('Combat')
+            expect(p.getRandomizedNumber()).toBe(0)
+
+            vm.selectElement(p, 'paragraph')
+            // Podczas edycji w UI numer nie jest losowany
+            expect(p.getRandomizedNumber()).toBe(0)
+
+            // Losowanie następuje dopiero przy wywołaniu randomizeNumber (np. faza eksportu)
+            const rolled = p.randomizeNumber(1, 999999)
+            expect(rolled).toBeGreaterThan(0)
+            expect(rolled).toBeLessThanOrEqual(999999)
+            expect(p.getRandomizedNumber()).toBe(rolled)
+        })
+
+        it('umożliwia zablokowanie i wpisanie własnego statycznego numeru', () => {
+            const p = vm.createParagraph('Secret Room')
+            vm.selectElement(p, 'paragraph')
+
+            expect(p.getIsNumberLocked()).toBe(false)
+            vm.toggleNumberLock(true)
+            expect(p.getIsNumberLocked()).toBe(true)
+
+            vm.updateCustomNumber(99)
+            expect(p.getNumber()).toBe(99)
+        })
+
+        it('wykrywa kolizję gdy inny paragraf ma już ten sam numer', () => {
+            const p1 = vm.createParagraph('P1')
+            p1.setNumber(5)
+            const p2 = vm.createParagraph('P2')
+            p2.setNumber(10)
+
+            const collisionRes = vm.validateParagraphNumber(5, p2.getId(), [p1, p2])
+            expect(collisionRes.valid).toBe(false)
+            expect(collisionRes.message).toBe('Ten numer jest już zajęty, wybierz inny')
+
+            const sameParagraphRes = vm.validateParagraphNumber(5, p1.getId(), [p1, p2])
+            expect(sameParagraphRes.valid).toBe(true)
+
+            const uniqueRes = vm.validateParagraphNumber(42, p2.getId(), [p1, p2])
+            expect(uniqueRes.valid).toBe(true)
+
+            const zeroRes = vm.validateParagraphNumber(0, p2.getId(), [p1, p2])
+            expect(zeroRes.valid).toBe(true)
+        })
+
+        it('zwraca przetłumaczony komunikat o kolizji zależnie od aktywnego języka', () => {
+            const p1 = vm.createParagraph('P1')
+            p1.setNumber(7)
+            const p2 = vm.createParagraph('P2')
+
+            setLanguage('pl')
+            expect(vm.validateParagraphNumber(7, p2.getId(), [p1]).message).toBe(
+                'Ten numer jest już zajęty, wybierz inny'
+            )
+
+            setLanguage('en')
+            expect(vm.validateParagraphNumber(7, p2.getId(), [p1]).message).toBe(
+                'This number is already taken, please choose another'
+            )
+
+            setLanguage('de')
+            expect(vm.validateParagraphNumber(7, p2.getId(), [p1]).message).toBe(
+                'Diese Nummer ist bereits vergeben, bitte wählen Sie eine andere'
+            )
+        })
+    })
+
+    describe('Live Name Validation & Scope Collision Checking', () => {
+        it('blokuje puste nazwy oraz wykrywa kolizję w zakresie sekcji', () => {
+            const p1 = vm.createParagraph('Unique Name')
+            const p2 = vm.createParagraph('Existing Name')
+            const item = vm.selectElement(p1, 'paragraph')
+
+            const emptyRes = vm.validateName('   ', item, [p1, p2])
+            expect(emptyRes.valid).toBe(false)
+
+            const collisionRes = vm.validateName('existing name', item, [p1, p2])
+            expect(collisionRes.valid).toBe(false)
+            expect(collisionRes.message).toContain('already exists')
+
+            const validRes = vm.validateName('Brand New Name', item, [p1, p2])
+            expect(validRes.valid).toBe(true)
+        })
+
+        it('aktualizuje nazwę encji i wpisu w historii gdy walidacja przejdzie pomyślnie', () => {
+            const p1 = vm.createParagraph('Old Title')
+            vm.selectElement(p1, 'paragraph')
+
+            const updated = vm.updateName('New Super Title', [p1])
+            expect(updated).toBe(true)
+            expect(p1.getTitle()).toBe('New Super Title')
+            expect(vm.getSelectedItem()?.name).toBe('New Super Title')
+            expect(vm.getHistory()[0].name).toBe('New Super Title')
+        })
+    })
+
+    describe('Color Management & Validation', () => {
+        it('waliduje poprawne i niepoprawne formaty HEX koloru', () => {
+            expect(vm.validateColor('#3b82f6').valid).toBe(true)
+            expect(vm.validateColor('#FFF').valid).toBe(true)
+            expect(vm.validateColor('10b981').valid).toBe(true)
+            expect(vm.validateColor('#10b98122').valid).toBe(false)
+            expect(vm.validateColor('invalid-color').valid).toBe(false)
+            expect(vm.validateColor('').valid).toBe(false)
+        })
+
+        it('aktualizuje kolor dla wybranej sceny', () => {
+            const scene = vm.createScene('Testowa Scena')
+            expect(scene.getColor()).toBe('#3b82f6')
+
+            vm.selectElement(scene, 'scene')
+            const updated = vm.updateColor('#ef4444')
+            expect(updated).toBe(true)
+            expect(scene.getColor()).toBe('#ef4444')
+        })
+
+        it('aktualizuje kolor dla wybranego tagu', () => {
+            const tag = vm.createTag('Ważny')
+            vm.selectElement(tag, 'tag')
+            const updated = vm.updateColor('#8b5cf6')
+            expect(updated).toBe(true)
+            expect(tag.getColor()).toBe('#8b5cf6')
+        })
+
+        it('zwraca false gdy brak zaznaczenia lub encja nie obsługuje setColor', () => {
+            expect(vm.updateColor('#3b82f6')).toBe(false)
+
+            const p = vm.createParagraph('Paragraf')
+            vm.selectElement(p, 'paragraph')
+            expect(vm.updateColor('#3b82f6')).toBe(false)
+        })
+    })
+
+    describe('Summary & Narrative Files', () => {
+        it('aktualizuje streszczenie wybranego elementu', () => {
+            const p = vm.createParagraph('Story')
+            vm.selectElement(p, 'paragraph')
+
+            vm.updateSummary('Krótkie streszczenie wątku')
+            expect(p.getContent().getSummary()).toBe('Krótkie streszczenie wątku')
+        })
+
+        it('przygotowuje i otwiera pliki narracyjne text.md oraz author.md', () => {
+            const p = vm.createParagraph('Intro')
+            vm.selectElement(p, 'paragraph')
+
+            const textFile = vm.openOrCreateDescriptionFile('text')
+            expect(textFile.fileName).toBe('Intro_text.md')
+            expect(textFile.content).toContain('Narrative text')
+            expect(vm.getActiveFile()).toBe('Intro_text.md')
+
+            const authorFile = vm.openOrCreateDescriptionFile('author')
+            expect(authorFile.fileName).toBe('Intro_author.md')
+            expect(authorFile.content).toContain('Author Notes')
+            expect(vm.getActiveFile()).toBe('Intro_author.md')
+        })
+    })
+
+    describe('Dynamic Tags & Stats Modification', () => {
+        it('dodaje i usuwa tagi dla zaznaczonego elementu', () => {
+            const p = vm.createParagraph('Tagged Paragraph')
+            const tag = vm.createTag('SpecialTag')
+            vm.selectElement(p, 'paragraph')
+
+            vm.addTagToSelected(tag)
+            expect(p.getTags()).toHaveLength(1)
+            expect(p.getTags()[0].getName()).toBe('SpecialTag')
+
+            vm.removeTagFromSelected(tag.getId())
+            expect(p.getTags()).toHaveLength(0)
+        })
+
+        it('dodaje i usuwa statystyki/cechy dla postaci', () => {
+            const c = vm.createCharacter('Hero')
+            const stat = vm.createStat('Mana')
+            vm.selectElement(c, 'character')
+
+            vm.addStatToSelected(stat)
+            expect(c.getStats()).toHaveLength(1)
+            expect(c.getStats()[0].getName()).toBe('Mana')
+
+            vm.removeStatFromSelected(stat.getId())
+            expect(c.getStats()).toHaveLength(0)
+        })
+
+        it('dodaje i usuwa postacie dla zaznaczonego paragrafu i sceny', () => {
+            const p = vm.createParagraph('Tavern Scene')
+            const c1 = vm.createCharacter('Barkeep')
+            const c2 = vm.createCharacter('Patron')
+            vm.selectElement(p, 'paragraph')
+
+            vm.addCharacterToSelected(c1)
+            vm.addCharacterToSelected(c2)
+            expect(p.getCharacters()).toHaveLength(2)
+            expect(p.getCharacters()[0].getName()).toBe('Barkeep')
+
+            vm.removeCharacterFromSelected(c1.getId())
+            expect(p.getCharacters()).toHaveLength(1)
+            expect(p.getCharacters()[0].getName()).toBe('Patron')
+
+            const scene = vm.createScene('Town Square')
+            vm.selectElement(scene, 'scene')
+            vm.addCharacterToSelected(c1)
+            expect(scene.getCharacters()).toHaveLength(1)
+            vm.removeCharacterFromSelected(c1.getId())
+            expect(scene.getCharacters()).toHaveLength(0)
+        })
+
+        it('dodaje, ustawia i usuwa lokacje dla zaznaczonego paragrafu i sceny (obsługa wielu lokacji)', () => {
+            const p = vm.createParagraph('Forest Path')
+            const loc1 = vm.createLocation('Deep Woods')
+            const loc2 = vm.createLocation('Old Ruins')
+            vm.selectElement(p, 'paragraph')
+
+            vm.addLocationToSelected(loc1)
+            vm.addLocationToSelected(loc2)
+            expect(p.getLocations()).toHaveLength(2)
+            expect(p.getLocation()?.getName()).toBe('Deep Woods')
+
+            vm.removeLocationFromSelected(loc1.getId())
+            expect(p.getLocations()).toHaveLength(1)
+            expect(p.getLocations()[0].getName()).toBe('Old Ruins')
+
+            vm.removeLocationFromSelected()
+            expect(p.getLocations()).toEqual([])
+            expect(p.getLocation()).toBeNull()
+
+            const scene = vm.createScene('Prologue')
+            vm.selectElement(scene, 'scene')
+            vm.addLocationToSelected(loc1)
+            vm.addLocationToSelected(loc2)
+            expect(scene.getLocations()).toHaveLength(2)
+
+            vm.removeLocationFromSelected(loc2.getId())
+            expect(scene.getLocations()).toHaveLength(1)
+            expect(scene.getLocation()?.getName()).toBe('Deep Woods')
+
+            vm.setLocationToSelected(null)
+            expect(scene.getLocations()).toEqual([])
+            expect(scene.getLocation()).toBeNull()
+        })
+    })
+
+    describe('Connection / Choice Management', () => {
+        it('tworzy nowe połączenie z automatycznym przypisaniem fromParagraph i toParagraph', () => {
+            const p1 = vm.createParagraph('Start')
+            const p2 = vm.createParagraph('Cel')
+
+            const choice = vm.createChoice(p1, p2, 'Idź do celu', 'Domyślny skok', 'Wymagany klucz')
+            expect(choice.getId()).toBeDefined()
+            expect(choice.getName()).toBe('Idź do celu')
+            expect(choice.getFromParagraphId()).toBe(p1.getId())
+            expect(choice.getToParagraphId()).toBe(p2.getId())
+            expect(choice.getCondition()?.getSummary()).toBe('Wymagany klucz')
+            expect(p1.getChoices()).toContain(choice)
+        })
+
+        it('pobiera wszystkie wybory ze wszystkich paragrafów projektu', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+
+            const c1 = vm.createChoice(p1, p2, 'Skok 1')
+            const c2 = vm.createChoice(p1, p3, 'Skok 2')
+            const c3 = vm.createChoice(p2, p3, 'Skok 3')
+
+            const all = vm.getAllChoices([p1, p2, p3])
+            expect(all).toHaveLength(3)
+            expect(all).toContain(c1)
+            expect(all).toContain(c2)
+            expect(all).toContain(c3)
+        })
+
+        it('usuwa połączenie ze źródłowego paragrafu oraz zamyka z historii jeśli było wybrane', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const choice = vm.createChoice(p1, p2, 'Skok do usunięcia')
+
+            vm.selectElement(choice, 'choice')
+            expect(vm.getSelectedItem()?.id).toBe(choice.getId())
+
+            const deleted = vm.deleteChoice(choice.getId(), [p1, p2])
+            expect(deleted).toBe(true)
+            expect(p1.getChoices()).not.toContain(choice)
+            expect(vm.getSelectedItem()?.id).not.toBe(choice.getId())
+        })
+
+        it('deleteChoice returns false for a non-existent choice ID', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+
+            const result = vm.deleteChoice('non-existent-id', [p1, p2])
+            expect(result).toBe(false)
+        })
+
+        it('odwraca kierunek połączenia przenosząc wybór do docelowego węzła', () => {
+            const p1 = vm.createParagraph('Źródło')
+            const p2 = vm.createParagraph('Cel')
+            const choice = vm.createChoice(p1, p2, 'Droga powrotna')
+
+            expect(p1.getChoices()).toContain(choice)
+            expect(p2.getChoices()).not.toContain(choice)
+
+            const reversed = vm.reverseChoice(choice, [p1, p2])
+            expect(reversed).toBe(true)
+            expect(choice.getFromParagraphId()).toBe(p2.getId())
+            expect(choice.getToParagraphId()).toBe(p1.getId())
+            expect(p1.getChoices()).not.toContain(choice)
+            expect(p2.getChoices()).toContain(choice)
+        })
+
+        it('aktualizuje nazwę i warunek przeskoku', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const choice = vm.createChoice(p1, p2, 'Stara nazwa')
+
+            vm.selectElement(choice, 'choice')
+            vm.updateChoiceDetails(choice, 'Nowa nazwa', 'Nowy warunek pisemny')
+
+            expect(choice.getName()).toBe('Nowa nazwa')
+            expect(choice.getCondition()?.getSummary()).toBe('Nowy warunek pisemny')
+            expect(vm.getSelectedItem()?.name).toBe('Nowa nazwa')
+
+            // Usunięcie warunku poprzez pusty string
+            vm.updateChoiceDetails(choice, 'Nowa nazwa', '   ')
+            expect(choice.getCondition()).toBeNull()
+        })
+
+        it('filtruje i wyszukuje przeskoki po nazwie, warunku oraz tytułach węzłów', () => {
+            const p1 = vm.createParagraph('Karczma')
+            const p2 = vm.createParagraph('Las')
+            const p3 = vm.createParagraph('Jaskinia')
+
+            const c1 = vm.createChoice(p1, p2, 'Wyjdź na trakt', 'Skok', 'Pochodnia')
+            const c2 = vm.createChoice(p2, p3, 'Zejdź w głąb', 'Skok', 'Lina')
+
+            const choices = [c1, c2]
+            const paragraphs = [p1, p2, p3]
+
+            // Szukanie po nazwie wyboru
+            vm.setConnectionSearchQuery('trakt')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c1])
+
+            // Szukanie po warunku
+            vm.setConnectionSearchQuery('lina')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c2])
+
+            // Szukanie po tytule węzła źródłowego
+            vm.setConnectionSearchQuery('karczma')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c1])
+
+            // Szukanie po tytule węzła docelowego
+            vm.setConnectionSearchQuery('jaskinia')
+            expect(vm.searchAndFilterChoices(choices, paragraphs)).toEqual([c2])
+        })
+
+        it('zwraca wszystkie wychodzące przeskoki dla danego paragrafu za pomocą getOutgoingChoices', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+
+            expect(vm.getOutgoingChoices(p1)).toEqual([])
+
+            const c1 = vm.createChoice(p1, p2, 'Wyjście 1')
+            const c2 = vm.createChoice(p1, p3, 'Wyjście 2')
+
+            const exits = vm.getOutgoingChoices(p1)
+            expect(exits).toHaveLength(2)
+            expect(exits).toEqual([c1, c2])
+        })
+
+        it('zmienia cel przeskoku za pomocą updateChoiceTarget', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+            const choice = vm.createChoice(p1, p2, 'Skok')
+
+            expect(choice.getToParagraphId()).toBe(p2.getId())
+
+            const updated = vm.updateChoiceTarget(choice, p3.getId())
+            expect(updated).toBe(true)
+            expect(choice.getToParagraphId()).toBe(p3.getId())
+
+            // Walidacja pustego ID
+            const invalid = vm.updateChoiceTarget(choice, '   ')
+            expect(invalid).toBe(false)
+        })
+
+        it('aktualizuje nazwę, cel i warunek przeskoku za pomocą updateChoice', () => {
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const p3 = vm.createParagraph('P3')
+            const choice = vm.createChoice(p1, p2, 'Stara nazwa')
+
+            const updated = vm.updateChoice(choice, 'Nowa nazwa', p3.getId(), 'Wymóg testowy')
+            expect(updated).toBe(true)
+            expect(choice.getName()).toBe('Nowa nazwa')
+            expect(choice.getToParagraphId()).toBe(p3.getId())
+            expect(choice.getCondition()?.getSummary()).toBe('Wymóg testowy')
+
+            // Nie pozwala na pustą nazwę
+            const failed = vm.updateChoice(choice, '  ', p2.getId(), 'Warunek')
+            expect(failed).toBe(false)
+        })
+
+        it('zarządza stylem linii połączeń', () => {
+            expect(vm.getConnectionLineStyle()).toBe('curved')
+
+            vm.setConnectionLineStyle('curved')
+            expect(vm.getConnectionLineStyle()).toBe('curved')
+        })
+    })
+
+    describe('Panel Resizing Bounds', () => {
+        it('pilnuje minimalnych i maksymalnych wymiarów lewego i prawego panelu', () => {
+            expect(vm.getLeftDrawerWidth()).toBe(260)
+            vm.setLeftDrawerWidth(100) // Za mało
+            expect(vm.getLeftDrawerWidth()).toBe(180)
+
+            vm.setLeftDrawerWidth(900) // Za dużo
+            expect(vm.getLeftDrawerWidth()).toBe(600)
+
+            expect(vm.getRightSidebarWidth()).toBe(280)
+            vm.setRightSidebarWidth(100) // Za mało
+            expect(vm.getRightSidebarWidth()).toBe(220)
+
+            vm.setRightSidebarWidth(1000) // Za dużo
+            expect(vm.getRightSidebarWidth()).toBe(700)
+        })
+
+        it('zarządza czułością przybliżania kółkiem myszy (zoom sensitivity)', () => {
+            expect(vm.getZoomSensitivity()).toBe(0.2)
+            vm.setZoomSensitivity(0.35)
+            expect(vm.getZoomSensitivity()).toBe(0.35)
+
+            // Clamping
+            vm.setZoomSensitivity(-0.5)
+            expect(vm.getZoomSensitivity()).toBe(0.01)
+
+            vm.setZoomSensitivity(2.5)
+            expect(vm.getZoomSensitivity()).toBe(1.0)
         })
     })
 })

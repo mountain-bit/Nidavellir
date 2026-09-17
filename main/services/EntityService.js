@@ -52,7 +52,7 @@ class EntityService {
         if (fs.existsSync(metaPath)) {
             try {
                 metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
-                if (!Array.isArray(metaData.elements) && !Array.isArray(metaData.elementy)) {
+                if (!Array.isArray(metaData.elements)) {
                     metaData.elements = []
                 }
             } catch (err) {
@@ -64,9 +64,7 @@ class EntityService {
             folderName ||
             entityData?.id ||
             entityData?.name ||
-            entityData?.nazwa ||
             entityData?.title ||
-            entityData?.tytul ||
             `new_${category.toLowerCase()}`
 
         const rawSlug = slugifyEntityName(String(nameSource))
@@ -94,13 +92,11 @@ class EntityService {
                 const existingDesc =
                     typeof entityData?.description === 'object' && entityData.description !== null
                         ? entityData.description
-                        : typeof entityData?.opis === 'object' && entityData.opis !== null
-                          ? entityData.opis
-                          : {}
+                        : {}
 
-                const text = existingDesc.text || existingDesc.tekst || ''
-                const summary = existingDesc.summary || existingDesc.streszczenie || ''
-                const authorNotes = existingDesc.authorNotes || existingDesc.tekstDlaAutora || ''
+                const text = existingDesc.text || ''
+                const summary = existingDesc.summary || ''
+                const authorNotes = existingDesc.authorNotes || ''
 
                 entityData.description = {
                     text,
@@ -114,19 +110,12 @@ class EntityService {
             atomicWriteJsonSync(elementJsonPath, entityData)
 
             const relativeElementPath = `./${entityFolderSlug}/element.json`
-            const elementsArray = Array.isArray(metaData.elements)
-                ? metaData.elements
-                : Array.isArray(metaData.elementy)
-                  ? metaData.elementy
-                  : (metaData.elements = [])
+            if (!Array.isArray(metaData.elements)) {
+                metaData.elements = []
+            }
 
-            if (!elementsArray.includes(relativeElementPath)) {
-                elementsArray.push(relativeElementPath)
-                if (metaData.elements === undefined && metaData.elementy !== undefined) {
-                    metaData.elementy = elementsArray
-                } else {
-                    metaData.elements = elementsArray
-                }
+            if (!metaData.elements.includes(relativeElementPath)) {
+                metaData.elements.push(relativeElementPath)
                 atomicWriteJsonSync(metaPath, metaData)
             }
 

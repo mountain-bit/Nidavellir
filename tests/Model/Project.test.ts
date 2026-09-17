@@ -10,25 +10,16 @@ describe('Project', () => {
         project = new Project('test-id', 'My Project', 'Author', '1.0.0')
     })
 
-    it('powinien mieć poprawne ID po inicjalizacji', () => {
+    it('initializes with correct id, name, author and version', () => {
         expect(project.getId()).toBe('test-id')
-    })
-
-    it('powinien mieć poprawną nazwę', () => {
         expect(project.getName()).toBe('My Project')
-    })
-
-    it('powinien mieć poprawnego autora', () => {
         expect(project.getAuthor()).toBe('Author')
+        expect(project.getVersion()).toBe('1.0.0')
     })
 
-    it('hasId powinno zwracać true gdy ID jest ustawione', () => {
+    it('hasId returns true when ID is set and false for an empty ID', () => {
         expect(project.hasId()).toBe(true)
-    })
-
-    it('hasId powinno zwracać false dla pustego ID', () => {
-        const emptyProject = new Project()
-        expect(emptyProject.hasId()).toBe(false)
+        expect(new Project().hasId()).toBe(false)
     })
 
     it('powinien dodawać scenę', () => {

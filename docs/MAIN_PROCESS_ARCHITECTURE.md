@@ -1,6 +1,6 @@
 # Main Process Architecture & Modularization Guide
 
-This document describes the modular architecture of the **Electron Main Process** in the Gamebook Engine (*Silnik Gier Paragrafowych*).
+This document describes the modular architecture of the **Electron Main Process** in the Gamebook Engine (_Silnik Gier Paragrafowych_).
 
 ---
 
@@ -27,7 +27,7 @@ graph TD
     subgraph MainProcess["Main Process (Node.js / Electron Backend)"]
         Main["main.js (Lifecycle & Bootstrap)"]
         WindowManager["main/windowManager.js (BrowserWindow)"]
-        
+
         subgraph IPCLayer["IPC Routers (main/ipc/)"]
             IPCIndex["index.js (registerAllIpc)"]
             ProjectIPC["projectIpc.js"]
@@ -113,18 +113,22 @@ graph TD
 ## 3. Module Responsibilities
 
 ### 3.1. Application Entry (`main.js`)
+
 - Initializes global application lifecycle hooks (`whenReady`, `activate`, `window-all-closed`).
 - Initializes internationalization backend (`initI18n()`).
 - Calls `registerAllIpc()` to register all IPC channels before window instantiation.
 - Calls `createMainWindow()` to show the primary UI window.
 
 ### 3.2. Window Manager (`main/windowManager.js`)
+
 - Configures `BrowserWindow` options (bounds, minimum resolution, window frame, background color, dark theme defaults).
 - Attaches the secure preload script (`preload.js`) with `contextIsolation: true` and `nodeIntegration: false`.
 - Maximizes and displays `View/MainWindow.html`.
 
 ### 3.3. IPC Layer (`main/ipc/`)
+
 Translates incoming `ipcRenderer.invoke(channel, payload)` calls from the renderer into service invocations:
+
 - **`projectIpc.js`**: Integrates Electron `dialog.showOpenDialog` for directory selection and delegates project creation/loading to `ProjectService`.
 - **`entityIpc.js`**: Bridges entity creation and updates to `EntityService`.
 - **`markdownIpc.js`**: Bridges narrative `.md` file reading and writing to `MarkdownService`.
@@ -133,21 +137,25 @@ Translates incoming `ipcRenderer.invoke(channel, payload)` calls from the render
 - **`index.js`**: Single entry point `registerAllIpc()` to maintain clean registration without scattering IPC hooks.
 
 ### 3.4. Services Layer (`main/services/`)
+
 Pure Node.js business logic that operates independently of Electron IPC objects:
+
 - **`ProjectService`**:
-  - `createProject(projectDetails)`: Generates directory hierarchy (`NPC`, `Paragrafy`, `Przedmioty`, `Lokacje`, `Templates`, `KlasyPostaci`, `Zasady`, `PostacGracza`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
-  - `openProject(targetPath)`: Validates path safety, parses `project.json`, reads all related `meta.json` records, parses each `element.json`, and returns structured entity data.
+    - `createProject(projectDetails)`: Generates directory hierarchy (`NPC`, `Paragrafy`, `Przedmioty`, `Lokacje`, `Templates`, `KlasyPostaci`, `Zasady`, `PostacGracza`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
+    - `openProject(targetPath)`: Validates path safety, parses `project.json`, reads all related `meta.json` records, parses each `element.json`, and returns structured entity data.
 - **`EntityService`**:
-  - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json`, creates markdown references, and updates the category `meta.json` elements list atomically.
-  - `saveEntity(payload)`: Atomically updates an existing `element.json` file.
+    - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json`, creates markdown references, and updates the category `meta.json` elements list atomically.
+    - `saveEntity(payload)`: Atomically updates an existing `element.json` file.
 - **`MarkdownService`**:
-  - `readMarkdownFile(payload)`: Reads `.md` narrative text files within project boundaries; returns virtual empty state when file does not exist yet.
-  - `saveMarkdownFile(payload)`: Atomically writes markdown files, creating parent directories on demand.
+    - `readMarkdownFile(payload)`: Reads `.md` narrative text files within project boundaries; returns virtual empty state when file does not exist yet.
+    - `saveMarkdownFile(payload)`: Atomically writes markdown files, creating parent directories on demand.
 - **`RecentProjectsService`**:
-  - Manages reading, writing, and deduplicating the list of recently opened projects inside Electron's `userData` folder.
+    - Manages reading, writing, and deduplicating the list of recently opened projects inside Electron's `userData` folder.
 
 ### 3.5. Security & Utility Layer (`Utils/fsSecurity.js`)
+
 Centralized path validation and transactional write operations:
+
 - `resolveProjectDir(projectPath)`: Resolves project root directory whether given a file (`project.json`) or folder path.
 - `isPathInsideBase(basePath, targetPath)`: Canonical directory traversal protection. Verifies that the resolved target path begins with the resolved base directory path.
 - `validateProjectData(data)`: Validates `project.json` schema integrity.
@@ -159,6 +167,7 @@ Centralized path validation and transactional write operations:
 ## 4. Security Model & Data Integrity
 
 ### Path Traversal Defense
+
 In desktop applications, renderer inputs must never be trusted blindly. All file operations in `ProjectService`, `EntityService`, and `MarkdownService` validate target paths against the project root using:
 
 ```javascript
@@ -170,6 +179,7 @@ if (!isPathInsideBase(projectDir, targetPath)) {
 This prevents malicious inputs like `../../../../Windows/System32` or attempts to escape the project root directory.
 
 ### Atomic File Writes
+
 To prevent file corruption during sudden power failures, crashes, or process terminations, all JSON and Markdown modifications are written to a temporary sibling file (`*.tmp`) before performing an atomic replace (`fs.renameSync`):
 
 ```
@@ -190,7 +200,7 @@ describe('ProjectService', () => {
     it('creates project directory hierarchy and meta.json files', async () => {
         const result = await ProjectService.createProject({
             name: 'Test Gamebook',
-            projectPath: tempDir
+            projectPath: tempDir,
         })
         expect(result.success).toBe(true)
     })
@@ -205,33 +215,36 @@ To add a new capability (e.g. `export-gamebook`):
 
 1. **Implement Domain Logic in Service**:
    Create or edit a service in `main/services/` (e.g., `ExportService.js`):
-   ```javascript
-   class ExportService {
-       static async exportToHtml(projectPath, outputPath) {
-           // ... business logic ...
-           return { success: true }
-       }
-   }
-   module.exports = ExportService
-   ```
+
+    ```javascript
+    class ExportService {
+        static async exportToHtml(projectPath, outputPath) {
+            // ... business logic ...
+            return { success: true }
+        }
+    }
+    module.exports = ExportService
+    ```
 
 2. **Register IPC Handler**:
    In `main/ipc/projectIpc.js` (or a dedicated `exportIpc.js`):
-   ```javascript
-   ipcMain.handle('export-gamebook', async (_event, payload) => {
-       return await ExportService.exportToHtml(payload.projectPath, payload.outputPath)
-   })
-   ```
+
+    ```javascript
+    ipcMain.handle('export-gamebook', async (_event, payload) => {
+        return await ExportService.exportToHtml(payload.projectPath, payload.outputPath)
+    })
+    ```
 
 3. **Expose in Preload Bridge**:
    In `preload.js`:
-   ```javascript
-   contextBridge.exposeInMainWorld('electronAPI', {
-       // ...
-       exportGamebook: (projectPath, outputPath) =>
-           ipcRenderer.invoke('export-gamebook', { projectPath, outputPath }),
-   })
-   ```
+
+    ```javascript
+    contextBridge.exposeInMainWorld('electronAPI', {
+        // ...
+        exportGamebook: (projectPath, outputPath) =>
+            ipcRenderer.invoke('export-gamebook', { projectPath, outputPath }),
+    })
+    ```
 
 4. **Update TypeScript Definitions**:
    In `types/global.d.ts`, add the typed method to `Window['electronAPI']`.

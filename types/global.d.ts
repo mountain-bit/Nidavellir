@@ -26,8 +26,6 @@ declare global {
                 id: string
                 name?: string
                 author?: string
-                nazwa?: string
-                autor?: string
                 projectPath: string
             }) => Promise<{ success: boolean; path?: string; error?: string }>
             openProject: (path?: string) => Promise<OpenProjectResult>

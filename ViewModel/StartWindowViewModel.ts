@@ -24,7 +24,7 @@ export class StartWindowViewModel {
     private btnCloseNewProjectModal: HTMLElement | null
     private btnSubmitNewProject: HTMLButtonElement | null
     private btnBrowseFolder: HTMLElement | null
-    private npNazwaInput: HTMLInputElement | null
+    private npNameInput: HTMLInputElement | null
     private npFolderDisplay: HTMLElement | null
     private selectedProjectPath: string | null = null
 
@@ -46,7 +46,7 @@ export class StartWindowViewModel {
             'btn-submit-new-project'
         ) as HTMLButtonElement
         this.btnBrowseFolder = document.getElementById('btn-browse-folder')
-        this.npNazwaInput = document.getElementById('np-nazwa') as HTMLInputElement
+        this.npNameInput = document.getElementById('np-name') as HTMLInputElement
         this.npFolderDisplay = document.getElementById('np-folder-display')
 
         this.init()
@@ -97,9 +97,9 @@ export class StartWindowViewModel {
         this.btnCreateProject?.addEventListener('click', () => {
             if (this.newProjectModal) {
                 this.newProjectModal.classList.remove('hidden')
-                if (this.npNazwaInput) {
-                    this.npNazwaInput.value = ''
-                    this.npNazwaInput.focus()
+                if (this.npNameInput) {
+                    this.npNameInput.value = ''
+                    this.npNameInput.focus()
                 }
                 this.selectedProjectPath = null
                 if (this.npFolderDisplay) {
@@ -119,6 +119,22 @@ export class StartWindowViewModel {
             this.newProjectModal?.classList.add('hidden')
         })
 
+        this.newProjectModal?.addEventListener('click', e => {
+            if (e.target === this.newProjectModal) {
+                this.newProjectModal?.classList.add('hidden')
+            }
+        })
+
+        this.npNameInput?.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (
+                e.key === 'Enter' &&
+                this.btnSubmitNewProject &&
+                !this.btnSubmitNewProject.disabled
+            ) {
+                this.btnSubmitNewProject.click()
+            }
+        })
+
         this.btnBrowseFolder?.addEventListener('click', async () => {
             const result = await window.electronAPI.chooseFolder()
             if (!result?.canceled && result?.path) {
@@ -132,23 +148,25 @@ export class StartWindowViewModel {
             }
         })
 
-        this.npNazwaInput?.addEventListener('keydown', (e: KeyboardEvent) => {
+        this.btnSubmitNewProject?.addEventListener('keydown', e => {
             if (
-                e.key === 'Enter' &&
-                this.btnSubmitNewProject &&
-                !this.btnSubmitNewProject.disabled
+                e.key === ' ' ||
+                e.key === 'Spacebar' ||
+                e.key === 'Enter' ||
+                e.keyCode === 32 ||
+                e.keyCode === 13
             ) {
-                this.btnSubmitNewProject.click()
+                this.btnSubmitNewProject?.click()
             }
         })
 
         this.btnSubmitNewProject?.addEventListener('click', async () => {
-            const nazwa = this.npNazwaInput?.value.trim() || ''
-            let autor = ''
+            const name = this.npNameInput?.value.trim() || ''
+            let author = ''
             try {
-                autor = (await window.electronAPI.getSystemUsername()) || ''
+                author = (await window.electronAPI.getSystemUsername()) || ''
             } catch {
-                autor = ''
+                author = ''
             }
             const projectPath = this.selectedProjectPath
 
@@ -157,20 +175,18 @@ export class StartWindowViewModel {
                 return
             }
 
-            const id = nazwa
-                ? nazwa
+            const id = name
+                ? name
                       .toLowerCase()
                       .replace(/\s+/g, '_')
                       .replace(/[^a-z0-9_]/g, '')
-                : 'nowy_projekt'
+                : 'new_project'
 
             try {
                 const result = await window.electronAPI.createProject({
                     id,
-                    name: nazwa,
-                    author: autor,
-                    nazwa,
-                    autor,
+                    name,
+                    author,
                     projectPath,
                 })
                 if (result?.success) {

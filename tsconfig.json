@@ -1,32 +1,29 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "bundler"
-  },
-  "include": [
-    "Model/**/*.ts",
-    "ViewModel/**/*.ts",
-    "Services/**/*.ts",
-    "Utils/**/*.ts",
-    "Modules/**/*.ts",
-    "tests/**/*.ts",
-    "types/**/*.d.ts",
-    "vitest.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "ES2020",
+        "lib": ["ES2020", "DOM"],
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "outDir": "./dist",
+        "rootDir": "./",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "bundler"
+    },
+    "include": [
+        "Model/**/*.ts",
+        "ViewModel/**/*.ts",
+        "Services/**/*.ts",
+        "Utils/**/*.ts",
+        "Modules/**/*.ts",
+        "tests/**/*.ts",
+        "types/**/*.d.ts",
+        "vitest.config.ts"
+    ],
+    "exclude": ["node_modules", "dist"]
 }
