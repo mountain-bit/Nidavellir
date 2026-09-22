@@ -55,3 +55,103 @@ declare module '*/View/projectData.js' {
         USE_MOCK,
     } from '*/View/mockData.js'
 }
+
+declare module '*/View/ui/npcModal.js' {
+    import type { NPC } from '../Model/NPC'
+
+    export function openNpcModal(): void
+    export function closeNpcModal(): void
+    export function setupNpcModal(ctx?: unknown): Record<string, unknown>
+    export function updateSelectedAvatarPreview(avatarId: string): void
+    export function toggleDescriptionDrawer(forceState?: boolean): void
+    export function getSelectedAvatarId(): string
+    export function setSelectedAvatarId(id: string): void
+    export function getNpcName(): string
+    export function setNpcName(name: string): void
+    export function getNpcSummary(): string
+    export function setNpcSummary(summary: string): void
+    export function addCustomAttribute(
+        name?: string,
+        value?: string,
+        shouldFocusValue?: boolean
+    ): string
+    export function removeCustomAttribute(id: string): void
+    export function getCustomAttributes(): Array<{ name: string; value: string }>
+    export function setCustomAttributes(
+        attributes: Array<{ id?: string; name?: string; value?: string }>
+    ): void
+    export function clearCustomAttributes(): void
+    export function renderCustomAttributes(): void
+    export function addNpcStat(name?: string, value?: string, shouldFocusValue?: boolean): string
+    export function removeNpcStat(id: string): void
+    export function getNpcStats(): Array<{ name: string; value: string }>
+    export function setNpcStats(stats: Array<{ id?: string; name?: string; value?: string }>): void
+    export function clearNpcStats(): void
+    export function renderNpcStats(): void
+    export function getAvailableStatNames(): string[]
+    export function updateSkillStatDropdowns(): void
+    export function addNpcSkill(
+        name?: string,
+        mode?: 'direct' | 'stat_mod',
+        value?: string,
+        statName?: string,
+        modifier?: string
+    ): string
+    export function removeNpcSkill(id: string): void
+    export function getNpcSkills(): Array<{
+        name: string
+        mode: 'direct' | 'stat_mod'
+        value: string
+        statName: string
+        modifier: string
+    }>
+    export function setNpcSkills(
+        skills: Array<{
+            id?: string
+            name?: string
+            mode?: 'direct' | 'stat_mod'
+            value?: string
+            statName?: string
+            modifier?: string
+        }>
+    ): void
+    export function clearNpcSkills(): void
+    export function renderNpcSkills(): void
+    export function addNpcVital(
+        name?: string,
+        mode?: 'direct' | 'formula',
+        value?: string,
+        formula?: string,
+        shouldFocusValue?: boolean
+    ): string
+    export function removeNpcVital(id: string): void
+    export function getNpcVitals(): Array<{
+        name: string
+        mode: 'direct' | 'formula'
+        value: string
+        formula: string
+        calculatedValue: number | null
+    }>
+    export function setNpcVitals(
+        vitals: Array<{
+            id?: string
+            name?: string
+            mode?: 'direct' | 'formula'
+            value?: string
+            formula?: string
+        }>
+    ): void
+    export function clearNpcVitals(): void
+    export function renderNpcVitals(): void
+    export function evaluateFormula(
+        formula: string,
+        statsMap?: Record<string, number | string>
+    ): { result: number | null; error?: string }
+    export function parseStatValueAsNumber(val: unknown): number | null
+    export function updateVitalFormulasPreview(): void
+    export function saveNpcCharacter(ctx?: Record<string, unknown>): NPC | null
+    export function getNpcDescription(): string
+    export function setNpcDescription(text: string): void
+    export function isDescriptionDrawerOpen(): boolean
+    export function resetNpcModalForm(): void
+}

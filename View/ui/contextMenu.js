@@ -182,16 +182,6 @@ export function setupSectionControlsAndContextMenu(ctx) {
             getDefaultName: () => t('scene.default_name'),
         },
         {
-            type: 'character',
-            btnId: 'btn-add-character',
-            formId: 'character-create-form',
-            inputId: 'character-create-name',
-            submitId: 'character-create-submit',
-            cancelId: 'character-create-cancel',
-            searchId: 'character-search-input',
-            getDefaultName: () => t('character.default_name'),
-        },
-        {
             type: 'location',
             btnId: 'btn-add-location',
             formId: 'location-create-form',
@@ -251,12 +241,6 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     category = ENTITY_CATEGORIES.SCENES
                     ctx.projectScenes.push(createdItem)
                     ctx.renderScenesList()
-                    if (ctx.populateFilterSelects) ctx.populateFilterSelects()
-                } else if (sec.type === 'character') {
-                    createdItem = ctx.vm.createCharacter(name, defaultName)
-                    category = ENTITY_CATEGORIES.NPC
-                    ctx.projectCharacters.push(createdItem)
-                    ctx.renderCharactersList()
                     if (ctx.populateFilterSelects) ctx.populateFilterSelects()
                 } else if (sec.type === 'location') {
                     createdItem = ctx.vm.createLocation(name, defaultName)

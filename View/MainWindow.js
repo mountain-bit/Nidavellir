@@ -31,6 +31,7 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
+import { setupNpcModal } from './ui/npcModal.js'
 import {
     renderEditorTabs,
     saveActiveFile,
@@ -614,6 +615,7 @@ async function initApp() {
 
         setupParagraphSearchAndFilters(appContext)
         setupSectionControlsAndContextMenu(appContext)
+        setupNpcModal(appContext)
         setupResizers(leftDrawer, rightSidebar, vm)
 
         // Initial drawer lists & filters rendering
