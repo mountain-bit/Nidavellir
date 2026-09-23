@@ -88,7 +88,7 @@ export function applyTranslations(): void {
     })
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder')
-        if (key && el instanceof HTMLInputElement) {
+        if (key && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             el.placeholder = i18next.t(key as any) as string
         }

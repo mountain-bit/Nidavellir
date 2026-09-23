@@ -1,7 +1,28 @@
 /**
  * HTML string templates for NPC Creation Window elements.
- * Isolates markup generation from DOM event listeners and controllers.
+ * Generates organic RPG character-sheet styling, badges, and tiles.
  */
+
+import { t } from '../../../dist/Utils/translate.js'
+
+/**
+ * Safely looks up a translation key with a fallback string.
+ *
+ * @param {string} key
+ * @param {string} fallback
+ * @returns {string}
+ */
+export function safeT(key, fallback) {
+    try {
+        if (typeof t === 'function') {
+            const val = t(key)
+            if (val && val !== key) return val
+        }
+    } catch {
+        // ignore
+    }
+    return fallback
+}
 
 /**
  * Escapes characters in attributes/HTML to prevent XSS.
@@ -31,12 +52,12 @@ export function renderAvatarGridItemHtml(avatar) {
             type="button"
             data-avatar-id="${escapeAttr(avatar.id)}"
             title="${escapeAttr(avatar.name)}"
-            class="flex flex-col items-center gap-1.5 p-2 rounded-lg border border-[#2d2d32] hover:border-blue-500/60 bg-[#1f1f23] hover:bg-[#27272a] transition-all cursor-pointer group select-none text-center"
+            class="flex flex-col items-center gap-1.5 p-2 rounded-xl border border-zinc-800 hover:border-blue-500/60 bg-[#1a1a1e] hover:bg-[#222228] transition-all cursor-pointer group select-none text-center shadow-sm"
         >
-            <div class="w-8 h-8 rounded-md p-1.5 flex items-center justify-center transition-transform group-hover:scale-110" style="background-color: ${avatar.bgColor}; color: ${avatar.color}; border: 1px solid ${avatar.borderColor}">
+            <div class="w-8 h-8 rounded-lg p-1.5 flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm" style="background-color: ${avatar.bgColor}; color: ${avatar.color}; border: 1px solid ${avatar.borderColor}">
                 ${avatar.svg}
             </div>
-            <span class="text-[10px] font-medium text-gray-300 group-hover:text-white truncate max-w-full">
+            <span class="text-[10px] font-semibold text-zinc-300 group-hover:text-blue-200 truncate max-w-full">
                 ${escapeAttr(avatar.name)}
             </span>
         </button>
@@ -46,32 +67,50 @@ export function renderAvatarGridItemHtml(avatar) {
 /**
  * Renders a custom attribute row.
  *
- * @param {{ id: string, name: string, value: string }} attr
+ * @param {{ id: string, name: string, value: string, isEditing?: boolean }} attr
  * @returns {string}
  */
 export function renderAttributeRowHtml(attr) {
-    return `
-        <div class="npc-attribute-row flex items-center gap-2 group" data-attr-id="${escapeAttr(attr.id)}">
+    const isEditing = attr.isEditing !== false
+    if (isEditing) {
+        return `
+        <div class="npc-attribute-row flex items-center gap-1.5 p-1 rounded-lg bg-zinc-900/80 border border-blue-500/40 shadow-sm transition-all group" data-attr-id="${escapeAttr(attr.id)}" data-state="edit">
+            <span class="text-blue-400 text-[10px] pl-1 select-none font-bold shrink-0">◈</span>
             <input
                 type="text"
                 data-attr-field="name"
                 value="${escapeAttr(attr.name)}"
-                placeholder="Nazwa (np. Rasa)"
-                class="w-1/3 min-w-[90px] bg-[#202023] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="${escapeAttr(safeT('npc.attr_name_placeholder', 'Atrybut (np. Rasa)'))}"
+                data-i18n-placeholder="npc.attr_name_placeholder"
+                class="w-1/3 min-w-[80px] bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
             />
             <input
                 type="text"
                 data-attr-field="value"
                 value="${escapeAttr(attr.value)}"
-                placeholder="Wartość (np. Elf)"
-                class="flex-1 bg-[#202023] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="${escapeAttr(safeT('npc.attr_value_placeholder', 'Wartość (np. Leśny Elf)'))}"
+                data-i18n-placeholder="npc.attr_value_placeholder"
+                class="flex-1 min-w-[90px] bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none transition-colors"
             />
+            <button
+                type="button"
+                data-action="confirm-attribute"
+                data-attr-id="${escapeAttr(attr.id)}"
+                class="p-1 rounded bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 hover:text-white border border-blue-500/40 transition-colors cursor-pointer shrink-0"
+                title="${escapeAttr(safeT('npc.confirm', 'Zatwierdź'))}"
+                data-i18n-title="npc.confirm"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </button>
             <button
                 type="button"
                 data-action="remove-attribute"
                 data-attr-id="${escapeAttr(attr.id)}"
-                class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                title="Usuń atrybut"
+                class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
+                title="${escapeAttr(safeT('npc.remove_attribute', 'Usuń atrybut'))}"
+                data-i18n-title="npc.remove_attribute"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -80,43 +119,141 @@ export function renderAttributeRowHtml(attr) {
             </button>
         </div>
     `
+    }
+
+    return `
+        <div class="npc-attribute-row flex items-center justify-between gap-2 py-1 px-2.5 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-blue-500/30 transition-all group cursor-pointer" data-attr-id="${escapeAttr(attr.id)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
+            <div class="flex items-center gap-1.5 min-w-0">
+                <span class="text-blue-400/80 text-[10px] pl-0.5 select-none shrink-0">◈</span>
+                <span class="text-xs text-zinc-400 font-medium shrink-0">${escapeAttr(attr.name || safeT('npc.attr_unnamed', 'Atrybut'))}:</span>
+                <span class="text-xs font-semibold text-zinc-100 truncate">${escapeAttr(attr.value || '-')}</span>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+                <button
+                    type="button"
+                    data-action="edit-attribute"
+                    data-attr-id="${escapeAttr(attr.id)}"
+                    class="p-1 rounded text-zinc-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.edit', 'Edytuj'))}"
+                    data-i18n-title="npc.edit"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    data-action="remove-attribute"
+                    data-attr-id="${escapeAttr(attr.id)}"
+                    class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.remove_attribute', 'Usuń atrybut'))}"
+                    data-i18n-title="npc.remove_attribute"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `
 }
 
 /**
  * Renders a stat row.
  *
- * @param {{ id: string, name: string, value: string }} stat
+ * @param {{ id: string, name: string, value: string, isEditing?: boolean }} stat
  * @returns {string}
  */
 export function renderStatRowHtml(stat) {
-    return `
-        <div class="npc-stat-row flex items-center gap-2 group" data-stat-id="${escapeAttr(stat.id)}">
+    const isEditing = stat.isEditing !== false
+    if (isEditing) {
+        return `
+        <div class="npc-stat-row flex items-center gap-1.5 p-1.5 rounded-lg bg-zinc-900/80 border border-blue-500/40 shadow-sm transition-all" data-stat-id="${escapeAttr(stat.id)}" data-state="edit">
+            <span class="text-blue-400 text-xs pl-1 select-none font-bold shrink-0">⚔</span>
             <input
                 type="text"
                 data-stat-field="name"
                 value="${escapeAttr(stat.name)}"
-                placeholder="Nazwa cechy (np. Siła)"
-                class="w-1/3 min-w-[90px] bg-[#202023] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                placeholder="${escapeAttr(safeT('npc.stat_name_placeholder', 'Cecha (np. Siła)'))}"
+                data-i18n-placeholder="npc.stat_name_placeholder"
+                class="w-1/2 min-w-[85px] bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
             />
             <input
                 type="text"
                 data-stat-field="value"
                 value="${escapeAttr(stat.value)}"
-                placeholder="Wartość / kość (np. 14, d6, 6d6)"
-                class="flex-1 bg-[#202023] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
+                placeholder="${escapeAttr(safeT('npc.stat_value_placeholder', 'Kość / wartość (np. 14, 2d6)'))}"
+                data-i18n-placeholder="npc.stat_value_placeholder"
+                class="flex-1 min-w-[70px] bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-blue-300 font-mono font-bold placeholder-zinc-500 focus:outline-none transition-colors text-right sm:text-left"
             />
+            <button
+                type="button"
+                data-action="confirm-stat"
+                data-stat-id="${escapeAttr(stat.id)}"
+                class="p-1 rounded bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 hover:text-white border border-blue-500/40 transition-colors cursor-pointer shrink-0"
+                title="${escapeAttr(safeT('npc.confirm', 'Zatwierdź'))}"
+                data-i18n-title="npc.confirm"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            </button>
             <button
                 type="button"
                 data-action="remove-stat"
                 data-stat-id="${escapeAttr(stat.id)}"
-                class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                title="Usuń cechę"
+                class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
+                title="${escapeAttr(safeT('npc.remove_stat', 'Usuń cechę'))}"
+                data-i18n-title="npc.remove_stat"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18"></line>
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
+        </div>
+    `
+    }
+
+    return `
+        <div class="npc-stat-row flex items-center justify-between gap-2 py-1.5 px-2.5 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-blue-500/40 transition-all group cursor-pointer" data-stat-id="${escapeAttr(stat.id)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-blue-400/80 text-xs select-none shrink-0 font-bold">⚔</span>
+                <span class="text-xs font-semibold text-zinc-200 truncate">${escapeAttr(stat.name || safeT('npc.stat_unnamed', 'Bezimienna'))}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <span class="px-2 py-0.5 rounded-md bg-blue-950/60 text-blue-300 border border-blue-500/30 text-xs font-mono font-bold shadow-sm">
+                    ${escapeAttr(stat.value || '-')}
+                </span>
+                <button
+                    type="button"
+                    data-action="edit-stat"
+                    data-stat-id="${escapeAttr(stat.id)}"
+                    class="p-1 rounded text-zinc-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.edit', 'Edytuj'))}"
+                    data-i18n-title="npc.edit"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    data-action="remove-stat"
+                    data-stat-id="${escapeAttr(stat.id)}"
+                    class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.remove_stat', 'Usuń cechę'))}"
+                    data-i18n-title="npc.remove_stat"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
         </div>
     `
 }
@@ -129,7 +266,10 @@ export function renderStatRowHtml(stat) {
  * @returns {string}
  */
 export function renderSkillStatOptionsHtml(availableStats, selectedValue = '') {
-    return ['<option value="">-- Wybierz cechę --</option>']
+    const defaultLabel = safeT('npc.select_stat_default', '-- Wybierz cechę --')
+    return [
+        `<option value="" data-i18n="npc.select_stat_default">${escapeAttr(defaultLabel)}</option>`,
+    ]
         .concat(
             availableStats.map(
                 statName =>
@@ -142,37 +282,88 @@ export function renderSkillStatOptionsHtml(availableStats, selectedValue = '') {
 /**
  * Renders a skill row.
  *
- * @param {{ id: string, name: string, mode: string, value: string, statName: string, modifier: string }} skill
+ * @param {{ id: string, name: string, mode: string, value: string, statName: string, modifier: string, isEditing?: boolean }} skill
  * @param {string[]} availableStats
  * @returns {string}
  */
 export function renderSkillRowHtml(skill, availableStats) {
+    const isEditing = skill.isEditing !== false
     const isStatMod = skill.mode === 'stat_mod'
     const optionsHtml = renderSkillStatOptionsHtml(availableStats, skill.statName)
 
-    return `
-        <div class="npc-skill-row flex flex-col gap-2 p-2.5 rounded-lg bg-[#202023] border border-[#2d2d32]" data-skill-id="${escapeAttr(skill.id)}">
-            <div class="flex items-center gap-2">
+    if (isEditing) {
+        return `
+        <div class="npc-skill-row flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-lg bg-zinc-900/80 border border-blue-500/40 shadow-sm transition-all" data-skill-id="${escapeAttr(skill.id)}" data-state="edit">
+            <div class="flex items-center gap-2 flex-1 min-w-[170px]">
+                <span class="text-blue-400 text-xs pl-0.5 select-none font-bold shrink-0">⚡</span>
                 <input
                     type="text"
                     data-skill-field="name"
                     value="${escapeAttr(skill.name)}"
-                    placeholder="Nazwa umiejętności (np. Skradanie)"
-                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    placeholder="${escapeAttr(safeT('npc.skill_name_placeholder', 'Umiejętność (np. Skradanie)'))}"
+                    data-i18n-placeholder="npc.skill_name_placeholder"
+                    class="flex-1 bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
                 />
                 <select
                     data-skill-field="mode"
-                    class="bg-[#18181b] border border-[#3f3f46] rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                    class="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 font-medium focus:outline-none focus:border-blue-500 transition-colors cursor-pointer shrink-0"
                 >
-                    <option value="direct" ${!isStatMod ? 'selected' : ''}>Wartość / Kość</option>
-                    <option value="stat_mod" ${isStatMod ? 'selected' : ''}>Cecha + mod</option>
+                    <option value="direct" ${!isStatMod ? 'selected' : ''} data-i18n="npc.mode_direct">${escapeAttr(safeT('npc.mode_direct', 'Wartość'))}</option>
+                    <option value="stat_mod" ${isStatMod ? 'selected' : ''} data-i18n="npc.mode_stat_mod">${escapeAttr(safeT('npc.mode_stat_mod', 'Cecha + mod'))}</option>
                 </select>
+            </div>
+
+            <!-- Direct Value Mode -->
+            <div class="skill-direct-mode-container flex items-center gap-2 flex-1 ${isStatMod ? 'hidden' : ''}">
+                <input
+                    type="text"
+                    data-skill-field="value"
+                    value="${escapeAttr(skill.value)}"
+                    placeholder="${escapeAttr(safeT('npc.skill_direct_value_placeholder', 'Wartość / kość (np. +2, d6, 2d6)'))}"
+                    data-i18n-placeholder="npc.skill_direct_value_placeholder"
+                    class="w-full bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none transition-colors font-mono"
+                />
+            </div>
+
+            <!-- Stat + Mod Mode -->
+            <div class="skill-stat-mod-container flex items-center gap-2 flex-1 ${!isStatMod ? 'hidden' : ''}">
+                <select
+                    data-skill-field="statName"
+                    class="flex-1 bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-zinc-200 transition-colors cursor-pointer"
+                >
+                    ${optionsHtml}
+                </select>
+                <span class="text-xs text-blue-400 font-bold">+</span>
+                <input
+                    type="text"
+                    data-skill-field="modifier"
+                    value="${escapeAttr(skill.modifier)}"
+                    placeholder="${escapeAttr(safeT('npc.skill_modifier_placeholder', 'Mod (+2)'))}"
+                    data-i18n-placeholder="npc.skill_modifier_placeholder"
+                    class="w-20 bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-blue-300 placeholder-zinc-500 focus:outline-none transition-colors font-mono font-bold text-center"
+                />
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                <button
+                    type="button"
+                    data-action="confirm-skill"
+                    data-skill-id="${escapeAttr(skill.id)}"
+                    class="p-1 rounded bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 hover:text-white border border-blue-500/40 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.confirm', 'Zatwierdź'))}"
+                    data-i18n-title="npc.confirm"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </button>
                 <button
                     type="button"
                     data-action="remove-skill"
                     data-skill-id="${escapeAttr(skill.id)}"
-                    class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                    title="Usuń umiejętność"
+                    class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.remove_skill', 'Usuń umiejętność'))}"
+                    data-i18n-title="npc.remove_skill"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -180,41 +371,64 @@ export function renderSkillRowHtml(skill, availableStats) {
                     </svg>
                 </button>
             </div>
+        </div>
+    `
+    }
 
-            <!-- Direct Value Mode -->
-            <div class="skill-direct-mode-container flex items-center gap-2 ${isStatMod ? 'hidden' : ''}">
-                <input
-                    type="text"
-                    data-skill-field="value"
-                    value="${escapeAttr(skill.value)}"
-                    placeholder="Wartość / kość (np. +2, d6, 2d6)"
-                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                />
+    return `
+        <div class="npc-skill-row flex items-center justify-between gap-2 py-1.5 px-3 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-blue-500/40 transition-all group cursor-pointer" data-skill-id="${escapeAttr(skill.id)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-blue-400/80 text-xs select-none shrink-0 font-bold">⚡</span>
+                <span class="text-xs font-semibold text-zinc-200 truncate">${escapeAttr(skill.name || safeT('npc.skill_unnamed', 'Umiejętność'))}</span>
             </div>
-
-            <!-- Stat + Mod Mode -->
-            <div class="skill-stat-mod-container flex items-center gap-2 ${!isStatMod ? 'hidden' : ''}">
-                <select
-                    data-skill-field="statName"
-                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+            <div class="flex items-center gap-2 shrink-0">
+                ${
+                    isStatMod
+                        ? `
+                    <span class="text-[11px] text-zinc-300 bg-zinc-800/90 px-2 py-0.5 rounded border border-zinc-700/60 font-medium">
+                        ${escapeAttr(skill.statName || safeT('npc.select_stat_default', 'Cecha'))}
+                        <span class="text-blue-300 font-mono font-bold ml-1">${escapeAttr(skill.modifier ? (skill.modifier.startsWith('+') || skill.modifier.startsWith('-') ? skill.modifier : `+${skill.modifier}`) : '+0')}</span>
+                    </span>
+                `
+                        : `
+                    <span class="px-2.5 py-0.5 rounded-md bg-blue-950/60 text-blue-300 border border-blue-500/30 text-xs font-mono font-bold shadow-sm">
+                        ${escapeAttr(skill.value || '-')}
+                    </span>
+                `
+                }
+                <button
+                    type="button"
+                    data-action="edit-skill"
+                    data-skill-id="${escapeAttr(skill.id)}"
+                    class="p-1 rounded text-zinc-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.edit', 'Edytuj'))}"
+                    data-i18n-title="npc.edit"
                 >
-                    ${optionsHtml}
-                </select>
-                <span class="text-xs text-gray-400 font-bold">+</span>
-                <input
-                    type="text"
-                    data-skill-field="modifier"
-                    value="${escapeAttr(skill.modifier)}"
-                    placeholder="Mod (np. +2, +d6)"
-                    class="w-28 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    data-action="remove-skill"
+                    data-skill-id="${escapeAttr(skill.id)}"
+                    class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.remove_skill', 'Usuń umiejętność'))}"
+                    data-i18n-title="npc.remove_skill"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
         </div>
     `
 }
 
 /**
- * Renders the preview badge for formula calculations.
+ * Renders the preview badge for formula calculations in character sheet style.
  *
  * @param {{ result: number|null, error?: string }|null} calc
  * @param {boolean} isFormula
@@ -224,24 +438,27 @@ export function renderSkillRowHtml(skill, availableStats) {
 export function renderVitalPreviewBadgeHtml(calc, isFormula, formula) {
     if (!isFormula) return ''
     if (!formula || !formula.trim()) {
-        return `<span class="npc-vital-preview px-2 py-1 rounded bg-gray-800 text-gray-500 text-[11px] font-mono border border-gray-700 select-none">Wpisz wzór</span>`
+        const enterLabel = safeT('npc.vital_enter_formula', 'Wpisz wzór')
+        return `<span class="npc-vital-preview px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-mono border border-zinc-700 select-none" data-i18n="npc.vital_enter_formula">${escapeAttr(enterLabel)}</span>`
     }
     if (calc && calc.result !== null && !calc.error) {
-        return `<span class="npc-vital-preview px-2 py-1 rounded bg-emerald-500/15 text-emerald-400 text-[11px] font-mono font-semibold border border-emerald-500/30 select-none" title="Obliczona wartość">= ${calc.result}</span>`
+        const titleText = safeT('npc.vital_calculated_value', 'Obliczona wartość')
+        return `<span class="npc-vital-preview px-2 py-0.5 rounded-md bg-blue-950/60 text-blue-300 text-[10px] font-mono font-bold border border-blue-500/40 select-none shadow-sm" title="${escapeAttr(titleText)}" data-i18n-title="npc.vital_calculated_value">= ${calc.result}</span>`
     }
-    const err = calc?.error || 'Błąd wzoru'
-    return `<span class="npc-vital-preview px-2 py-1 rounded bg-amber-500/15 text-amber-400 text-[11px] font-mono border border-amber-500/30 select-none" title="${escapeAttr(err)}">${escapeAttr(err)}</span>`
+    const err = calc?.error || safeT('npc.vital_formula_syntax_error', 'Błąd wzoru')
+    return `<span class="npc-vital-preview px-2 py-0.5 rounded-md bg-rose-950/60 text-rose-300 text-[10px] font-mono border border-rose-500/40 select-none" title="${escapeAttr(err)}">${escapeAttr(err)}</span>`
 }
 
 /**
  * Renders a vital parameter row.
  *
- * @param {{ id: string, name: string, mode: string, value: string, formula: string }} vital
+ * @param {{ id: string, name: string, mode: string, value: string, formula: string, isEditing?: boolean }} vital
  * @param {Record<string, any>} statsMap
  * @param {Function} evaluateFormulaFn
  * @returns {string}
  */
 export function renderVitalRowHtml(vital, statsMap, evaluateFormulaFn) {
+    const isEditing = vital.isEditing !== false
     const isFormula = vital.mode === 'formula'
     const calc =
         isFormula && typeof evaluateFormulaFn === 'function'
@@ -249,29 +466,75 @@ export function renderVitalRowHtml(vital, statsMap, evaluateFormulaFn) {
             : null
     const badgeHtml = renderVitalPreviewBadgeHtml(calc, isFormula, vital.formula)
 
-    return `
-        <div class="npc-vital-row flex flex-col gap-2 p-2.5 rounded-lg bg-[#202023] border border-[#2d2d32]" data-vital-id="${escapeAttr(vital.id)}">
-            <div class="flex items-center gap-2">
+    if (isEditing) {
+        return `
+        <div class="npc-vital-row flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-lg bg-zinc-900/80 border border-blue-500/40 shadow-sm transition-all" data-vital-id="${escapeAttr(vital.id)}" data-state="edit">
+            <div class="flex items-center gap-2 flex-1 min-w-[170px]">
+                <span class="text-blue-400 text-xs pl-0.5 select-none font-bold shrink-0">♥</span>
                 <input
                     type="text"
                     data-vital-field="name"
                     value="${escapeAttr(vital.name)}"
-                    placeholder="Nazwa parametru (np. Punkty Życia)"
-                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    placeholder="${escapeAttr(safeT('npc.vital_name_placeholder', 'Parametr (np. Punkty Życia)'))}"
+                    data-i18n-placeholder="npc.vital_name_placeholder"
+                    class="flex-1 bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
                 />
                 <select
                     data-vital-field="mode"
-                    class="bg-[#18181b] border border-[#3f3f46] rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+                    class="bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs text-zinc-200 font-medium focus:outline-none focus:border-blue-500 transition-colors cursor-pointer shrink-0"
                 >
-                    <option value="direct" ${!isFormula ? 'selected' : ''}>Wartość / Kość</option>
-                    <option value="formula" ${isFormula ? 'selected' : ''}>Wzór matematyczny</option>
+                    <option value="direct" ${!isFormula ? 'selected' : ''} data-i18n="npc.mode_direct">${escapeAttr(safeT('npc.mode_direct', 'Wartość'))}</option>
+                    <option value="formula" ${isFormula ? 'selected' : ''} data-i18n="npc.mode_formula">${escapeAttr(safeT('npc.mode_formula', 'Wzór'))}</option>
                 </select>
+            </div>
+
+            <!-- Direct Value Mode Container -->
+            <div class="vital-direct-container flex items-center gap-2 flex-1 ${isFormula ? 'hidden' : ''}">
+                <input
+                    type="text"
+                    data-vital-field="value"
+                    value="${escapeAttr(vital.value)}"
+                    placeholder="${escapeAttr(safeT('npc.vital_direct_value_placeholder', 'Wartość / kość (np. 100, 2d10)'))}"
+                    data-i18n-placeholder="npc.vital_direct_value_placeholder"
+                    class="w-full bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2.5 py-1 text-xs text-blue-200 placeholder-zinc-500 focus:outline-none transition-colors font-mono font-bold"
+                />
+            </div>
+
+            <!-- Formula Mode Container -->
+            <div class="vital-formula-container flex items-center gap-2 flex-1 ${!isFormula ? 'hidden' : ''}">
+                <input
+                    type="text"
+                    data-vital-field="formula"
+                    value="${escapeAttr(vital.formula)}"
+                    placeholder="${escapeAttr(safeT('npc.vital_formula_placeholder', 'Wzór (np. Siła * 4 + 10)'))}"
+                    data-i18n-placeholder="npc.vital_formula_placeholder"
+                    class="flex-1 bg-zinc-950/70 border border-zinc-700/80 focus:border-blue-500 rounded px-2.5 py-1 text-xs text-blue-200 placeholder-zinc-500 focus:outline-none transition-colors font-mono"
+                />
+                <div class="vital-preview-slot shrink-0">
+                    ${badgeHtml}
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                <button
+                    type="button"
+                    data-action="confirm-vital"
+                    data-vital-id="${escapeAttr(vital.id)}"
+                    class="p-1 rounded bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 hover:text-white border border-blue-500/40 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.confirm', 'Zatwierdź'))}"
+                    data-i18n-title="npc.confirm"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </button>
                 <button
                     type="button"
                     data-action="remove-vital"
                     data-vital-id="${escapeAttr(vital.id)}"
-                    class="p-1.5 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer shrink-0"
-                    title="Usuń parametr"
+                    class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.remove_vital', 'Usuń parametr'))}"
+                    data-i18n-title="npc.remove_vital"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -279,30 +542,55 @@ export function renderVitalRowHtml(vital, statsMap, evaluateFormulaFn) {
                     </svg>
                 </button>
             </div>
+        </div>
+    `
+    }
 
-            <!-- Direct Value Mode Container -->
-            <div class="vital-direct-container flex items-center gap-2 ${isFormula ? 'hidden' : ''}">
-                <input
-                    type="text"
-                    data-vital-field="value"
-                    value="${escapeAttr(vital.value)}"
-                    placeholder="Wartość / kość (np. 100, 2d10)"
-                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                />
+    return `
+        <div class="npc-vital-row flex items-center justify-between gap-2 py-1.5 px-3 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-blue-500/40 transition-all group cursor-pointer" data-vital-id="${escapeAttr(vital.id)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-blue-400/80 text-xs select-none shrink-0 font-bold">♥</span>
+                <span class="text-xs font-semibold text-zinc-200 truncate">${escapeAttr(vital.name || safeT('npc.vital_unnamed', 'Parametr'))}</span>
             </div>
-
-            <!-- Formula Mode Container -->
-            <div class="vital-formula-container flex items-center gap-2 ${!isFormula ? 'hidden' : ''}">
-                <input
-                    type="text"
-                    data-vital-field="formula"
-                    value="${escapeAttr(vital.formula)}"
-                    placeholder="Wzór (np. Siła * 4 + 10)"
-                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-                />
-                <div class="vital-preview-slot shrink-0">
+            <div class="flex items-center gap-2 shrink-0">
+                ${
+                    isFormula
+                        ? `
+                    <span class="text-[11px] font-mono text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded border border-zinc-700/60 hidden sm:inline-block">${escapeAttr(vital.formula)}</span>
                     ${badgeHtml}
-                </div>
+                `
+                        : `
+                    <span class="px-2.5 py-0.5 rounded-md bg-blue-950/60 text-blue-300 border border-blue-500/30 text-xs font-mono font-bold shadow-sm">
+                        ${escapeAttr(vital.value || '-')}
+                    </span>
+                `
+                }
+                <button
+                    type="button"
+                    data-action="edit-vital"
+                    data-vital-id="${escapeAttr(vital.id)}"
+                    class="p-1 rounded text-zinc-400 hover:text-blue-300 hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.edit', 'Edytuj'))}"
+                    data-i18n-title="npc.edit"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    data-action="remove-vital"
+                    data-vital-id="${escapeAttr(vital.id)}"
+                    class="p-1 rounded text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    title="${escapeAttr(safeT('npc.remove_vital', 'Usuń parametr'))}"
+                    data-i18n-title="npc.remove_vital"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             </div>
         </div>
     `

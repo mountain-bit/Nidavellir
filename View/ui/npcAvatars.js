@@ -8,9 +8,9 @@ export const FANTASY_AVATARS = [
         id: 'warrior',
         name: 'Wojownik',
         category: 'combat',
-        color: '#ef4444',
-        bgColor: 'rgba(239, 68, 68, 0.15)',
-        borderColor: 'rgba(239, 68, 68, 0.4)',
+        color: '#60a5fa',
+        bgColor: 'rgba(59, 130, 246, 0.15)',
+        borderColor: 'rgba(59, 130, 246, 0.4)',
         // Crossed swords & sturdy shield
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M14.5 17.5L3 6V3h3l11.5 11.5"></path>
@@ -28,8 +28,8 @@ export const FANTASY_AVATARS = [
         name: 'Mag',
         category: 'magic',
         color: '#3b82f6',
-        bgColor: 'rgba(59, 130, 246, 0.15)',
-        borderColor: 'rgba(59, 130, 246, 0.4)',
+        bgColor: 'rgba(59, 130, 246, 0.18)',
+        borderColor: 'rgba(59, 130, 246, 0.45)',
         // Magic staff / mystic star orb
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
@@ -40,9 +40,9 @@ export const FANTASY_AVATARS = [
         id: 'rogue',
         name: 'Łotrzyk',
         category: 'stealth',
-        color: '#10b981',
-        bgColor: 'rgba(16, 185, 129, 0.15)',
-        borderColor: 'rgba(16, 185, 129, 0.4)',
+        color: '#38bdf8',
+        bgColor: 'rgba(56, 189, 248, 0.15)',
+        borderColor: 'rgba(56, 189, 248, 0.4)',
         // Dual daggers / stealth hood
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M12 2a5 5 0 00-5 5v3a5 5 0 0010 0V7a5 5 0 00-5-5z"></path>
@@ -55,9 +55,9 @@ export const FANTASY_AVATARS = [
         id: 'cleric',
         name: 'Kapłan',
         category: 'divine',
-        color: '#f59e0b',
-        bgColor: 'rgba(245, 158, 11, 0.15)',
-        borderColor: 'rgba(245, 158, 11, 0.4)',
+        color: '#818cf8',
+        bgColor: 'rgba(129, 140, 248, 0.15)',
+        borderColor: 'rgba(129, 140, 248, 0.4)',
         // Divine sun halo & holy symbol
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <circle cx="12" cy="12" r="5"></circle>
@@ -75,9 +75,9 @@ export const FANTASY_AVATARS = [
         id: 'ranger',
         name: 'Łucznik',
         category: 'ranged',
-        color: '#84cc16',
-        bgColor: 'rgba(132, 204, 22, 0.15)',
-        borderColor: 'rgba(132, 204, 22, 0.4)',
+        color: '#2dd4bf',
+        bgColor: 'rgba(45, 212, 191, 0.15)',
+        borderColor: 'rgba(45, 212, 191, 0.4)',
         // Bow and arrow
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M4 12a8 8 0 0116 0"></path>
@@ -90,9 +90,9 @@ export const FANTASY_AVATARS = [
         id: 'paladin',
         name: 'Paladyn',
         category: 'holy',
-        color: '#eab308',
-        bgColor: 'rgba(234, 179, 8, 0.15)',
-        borderColor: 'rgba(234, 179, 8, 0.4)',
+        color: '#93c5fd',
+        bgColor: 'rgba(147, 197, 253, 0.15)',
+        borderColor: 'rgba(147, 197, 253, 0.4)',
         // Holy shield with cross
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -104,9 +104,9 @@ export const FANTASY_AVATARS = [
         id: 'bard',
         name: 'Bard',
         category: 'utility',
-        color: '#ec4899',
-        bgColor: 'rgba(236, 72, 153, 0.15)',
-        borderColor: 'rgba(236, 72, 153, 0.4)',
+        color: '#a78bfa',
+        bgColor: 'rgba(167, 139, 250, 0.15)',
+        borderColor: 'rgba(167, 139, 250, 0.4)',
         // Lyre / musical inspiration
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M9 18V5l12-2v13"></path>
@@ -118,9 +118,9 @@ export const FANTASY_AVATARS = [
         id: 'necromancer',
         name: 'Nekromanta',
         category: 'dark',
-        color: '#a855f7',
-        bgColor: 'rgba(168, 85, 247, 0.15)',
-        borderColor: 'rgba(168, 85, 247, 0.4)',
+        color: '#7dd3fc',
+        bgColor: 'rgba(125, 211, 252, 0.15)',
+        borderColor: 'rgba(125, 211, 252, 0.4)',
         // Skull of dark arts
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M12 2a7 7 0 00-7 7c0 3 2 5 2 7h10c0-2 2-4 2-7a7 7 0 00-7-7z"></path>
@@ -133,9 +133,9 @@ export const FANTASY_AVATARS = [
         id: 'druid',
         name: 'Druid',
         category: 'nature',
-        color: '#14b8a6',
-        bgColor: 'rgba(20, 184, 166, 0.15)',
-        borderColor: 'rgba(20, 184, 166, 0.4)',
+        color: '#38bdf8',
+        bgColor: 'rgba(56, 189, 248, 0.15)',
+        borderColor: 'rgba(56, 189, 248, 0.4)',
         // Leaf of life & balance
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M11 20A7 7 0 014 13c0-4.4 3.6-8 8-8 1.4 0 2.8.4 4 1.1A7 7 0 0120 13c0 4.4-3.6 8-8 8h-1z"></path>
@@ -146,9 +146,9 @@ export const FANTASY_AVATARS = [
         id: 'merchant',
         name: 'Handlarz',
         category: 'civilian',
-        color: '#d97706',
-        bgColor: 'rgba(217, 119, 6, 0.15)',
-        borderColor: 'rgba(217, 119, 6, 0.4)',
+        color: '#94a3b8',
+        bgColor: 'rgba(148, 163, 184, 0.15)',
+        borderColor: 'rgba(148, 163, 184, 0.4)',
         // Scales of commerce / merchant coin
         svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
             <path d="M12 3v18"></path>

@@ -93,3 +93,76 @@ export function initDraggable(modal, header) {
         document.addEventListener('mouseup', onMouseUp)
     })
 }
+
+/**
+ * Initializes resizable behavior on the floating window using a corner handle.
+ *
+ * @param {HTMLElement} modal The floating window element
+ * @param {HTMLElement} resizer The bottom-right resize corner handle element
+ * @param {object} [options]
+ * @param {number} [options.minWidth=700]
+ * @param {number} [options.minHeight=520]
+ */
+export function initResizable(modal, resizer, options = {}) {
+    if (!modal || !resizer) return
+
+    const minWidth = options.minWidth || 700
+    const minHeight = options.minHeight || 520
+
+    let isResizing = false
+    let startX = 0
+    let startY = 0
+    let initialWidth = 0
+    let initialHeight = 0
+
+    resizer.addEventListener('mousedown', e => {
+        if (e.button !== 0) return
+        e.preventDefault()
+        e.stopPropagation()
+
+        isResizing = true
+        startX = e.clientX
+        startY = e.clientY
+
+        const rect = modal.getBoundingClientRect()
+        initialWidth = rect.width
+        initialHeight = rect.height
+
+        document.body.style.userSelect = 'none'
+
+        function onMouseMove(moveEvent) {
+            if (!isResizing) return
+            moveEvent.preventDefault()
+
+            const deltaX = moveEvent.clientX - startX
+            const deltaY = moveEvent.clientY - startY
+
+            const maxWidth = Math.max(minWidth, window.innerWidth - (modal.offsetLeft || 0) - 10)
+            const maxHeight = Math.max(minHeight, window.innerHeight - (modal.offsetTop || 0) - 10)
+
+            const newWidth = Math.min(Math.max(initialWidth + deltaX, minWidth), maxWidth)
+            const newHeight = Math.min(Math.max(initialHeight + deltaY, minHeight), maxHeight)
+
+            modal.style.width = `${newWidth}px`
+            modal.style.height = `${newHeight}px`
+
+            const drawer = modal.querySelector('#npc-description-drawer')
+            if (drawer && !drawer.classList.contains('hidden')) {
+                const drawerWidth = drawer.offsetWidth || 380
+                modal.dataset.widthBeforeDrawer = String(Math.max(minWidth, newWidth - drawerWidth))
+            } else if (modal.dataset.widthBeforeDrawer) {
+                delete modal.dataset.widthBeforeDrawer
+            }
+        }
+
+        function onMouseUp() {
+            isResizing = false
+            document.body.style.userSelect = ''
+            document.removeEventListener('mousemove', onMouseMove)
+            document.removeEventListener('mouseup', onMouseUp)
+        }
+
+        document.addEventListener('mousemove', onMouseMove)
+        document.addEventListener('mouseup', onMouseUp)
+    })
+}

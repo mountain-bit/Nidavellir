@@ -75,17 +75,23 @@ declare module '*/View/ui/npcModal.js' {
         value?: string,
         shouldFocusValue?: boolean
     ): string
+    export function confirmCustomAttribute(id: string): void
+    export function editCustomAttribute(id: string): void
     export function removeCustomAttribute(id: string): void
     export function getCustomAttributes(): Array<{ name: string; value: string }>
     export function setCustomAttributes(
-        attributes: Array<{ id?: string; name?: string; value?: string }>
+        attributes: Array<{ id?: string; name?: string; value?: string; isEditing?: boolean }>
     ): void
     export function clearCustomAttributes(): void
     export function renderCustomAttributes(): void
     export function addNpcStat(name?: string, value?: string, shouldFocusValue?: boolean): string
+    export function confirmNpcStat(id: string): void
+    export function editNpcStat(id: string): void
     export function removeNpcStat(id: string): void
     export function getNpcStats(): Array<{ name: string; value: string }>
-    export function setNpcStats(stats: Array<{ id?: string; name?: string; value?: string }>): void
+    export function setNpcStats(
+        stats: Array<{ id?: string; name?: string; value?: string; isEditing?: boolean }>
+    ): void
     export function clearNpcStats(): void
     export function renderNpcStats(): void
     export function getAvailableStatNames(): string[]
@@ -97,6 +103,8 @@ declare module '*/View/ui/npcModal.js' {
         statName?: string,
         modifier?: string
     ): string
+    export function confirmNpcSkill(id: string): void
+    export function editNpcSkill(id: string): void
     export function removeNpcSkill(id: string): void
     export function getNpcSkills(): Array<{
         name: string
@@ -113,6 +121,7 @@ declare module '*/View/ui/npcModal.js' {
             value?: string
             statName?: string
             modifier?: string
+            isEditing?: boolean
         }>
     ): void
     export function clearNpcSkills(): void
@@ -124,6 +133,8 @@ declare module '*/View/ui/npcModal.js' {
         formula?: string,
         shouldFocusValue?: boolean
     ): string
+    export function confirmNpcVital(id: string): void
+    export function editNpcVital(id: string): void
     export function removeNpcVital(id: string): void
     export function getNpcVitals(): Array<{
         name: string
@@ -139,6 +150,7 @@ declare module '*/View/ui/npcModal.js' {
             mode?: 'direct' | 'formula'
             value?: string
             formula?: string
+            isEditing?: boolean
         }>
     ): void
     export function clearNpcVitals(): void

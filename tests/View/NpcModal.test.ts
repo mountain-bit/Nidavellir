@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { NPC } from '../../Model/NPC'
+import { applyTranslations, initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
 import {
     addCustomAttribute,
     addNpcSkill,
@@ -12,6 +13,14 @@ import {
     clearNpcStats,
     clearNpcVitals,
     closeNpcModal,
+    confirmCustomAttribute,
+    confirmNpcSkill,
+    confirmNpcStat,
+    confirmNpcVital,
+    editCustomAttribute,
+    editNpcSkill,
+    editNpcStat,
+    editNpcVital,
     evaluateFormula,
     getAvailableStatNames,
     getCustomAttributes,
@@ -330,9 +339,10 @@ describe('NpcModal Floating Window Controller', () => {
         expect(getSelectedAvatarId()).toBe('rogue')
     })
 
-    it('obsługuje zwijanie i rozwijanie bocznego panelu opisu narracyjnego ze zmianą strzałki', () => {
+    it('obsługuje zwijanie i rozwijanie bocznego panelu opisu narracyjnego ze zmianą strzałki i poszerzaniem okna', () => {
         setupNpcModal()
 
+        const modal = document.getElementById('npc-create-modal')!
         const drawer = document.getElementById('npc-description-drawer')!
         const arrow = document.getElementById('npc-desc-toggle-arrow')!
         const btnToggle = document.getElementById('btn-toggle-npc-description')!
@@ -340,28 +350,33 @@ describe('NpcModal Floating Window Controller', () => {
         expect(isDescriptionDrawerOpen()).toBe(false)
         expect(drawer.classList.contains('hidden')).toBe(true)
         expect(arrow.textContent).toBe('›')
+        expect(modal.style.width).toBe('520px')
 
-        // Toggle open
+        // Toggle open - expands window
         btnToggle.click()
         expect(isDescriptionDrawerOpen()).toBe(true)
         expect(drawer.classList.contains('hidden')).toBe(false)
         expect(arrow.textContent).toBe('‹')
+        expect(modal.style.width).toBe('900px')
 
-        // Toggle closed
+        // Toggle closed - restores window width
         btnToggle.click()
         expect(isDescriptionDrawerOpen()).toBe(false)
         expect(drawer.classList.contains('hidden')).toBe(true)
         expect(arrow.textContent).toBe('›')
+        expect(modal.style.width).toBe('520px')
 
         // Force open via helper
         toggleDescriptionDrawer(true)
         expect(isDescriptionDrawerOpen()).toBe(true)
         expect(arrow.textContent).toBe('‹')
+        expect(modal.style.width).toBe('900px')
 
         // Force closed via helper
         toggleDescriptionDrawer(false)
         expect(isDescriptionDrawerOpen()).toBe(false)
         expect(arrow.textContent).toBe('›')
+        expect(modal.style.width).toBe('520px')
     })
 
     it('obsługuje pobieranie i ustawianie nazwy, streszczenia oraz opisu NPC', () => {
@@ -1040,5 +1055,259 @@ describe('NpcModal Floating Window Controller', () => {
         expect(typeof window.getNpcVitals).toBe('function')
         // @ts-expect-error window extension
         expect(typeof window.saveNpcCharacter).toBe('function')
+    })
+
+    it('renders dynamic rows with data-i18n attributes for placeholders and titles', () => {
+        setupNpcModal()
+        addCustomAttribute('Rasa', 'Elf')
+        addNpcStat('Siła', '14')
+        addNpcSkill('Skradanie', 'direct', '+2')
+        addNpcVital('HP', 'direct', '100')
+
+        const attrNameInput = document.querySelector('[data-attr-field="name"]') as HTMLInputElement
+        const attrValInput = document.querySelector('[data-attr-field="value"]') as HTMLInputElement
+        expect(attrNameInput.getAttribute('data-i18n-placeholder')).toBe(
+            'npc.attr_name_placeholder'
+        )
+        expect(attrValInput.getAttribute('data-i18n-placeholder')).toBe(
+            'npc.attr_value_placeholder'
+        )
+
+        const statNameInput = document.querySelector('[data-stat-field="name"]') as HTMLInputElement
+        const statValInput = document.querySelector('[data-stat-field="value"]') as HTMLInputElement
+        expect(statNameInput.getAttribute('data-i18n-placeholder')).toBe(
+            'npc.stat_name_placeholder'
+        )
+        expect(statValInput.getAttribute('data-i18n-placeholder')).toBe(
+            'npc.stat_value_placeholder'
+        )
+
+        const skillNameInput = document.querySelector(
+            '[data-skill-field="name"]'
+        ) as HTMLInputElement
+        expect(skillNameInput.getAttribute('data-i18n-placeholder')).toBe(
+            'npc.skill_name_placeholder'
+        )
+
+        const vitalNameInput = document.querySelector(
+            '[data-vital-field="name"]'
+        ) as HTMLInputElement
+        expect(vitalNameInput.getAttribute('data-i18n-placeholder')).toBe(
+            'npc.vital_name_placeholder'
+        )
+    })
+
+    it('translates dynamic row placeholders and character change label when language changes', async () => {
+        await initTranslationsWithLocale('pl')
+        setupNpcModal()
+
+        const changeLabel = document.createElement('span')
+        changeLabel.setAttribute('data-i18n', 'npc.charakter_change')
+        document.body.appendChild(changeLabel)
+
+        addCustomAttribute('Rasa', 'Elf')
+        addNpcStat('Siła', '14')
+
+        applyTranslations()
+
+        expect(changeLabel.textContent).toBe('Zmień awatar')
+        const attrNameInput = document.querySelector('[data-attr-field="name"]') as HTMLInputElement
+        expect(attrNameInput.placeholder).toBe('Atrybut (np. Rasa)')
+
+        await setLanguage('en')
+        applyTranslations()
+
+        expect(changeLabel.textContent).toBe('Change avatar')
+        expect(attrNameInput.placeholder).toBe('Attribute (e.g. Race)')
+
+        await setLanguage('de')
+        applyTranslations()
+
+        expect(changeLabel.textContent).toBe('Avatar ändern')
+        expect(attrNameInput.placeholder).toBe('Attribut (z.B. Volk)')
+    })
+
+    describe('Dual-State Data Entry Rows (Edit Mode & Read Mode)', () => {
+        it('cechy (Stats) obsługują stan edycji z dwoma polami i zatwierdzanie do stanu odczytu', () => {
+            setupNpcModal()
+            const statId = addNpcStat('Siła', '16')
+            const list = document.getElementById('npc-stats-list')!
+            let row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+
+            // Starts in Edit Mode
+            expect(row.getAttribute('data-state')).toBe('edit')
+            const nameInput = row.querySelector('[data-stat-field="name"]') as HTMLInputElement
+            const valInput = row.querySelector('[data-stat-field="value"]') as HTMLInputElement
+            const confirmBtn = row.querySelector(
+                '[data-action="confirm-stat"]'
+            ) as HTMLButtonElement
+            expect(nameInput).not.toBeNull()
+            expect(valInput).not.toBeNull()
+            expect(confirmBtn).not.toBeNull()
+            expect(nameInput.value).toBe('Siła')
+            expect(valInput.value).toBe('16')
+
+            // Click Confirm button
+            confirmBtn.click()
+
+            // Transitions to Read Mode
+            row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+            expect(row.querySelector('[data-stat-field="name"]')).toBeNull()
+            expect(row.textContent).toContain('Siła')
+            expect(row.textContent).toContain('16')
+
+            const editBtn = row.querySelector('[data-action="edit-stat"]') as HTMLButtonElement
+            expect(editBtn).not.toBeNull()
+
+            // Click Edit button to transition back to Edit Mode
+            editBtn.click()
+
+            row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+            const valInput2 = row.querySelector('[data-stat-field="value"]') as HTMLInputElement
+            expect(valInput2).not.toBeNull()
+            expect(valInput2.value).toBe('16')
+
+            // Edit value and confirm with Enter key
+            valInput2.value = '18'
+            valInput2.dispatchEvent(new Event('input', { bubbles: true }))
+            valInput2.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+
+            row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+            expect(row.textContent).toContain('18')
+
+            // Clicking the row itself in read mode also switches back to edit mode
+            row.click()
+            row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+
+            // Programmatic confirm & edit helpers
+            confirmNpcStat(statId)
+            row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+
+            editNpcStat(statId)
+            row = list.querySelector(`.npc-stat-row[data-stat-id="${statId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+        })
+
+        it('parametry (Vitals) obsługują dwustanowość z podglądem wzoru w stanie odczytu', () => {
+            setupNpcModal()
+            addNpcStat('Siła', '15')
+            const vitalId = addNpcVital('Punkty Życia', 'formula', '', 'Siła * 4 + 10')
+            const list = document.getElementById('npc-vitals-list')!
+            let row = list.querySelector(
+                `.npc-vital-row[data-vital-id="${vitalId}"]`
+            ) as HTMLElement
+
+            // Edit mode by default
+            expect(row.getAttribute('data-state')).toBe('edit')
+            const confirmBtn = row.querySelector(
+                '[data-action="confirm-vital"]'
+            ) as HTMLButtonElement
+            expect(confirmBtn).not.toBeNull()
+
+            // Confirm
+            confirmBtn.click()
+
+            // Read mode
+            row = list.querySelector(`.npc-vital-row[data-vital-id="${vitalId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+            expect(row.textContent).toContain('Punkty Życia')
+            expect(row.textContent).toContain('Siła * 4 + 10')
+            expect(row.textContent).toContain('= 70')
+
+            // Edit button switches back to edit mode
+            const editBtn = row.querySelector('[data-action="edit-vital"]') as HTMLButtonElement
+            editBtn.click()
+
+            row = list.querySelector(`.npc-vital-row[data-vital-id="${vitalId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+
+            // Helper methods
+            confirmNpcVital(vitalId)
+            row = list.querySelector(`.npc-vital-row[data-vital-id="${vitalId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+
+            editNpcVital(vitalId)
+            row = list.querySelector(`.npc-vital-row[data-vital-id="${vitalId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+        })
+
+        it('umiejętności (Skills) obsługują dwustanowość w trybie stat_mod i direct', () => {
+            setupNpcModal()
+            addNpcStat('Zręczność', '14')
+            const skillId = addNpcSkill('Skradanie', 'stat_mod', '', 'Zręczność', '+3')
+            const list = document.getElementById('npc-skills-list')!
+            let row = list.querySelector(
+                `.npc-skill-row[data-skill-id="${skillId}"]`
+            ) as HTMLElement
+
+            expect(row.getAttribute('data-state')).toBe('edit')
+            const confirmBtn = row.querySelector(
+                '[data-action="confirm-skill"]'
+            ) as HTMLButtonElement
+            confirmBtn.click()
+
+            row = list.querySelector(`.npc-skill-row[data-skill-id="${skillId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+            expect(row.textContent).toContain('Skradanie')
+            expect(row.textContent).toContain('Zręczność')
+            expect(row.textContent).toContain('+3')
+
+            // Click edit
+            const editBtn = row.querySelector('[data-action="edit-skill"]') as HTMLButtonElement
+            editBtn.click()
+
+            row = list.querySelector(`.npc-skill-row[data-skill-id="${skillId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+
+            // Helper methods
+            confirmNpcSkill(skillId)
+            row = list.querySelector(`.npc-skill-row[data-skill-id="${skillId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+
+            editNpcSkill(skillId)
+            row = list.querySelector(`.npc-skill-row[data-skill-id="${skillId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+        })
+
+        it('atrybuty tożsamości (Attributes) obsługują dwustanowość', () => {
+            setupNpcModal()
+            const attrId = addCustomAttribute('Rasa', 'Leśny Elf')
+            const list = document.getElementById('npc-custom-attributes-list')!
+            let row = list.querySelector(
+                `.npc-attribute-row[data-attr-id="${attrId}"]`
+            ) as HTMLElement
+
+            expect(row.getAttribute('data-state')).toBe('edit')
+            const confirmBtn = row.querySelector(
+                '[data-action="confirm-attribute"]'
+            ) as HTMLButtonElement
+            confirmBtn.click()
+
+            row = list.querySelector(`.npc-attribute-row[data-attr-id="${attrId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+            expect(row.textContent).toContain('Rasa')
+            expect(row.textContent).toContain('Leśny Elf')
+
+            // Click edit
+            const editBtn = row.querySelector('[data-action="edit-attribute"]') as HTMLButtonElement
+            editBtn.click()
+
+            row = list.querySelector(`.npc-attribute-row[data-attr-id="${attrId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+
+            // Helper methods
+            confirmCustomAttribute(attrId)
+            row = list.querySelector(`.npc-attribute-row[data-attr-id="${attrId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('read')
+
+            editCustomAttribute(attrId)
+            row = list.querySelector(`.npc-attribute-row[data-attr-id="${attrId}"]`) as HTMLElement
+            expect(row.getAttribute('data-state')).toBe('edit')
+        })
     })
 })

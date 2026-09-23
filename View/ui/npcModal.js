@@ -4,14 +4,23 @@
  * form inputs, and narrative drawer, delegating sub-responsibilities to specialized modules.
  */
 
+import { applyTranslations } from '../../dist/Utils/translate.js'
 import { evaluateFormula, parseStatValueAsNumber } from './npcModal/formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcModal/npcCharacterSaver.js'
-import { clampModalPosition, initDraggable } from './npcModal/npcDraggable.js'
+import { clampModalPosition, initDraggable, initResizable } from './npcModal/npcDraggable.js'
 import {
     addCustomAttribute,
     addNpcSkill,
     addNpcStat,
     addNpcVital,
+    confirmCustomAttribute,
+    confirmNpcSkill,
+    confirmNpcStat,
+    confirmNpcVital,
+    editCustomAttribute,
+    editNpcSkill,
+    editNpcStat,
+    editNpcVital,
     initAvatarGrid,
     removeCustomAttribute,
     removeNpcSkill,
@@ -33,6 +42,14 @@ export {
     addNpcSkill,
     addNpcStat,
     addNpcVital,
+    confirmCustomAttribute,
+    confirmNpcSkill,
+    confirmNpcStat,
+    confirmNpcVital,
+    editCustomAttribute,
+    editNpcSkill,
+    editNpcStat,
+    editNpcVital,
     evaluateFormula,
     parseStatValueAsNumber,
     removeCustomAttribute,
@@ -99,6 +116,7 @@ export const setSelectedAvatarId = id => updateSelectedAvatarPreview(id)
 
 /**
  * Toggles or explicitly sets the expansion state of the narrative description side drawer.
+ * Automatically expands or restores modal window width so the character sheet doesn't get squeezed.
  *
  * @param {boolean} [forceState]
  */
@@ -125,14 +143,54 @@ export function toggleDescriptionDrawer(forceState) {
         if (btnToggle) {
             btnToggle.setAttribute('title', 'Zwiń panel opisu narracyjnego')
         }
+
         if (modal) {
+            const drawerWidth = drawer.offsetWidth || 380
+            const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 860
+            modal.dataset.widthBeforeDrawer = String(currentWidth)
+
+            const maxAllowedWidth =
+                typeof window !== 'undefined' && window.innerWidth
+                    ? Math.floor(window.innerWidth * 0.96)
+                    : 1600
+            const targetWidth = Math.min(currentWidth + drawerWidth, maxAllowedWidth)
+
+            modal.style.width = `${targetWidth}px`
+
+            // If expanding pushes window outside viewport on the right, shift it left
+            const currentLeft = parseInt(modal.style.left, 10) || modal.offsetLeft || 0
+            if (
+                typeof window !== 'undefined' &&
+                window.innerWidth &&
+                currentLeft + targetWidth + 15 > window.innerWidth
+            ) {
+                const rightOverflow = currentLeft + targetWidth + 15 - window.innerWidth
+                const newLeft = Math.max(10, currentLeft - rightOverflow)
+                modal.style.left = `${newLeft}px`
+            }
+
             clampModalPosition(modal)
         }
     } else {
+        const wasOpen = !drawer.classList.contains('hidden')
         drawer.classList.add('hidden')
         if (arrow) arrow.textContent = '›'
         if (btnToggle) {
             btnToggle.setAttribute('title', 'Rozwiń panel opisu narracyjnego')
+        }
+
+        if (modal && wasOpen) {
+            const drawerWidth = 380
+            if (modal.dataset.widthBeforeDrawer) {
+                modal.style.width = `${modal.dataset.widthBeforeDrawer}px`
+                delete modal.dataset.widthBeforeDrawer
+            } else {
+                const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 1240
+                const newWidth = Math.max(500, currentWidth - drawerWidth)
+                modal.style.width = `${newWidth}px`
+            }
+
+            clampModalPosition(modal)
         }
     }
 }
@@ -156,11 +214,19 @@ export function openNpcModal() {
 
     modal.classList.remove('hidden')
 
+    try {
+        if (typeof applyTranslations === 'function') {
+            applyTranslations()
+        }
+    } catch {
+        // ignore
+    }
+
     if (!state.getHasBeenPositioned()) {
-        const modalWidth = modal.offsetWidth || 520
-        const modalHeight = modal.offsetHeight || 380
+        const modalWidth = modal.offsetWidth || 860
+        const modalHeight = modal.offsetHeight || 580
         const defaultLeft = Math.max(20, Math.floor((window.innerWidth - modalWidth) / 2))
-        const defaultTop = Math.max(60, Math.floor((window.innerHeight - modalHeight) / 3))
+        const defaultTop = Math.max(40, Math.floor((window.innerHeight - modalHeight) / 3))
 
         modal.style.left = `${defaultLeft}px`
         modal.style.top = `${defaultTop}px`
@@ -319,8 +385,13 @@ export function setupNpcModal(ctx) {
     const btnCloseModal = document.getElementById('btn-close-npc-modal')
     const btnToggleDesc = document.getElementById('btn-toggle-npc-description')
 
-    // Initialize dragging mechanism
+    // Initialize dragging and resizing mechanisms
     initDraggable(modal, header)
+
+    const resizer = document.getElementById('npc-modal-resizer')
+    if (resizer) {
+        initResizable(modal, resizer, { minWidth: 700, minHeight: 520 })
+    }
 
     // Initialize fantasy avatar picker grid & preview
     initAvatarGrid()
@@ -535,12 +606,16 @@ export function setupNpcModal(ctx) {
         getCustomAttributes,
         setCustomAttributes,
         addCustomAttribute,
+        confirmCustomAttribute,
+        editCustomAttribute,
         removeCustomAttribute,
         clearCustomAttributes,
         renderCustomAttributes,
         getNpcStats,
         setNpcStats,
         addNpcStat,
+        confirmNpcStat,
+        editNpcStat,
         removeNpcStat,
         clearNpcStats,
         renderNpcStats,
@@ -549,12 +624,16 @@ export function setupNpcModal(ctx) {
         getNpcSkills,
         setNpcSkills,
         addNpcSkill,
+        confirmNpcSkill,
+        editNpcSkill,
         removeNpcSkill,
         clearNpcSkills,
         renderNpcSkills,
         getNpcVitals,
         setNpcVitals,
         addNpcVital,
+        confirmNpcVital,
+        editNpcVital,
         removeNpcVital,
         clearNpcVitals,
         renderNpcVitals,

@@ -36,6 +36,7 @@ export function setCustomAttributes(attributes) {
             id: a.id || `attr_${Date.now()}_${i}`,
             name: a.name || '',
             value: a.value || '',
+            isEditing: a.isEditing !== undefined ? a.isEditing : false,
         }))
     }
 }
@@ -44,9 +45,9 @@ export function clearCustomAttributes() {
     customAttributes = []
 }
 
-export function addCustomAttributeState(name = '', value = '') {
+export function addCustomAttributeState(name = '', value = '', isEditing = true) {
     const id = `attr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    customAttributes.push({ id, name, value })
+    customAttributes.push({ id, name, value, isEditing })
     return id
 }
 
@@ -79,6 +80,7 @@ export function setNpcStats(stats) {
             id: s.id || `stat_${Date.now()}_${i}`,
             name: s.name || '',
             value: s.value || '',
+            isEditing: s.isEditing !== undefined ? s.isEditing : false,
         }))
     }
 }
@@ -87,9 +89,9 @@ export function clearNpcStats() {
     npcStats = []
 }
 
-export function addNpcStatState(name = '', value = '') {
+export function addNpcStatState(name = '', value = '', isEditing = true) {
     const id = `stat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    npcStats.push({ id, name, value })
+    npcStats.push({ id, name, value, isEditing })
     return id
 }
 
@@ -148,6 +150,7 @@ export function setNpcSkills(skills) {
             value: s.value || '',
             statName: s.statName || '',
             modifier: s.modifier || '',
+            isEditing: s.isEditing !== undefined ? s.isEditing : false,
         }))
     }
 }
@@ -161,10 +164,11 @@ export function addNpcSkillState(
     mode = 'direct',
     value = '',
     statName = '',
-    modifier = ''
+    modifier = '',
+    isEditing = true
 ) {
     const id = `skill_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    npcSkills.push({ id, name, mode, value, statName, modifier })
+    npcSkills.push({ id, name, mode, value, statName, modifier, isEditing })
     return id
 }
 
@@ -211,6 +215,7 @@ export function setNpcVitals(vitals) {
             mode: v.mode || 'direct',
             value: v.value || '',
             formula: v.formula || '',
+            isEditing: v.isEditing !== undefined ? v.isEditing : false,
         }))
     }
 }
@@ -219,9 +224,15 @@ export function clearNpcVitals() {
     npcVitals = []
 }
 
-export function addNpcVitalState(name = '', mode = 'direct', value = '', formula = '') {
+export function addNpcVitalState(
+    name = '',
+    mode = 'direct',
+    value = '',
+    formula = '',
+    isEditing = true
+) {
     const id = `vital_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    npcVitals.push({ id, name, mode, value, formula })
+    npcVitals.push({ id, name, mode, value, formula, isEditing })
     return id
 }
 
