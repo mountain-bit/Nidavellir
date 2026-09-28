@@ -12,6 +12,7 @@ import {
     addCustomAttribute,
     addNpcSkill,
     addNpcStat,
+    addNpcTag,
     addNpcVital,
     confirmCustomAttribute,
     confirmNpcSkill,
@@ -22,13 +23,17 @@ import {
     editNpcStat,
     editNpcVital,
     initAvatarGrid,
+    initNpcTagsController,
     removeCustomAttribute,
     removeNpcSkill,
     removeNpcStat,
+    removeNpcTag,
     removeNpcVital,
     renderCustomAttributes,
+    renderDynamicSuggestions,
     renderNpcSkills,
     renderNpcStats,
+    renderNpcTags,
     renderNpcVitals,
     updateSelectedAvatarPreview,
     updateSkillStatDropdowns,
@@ -41,6 +46,7 @@ export {
     addCustomAttribute,
     addNpcSkill,
     addNpcStat,
+    addNpcTag,
     addNpcVital,
     confirmCustomAttribute,
     confirmNpcSkill,
@@ -51,14 +57,18 @@ export {
     editNpcStat,
     editNpcVital,
     evaluateFormula,
+    initNpcTagsController,
     parseStatValueAsNumber,
     removeCustomAttribute,
     removeNpcSkill,
     removeNpcStat,
+    removeNpcTag,
     removeNpcVital,
     renderCustomAttributes,
+    renderDynamicSuggestions,
     renderNpcSkills,
     renderNpcStats,
+    renderNpcTags,
     renderNpcVitals,
     updateSelectedAvatarPreview,
     updateSkillStatDropdowns,
@@ -113,6 +123,16 @@ export const clearNpcVitals = () => {
 
 export const getSelectedAvatarId = state.getCurrentAvatarId
 export const setSelectedAvatarId = id => updateSelectedAvatarPreview(id)
+
+export const getNpcTags = state.getNpcTags
+export const setNpcTags = tags => {
+    state.setNpcTags(tags)
+    renderNpcTags()
+}
+export const clearNpcTags = () => {
+    state.clearNpcTags()
+    renderNpcTags()
+}
 
 /**
  * Toggles or explicitly sets the expansion state of the narrative description side drawer.
@@ -221,6 +241,9 @@ export function openNpcModal() {
     } catch {
         // ignore
     }
+
+    renderDynamicSuggestions(state.getActiveCtx())
+    renderNpcTags()
 
     if (!state.getHasBeenPositioned()) {
         const modalWidth = modal.offsetWidth || 860
@@ -337,6 +360,7 @@ export function resetNpcModalForm() {
     renderNpcStats()
     renderNpcSkills()
     renderNpcVitals()
+    renderNpcTags()
 
     const errorBox = document.getElementById('npc-create-error-message')
     if (errorBox) errorBox.classList.add('hidden')
@@ -348,6 +372,9 @@ export function resetNpcModalForm() {
 
     const popover = document.getElementById('npc-avatar-picker-popover')
     if (popover) popover.classList.add('hidden')
+
+    const tagPopover = document.getElementById('npc-tag-picker-popover')
+    if (tagPopover) tagPopover.classList.add('hidden')
 }
 
 /**
@@ -396,6 +423,9 @@ export function setupNpcModal(ctx) {
     // Initialize fantasy avatar picker grid & preview
     initAvatarGrid()
 
+    // Initialize character tags controller
+    initNpcTagsController(ctx)
+
     // Initialize side drawer toggle
     if (btnToggleDesc) {
         btnToggleDesc.addEventListener('click', e => {
@@ -442,6 +472,16 @@ export function setupNpcModal(ctx) {
                 popover.classList.add('hidden')
             }
         }
+        const tagPopover = document.getElementById('npc-tag-picker-popover')
+        const tagTriggerBtn = document.getElementById('btn-add-npc-tag')
+        if (tagPopover && !tagPopover.classList.contains('hidden')) {
+            if (
+                !tagPopover.contains(e.target) &&
+                (!tagTriggerBtn || !tagTriggerBtn.contains(e.target))
+            ) {
+                tagPopover.classList.add('hidden')
+            }
+        }
     }
     state.setGlobalOutsideClickHandler(outsideClickHandler)
     document.addEventListener('click', outsideClickHandler)
@@ -458,6 +498,11 @@ export function setupNpcModal(ctx) {
                 popover.classList.add('hidden')
                 return
             }
+            const tagPopover = document.getElementById('npc-tag-picker-popover')
+            if (tagPopover && !tagPopover.classList.contains('hidden')) {
+                tagPopover.classList.add('hidden')
+                return
+            }
             if (modal && !modal.classList.contains('hidden')) {
                 closeNpcModal()
             }
@@ -465,6 +510,9 @@ export function setupNpcModal(ctx) {
     }
     state.setGlobalKeydownHandler(keydownHandler)
     document.addEventListener('keydown', keydownHandler)
+
+    // Populate dynamic suggestions
+    renderDynamicSuggestions(ctx)
 
     // Custom attributes setup
     const btnAddAttr = document.getElementById('btn-add-custom-attribute')
@@ -474,16 +522,6 @@ export function setupNpcModal(ctx) {
             addCustomAttribute('', '')
         })
     }
-
-    document.querySelectorAll('.npc-preset-chip').forEach(chip => {
-        chip.addEventListener('click', e => {
-            e.preventDefault()
-            const presetName = chip.dataset.presetName
-            if (presetName) {
-                addCustomAttribute(presetName, '', true)
-            }
-        })
-    })
 
     renderCustomAttributes()
 
@@ -496,16 +534,6 @@ export function setupNpcModal(ctx) {
         })
     }
 
-    document.querySelectorAll('.npc-stat-preset-chip').forEach(chip => {
-        chip.addEventListener('click', e => {
-            e.preventDefault()
-            const presetStat = chip.dataset.presetStat
-            if (presetStat) {
-                addNpcStat(presetStat, '', true)
-            }
-        })
-    })
-
     renderNpcStats()
 
     // Skills setup
@@ -517,16 +545,6 @@ export function setupNpcModal(ctx) {
         })
     }
 
-    document.querySelectorAll('.npc-skill-preset-chip').forEach(chip => {
-        chip.addEventListener('click', e => {
-            e.preventDefault()
-            const presetSkill = chip.dataset.presetSkill
-            if (presetSkill) {
-                addNpcSkill(presetSkill, 'direct', '')
-            }
-        })
-    })
-
     renderNpcSkills()
 
     // Vitals setup
@@ -537,22 +555,6 @@ export function setupNpcModal(ctx) {
             addNpcVital('', 'direct', '')
         })
     }
-
-    document.querySelectorAll('.npc-vital-preset-chip').forEach(chip => {
-        chip.addEventListener('click', e => {
-            e.preventDefault()
-            const presetVital = chip.dataset.presetVital
-            if (presetVital) {
-                if (presetVital === 'Punkty Życia (HP)') {
-                    addNpcVital(presetVital, 'formula', '', 'Siła * 4 + 10', true)
-                } else if (presetVital === 'Mana') {
-                    addNpcVital(presetVital, 'formula', '', 'Inteligencja * 3', true)
-                } else {
-                    addNpcVital(presetVital, 'direct', '10', '', true)
-                }
-            }
-        })
-    })
 
     renderNpcVitals()
 

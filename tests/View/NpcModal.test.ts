@@ -1,16 +1,23 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { Feature } from '../../Model/Feature'
 import { NPC } from '../../Model/NPC'
+import { Parameter } from '../../Model/Parameter'
+import { Skill } from '../../Model/Skill'
+import { Stat } from '../../Model/Stat'
+import { Tag } from '../../Model/Tag'
 import { applyTranslations, initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
 import {
     addCustomAttribute,
     addNpcSkill,
     addNpcStat,
+    addNpcTag,
     addNpcVital,
     clearCustomAttributes,
     clearNpcSkills,
     clearNpcStats,
+    clearNpcTags,
     clearNpcVitals,
     closeNpcModal,
     confirmCustomAttribute,
@@ -29,6 +36,7 @@ import {
     getNpcSkills,
     getNpcStats,
     getNpcSummary,
+    getNpcTags,
     getNpcVitals,
     getSelectedAvatarId,
     isDescriptionDrawerOpen,
@@ -38,6 +46,7 @@ import {
     removeNpcSkill,
     removeNpcStat,
     removeNpcVital,
+    renderDynamicSuggestions,
     resetNpcModalForm,
     saveNpcCharacter,
     setCustomAttributes,
@@ -83,34 +92,67 @@ describe('NpcModal Floating Window Controller', () => {
 
                                 <div id="npc-custom-attributes-section">
                                     <button id="btn-add-custom-attribute" type="button">Dodaj pole</button>
-                                    <button type="button" class="npc-preset-chip" data-preset-name="Rasa">Rasa</button>
-                                    <button type="button" class="npc-preset-chip" data-preset-name="Zawód">Zawód</button>
-                                    <button type="button" class="npc-preset-chip" data-preset-name="Rola">Rola</button>
+                                    <div id="npc-suggested-attributes-container">
+                                        <div id="npc-suggested-attributes">
+                                            <button type="button" class="npc-preset-chip" data-preset-name="Rasa">Rasa</button>
+                                            <button type="button" class="npc-preset-chip" data-preset-name="Zawód">Zawód</button>
+                                            <button type="button" class="npc-preset-chip" data-preset-name="Rola">Rola</button>
+                                        </div>
+                                    </div>
                                     <div id="npc-custom-attributes-list"></div>
                                     <div id="npc-custom-attributes-empty">Brak atrybutów</div>
                                 </div>
 
+                                <div id="npc-tags-section">
+                                    <button id="btn-add-npc-tag" type="button">Dodaj tag</button>
+                                    <div id="npc-tag-picker-popover" class="hidden">
+                                        <input type="text" id="npc-tag-search-input" />
+                                        <div id="npc-available-tags-list"></div>
+                                        <div id="npc-create-tag-action" class="hidden">
+                                            <span id="npc-new-tag-preview-name"></span>
+                                            <button type="button" id="btn-create-new-npc-tag">+ Utwórz</button>
+                                        </div>
+                                    </div>
+                                    <div id="npc-suggested-tags-container">
+                                        <div id="npc-suggested-tags"></div>
+                                    </div>
+                                    <div id="npc-tags-list"></div>
+                                    <div id="npc-tags-empty">Brak przypisanych tagów.</div>
+                                </div>
+
                                 <div id="npc-stats-section">
                                     <button id="btn-add-npc-stat" type="button">Dodaj cechę</button>
-                                    <button type="button" class="npc-stat-preset-chip" data-preset-stat="Siła">Siła</button>
-                                    <button type="button" class="npc-stat-preset-chip" data-preset-stat="Zręczność">Zręczność</button>
+                                    <div id="npc-suggested-stats-container">
+                                        <div id="npc-suggested-stats">
+                                            <button type="button" class="npc-stat-preset-chip" data-preset-stat="Siła">Siła</button>
+                                            <button type="button" class="npc-stat-preset-chip" data-preset-stat="Zręczność">Zręczność</button>
+                                        </div>
+                                    </div>
                                     <div id="npc-stats-list"></div>
                                     <div id="npc-stats-empty">Brak cech</div>
                                 </div>
 
                                 <div id="npc-skills-section">
                                     <button id="btn-add-npc-skill" type="button">Dodaj umiejętność</button>
-                                    <button type="button" class="npc-skill-preset-chip" data-preset-skill="Walka wręcz">Walka wręcz</button>
-                                    <button type="button" class="npc-skill-preset-chip" data-preset-skill="Skradanie">Skradanie</button>
+                                    <div id="npc-suggested-skills-container">
+                                        <div id="npc-suggested-skills">
+                                            <button type="button" class="npc-skill-preset-chip" data-preset-skill="Walka wręcz">Walka wręcz</button>
+                                            <button type="button" class="npc-skill-preset-chip" data-preset-skill="Skradanie">Skradanie</button>
+                                        </div>
+                                    </div>
                                     <div id="npc-skills-list"></div>
                                     <div id="npc-skills-empty">Brak umiejętności</div>
                                 </div>
 
                                 <div id="npc-vitals-section">
                                     <button id="btn-add-npc-vital" type="button">Dodaj parametr</button>
-                                    <button type="button" class="npc-vital-preset-chip" data-preset-vital="Punkty Życia (HP)">+ Punkty Życia (HP)</button>
-                                    <button type="button" class="npc-vital-preset-chip" data-preset-vital="Mana">+ Mana</button>
-                                    <button type="button" class="npc-vital-preset-chip" data-preset-vital="Kondycja">+ Kondycja</button>
+                                    <div id="npc-suggested-vitals-container">
+                                        <div id="npc-suggested-vitals">
+                                            <button type="button" class="npc-vital-preset-chip" data-preset-vital="Punkty Życia (HP)">+ Punkty Życia (HP)</button>
+                                            <button type="button" class="npc-vital-preset-chip" data-preset-vital="Mana">+ Mana</button>
+                                            <button type="button" class="npc-vital-preset-chip" data-preset-vital="Kondycja">+ Kondycja</button>
+                                        </div>
+                                    </div>
                                     <div id="npc-vitals-list"></div>
                                     <div id="npc-vitals-empty">Brak parametrów</div>
                                 </div>
@@ -1308,6 +1350,282 @@ describe('NpcModal Floating Window Controller', () => {
             editCustomAttribute(attrId)
             row = list.querySelector(`.npc-attribute-row[data-attr-id="${attrId}"]`) as HTMLElement
             expect(row.getAttribute('data-state')).toBe('edit')
+        })
+    })
+
+    describe('Etap 2: Tagi postaci, dynamiczne sugestie i globalna rejestracja obiektów', () => {
+        it('obsługuje dodawanie, usuwanie i czyszczenie tagów w stanie i w UI', () => {
+            setupNpcModal()
+            expect(getNpcTags()).toEqual([])
+
+            const tagId = addNpcTag('Sojusznik', '#10b981')
+            expect(tagId).toBeTruthy()
+            expect(getNpcTags()).toHaveLength(1)
+            expect(getNpcTags()[0].name).toBe('Sojusznik')
+            expect(getNpcTags()[0].color).toBe('#10b981')
+
+            const list = document.getElementById('npc-tags-list')!
+            expect(list.children.length).toBe(1)
+            expect(list.textContent).toContain('Sojusznik')
+
+            // Dodanie drugiego taga
+            addNpcTag('Kupiec', '#f59e0b')
+            expect(getNpcTags()).toHaveLength(2)
+
+            // Usunięcie taga przez kliknięcie krzyżyka
+            const removeBtn = list.querySelector(
+                `[data-action="remove-npc-tag"][data-tag-id="${tagId}"]`
+            ) as HTMLButtonElement
+            expect(removeBtn).toBeTruthy()
+            removeBtn.click()
+
+            expect(getNpcTags()).toHaveLength(1)
+            expect(getNpcTags()[0].name).toBe('Kupiec')
+
+            // Czyszczenie tagów
+            clearNpcTags()
+            expect(getNpcTags()).toEqual([])
+            expect(list.children.length).toBe(0)
+            const emptyNotice = document.getElementById('npc-tags-empty')!
+            expect(emptyNotice.classList.contains('hidden')).toBe(false)
+        })
+
+        it('obsługuje popover wyboru i tworzenia tagów w modalu NPC', () => {
+            const mockProjectTags = [
+                new Tag('tag-1', 'Wróg', '#ef4444'),
+                new Tag('tag-2', 'Boss', '#8b5cf6'),
+            ]
+            const ctx = { projectTags: mockProjectTags }
+            setupNpcModal(ctx)
+
+            const btnAddTag = document.getElementById('btn-add-npc-tag')!
+            const popover = document.getElementById('npc-tag-picker-popover')!
+            expect(popover.classList.contains('hidden')).toBe(true)
+
+            // Kliknięcie "Dodaj tag" otwiera popover
+            btnAddTag.click()
+            expect(popover.classList.contains('hidden')).toBe(false)
+
+            const availableList = document.getElementById('npc-available-tags-list')!
+            expect(availableList.textContent).toContain('Wróg')
+            expect(availableList.textContent).toContain('Boss')
+
+            // Wybór istniejącego taga z listy
+            const enemyTagBtn = availableList.querySelector(
+                '[data-action="select-available-tag"][data-tag-name="Wróg"]'
+            ) as HTMLButtonElement
+            expect(enemyTagBtn).toBeTruthy()
+            enemyTagBtn.click()
+
+            expect(getNpcTags().some(t => t.name === 'Wróg')).toBe(true)
+
+            // Wpisanie nowej nazwy w wyszukiwarkę i utworzenie nowego taga
+            const searchInput = document.getElementById('npc-tag-search-input') as HTMLInputElement
+            searchInput.value = 'Strażnik'
+            searchInput.dispatchEvent(new Event('input'))
+
+            const createAction = document.getElementById('npc-create-tag-action')!
+            expect(createAction.classList.contains('hidden')).toBe(false)
+
+            const btnCreateNew = document.getElementById(
+                'btn-create-new-npc-tag'
+            ) as HTMLButtonElement
+            btnCreateNew.click()
+
+            expect(getNpcTags().some(t => t.name === 'Strażnik')).toBe(true)
+            expect(popover.classList.contains('hidden')).toBe(true)
+        })
+
+        it('renderuje dynamiczne sugestie pobrane z ViewModel / aplikacji', () => {
+            const mockVm = {
+                getSuggestedStats: (): string[] => ['Siła', 'Mądrość', 'Zwrotność'],
+                getSuggestedParameters: (): string[] => ['Punkty Życia (HP)', 'Tarcza Energii'],
+                getSuggestedSkills: (): string[] => ['Alchemia', 'Strzelectwo'],
+                getSuggestedFeatures: (): string[] => ['Frakcja', 'Archetyp'],
+                getSuggestedTags: (): string[] => ['VIP', 'Kluczowy'],
+            }
+            const ctx = { vm: mockVm }
+
+            renderDynamicSuggestions(ctx)
+
+            const statsContainer = document.getElementById('npc-suggested-stats')!
+            expect(statsContainer.textContent).toContain('Zwrotność')
+
+            const vitalsContainer = document.getElementById('npc-suggested-vitals')!
+            expect(vitalsContainer.textContent).toContain('Tarcza Energii')
+
+            const skillsContainer = document.getElementById('npc-suggested-skills')!
+            expect(skillsContainer.textContent).toContain('Alchemia')
+
+            const attrsContainer = document.getElementById('npc-suggested-attributes')!
+            expect(attrsContainer.textContent).toContain('Archetyp')
+
+            const tagsContainer = document.getElementById('npc-suggested-tags')!
+            expect(tagsContainer.textContent).toContain('VIP')
+
+            // Kliknięcie w chip sugestii cechy
+            const statChip = statsContainer.querySelector(
+                '.npc-stat-preset-chip[data-preset-stat="Zwrotność"]'
+            ) as HTMLButtonElement
+            expect(statChip).toBeTruthy()
+            statChip.click()
+            expect(getNpcStats().some(s => s.name === 'Zwrotność')).toBe(true)
+
+            // Kliknięcie w chip sugestii taga
+            const tagChip = tagsContainer.querySelector(
+                '.npc-tag-preset-chip[data-preset-tag="VIP"]'
+            ) as HTMLButtonElement
+            expect(tagChip).toBeTruthy()
+            tagChip.click()
+            expect(getNpcTags().some(t => t.name === 'VIP')).toBe(true)
+        })
+
+        it('saveNpcCharacter tworzy instancje domenowe oraz rejestruje unikalne cechy, parametry, umiejętności i tagi globalnie', () => {
+            const addedCharacters: NPC[] = []
+            const addedStats: Stat[] = []
+            const addedParams: Parameter[] = []
+            const addedSkills: Skill[] = []
+            const addedTags: Tag[] = []
+
+            const mockProject = {
+                addCharacter: (c: NPC): void => {
+                    addedCharacters.push(c)
+                },
+                addStat: (s: Stat): void => {
+                    addedStats.push(s)
+                },
+                addGlobalParameter: (p: Parameter): void => {
+                    addedParams.push(p)
+                },
+                addSkill: (sk: Skill): void => {
+                    addedSkills.push(sk)
+                },
+                addTag: (t: Tag): void => {
+                    addedTags.push(t)
+                },
+                getStats: (): Stat[] => [],
+                getGlobalParameters: (): Parameter[] => [],
+                getSkills: (): Skill[] => [],
+                getTags: (): Tag[] => [],
+                getCharacters: (): NPC[] => [],
+            }
+
+            const mockVm = {
+                project: mockProject,
+                createCharacter: (name: string): NPC => new NPC('npc-1', name),
+                createStat: (name: string): Stat => new Stat('st-1', name),
+                createParameter: (
+                    name: string,
+                    mode?: unknown,
+                    val?: unknown,
+                    formula?: unknown
+                ): Parameter =>
+                    new Parameter(
+                        'param-1',
+                        name,
+                        undefined,
+                        mode as never,
+                        val as never,
+                        formula as never
+                    ),
+                createSkill: (
+                    name: string,
+                    mode?: unknown,
+                    val?: unknown,
+                    statName?: unknown,
+                    mod?: unknown
+                ): Skill =>
+                    new Skill(
+                        'sk-1',
+                        name,
+                        undefined,
+                        mode as never,
+                        val as never,
+                        statName as never,
+                        mod as never
+                    ),
+                createFeature: (name: string, _desc?: string): Feature => new Feature('f-1', name),
+                createTag: (name: string, color?: string): Tag => new Tag('t-1', name, color),
+            }
+
+            const projectStats: Stat[] = []
+            const projectParameters: Parameter[] = []
+            const projectSkills: Skill[] = []
+            const projectTags: Tag[] = []
+            const projectCharacters: NPC[] = []
+
+            let refreshedCharacters = false
+            let refreshedTraits = false
+
+            const ctx = {
+                vm: mockVm,
+                projectStats,
+                projectParameters,
+                projectSkills,
+                projectTags,
+                projectCharacters,
+                renderCharactersList: (): void => {
+                    refreshedCharacters = true
+                },
+                renderTraitsList: (): void => {
+                    refreshedTraits = true
+                },
+            }
+
+            setupNpcModal(ctx)
+
+            // Wypełniamy formularz
+            const nameInput = document.getElementById('npc-name-input') as HTMLInputElement
+            nameInput.value = 'Mistrz Varis'
+
+            addNpcStat('Zręczność', '18')
+            addNpcVital('Punkty Życia (HP)', 'formula', '', 'Siła * 4 + 10')
+            addNpcSkill('Akrobatyka', 'stat_mod', '', 'Zręczność', '+4')
+            addCustomAttribute('Tytuł', 'Arcymag')
+            addNpcTag('Elitarny', '#ec4899')
+
+            // Zapisujemy postać
+            const character = saveNpcCharacter(ctx)
+
+            expect(character).toBeTruthy()
+            expect(character!.getName()).toBe('Mistrz Varis')
+
+            // 1. Sprawdzenie instancji domenowych w postaci
+            const stats = character!.getStats()
+            expect(stats.length).toBe(1)
+            expect(stats[0].getName()).toBe('Zręczność')
+            expect(stats[0].getValue()).toBe('18')
+
+            const params = character!.getParameters()
+            expect(params.length).toBe(1)
+            expect(params[0].getName()).toBe('Punkty Życia (HP)')
+            expect(params[0].getFormula()).toBe('Siła * 4 + 10')
+
+            const skills = character!.getSkills()
+            expect(skills.length).toBe(1)
+            expect(skills[0].getName()).toBe('Akrobatyka')
+
+            const tags = character!.getTags()
+            expect(tags.length).toBe(1)
+            expect(tags[0].getName()).toBe('Elitarny')
+
+            // 2. Sprawdzenie globalnej rejestracji w projekcie
+            expect(projectStats.some(s => s.getName() === 'Zręczność')).toBe(true)
+            expect(projectParameters.some(p => p.getName() === 'Punkty Życia (HP)')).toBe(true)
+            expect(projectSkills.some(sk => sk.getName() === 'Akrobatyka')).toBe(true)
+            expect(projectTags.some(t => t.getName() === 'Elitarny')).toBe(true)
+            expect(projectCharacters).toHaveLength(1)
+
+            expect(addedStats.some((s: Stat) => s.getName() === 'Zręczność')).toBe(true)
+            expect(addedParams.some((p: Parameter) => p.getName() === 'Punkty Życia (HP)')).toBe(
+                true
+            )
+            expect(addedSkills.some((sk: Skill) => sk.getName() === 'Akrobatyka')).toBe(true)
+            expect(addedTags.some((t: Tag) => t.getName() === 'Elitarny')).toBe(true)
+
+            // 3. Sprawdzenie odświeżenia UI
+            expect(refreshedCharacters).toBe(true)
+            expect(refreshedTraits).toBe(true)
         })
     })
 })

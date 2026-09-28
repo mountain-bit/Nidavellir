@@ -1625,14 +1625,16 @@
                                             </button>
                                         </div>
 
-                                        <!-- Quick Suggestion Pills -->
-                                        <div class="flex flex-wrap items-center gap-1">
-                                            <span class="text-[10px] text-zinc-500 font-medium mr-0.5" data-i18n="npc.suggestions_label">Sugestie:</span>
-                                            <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-name="Rasa">+ <span data-i18n="npc.presets.race">Rasa</span></button>
-                                            <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-name="Zawód">+ <span data-i18n="npc.presets.profession">Zawód</span></button>
-                                            <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-name="Rola">+ <span data-i18n="npc.presets.role">Rola</span></button>
-                                            <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-name="Frakcja">+ <span data-i18n="npc.presets.faction">Frakcja</span></button>
-                                            <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-name="Nastawienie">+ <span data-i18n="npc.presets.alignment">Nastawienie</span></button>
+                                        <!-- Quick Suggestion Pills (Horizontal Scrollable) -->
+                                        <div id="npc-suggested-attributes-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                            <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                            <div id="npc-suggested-attributes" class="flex items-center gap-1 flex-nowrap shrink-0">
+                                                <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-name="Rasa">+ <span data-i18n="npc.presets.race">Rasa</span></button>
+                                                <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-name="Zawód">+ <span data-i18n="npc.presets.profession">Zawód</span></button>
+                                                <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-name="Rola">+ <span data-i18n="npc.presets.role">Rola</span></button>
+                                                <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-name="Frakcja">+ <span data-i18n="npc.presets.faction">Frakcja</span></button>
+                                                <button type="button" class="npc-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-name="Nastawienie">+ <span data-i18n="npc.presets.alignment">Nastawienie</span></button>
+                                            </div>
                                         </div>
 
                                         <!-- Dynamic Attributes List -->
@@ -1677,6 +1679,71 @@
                                 ></textarea>
                             </div>
 
+                            <!-- Tags Section (Tagi postaci) -->
+                            <div id="npc-tags-section" class="flex flex-col gap-2 pb-4 border-b border-zinc-800 relative">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-blue-400 text-xs">🏷</span>
+                                        <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.tags_title">
+                                            Tagi postaci
+                                        </h4>
+                                    </div>
+                                    <div class="relative">
+                                        <button
+                                            id="btn-add-npc-tag"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-200 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="npc.add_tag">Dodaj tag</span>
+                                        </button>
+                                        <!-- Tag Picker Popover -->
+                                        <div
+                                            id="npc-tag-picker-popover"
+                                            class="hidden absolute right-0 top-full mt-2 w-72 bg-[#1c1c20] border border-blue-500/30 rounded-xl p-3 shadow-2xl flex flex-col gap-2.5 z-30"
+                                        >
+                                            <div class="flex items-center justify-between border-b border-zinc-800 pb-1.5">
+                                                <span class="text-[11px] font-semibold text-blue-200 uppercase tracking-wider" data-i18n="npc.select_tag">
+                                                    Przypisz lub stwórz tag
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                id="npc-tag-search-input"
+                                                placeholder="Wpisz lub wyszukaj tag..."
+                                                data-i18n-placeholder="npc.search_tag_placeholder"
+                                                class="w-full bg-zinc-950/70 border border-zinc-700 focus:border-blue-500 rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                                            />
+                                            <div id="npc-available-tags-list" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto custom-scrollbar p-1"></div>
+                                            <div id="npc-create-tag-action" class="hidden pt-2 border-t border-zinc-800 flex items-center justify-between gap-2">
+                                                <span class="text-[11px] text-zinc-300 truncate font-medium" id="npc-new-tag-preview-name">Nowy tag</span>
+                                                <button
+                                                    type="button"
+                                                    id="btn-create-new-npc-tag"
+                                                    class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold cursor-pointer shrink-0 transition-colors shadow-sm"
+                                                >
+                                                    + Utwórz i dodaj
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Horizontal scrollable suggested tags -->
+                                <div id="npc-suggested-tags-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-0.5 scroll-smooth max-w-full">
+                                    <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                    <div id="npc-suggested-tags" class="flex items-center gap-1 flex-nowrap shrink-0"></div>
+                                </div>
+
+                                <!-- Selected tags list -->
+                                <div id="npc-tags-list" class="flex flex-wrap items-center gap-1.5 min-h-[22px]"></div>
+
+                                <!-- Empty State -->
+                                <div id="npc-tags-empty" class="text-[10px] text-zinc-500 italic" data-i18n="npc.empty_tags">
+                                    Brak przypisanych tagów. Kliknij „Dodaj tag” lub wybierz z sugestii powyżej.
+                                </div>
+                            </div>
+
                             <!-- Bottom Section: Full-Width Character Mechanics (Continuous Sheet, No Tiles) -->
                             <div class="flex flex-col gap-4">
                                 <!-- Stats Section (Cechy Bazowe) - Full Width -->
@@ -1698,16 +1765,18 @@
                                         </button>
                                     </div>
 
-                                    <!-- Preset Chips -->
-                                    <div class="flex flex-wrap items-center gap-1">
-                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5" data-i18n="npc.suggestions_label">Sugestie:</span>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Siła">+ <span data-i18n="npc.stat_presets.strength">Siła</span></button>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Zręczność">+ <span data-i18n="npc.stat_presets.dexterity">Zręczność</span></button>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Kondycja">+ <span data-i18n="npc.stat_presets.constitution">Kondycja</span></button>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Inteligencja">+ <span data-i18n="npc.stat_presets.intelligence">Inteligencja</span></button>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Mądrość">+ <span data-i18n="npc.stat_presets.wisdom">Mądrość</span></button>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Charyzma">+ <span data-i18n="npc.stat_presets.charisma">Charyzma</span></button>
-                                        <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-stat="Percepcja">+ <span data-i18n="npc.stat_presets.perception">Percepcja</span></button>
+                                    <!-- Preset Chips (Horizontal scrollable) -->
+                                    <div id="npc-suggested-stats-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                        <div id="npc-suggested-stats" class="flex items-center gap-1 flex-nowrap shrink-0">
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Siła">+ <span data-i18n="npc.stat_presets.strength">Siła</span></button>
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Zręczność">+ <span data-i18n="npc.stat_presets.dexterity">Zręczność</span></button>
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Kondycja">+ <span data-i18n="npc.stat_presets.constitution">Kondycja</span></button>
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Inteligencja">+ <span data-i18n="npc.stat_presets.intelligence">Inteligencja</span></button>
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Mądrość">+ <span data-i18n="npc.stat_presets.wisdom">Mądrość</span></button>
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Charyzma">+ <span data-i18n="npc.stat_presets.charisma">Charyzma</span></button>
+                                            <button type="button" class="npc-stat-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-stat="Percepcja">+ <span data-i18n="npc.stat_presets.perception">Percepcja</span></button>
+                                        </div>
                                     </div>
 
                                     <!-- Dynamic Stats List -->
@@ -1738,14 +1807,16 @@
                                         </button>
                                     </div>
 
-                                    <!-- Presets for Vitals -->
-                                    <div class="flex flex-wrap items-center gap-1">
-                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5" data-i18n="npc.suggestions_label">Sugestie:</span>
-                                        <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-vital="Punkty Życia (HP)">+ <span data-i18n="npc.vital_presets.hp">Życie (HP)</span></button>
-                                        <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-vital="Mana">+ <span data-i18n="npc.vital_presets.mana">Mana</span></button>
-                                        <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-vital="Kondycja">+ <span data-i18n="npc.vital_presets.stamina">Kondycja</span></button>
-                                        <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-vital="Pancerz">+ <span data-i18n="npc.vital_presets.armor">Pancerz</span></button>
-                                        <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-vital="Udźwig">+ <span data-i18n="npc.vital_presets.carrying">Udźwig</span></button>
+                                    <!-- Presets for Vitals (Horizontal scrollable) -->
+                                    <div id="npc-suggested-vitals-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                        <div id="npc-suggested-vitals" class="flex items-center gap-1 flex-nowrap shrink-0">
+                                            <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-vital="Punkty Życia (HP)">+ <span data-i18n="npc.vital_presets.hp">Życie (HP)</span></button>
+                                            <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-vital="Mana">+ <span data-i18n="npc.vital_presets.mana">Mana</span></button>
+                                            <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-vital="Kondycja">+ <span data-i18n="npc.vital_presets.stamina">Kondycja</span></button>
+                                            <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-vital="Pancerz">+ <span data-i18n="npc.vital_presets.armor">Pancerz</span></button>
+                                            <button type="button" class="npc-vital-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-vital="Udźwig">+ <span data-i18n="npc.vital_presets.carrying">Udźwig</span></button>
+                                        </div>
                                     </div>
 
                                     <!-- Dynamic Vitals List -->
@@ -1776,15 +1847,17 @@
                                         </button>
                                     </div>
 
-                                    <!-- Preset Chips -->
-                                    <div class="flex flex-wrap items-center gap-1">
-                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5" data-i18n="npc.suggestions_label">Sugestie:</span>
-                                        <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-skill="Walka wręcz">+ <span data-i18n="npc.skill_presets.melee">Walka wręcz</span></button>
-                                        <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-skill="Strzelectwo">+ <span data-i18n="npc.skill_presets.ranged">Strzelectwo</span></button>
-                                        <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-skill="Skradanie">+ <span data-i18n="npc.skill_presets.stealth">Skradanie</span></button>
-                                        <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-skill="Otwieranie zamków">+ <span data-i18n="npc.skill_presets.lockpicking">Włamywanie</span></button>
-                                        <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-skill="Magia">+ <span data-i18n="npc.skill_presets.magic">Magia</span></button>
-                                        <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none" data-preset-skill="Perswazja">+ <span data-i18n="npc.skill_presets.persuasion">Perswazja</span></button>
+                                    <!-- Preset Chips (Horizontal scrollable) -->
+                                    <div id="npc-suggested-skills-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                        <div id="npc-suggested-skills" class="flex items-center gap-1 flex-nowrap shrink-0">
+                                            <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-skill="Walka wręcz">+ <span data-i18n="npc.skill_presets.melee">Walka wręcz</span></button>
+                                            <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-skill="Strzelectwo">+ <span data-i18n="npc.skill_presets.ranged">Strzelectwo</span></button>
+                                            <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-skill="Skradanie">+ <span data-i18n="npc.skill_presets.stealth">Skradanie</span></button>
+                                            <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-skill="Otwieranie zamków">+ <span data-i18n="npc.skill_presets.lockpicking">Włamywanie</span></button>
+                                            <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-skill="Magia">+ <span data-i18n="npc.skill_presets.magic">Magia</span></button>
+                                            <button type="button" class="npc-skill-preset-chip px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0" data-preset-skill="Perswazja">+ <span data-i18n="npc.skill_presets.persuasion">Perswazja</span></button>
+                                        </div>
                                     </div>
 
                                     <!-- Dynamic Skills List -->

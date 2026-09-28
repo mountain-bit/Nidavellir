@@ -595,3 +595,101 @@ export function renderVitalRowHtml(vital, statsMap, evaluateFormulaFn) {
         </div>
     `
 }
+
+/**
+ * Renders a character tag chip in the NPC creation sheet.
+ *
+ * @param {{ id: string, name: string, color?: string }} tag
+ * @returns {string}
+ */
+export function renderNpcTagChipHtml(tag) {
+    const color = tag.color || '#3b82f6'
+    const name = tag.name || ''
+    const id = tag.id || name
+    return `
+        <span
+            class="npc-tag-chip inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border shadow-sm transition-all select-none group"
+            style="background-color: ${escapeAttr(color)}15; border-color: ${escapeAttr(color)}50; color: ${escapeAttr(color)};"
+            data-tag-id="${escapeAttr(id)}"
+            data-tag-name="${escapeAttr(name)}"
+        >
+            <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escapeAttr(color)};"></span>
+            <span class="text-zinc-200 group-hover:text-white transition-colors">${escapeAttr(name)}</span>
+            <button
+                type="button"
+                data-action="remove-npc-tag"
+                data-tag-id="${escapeAttr(id)}"
+                class="hover:opacity-100 opacity-60 text-zinc-400 hover:text-rose-400 ml-0.5 cursor-pointer leading-none"
+                title="${escapeAttr(safeT('npc.remove_tag', 'Usuń tag'))}"
+            >
+                &times;
+            </button>
+        </span>
+    `
+}
+
+/**
+ * Renders an available tag pill inside the tag selector popover.
+ *
+ * @param {{ id: string, name: string, color?: string }} tag
+ * @param {boolean} [isSelected=false]
+ * @returns {string}
+ */
+export function renderAvailableTagItemHtml(tag, isSelected = false) {
+    const color = tag.color || '#3b82f6'
+    const name = tag.name || ''
+    const id = tag.id || name
+    return `
+        <button
+            type="button"
+            data-action="select-available-tag"
+            data-tag-id="${escapeAttr(id)}"
+            data-tag-name="${escapeAttr(name)}"
+            data-tag-color="${escapeAttr(color)}"
+            class="px-2 py-0.5 rounded-full text-[11px] font-medium border transition-all cursor-pointer flex items-center gap-1 select-none ${
+                isSelected ? 'opacity-40 pointer-events-none' : 'hover:scale-105 active:scale-95'
+            }"
+            style="background-color: ${escapeAttr(color)}20; border-color: ${escapeAttr(color)}60; color: ${escapeAttr(color)};"
+            title="${isSelected ? 'Już przypisany' : `Dodaj tag ${escapeAttr(name)}`}"
+        >
+            <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${escapeAttr(color)};"></span>
+            <span>${escapeAttr(name)}</span>
+            ${isSelected ? '<span class="text-[9px]">✓</span>' : '+'}
+        </button>
+    `
+}
+
+/**
+ * Renders a dynamic suggested chip for horizontal scrolling bar.
+ *
+ * @param {{ type: 'stat'|'vital'|'skill'|'attribute'|'tag', name: string, extraData?: string }} options
+ * @returns {string}
+ */
+export function renderSuggestedChipHtml({ type, name, extraData = '' }) {
+    let chipClass =
+        'px-1.5 py-0.5 rounded bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-blue-200 border border-zinc-700/60 text-[10px] transition-colors cursor-pointer select-none shrink-0 whitespace-nowrap'
+    let dataAttr = ''
+
+    if (type === 'stat') {
+        chipClass += ' npc-stat-preset-chip'
+        dataAttr = `data-preset-stat="${escapeAttr(name)}"`
+    } else if (type === 'vital') {
+        chipClass += ' npc-vital-preset-chip'
+        dataAttr = `data-preset-vital="${escapeAttr(name)}"`
+    } else if (type === 'skill') {
+        chipClass += ' npc-skill-preset-chip'
+        dataAttr = `data-preset-skill="${escapeAttr(name)}"`
+    } else if (type === 'attribute') {
+        chipClass += ' npc-preset-chip'
+        dataAttr = `data-preset-name="${escapeAttr(name)}"`
+    } else if (type === 'tag') {
+        chipClass += ' npc-tag-preset-chip'
+        dataAttr = `data-preset-tag="${escapeAttr(name)}"`
+    }
+
+    return `
+        <button type="button" class="${chipClass}" ${dataAttr} ${extraData}>
+            + <span>${escapeAttr(name)}</span>
+        </button>
+    `
+}

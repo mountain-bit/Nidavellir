@@ -166,4 +166,17 @@ declare module '*/View/ui/npcModal.js' {
     export function setNpcDescription(text: string): void
     export function isDescriptionDrawerOpen(): boolean
     export function resetNpcModalForm(): void
+    export function addNpcTag(
+        tagOrName?: string | { id?: string; name?: string; color?: string },
+        color?: string
+    ): string | null
+    export function removeNpcTag(idOrName: string): void
+    export function getNpcTags(): Array<{ id: string; name: string; color: string }>
+    export function setNpcTags(
+        tags: Array<{ id?: string; name?: string; color?: string } | string>
+    ): void
+    export function clearNpcTags(): void
+    export function renderNpcTags(): void
+    export function initNpcTagsController(ctx?: unknown): void
+    export function renderDynamicSuggestions(ctx?: unknown): void
 }

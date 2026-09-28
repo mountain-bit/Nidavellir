@@ -7,6 +7,7 @@ let customAttributes = []
 let npcStats = []
 let npcSkills = []
 let npcVitals = []
+let npcTags = []
 let currentAvatarId = 'warrior'
 let isDrawerOpen = false
 let hasBeenPositioned = false
@@ -244,6 +245,86 @@ export function findNpcVital(id) {
     return npcVitals.find(v => v.id === id)
 }
 
+// --- Tags ---
+
+export function getNpcTags() {
+    return npcTags.map(t => ({
+        id: t.id || t.name,
+        name: (t.name || '').trim(),
+        color: t.color || '#3b82f6',
+    }))
+}
+
+export function getNpcTagsArray() {
+    return npcTags
+}
+
+export function setNpcTags(tags) {
+    if (!Array.isArray(tags)) {
+        npcTags = []
+    } else {
+        npcTags = tags.map((t, i) => {
+            if (typeof t === 'string') {
+                return { id: `tag_${Date.now()}_${i}`, name: t, color: '#3b82f6' }
+            }
+            return {
+                id: (typeof t.getId === 'function' ? t.getId() : t.id) || `tag_${Date.now()}_${i}`,
+                name: (typeof t.getName === 'function' ? t.getName() : t.name) || '',
+                color: (typeof t.getColor === 'function' ? t.getColor() : t.color) || '#3b82f6',
+            }
+        })
+    }
+}
+
+export function clearNpcTags() {
+    npcTags = []
+}
+
+export function addNpcTagState(tagOrName, color = '#3b82f6') {
+    let name = ''
+    let tagId = ''
+    let tagColor = color
+
+    if (typeof tagOrName === 'string') {
+        name = tagOrName.trim()
+        tagId = `tag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    } else if (tagOrName && typeof tagOrName === 'object') {
+        name = (
+            typeof tagOrName.getName === 'function' ? tagOrName.getName() : tagOrName.name || ''
+        ).trim()
+        tagId =
+            (typeof tagOrName.getId === 'function' ? tagOrName.getId() : tagOrName.id) ||
+            `tag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+        tagColor =
+            (typeof tagOrName.getColor === 'function' ? tagOrName.getColor() : tagOrName.color) ||
+            color
+    }
+
+    if (!name) return null
+
+    // Check if tag already exists in state by name (case-insensitive)
+    const existing = npcTags.find(t => (t.name || '').toLowerCase() === name.toLowerCase())
+    if (existing) {
+        return existing.id
+    }
+
+    const newTag = { id: tagId, name, color: tagColor }
+    npcTags.push(newTag)
+    return tagId
+}
+
+export function removeNpcTagState(idOrName) {
+    if (!idOrName) return
+    const key = String(idOrName).trim().toLowerCase()
+    npcTags = npcTags.filter(t => t.id !== idOrName && (t.name || '').toLowerCase() !== key)
+}
+
+export function findNpcTag(idOrName) {
+    if (!idOrName) return undefined
+    const key = String(idOrName).trim().toLowerCase()
+    return npcTags.find(t => t.id === idOrName || (t.name || '').toLowerCase() === key)
+}
+
 // --- Window & Avatar States ---
 
 export function getCurrentAvatarId() {
@@ -310,6 +391,7 @@ export function resetState() {
     npcStats = []
     npcSkills = []
     npcVitals = []
+    npcTags = []
     currentAvatarId = 'warrior'
     isDrawerOpen = false
 }

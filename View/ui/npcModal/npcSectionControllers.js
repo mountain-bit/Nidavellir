@@ -9,10 +9,13 @@ import { evaluateFormula } from './formulaEvaluator.js'
 import * as state from './npcState.js'
 import {
     renderAttributeRowHtml,
+    renderAvailableTagItemHtml,
     renderAvatarGridItemHtml,
+    renderNpcTagChipHtml,
     renderSkillRowHtml,
     renderSkillStatOptionsHtml,
     renderStatRowHtml,
+    renderSuggestedChipHtml,
     renderVitalPreviewBadgeHtml,
     renderVitalRowHtml,
 } from './npcTemplates.js'
@@ -891,4 +894,340 @@ export function addNpcVital(
 export function removeNpcVital(id) {
     state.removeNpcVitalState(id)
     renderNpcVitals()
+}
+
+// ==========================================
+// 6. Tags Section Controller
+// ==========================================
+
+/**
+ * Renders the assigned character tags list.
+ */
+export function renderNpcTags() {
+    const list = document.getElementById('npc-tags-list')
+    const empty = document.getElementById('npc-tags-empty')
+    if (!list) return
+
+    const tags = state.getNpcTags()
+    if (tags.length === 0) {
+        list.innerHTML = ''
+        if (empty) empty.classList.remove('hidden')
+        return
+    }
+
+    if (empty) empty.classList.add('hidden')
+    list.innerHTML = tags.map(t => renderNpcTagChipHtml(t)).join('')
+
+    list.querySelectorAll('[data-action="remove-npc-tag"]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
+            e.stopPropagation()
+            const tagId = btn.dataset.tagId
+            if (tagId) {
+                removeNpcTag(tagId)
+            }
+        })
+    })
+}
+
+/**
+ * Adds a tag to the NPC state and refreshes UI.
+ *
+ * @param {string|object} tagOrName
+ * @param {string} [color='#3b82f6']
+ * @returns {string|null}
+ */
+export function addNpcTag(tagOrName, color = '#3b82f6') {
+    const id = state.addNpcTagState(tagOrName, color)
+    renderNpcTags()
+    updateAvailableTagsList()
+    return id
+}
+
+/**
+ * Removes a tag by id or name and refreshes UI.
+ *
+ * @param {string} idOrName
+ */
+export function removeNpcTag(idOrName) {
+    state.removeNpcTagState(idOrName)
+    renderNpcTags()
+    updateAvailableTagsList()
+}
+
+/**
+ * Updates the popover list of available project tags.
+ *
+ * @param {string} [filterQuery='']
+ */
+export function updateAvailableTagsList(filterQuery = '') {
+    const container = document.getElementById('npc-available-tags-list')
+    if (!container) return
+
+    const ctx = state.getActiveCtx() || {}
+    let allTags = []
+    if (Array.isArray(ctx.projectTags)) {
+        allTags = ctx.projectTags
+    } else if (ctx.vm?.project && typeof ctx.vm.project.getTags === 'function') {
+        allTags = ctx.vm.project.getTags()
+    }
+
+    const query = (filterQuery || '').trim().toLowerCase()
+    const currentTags = state.getNpcTags()
+    const currentNames = new Set(currentTags.map(t => (t.name || '').toLowerCase()))
+
+    const filtered = allTags.filter(t => {
+        const name = (typeof t.getName === 'function' ? t.getName() : t.name || '').toLowerCase()
+        return !query || name.includes(query)
+    })
+
+    if (filtered.length === 0) {
+        container.innerHTML =
+            '<span class="text-[10px] text-zinc-500 italic p-1">Brak istniejących tagów</span>'
+    } else {
+        container.innerHTML = filtered
+            .map(t => {
+                const tagObj = {
+                    id: typeof t.getId === 'function' ? t.getId() : t.id,
+                    name: typeof t.getName === 'function' ? t.getName() : t.name,
+                    color: typeof t.getColor === 'function' ? t.getColor() : t.color,
+                }
+                const isSelected = currentNames.has((tagObj.name || '').toLowerCase())
+                return renderAvailableTagItemHtml(tagObj, isSelected)
+            })
+            .join('')
+
+        container.querySelectorAll('[data-action="select-available-tag"]').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault()
+                const name = btn.dataset.tagName
+                const color = btn.dataset.tagColor
+                const id = btn.dataset.tagId
+                if (name) {
+                    addNpcTag({ id, name, color })
+                }
+            })
+        })
+    }
+
+    // Update create new tag action inside popover
+    const createAction = document.getElementById('npc-create-tag-action')
+    const previewName = document.getElementById('npc-new-tag-preview-name')
+    if (createAction && previewName) {
+        const trimmed = (filterQuery || '').trim()
+        if (
+            trimmed &&
+            !allTags.some(t => {
+                const n = (
+                    typeof t.getName === 'function' ? t.getName() : t.name || ''
+                ).toLowerCase()
+                return n === trimmed.toLowerCase()
+            })
+        ) {
+            createAction.classList.remove('hidden')
+            previewName.textContent = `"${trimmed}"`
+        } else {
+            createAction.classList.add('hidden')
+        }
+    }
+}
+
+/**
+ * Initializes the NPC character tags controller and popover listeners.
+ */
+export function initNpcTagsController() {
+    const btnAddTag = document.getElementById('btn-add-npc-tag')
+    const popover = document.getElementById('npc-tag-picker-popover')
+    const searchInput = document.getElementById('npc-tag-search-input')
+    const btnCreateNew = document.getElementById('btn-create-new-npc-tag')
+
+    if (btnAddTag && popover) {
+        btnAddTag.addEventListener('click', e => {
+            e.preventDefault()
+            e.stopPropagation()
+            const isHidden = popover.classList.contains('hidden')
+            if (isHidden) {
+                popover.classList.remove('hidden')
+                updateAvailableTagsList(searchInput ? searchInput.value : '')
+                if (searchInput && typeof searchInput.focus === 'function') {
+                    searchInput.focus()
+                }
+            } else {
+                popover.classList.add('hidden')
+            }
+        })
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            updateAvailableTagsList(searchInput.value)
+        })
+    }
+
+    if (btnCreateNew && searchInput) {
+        btnCreateNew.addEventListener('click', e => {
+            e.preventDefault()
+            const name = searchInput.value.trim()
+            if (name) {
+                addNpcTag(name)
+                searchInput.value = ''
+                updateAvailableTagsList('')
+                if (popover) popover.classList.add('hidden')
+            }
+        })
+    }
+
+    renderNpcTags()
+}
+
+// ==========================================
+// 7. Dynamic Suggestions Section
+// ==========================================
+
+/**
+ * Renders dynamically fetched suggestions into the horizontal scrolling pillbars.
+ *
+ * @param {object} [ctx]
+ */
+export function renderDynamicSuggestions(ctx) {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    const vm = effectiveCtx.vm
+
+    // 1. Stats suggestions
+    const statsContainer = document.getElementById('npc-suggested-stats')
+    if (statsContainer) {
+        const existingStats =
+            effectiveCtx.projectStats || (vm?.project?.getStats ? vm.project.getStats() : [])
+        const characters =
+            effectiveCtx.projectCharacters ||
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+        const suggestedStats = vm?.getSuggestedStats
+            ? vm.getSuggestedStats(existingStats, characters)
+            : ['Siła', 'Zręczność', 'Kondycja', 'Inteligencja', 'Mądrość', 'Charyzma', 'Percepcja']
+
+        statsContainer.innerHTML = suggestedStats
+            .map(name => renderSuggestedChipHtml({ type: 'stat', name }))
+            .join('')
+
+        statsContainer.querySelectorAll('.npc-stat-preset-chip').forEach(chip => {
+            chip.addEventListener('click', e => {
+                e.preventDefault()
+                const name = chip.dataset.presetStat
+                if (name) addNpcStat(name, '', true)
+            })
+        })
+    }
+
+    // 2. Vitals suggestions
+    const vitalsContainer = document.getElementById('npc-suggested-vitals')
+    if (vitalsContainer) {
+        const existingParams =
+            effectiveCtx.projectParameters ||
+            (vm?.project?.getGlobalParameters ? vm.project.getGlobalParameters() : [])
+        const characters =
+            effectiveCtx.projectCharacters ||
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+        const suggestedVitals = vm?.getSuggestedParameters
+            ? vm.getSuggestedParameters(existingParams, characters)
+            : ['Punkty Życia (HP)', 'Mana', 'Kondycja', 'Pancerz', 'Udźwig']
+
+        vitalsContainer.innerHTML = suggestedVitals
+            .map(name => renderSuggestedChipHtml({ type: 'vital', name }))
+            .join('')
+
+        vitalsContainer.querySelectorAll('.npc-vital-preset-chip').forEach(chip => {
+            chip.addEventListener('click', e => {
+                e.preventDefault()
+                const name = chip.dataset.presetVital
+                if (!name) return
+                if (name.includes('HP') || name.includes('Życia')) {
+                    addNpcVital(name, 'formula', '', 'Siła * 4 + 10', true)
+                } else if (name.includes('Mana') || name.includes('Magia')) {
+                    addNpcVital(name, 'formula', '', 'Inteligencja * 3', true)
+                } else {
+                    addNpcVital(name, 'direct', '10', '', true)
+                }
+            })
+        })
+    }
+
+    // 3. Skills suggestions
+    const skillsContainer = document.getElementById('npc-suggested-skills')
+    if (skillsContainer) {
+        const existingSkills =
+            effectiveCtx.projectSkills || (vm?.project?.getSkills ? vm.project.getSkills() : [])
+        const characters =
+            effectiveCtx.projectCharacters ||
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+        const suggestedSkills = vm?.getSuggestedSkills
+            ? vm.getSuggestedSkills(existingSkills, characters)
+            : ['Walka wręcz', 'Strzelectwo', 'Skradanie', 'Otwieranie zamków', 'Magia', 'Perswazja']
+
+        skillsContainer.innerHTML = suggestedSkills
+            .map(name => renderSuggestedChipHtml({ type: 'skill', name }))
+            .join('')
+
+        skillsContainer.querySelectorAll('.npc-skill-preset-chip').forEach(chip => {
+            chip.addEventListener('click', e => {
+                e.preventDefault()
+                const name = chip.dataset.presetSkill
+                if (name) addNpcSkill(name, 'direct', '')
+            })
+        })
+    }
+
+    // 4. Attributes / Identity suggestions
+    const attrsContainer = document.getElementById('npc-suggested-attributes')
+    if (attrsContainer) {
+        const existingFeatures =
+            effectiveCtx.projectFeatures ||
+            (vm?.project?.getFeatures ? vm.project.getFeatures() : [])
+        const characters =
+            effectiveCtx.projectCharacters ||
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+        const suggestedAttrs = vm?.getSuggestedFeatures
+            ? vm.getSuggestedFeatures(existingFeatures, characters)
+            : ['Rasa', 'Zawód', 'Rola', 'Frakcja', 'Nastawienie']
+
+        attrsContainer.innerHTML = suggestedAttrs
+            .map(name => renderSuggestedChipHtml({ type: 'attribute', name }))
+            .join('')
+
+        attrsContainer.querySelectorAll('.npc-preset-chip').forEach(chip => {
+            chip.addEventListener('click', e => {
+                e.preventDefault()
+                const name = chip.dataset.presetName
+                if (name) addCustomAttribute(name, '', true)
+            })
+        })
+    }
+
+    // 5. Tags suggestions
+    const tagsContainer = document.getElementById('npc-suggested-tags')
+    if (tagsContainer) {
+        const existingTags =
+            effectiveCtx.projectTags || (vm?.project?.getTags ? vm.project.getTags() : [])
+        const characters =
+            effectiveCtx.projectCharacters ||
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+        let suggestedTags = vm?.getSuggestedTags
+            ? vm.getSuggestedTags(existingTags, characters)
+            : []
+
+        if (suggestedTags.length === 0) {
+            suggestedTags = ['Sojusznik', 'Wróg', 'Kupiec', 'Przewodnik', 'Boss']
+        }
+
+        tagsContainer.innerHTML = suggestedTags
+            .map(name => renderSuggestedChipHtml({ type: 'tag', name }))
+            .join('')
+
+        tagsContainer.querySelectorAll('.npc-tag-preset-chip').forEach(chip => {
+            chip.addEventListener('click', e => {
+                e.preventDefault()
+                const name = chip.dataset.presetTag
+                if (name) addNpcTag(name)
+            })
+        })
+    }
 }
