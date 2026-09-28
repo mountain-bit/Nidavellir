@@ -795,5 +795,102 @@ describe('MainWindowViewModel', () => {
             vm.setZoomSensitivity(2.5)
             expect(vm.getZoomSensitivity()).toBe(1.0)
         })
+
+        it('tworzy umiejętności (createSkill), parametry (createParameter) i cechy specjalne (createFeature)', () => {
+            const skill = vm.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2')
+            expect(skill.getName()).toBe('Skradanie')
+            expect(skill.getMode()).toBe('stat_mod')
+            expect(skill.getStatName()).toBe('Zręczność')
+            expect(skill.getModifier()).toBe('+2')
+
+            const param = vm.createParameter(
+                'Punkty Życia',
+                'Param',
+                'formula',
+                '',
+                'Siła * 4 + 10',
+                50
+            )
+            expect(param.getName()).toBe('Punkty Życia')
+            expect(param.getMode()).toBe('formula')
+            expect(param.getFormula()).toBe('Siła * 4 + 10')
+            expect(param.getCalculatedValue()).toBe(50)
+
+            const feature = vm.createFeature('Widzenie w ciemności')
+            expect(feature.getName()).toBe('Widzenie w ciemności')
+        })
+
+        it('wyszukuje i filtruje umiejętności, parametry oraz cechy specjalne', () => {
+            const sk1 = vm.createSkill('Walka mieczem')
+            const sk2 = vm.createSkill('Strzelanie z łuku')
+            vm.setSkillSearchQuery('miecz')
+            expect(vm.searchAndFilterSkills([sk1, sk2])).toEqual([sk1])
+
+            const p1 = vm.createParameter('Punkty Życia')
+            const p2 = vm.createParameter('Mana')
+            vm.setParameterSearchQuery('mana')
+            expect(vm.searchAndFilterParameters([p1, p2])).toEqual([p2])
+
+            const f1 = vm.createFeature('Odporność na ogień')
+            const f2 = vm.createFeature('Zwinne palce')
+            vm.setFeatureSearchQuery('ogień')
+            expect(vm.searchAndFilterFeatures([f1, f2])).toEqual([f1])
+        })
+
+        it('generuje dynamiczne sugestie dla cech, parametrów, umiejętności, tagów i cech specjalnych', () => {
+            const char = vm.createCharacter('Wojownik')
+            char.addStat(vm.createStat('Percepcja'))
+            char.addSkill(vm.createSkill('Kradzież'))
+            char.addParameter(vm.createParameter('Wytrzymałość'))
+            char.addFeature(vm.createFeature('Blizna'))
+            char.addTag(vm.createTag('Wojownik'))
+
+            const suggestedStats = vm.getSuggestedStats([vm.createStat('Szczęście')], [char])
+            expect(suggestedStats).toContain('Siła') // default
+            expect(suggestedStats).toContain('Szczęście') // existing
+            expect(suggestedStats).toContain('Percepcja') // from character
+
+            const suggestedParams = vm.getSuggestedParameters([], [char])
+            expect(suggestedParams).toContain('Punkty Życia (HP)')
+            expect(suggestedParams).toContain('Wytrzymałość')
+
+            const suggestedSkills = vm.getSuggestedSkills([], [char])
+            expect(suggestedSkills).toContain('Walka wręcz')
+            expect(suggestedSkills).toContain('Kradzież')
+
+            const suggestedFeatures = vm.getSuggestedFeatures([], [char])
+            expect(suggestedFeatures).toContain('Rasa')
+            expect(suggestedFeatures).toContain('Blizna')
+
+            const suggestedTags = vm.getSuggestedTags([vm.createTag('Bohater')], [char])
+            expect(suggestedTags).toContain('Bohater')
+            expect(suggestedTags).toContain('Wojownik')
+        })
+
+        it('pozwala dodawać i usuwać umiejętności, parametry oraz cechy z zaznaczonej encji', () => {
+            const char = vm.createCharacter('Bohater')
+            vm.selectElement(char, 'character')
+
+            const skill = vm.createSkill('Fechtunek')
+            vm.addSkillToSelected(skill)
+            expect(char.getSkills()).toContain(skill)
+
+            vm.removeSkillFromSelected(skill.getId())
+            expect(char.getSkills()).not.toContain(skill)
+
+            const param = vm.createParameter('Energia')
+            vm.addParameterToSelected(param)
+            expect(char.getParameters()).toContain(param)
+
+            vm.removeParameterFromSelected(param.getId())
+            expect(char.getParameters()).not.toContain(param)
+
+            const feat = vm.createFeature('Szybki refleks')
+            vm.addFeatureToSelected(feat)
+            expect(char.getFeatures()).toContain(feat)
+
+            vm.removeFeatureFromSelected(feat.getId())
+            expect(char.getFeatures()).not.toContain(feat)
+        })
     })
 })

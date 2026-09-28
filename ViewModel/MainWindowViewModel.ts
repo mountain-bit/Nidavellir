@@ -3,11 +3,14 @@ import { Choice } from '../Model/Choice'
 import { Condition, TextCondition } from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
+import { Feature } from '../Model/Feature'
 import { Item } from '../Model/Item'
 import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
 import { Paragraph } from '../Model/Paragraph'
+import { Parameter } from '../Model/Parameter'
 import { Scene } from '../Model/Scene'
+import { Skill } from '../Model/Skill'
 import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
@@ -22,11 +25,14 @@ export {
     DEFAULT_TAG_COLOR,
     Description,
     ENTITY_CATEGORIES,
+    Feature,
     Item,
     Location,
     NPC,
     Paragraph,
+    Parameter,
     Scene,
+    Skill,
     Stat,
     Tag,
     TextCondition,
@@ -40,6 +46,8 @@ export type LeftTab =
     | 'locations'
     | 'stats'
     | 'traits'
+    | 'skills'
+    | 'parameters'
     | 'main-character'
     | 'tags'
     | 'connections'
@@ -65,8 +73,35 @@ export interface IIdentifiableEntity {
     addTag?: (tag: Tag) => void
     removeTag?: (tagId: string) => void
     getStats?: () => Stat[]
+    setStats?: (stats: Stat[]) => void
     addStat?: (stat: Stat) => void
     removeStat?: (statId: string) => void
+    getSkills?: () => Skill[]
+    setSkills?: (skills: Skill[]) => void
+    addSkill?: (skill: Skill) => void
+    removeSkill?: (skillId: string) => void
+    getParameters?: () => Parameter[]
+    setParameters?: (params: Parameter[]) => void
+    addParameter?: (param: Parameter) => void
+    removeParameter?: (paramId: string) => void
+    getFeatures?: () => Feature[]
+    setFeatures?: (features: Feature[]) => void
+    addFeature?: (feat: Feature) => void
+    removeFeature?: (featId: string) => void
+    getAvatar?: () => string
+    setAvatar?: (avatar: string) => void
+    getValue?: () => string | number
+    setValue?: (val: string | number) => void
+    getFormula?: () => string
+    setFormula?: (formula: string) => void
+    getCalculatedValue?: () => number | null
+    setCalculatedValue?: (val: number | null) => void
+    getMode?: () => string
+    setMode?: (mode: any) => void
+    getStatName?: () => string
+    setStatName?: (name: string) => void
+    getModifier?: () => string
+    setModifier?: (mod: string) => void
     getFromParagraphId?: () => string
     setFromParagraphId?: (id: string) => void
     getToParagraphId?: () => string
@@ -103,6 +138,9 @@ export interface IHistoryItem {
         | 'class'
         | 'document'
         | 'choice'
+        | 'skill'
+        | 'parameter'
+        | 'feature'
     entity: IIdentifiableEntity
     parent?: unknown
 }
@@ -133,6 +171,9 @@ export class MainWindowViewModel {
     private sceneSearchQuery: string = ''
     private locationSearchQuery: string = ''
     private statSearchQuery: string = ''
+    private skillSearchQuery: string = ''
+    private parameterSearchQuery: string = ''
+    private featureSearchQuery: string = ''
     private tagSearchQuery: string = ''
     private connectionSearchQuery: string = ''
 
@@ -433,6 +474,48 @@ export class MainWindowViewModel {
         }
     }
 
+    public addSkillToSelected(skill: Skill): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addSkill) {
+            this.selectedItem.entity.addSkill(skill)
+        }
+    }
+
+    public removeSkillFromSelected(skillId: string): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.removeSkill) {
+            this.selectedItem.entity.removeSkill(skillId)
+        }
+    }
+
+    public addParameterToSelected(parameter: Parameter): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addParameter) {
+            this.selectedItem.entity.addParameter(parameter)
+        }
+    }
+
+    public removeParameterFromSelected(parameterId: string): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.removeParameter) {
+            this.selectedItem.entity.removeParameter(parameterId)
+        }
+    }
+
+    public addFeatureToSelected(feature: Feature): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.addFeature) {
+            this.selectedItem.entity.addFeature(feature)
+        }
+    }
+
+    public removeFeatureFromSelected(featureId: string): void {
+        if (!this.selectedItem?.entity) return
+        if (this.selectedItem.entity.removeFeature) {
+            this.selectedItem.entity.removeFeature(featureId)
+        }
+    }
+
     public addCharacterToSelected(character: NPC): void {
         if (!this.selectedItem?.entity) return
         if (this.selectedItem.entity.addCharacter) {
@@ -609,6 +692,30 @@ export class MainWindowViewModel {
         this.statSearchQuery = query
     }
 
+    public getSkillSearchQuery(): string {
+        return this.skillSearchQuery
+    }
+
+    public setSkillSearchQuery(query: string): void {
+        this.skillSearchQuery = query
+    }
+
+    public getParameterSearchQuery(): string {
+        return this.parameterSearchQuery
+    }
+
+    public setParameterSearchQuery(query: string): void {
+        this.parameterSearchQuery = query
+    }
+
+    public getFeatureSearchQuery(): string {
+        return this.featureSearchQuery
+    }
+
+    public setFeatureSearchQuery(query: string): void {
+        this.featureSearchQuery = query
+    }
+
     public getTagSearchQuery(): string {
         return this.tagSearchQuery
     }
@@ -669,6 +776,38 @@ export class MainWindowViewModel {
         const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('stat')
         return new Stat(id, name, new Description(), '')
+    }
+
+    public createSkill(
+        nameInput?: string,
+        defaultName: string = 'New skill',
+        mode: 'direct' | 'stat_mod' = 'direct',
+        value: string = '',
+        statName: string = '',
+        modifier: string = ''
+    ): Skill {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('skill')
+        return new Skill(id, name, new Description(), mode, value, statName, modifier)
+    }
+
+    public createParameter(
+        nameInput?: string,
+        defaultName: string = 'New parameter',
+        mode: 'direct' | 'formula' = 'direct',
+        value: string | number = '',
+        formula: string = '',
+        calculatedValue: number | null = null
+    ): Parameter {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('parameter')
+        return new Parameter(id, name, new Description(), mode, value, formula, calculatedValue)
+    }
+
+    public createFeature(nameInput?: string, defaultName: string = 'New feature'): Feature {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('feature')
+        return new Feature(id, name, new Description())
     }
 
     public createTag(
@@ -941,5 +1080,132 @@ export class MainWindowViewModel {
         const query = this.tagSearchQuery.trim().toLowerCase()
         if (!query) return tags
         return tags.filter(t => t.getName().toLowerCase().includes(query))
+    }
+
+    public searchAndFilterSkills(skills: Skill[]): Skill[] {
+        const query = this.skillSearchQuery.trim().toLowerCase()
+        if (!query) return skills
+        return skills.filter(u => u.getName().toLowerCase().includes(query))
+    }
+
+    public searchAndFilterParameters(parameters: Parameter[]): Parameter[] {
+        const query = this.parameterSearchQuery.trim().toLowerCase()
+        if (!query) return parameters
+        return parameters.filter(p => p.getName().toLowerCase().includes(query))
+    }
+
+    public searchAndFilterFeatures(features: Feature[]): Feature[] {
+        const query = this.featureSearchQuery.trim().toLowerCase()
+        if (!query) return features
+        return features.filter(f => f.getName().toLowerCase().includes(query))
+    }
+
+    public getSuggestedStats(existingStats: Stat[] = [], characters: NPC[] = []): string[] {
+        const set = new Set<string>()
+        const defaults = [
+            'Siła',
+            'Zręczność',
+            'Kondycja',
+            'Inteligencja',
+            'Mądrość',
+            'Charyzma',
+            'Percepcja',
+        ]
+        defaults.forEach(d => set.add(d))
+        existingStats.forEach(s => {
+            const n = (s.getName() || '').trim()
+            if (n) set.add(n)
+        })
+        characters.forEach(c => {
+            const stats = typeof c.getStats === 'function' ? c.getStats() : []
+            stats.forEach(s => {
+                const n = (s.getName() || '').trim()
+                if (n) set.add(n)
+            })
+        })
+        return Array.from(set)
+    }
+
+    public getSuggestedParameters(
+        existingParameters: Parameter[] = [],
+        characters: NPC[] = []
+    ): string[] {
+        const set = new Set<string>()
+        const defaults = ['Punkty Życia (HP)', 'Mana', 'Kondycja', 'Pancerz', 'Udźwig']
+        defaults.forEach(d => set.add(d))
+        existingParameters.forEach(p => {
+            const n = (p.getName() || '').trim()
+            if (n) set.add(n)
+        })
+        characters.forEach(c => {
+            const params = typeof c.getParameters === 'function' ? c.getParameters() : []
+            params.forEach(p => {
+                const n = (p.getName() || '').trim()
+                if (n) set.add(n)
+            })
+        })
+        return Array.from(set)
+    }
+
+    public getSuggestedSkills(existingSkills: Skill[] = [], characters: NPC[] = []): string[] {
+        const set = new Set<string>()
+        const defaults = [
+            'Walka wręcz',
+            'Strzelectwo',
+            'Skradanie',
+            'Otwieranie zamków',
+            'Magia',
+            'Perswazja',
+        ]
+        defaults.forEach(d => set.add(d))
+        existingSkills.forEach(s => {
+            const n = (s.getName() || '').trim()
+            if (n) set.add(n)
+        })
+        characters.forEach(c => {
+            const skills = typeof c.getSkills === 'function' ? c.getSkills() : []
+            skills.forEach(s => {
+                const n = (s.getName() || '').trim()
+                if (n) set.add(n)
+            })
+        })
+        return Array.from(set)
+    }
+
+    public getSuggestedFeatures(
+        existingFeatures: Feature[] = [],
+        characters: NPC[] = []
+    ): string[] {
+        const set = new Set<string>()
+        const defaults = ['Rasa', 'Zawód', 'Rola', 'Frakcja', 'Nastawienie']
+        defaults.forEach(d => set.add(d))
+        existingFeatures.forEach(f => {
+            const n = (f.getName() || '').trim()
+            if (n) set.add(n)
+        })
+        characters.forEach(c => {
+            const feats = typeof c.getFeatures === 'function' ? c.getFeatures() : []
+            feats.forEach(f => {
+                const n = (f.getName() || '').trim()
+                if (n) set.add(n)
+            })
+        })
+        return Array.from(set)
+    }
+
+    public getSuggestedTags(existingTags: Tag[] = [], characters: NPC[] = []): string[] {
+        const set = new Set<string>()
+        existingTags.forEach(t => {
+            const n = (t.getName() || '').trim()
+            if (n) set.add(n)
+        })
+        characters.forEach(c => {
+            const tags = typeof c.getTags === 'function' ? c.getTags() : []
+            tags.forEach(t => {
+                const n = (t.getName() || '').trim()
+                if (n) set.add(n)
+            })
+        })
+        return Array.from(set)
     }
 }

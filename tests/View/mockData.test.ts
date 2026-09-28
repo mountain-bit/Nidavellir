@@ -108,6 +108,8 @@ describe('mockData and projectData provider', () => {
                 projectCharacters: [],
                 projectLocations: [],
                 projectStats: [],
+                projectSkills: [],
+                projectParameters: [],
                 projectParagraphs: [],
                 projectScenes: [],
             })

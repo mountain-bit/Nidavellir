@@ -87,6 +87,12 @@ const appContext = {
     get projectStats() {
         return projectData.projectStats
     },
+    get projectSkills() {
+        return projectData.projectSkills || []
+    },
+    get projectParameters() {
+        return projectData.projectParameters || []
+    },
     get projectParagraphs() {
         return projectData.projectParagraphs
     },

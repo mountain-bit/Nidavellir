@@ -1,5 +1,6 @@
 import { Description } from './Description'
 import { Feature } from './Feature'
+import { Parameter } from './Parameter'
 import { Skill } from './Skill'
 import { Stat } from './Stat'
 import { Tag } from './Tag'
@@ -12,6 +13,8 @@ export class NPC {
     private skills: Skill[] = []
     private features: Feature[] = []
     private tags: Tag[] = []
+    private avatar: string = 'warrior'
+    private parameters: Parameter[] = []
 
     constructor(
         id: string = '',
@@ -20,7 +23,9 @@ export class NPC {
         stats: Stat[] = [],
         skills: Skill[] = [],
         features: Feature[] = [],
-        tags: Tag[] = []
+        tags: Tag[] = [],
+        avatar: string = 'warrior',
+        parameters: Parameter[] = []
     ) {
         this.id = id
         this.name = name
@@ -29,6 +34,8 @@ export class NPC {
         this.skills = skills
         this.features = features
         this.tags = tags
+        this.avatar = avatar
+        this.parameters = parameters
     }
 
     public getId(): string {
@@ -59,6 +66,14 @@ export class NPC {
         this.description = description
     }
 
+    public getAvatar(): string {
+        return this.avatar
+    }
+
+    public setAvatar(avatar: string): void {
+        this.avatar = avatar
+    }
+
     public getStats(): Stat[] {
         return this.stats
     }
@@ -72,7 +87,7 @@ export class NPC {
     }
 
     public addStat(stat: Stat): void {
-        if (!this.stats.some(c => c.getId() === stat.getId())) {
+        if (!this.stats.some(c => c.getId() === stat.getId() || c.getName() === stat.getName())) {
             this.stats.push(stat)
         }
     }
@@ -94,19 +109,53 @@ export class NPC {
     }
 
     public getSkill(id: string): Skill | undefined {
-        return this.skills.find(u => u.getId() === id)
+        return this.skills.find(u => u.getId() === id || u.getName() === id)
     }
 
     public addSkill(skill: Skill): void {
-        this.skills.push(skill)
+        if (
+            !this.skills.some(u => u.getId() === skill.getId() || u.getName() === skill.getName())
+        ) {
+            this.skills.push(skill)
+        }
     }
 
     public removeSkill(id: string): void {
-        this.skills = this.skills.filter(u => u.getId() !== id)
+        this.skills = this.skills.filter(u => u.getId() !== id && u.getName() !== id)
     }
 
     public hasSkill(id: string): boolean {
-        return this.skills.some(u => u.getId() === id)
+        return this.skills.some(u => u.getId() === id || u.getName() === id)
+    }
+
+    public getParameters(): Parameter[] {
+        return this.parameters
+    }
+
+    public setParameters(parameters: Parameter[]): void {
+        this.parameters = parameters
+    }
+
+    public getParameter(id: string): Parameter | undefined {
+        return this.parameters.find(p => p.getId() === id || p.getName() === id)
+    }
+
+    public addParameter(parameter: Parameter): void {
+        if (
+            !this.parameters.some(
+                p => p.getId() === parameter.getId() || p.getName() === parameter.getName()
+            )
+        ) {
+            this.parameters.push(parameter)
+        }
+    }
+
+    public removeParameter(id: string): void {
+        this.parameters = this.parameters.filter(p => p.getId() !== id && p.getName() !== id)
+    }
+
+    public hasParameter(id: string): boolean {
+        return this.parameters.some(p => p.getId() === id || p.getName() === id)
     }
 
     public getFeatures(): Feature[] {
@@ -118,19 +167,25 @@ export class NPC {
     }
 
     public getFeature(id: string): Feature | undefined {
-        return this.features.find(p => p.getId() === id)
+        return this.features.find(p => p.getId() === id || p.getName() === id)
     }
 
     public addFeature(feature: Feature): void {
-        this.features.push(feature)
+        if (
+            !this.features.some(
+                p => p.getId() === feature.getId() || p.getName() === feature.getName()
+            )
+        ) {
+            this.features.push(feature)
+        }
     }
 
     public removeFeature(id: string): void {
-        this.features = this.features.filter(p => p.getId() !== id)
+        this.features = this.features.filter(p => p.getId() !== id && p.getName() !== id)
     }
 
     public hasFeature(id: string): boolean {
-        return this.features.some(p => p.getId() === id)
+        return this.features.some(p => p.getId() === id || p.getName() === id)
     }
 
     public getTags(): Tag[] {
@@ -142,7 +197,7 @@ export class NPC {
     }
 
     public addTag(tag: Tag): void {
-        if (!this.tags.some(t => t.getId() === tag.getId())) {
+        if (!this.tags.some(t => t.getId() === tag.getId() || t.getName() === tag.getName())) {
             this.tags.push(tag)
         }
     }
@@ -163,6 +218,8 @@ export class NPC {
         const statsData = json.stats || json.traits || []
         const skillsData = json.skills || []
         const featuresData = json.features || json.qualities || []
+        const paramsData = json.parameters || json.vitals || []
+        const avatar = json.avatar ?? 'warrior'
         return new NPC(
             json.id || '',
             name,
@@ -170,7 +227,9 @@ export class NPC {
             statsData.map((c: any) => Stat.fromJSON(c)),
             skillsData.map((u: any) => Skill.fromJSON(u)),
             featuresData.map((p: any) => Feature.fromJSON(p)),
-            tagsParsed
+            tagsParsed,
+            avatar,
+            paramsData.map((p: any) => Parameter.fromJSON(p))
         )
     }
 
@@ -178,9 +237,11 @@ export class NPC {
         return {
             id: this.id,
             name: this.name,
+            avatar: this.avatar,
             description: this.description,
             stats: this.stats,
             skills: this.skills,
+            parameters: this.parameters,
             features: this.features,
             tags: this.tags,
         }

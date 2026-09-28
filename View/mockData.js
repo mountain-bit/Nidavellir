@@ -48,6 +48,14 @@ export function createMockProjectData(vm) {
     ]
 
     const projectStats = [vm.createStat('Siła'), vm.createStat('Zręczność')]
+    const projectSkills = [
+        vm.createSkill('Walka wręcz', 'Skill', 'direct', '+3'),
+        vm.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2'),
+    ]
+    const projectParameters = [
+        vm.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
+        vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
+    ]
 
     const projectParagraphs = [
         new Paragraph(
@@ -138,6 +146,8 @@ export function createMockProjectData(vm) {
         projectCharacters,
         projectLocations,
         projectStats,
+        projectSkills,
+        projectParameters,
         projectParagraphs,
         projectScenes,
     }
@@ -161,6 +171,8 @@ export const USE_MOCK = true
  *   projectCharacters: Array<any>,
  *   projectLocations: Array<any>,
  *   projectStats: Array<any>,
+ *   projectSkills: Array<any>,
+ *   projectParameters: Array<any>,
  *   projectParagraphs: Array<any>,
  *   projectScenes: Array<any>
  * }}
@@ -173,6 +185,8 @@ export function extractProjectData(project, files = {}) {
             projectCharacters: [],
             projectLocations: [],
             projectStats: [],
+            projectSkills: [],
+            projectParameters: [],
             projectParagraphs: [],
             projectScenes: [],
         }
@@ -191,6 +205,9 @@ export function extractProjectData(project, files = {}) {
     const characters = typeof project.getCharacters === 'function' ? project.getCharacters() : []
     const locations = typeof project.getLocations === 'function' ? project.getLocations() : []
     const stats = typeof project.getGlobalStats === 'function' ? project.getGlobalStats() : []
+    const skills = typeof project.getGlobalSkills === 'function' ? project.getGlobalSkills() : []
+    const parameters =
+        typeof project.getGlobalParameters === 'function' ? project.getGlobalParameters() : []
 
     return {
         files: files || {},
@@ -198,6 +215,8 @@ export function extractProjectData(project, files = {}) {
         projectCharacters: characters,
         projectLocations: locations,
         projectStats: stats,
+        projectSkills: skills,
+        projectParameters: parameters,
         projectParagraphs: paragraphs,
         projectScenes: scenes,
     }
@@ -216,6 +235,8 @@ export function extractProjectData(project, files = {}) {
  *   projectCharacters: Array<any>,
  *   projectLocations: Array<any>,
  *   projectStats: Array<any>,
+ *   projectSkills: Array<any>,
+ *   projectParameters: Array<any>,
  *   projectParagraphs: Array<any>,
  *   projectScenes: Array<any>
  * }>}
@@ -232,6 +253,8 @@ export async function loadRealProjectData(vm, options = {}) {
         projectCharacters: [],
         projectLocations: [],
         projectStats: [],
+        projectSkills: [],
+        projectParameters: [],
         projectParagraphs: [],
         projectScenes: [],
     }
