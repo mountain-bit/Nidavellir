@@ -56,6 +56,7 @@ export function createMockProjectData(vm) {
         vm.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
         vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
     ]
+    const projectFeatures = [vm.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
 
     const projectParagraphs = [
         new Paragraph(
@@ -148,6 +149,7 @@ export function createMockProjectData(vm) {
         projectStats,
         projectSkills,
         projectParameters,
+        projectFeatures,
         projectParagraphs,
         projectScenes,
     }
@@ -173,6 +175,7 @@ export const USE_MOCK = true
  *   projectStats: Array<any>,
  *   projectSkills: Array<any>,
  *   projectParameters: Array<any>,
+ *   projectFeatures: Array<any>,
  *   projectParagraphs: Array<any>,
  *   projectScenes: Array<any>
  * }}
@@ -187,6 +190,7 @@ export function extractProjectData(project, files = {}) {
             projectStats: [],
             projectSkills: [],
             projectParameters: [],
+            projectFeatures: [],
             projectParagraphs: [],
             projectScenes: [],
         }
@@ -208,6 +212,8 @@ export function extractProjectData(project, files = {}) {
     const skills = typeof project.getGlobalSkills === 'function' ? project.getGlobalSkills() : []
     const parameters =
         typeof project.getGlobalParameters === 'function' ? project.getGlobalParameters() : []
+    const features =
+        typeof project.getGlobalFeatures === 'function' ? project.getGlobalFeatures() : []
 
     return {
         files: files || {},
@@ -217,6 +223,7 @@ export function extractProjectData(project, files = {}) {
         projectStats: stats,
         projectSkills: skills,
         projectParameters: parameters,
+        projectFeatures: features,
         projectParagraphs: paragraphs,
         projectScenes: scenes,
     }
@@ -237,6 +244,7 @@ export function extractProjectData(project, files = {}) {
  *   projectStats: Array<any>,
  *   projectSkills: Array<any>,
  *   projectParameters: Array<any>,
+ *   projectFeatures: Array<any>,
  *   projectParagraphs: Array<any>,
  *   projectScenes: Array<any>
  * }>}
@@ -255,6 +263,7 @@ export async function loadRealProjectData(vm, options = {}) {
         projectStats: [],
         projectSkills: [],
         projectParameters: [],
+        projectFeatures: [],
         projectParagraphs: [],
         projectScenes: [],
     }

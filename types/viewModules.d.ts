@@ -1,9 +1,12 @@
 declare module '*/View/mockData.js' {
+    import type { Feature } from '../Model/Feature'
     import type { Location } from '../Model/Location'
     import type { NPC } from '../Model/NPC'
     import type { Paragraph } from '../Model/Paragraph'
+    import type { Parameter } from '../Model/Parameter'
     import type { Project } from '../Model/Project'
     import type { Scene } from '../Model/Scene'
+    import type { Skill } from '../Model/Skill'
     import type { Stat } from '../Model/Stat'
     import type { Tag } from '../Model/Tag'
     import type { MainWindowViewModel } from '../ViewModel/MainWindowViewModel'
@@ -14,6 +17,9 @@ declare module '*/View/mockData.js' {
         projectCharacters: NPC[]
         projectLocations: Location[]
         projectStats: Stat[]
+        projectSkills: Skill[]
+        projectParameters: Parameter[]
+        projectFeatures: Feature[]
         projectParagraphs: Paragraph[]
         projectScenes: Scene[]
     }
@@ -179,4 +185,42 @@ declare module '*/View/ui/npcModal.js' {
     export function renderNpcTags(): void
     export function initNpcTagsController(ctx?: unknown): void
     export function renderDynamicSuggestions(ctx?: unknown): void
+}
+
+declare module '*/View/ui/contextMenu.js' {
+    export function setupSectionControlsAndContextMenu(ctx?: unknown): void
+}
+
+declare module '*/View/ui/drawerLists.js' {
+    export function renderTraitsList(ctx?: unknown): void
+    export function renderParagraphsList(ctx?: unknown): void
+    export function renderScenesList(ctx?: unknown): void
+    export function renderConnectionsList(ctx?: unknown): void
+    export function renderCharactersList(ctx?: unknown): void
+    export function renderLocationsList(ctx?: unknown): void
+    export function renderTagsList(ctx?: unknown): void
+    export function attachItemSelectionListeners(
+        container: HTMLElement,
+        type: string,
+        sourceArray: unknown[],
+        ctx: unknown
+    ): void
+    export function attachContextMenuListeners(
+        container: HTMLElement,
+        type: string,
+        sourceArray: unknown[],
+        ctx: unknown
+    ): void
+    export function attachColorPickerListeners(container: HTMLElement, ctx: unknown): void
+    export function attachDrawerDropListeners(
+        container: HTMLElement,
+        targetType: string,
+        targetArray: unknown[],
+        ctx: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel.js' {
+    export function renderDetailsPanel(ctx?: unknown): void
+    export function renderHistoryBar(ctx?: unknown): void
 }

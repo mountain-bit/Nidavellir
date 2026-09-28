@@ -23,6 +23,14 @@ const resources = {
     de: { translation: de as unknown as Translations },
 }
 
+// Synchronously initialize i18next with default 'pl' locale so t() works immediately
+i18next.init({
+    lng: 'pl',
+    fallbackLng: 'en',
+    resources,
+    interpolation: { escapeValue: false },
+})
+
 let initialized = false
 
 export async function initTranslations(): Promise<void> {
@@ -30,33 +38,19 @@ export async function initTranslations(): Promise<void> {
 
     const locale = (await window.electronAPI?.getLocale?.()) || 'en'
 
-    await i18next.init({
-        lng: locale,
-        fallbackLng: 'en',
-        resources,
-        interpolation: { escapeValue: true },
-    })
-
+    await i18next.changeLanguage(locale)
     initialized = true
 }
 
 export async function initTranslationsWithLocale(locale: SupportedLanguage): Promise<void> {
-    if (i18next.isInitialized) {
-        await i18next.changeLanguage(locale)
-        return
-    }
-    await i18next.init({
-        lng: locale,
-        fallbackLng: 'en',
-        resources,
-        interpolation: { escapeValue: true },
-    })
+    await i18next.changeLanguage(locale)
     initialized = true
 }
 
 export function t(key: TranslationKey, options?: Record<string, unknown>): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return i18next.t(key as any, options as any) as string
+    const result = i18next.t(key as any, options as any)
+    return (result !== undefined ? result : String(key)) as string
 }
 
 export function getLanguage(): SupportedLanguage {

@@ -110,6 +110,7 @@ describe('mockData and projectData provider', () => {
                 projectStats: [],
                 projectSkills: [],
                 projectParameters: [],
+                projectFeatures: [],
                 projectParagraphs: [],
                 projectScenes: [],
             })
@@ -148,6 +149,7 @@ describe('mockData and projectData provider', () => {
             expect(extracted.projectParagraphs[0].getId()).toBe('para-1')
             expect(extracted.projectTags).toHaveLength(1)
             expect(extracted.projectCharacters).toHaveLength(1)
+            expect(extracted.projectFeatures).toEqual([])
         })
     })
 

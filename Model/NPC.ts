@@ -15,6 +15,7 @@ export class NPC {
     private tags: Tag[] = []
     private avatar: string = 'warrior'
     private parameters: Parameter[] = []
+    private customAttributes: { name: string; value: string }[] = []
 
     constructor(
         id: string = '',
@@ -25,7 +26,8 @@ export class NPC {
         features: Feature[] = [],
         tags: Tag[] = [],
         avatar: string = 'warrior',
-        parameters: Parameter[] = []
+        parameters: Parameter[] = [],
+        customAttributes: { name: string; value: string }[] = []
     ) {
         this.id = id
         this.name = name
@@ -36,6 +38,7 @@ export class NPC {
         this.tags = tags
         this.avatar = avatar
         this.parameters = parameters
+        this.customAttributes = customAttributes
     }
 
     public getId(): string {
@@ -210,6 +213,14 @@ export class NPC {
         return this.tags.some(t => t.getId() === tagIdOrName || t.getName() === tagIdOrName)
     }
 
+    public getCustomAttributes(): { name: string; value: string }[] {
+        return this.customAttributes
+    }
+
+    public setCustomAttributes(attrs: { name: string; value: string }[]): void {
+        this.customAttributes = attrs
+    }
+
     public static fromJSON(json: any): NPC {
         if (!json) return new NPC('')
         const tagsParsed = (json.tags || []).map((t: any) => Tag.fromJSON(t))
@@ -220,6 +231,10 @@ export class NPC {
         const featuresData = json.features || json.qualities || []
         const paramsData = json.parameters || json.vitals || []
         const avatar = json.avatar ?? 'warrior'
+        const customAttrs = (json.customAttributes || []).map((ca: any) => ({
+            name: ca.name || ca.key || '',
+            value: String(ca.value ?? ''),
+        }))
         return new NPC(
             json.id || '',
             name,
@@ -229,7 +244,8 @@ export class NPC {
             featuresData.map((p: any) => Feature.fromJSON(p)),
             tagsParsed,
             avatar,
-            paramsData.map((p: any) => Parameter.fromJSON(p))
+            paramsData.map((p: any) => Parameter.fromJSON(p)),
+            customAttrs
         )
     }
 
@@ -244,6 +260,7 @@ export class NPC {
             parameters: this.parameters,
             features: this.features,
             tags: this.tags,
+            customAttributes: this.customAttributes,
         }
     }
 }

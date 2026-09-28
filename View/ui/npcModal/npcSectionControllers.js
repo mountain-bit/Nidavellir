@@ -4,6 +4,7 @@
  * Avatars, Custom Attributes, Stats, Skills, and Vitals.
  */
 
+import { t } from '../../../dist/Utils/translate.js'
 import { FANTASY_AVATARS, getAvatarById } from '../npcAvatars.js'
 import { evaluateFormula } from './formulaEvaluator.js'
 import * as state from './npcState.js'
@@ -982,15 +983,14 @@ export function updateAvailableTagsList(filterQuery = '') {
     })
 
     if (filtered.length === 0) {
-        container.innerHTML =
-            '<span class="text-[10px] text-zinc-500 italic p-1">Brak istniejących tagów</span>'
+        container.innerHTML = `<span class="text-[10px] text-zinc-500 italic p-1">${t('npc.no_existing_tags')}</span>`
     } else {
         container.innerHTML = filtered
-            .map(t => {
+            .map(tag => {
                 const tagObj = {
-                    id: typeof t.getId === 'function' ? t.getId() : t.id,
-                    name: typeof t.getName === 'function' ? t.getName() : t.name,
-                    color: typeof t.getColor === 'function' ? t.getColor() : t.color,
+                    id: typeof tag.getId === 'function' ? tag.getId() : tag.id,
+                    name: typeof tag.getName === 'function' ? tag.getName() : tag.name,
+                    color: typeof tag.getColor === 'function' ? tag.getColor() : tag.color,
                 }
                 const isSelected = currentNames.has((tagObj.name || '').toLowerCase())
                 return renderAvailableTagItemHtml(tagObj, isSelected)
@@ -1103,7 +1103,15 @@ export function renderDynamicSuggestions(ctx) {
             (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
         const suggestedStats = vm?.getSuggestedStats
             ? vm.getSuggestedStats(existingStats, characters)
-            : ['Siła', 'Zręczność', 'Kondycja', 'Inteligencja', 'Mądrość', 'Charyzma', 'Percepcja']
+            : [
+                  t('npc.stat_presets.strength'),
+                  t('npc.stat_presets.dexterity'),
+                  t('npc.stat_presets.constitution'),
+                  t('npc.stat_presets.intelligence'),
+                  t('npc.stat_presets.wisdom'),
+                  t('npc.stat_presets.charisma'),
+                  t('npc.stat_presets.perception'),
+              ]
 
         statsContainer.innerHTML = suggestedStats
             .map(name => renderSuggestedChipHtml({ type: 'stat', name }))
@@ -1129,7 +1137,13 @@ export function renderDynamicSuggestions(ctx) {
             (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
         const suggestedVitals = vm?.getSuggestedParameters
             ? vm.getSuggestedParameters(existingParams, characters)
-            : ['Punkty Życia (HP)', 'Mana', 'Kondycja', 'Pancerz', 'Udźwig']
+            : [
+                  t('npc.vital_presets.hp'),
+                  t('npc.vital_presets.mana'),
+                  t('npc.vital_presets.stamina'),
+                  t('npc.vital_presets.armor'),
+                  t('npc.vital_presets.carrying'),
+              ]
 
         vitalsContainer.innerHTML = suggestedVitals
             .map(name => renderSuggestedChipHtml({ type: 'vital', name }))
@@ -1140,10 +1154,20 @@ export function renderDynamicSuggestions(ctx) {
                 e.preventDefault()
                 const name = chip.dataset.presetVital
                 if (!name) return
-                if (name.includes('HP') || name.includes('Życia')) {
-                    addNpcVital(name, 'formula', '', 'Siła * 4 + 10', true)
-                } else if (name.includes('Mana') || name.includes('Magia')) {
-                    addNpcVital(name, 'formula', '', 'Inteligencja * 3', true)
+                const strengthName = t('npc.stat_presets.strength')
+                const intelName = t('npc.stat_presets.intelligence')
+                if (
+                    name.includes('HP') ||
+                    name.includes('Życia') ||
+                    name.includes(t('npc.vital_presets.hp'))
+                ) {
+                    addNpcVital(name, 'formula', '', `${strengthName} * 4 + 10`, true)
+                } else if (
+                    name.includes('Mana') ||
+                    name.includes('Magia') ||
+                    name.includes(t('npc.vital_presets.mana'))
+                ) {
+                    addNpcVital(name, 'formula', '', `${intelName} * 3`, true)
                 } else {
                     addNpcVital(name, 'direct', '10', '', true)
                 }
@@ -1161,7 +1185,14 @@ export function renderDynamicSuggestions(ctx) {
             (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
         const suggestedSkills = vm?.getSuggestedSkills
             ? vm.getSuggestedSkills(existingSkills, characters)
-            : ['Walka wręcz', 'Strzelectwo', 'Skradanie', 'Otwieranie zamków', 'Magia', 'Perswazja']
+            : [
+                  t('npc.skill_presets.melee'),
+                  t('npc.skill_presets.ranged'),
+                  t('npc.skill_presets.stealth'),
+                  t('npc.skill_presets.lockpicking'),
+                  t('npc.skill_presets.magic'),
+                  t('npc.skill_presets.persuasion'),
+              ]
 
         skillsContainer.innerHTML = suggestedSkills
             .map(name => renderSuggestedChipHtml({ type: 'skill', name }))
@@ -1187,7 +1218,13 @@ export function renderDynamicSuggestions(ctx) {
             (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
         const suggestedAttrs = vm?.getSuggestedFeatures
             ? vm.getSuggestedFeatures(existingFeatures, characters)
-            : ['Rasa', 'Zawód', 'Rola', 'Frakcja', 'Nastawienie']
+            : [
+                  t('npc.presets.race'),
+                  t('npc.presets.profession'),
+                  t('npc.presets.role'),
+                  t('npc.presets.faction'),
+                  t('npc.presets.alignment'),
+              ]
 
         attrsContainer.innerHTML = suggestedAttrs
             .map(name => renderSuggestedChipHtml({ type: 'attribute', name }))
@@ -1215,7 +1252,13 @@ export function renderDynamicSuggestions(ctx) {
             : []
 
         if (suggestedTags.length === 0) {
-            suggestedTags = ['Sojusznik', 'Wróg', 'Kupiec', 'Przewodnik', 'Boss']
+            suggestedTags = [
+                t('npc.tag_presets.ally'),
+                t('npc.tag_presets.enemy'),
+                t('npc.tag_presets.merchant'),
+                t('npc.tag_presets.guide'),
+                t('npc.tag_presets.boss'),
+            ]
         }
 
         tagsContainer.innerHTML = suggestedTags

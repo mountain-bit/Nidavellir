@@ -849,26 +849,45 @@
                                 <input
                                     type="text"
                                     id="trait-search-input"
-                                    placeholder="Szukaj cech..."
+                                    placeholder="Szukaj cech, parametrów, umiejętności..."
                                     data-i18n-placeholder="left_panel.search_traits_placeholder"
                                     class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 />
                                 <div
                                     id="trait-create-form"
-                                    class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                                    class="hidden p-2.5 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-2 shadow-md"
                                 >
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[10px] uppercase font-bold text-[#a1a1aa]" data-i18n="left_panel.item_type_label">Typ elementu</label>
+                                        <select
+                                            id="trait-create-type"
+                                            class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
+                                        >
+                                            <option value="stat" selected data-i18n="left_panel.type_stat">Cecha (Statystyka)</option>
+                                            <option value="parameter" data-i18n="left_panel.type_parameter">Parametr życiowy</option>
+                                            <option value="skill" data-i18n="left_panel.type_skill">Umiejętność</option>
+                                            <option value="feature" data-i18n="left_panel.type_feature">Przymiot specjalny</option>
+                                        </select>
+                                    </div>
                                     <input
                                         type="text"
                                         id="trait-create-name"
                                         placeholder="Nazwa cechy (lub zostaw puste)"
                                         data-i18n-placeholder="left_panel.trait_name_placeholder"
-                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                     />
-                                    <div class="flex justify-end gap-1">
+                                    <input
+                                        type="text"
+                                        id="trait-create-value"
+                                        placeholder="Wartość / wzór (opcjonalnie)"
+                                        data-i18n-placeholder="left_panel.trait_value_placeholder"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                    />
+                                    <div class="flex justify-end gap-1 pt-0.5">
                                         <button
                                             id="trait-create-cancel"
                                             type="button"
-                                            class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                            class="px-2 py-1 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
                                             data-i18n="buttons.cancel"
                                         >
                                             Anuluj
@@ -876,7 +895,7 @@
                                         <button
                                             id="trait-create-submit"
                                             type="button"
-                                            class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                            class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-medium cursor-pointer shadow-sm"
                                             data-i18n="buttons.add"
                                         >
                                             Dodaj
@@ -884,8 +903,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-2 text-xs text-[#a1a1aa]" id="traits-list-container">
-                                <p class="italic text-gray-500" data-i18n="left_panel.no_traits">
+                            <div class="p-1 text-xs text-[#a1a1aa] space-y-3" id="traits-list-container">
+                                <p class="italic text-gray-500 text-center py-2" data-i18n="left_panel.no_traits">
                                     Brak zdefiniowanych cech w projekcie
                                 </p>
                             </div>
@@ -1324,8 +1343,8 @@
                     </span>
                     <span
                         id="ctx-add-tag-chevron"
-                        class="text-[10px] text-gray-400 transition-transform duration-150"
-                        >▸</span
+                        class="text-gray-400 inline-flex items-center"
+                        ><app-icon name="chevron-right" class="w-3 h-3"></app-icon></span
                     >
                 </button>
                 <div
@@ -1351,8 +1370,8 @@
                     </span>
                     <span
                         id="ctx-add-trait-chevron"
-                        class="text-[10px] text-gray-400 transition-transform duration-150"
-                        >▸</span
+                        class="text-gray-400 inline-flex items-center"
+                        ><app-icon name="chevron-right" class="w-3 h-3"></app-icon></span
                     >
                 </button>
                 <div
@@ -1545,7 +1564,7 @@
                                         <!-- Heraldic header / top frame embellishment -->
                                         <div class="w-full flex items-center justify-between text-[9px] text-blue-400/70 font-mono uppercase tracking-wider border-b border-blue-500/20 pb-1">
                                             <span data-i18n="npc.portrait">Portret</span>
-                                            <span class="text-blue-400">✦</span>
+                                            <app-icon name="feature" class="w-2.5 h-2.5 text-blue-400 shrink-0"></app-icon>
                                         </div>
 
                                         <!-- Centered Avatar SVG preview -->
@@ -1556,7 +1575,7 @@
 
                                         <!-- Bottom label / Edit badge -->
                                         <div class="w-full pt-1 border-t border-blue-500/20 flex items-center justify-center gap-1 text-[10px] text-blue-300 font-medium group-hover:text-blue-200">
-                                            <span>✎</span>
+                                            <app-icon name="edit" class="w-2.5 h-2.5 text-blue-300 shrink-0"></app-icon>
                                             <span data-i18n="npc.charakter_change">Zmień awatar</span>
                                         </div>
                                     </button>
@@ -1607,7 +1626,7 @@
                                     >
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-1.5">
-                                                <span class="text-blue-400 text-xs">◈</span>
+                                                <app-icon name="stat" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                                                 <h4
                                                     class="text-xs font-bold text-zinc-200 tracking-wide"
                                                     data-i18n="npc.custom_attributes_title"
@@ -1660,7 +1679,7 @@
                                         class="text-[11px] font-semibold text-zinc-200 flex items-center gap-1.5"
                                         data-i18n="npc.summary_label"
                                     >
-                                        <span class="text-blue-400">✦</span>
+                                        <app-icon name="feature" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                                         <span>Rys fabularny / Biogram</span>
                                     </label>
                                     <span
@@ -1683,7 +1702,7 @@
                             <div id="npc-tags-section" class="flex flex-col gap-2 pb-4 border-b border-zinc-800 relative">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="text-blue-400 text-xs">🏷</span>
+                                        <app-icon name="tag" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                                         <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.tags_title">
                                             Tagi postaci
                                         </h4>
@@ -1750,7 +1769,7 @@
                                 <div id="npc-stats-section" class="flex flex-col gap-2.5 pb-4 border-b border-zinc-800">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-blue-400 text-xs">⚔</span>
+                                            <app-icon name="stat" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                                             <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.stats_title">
                                                 Cechy Bazowe
                                             </h4>
@@ -1792,7 +1811,7 @@
                                 <div id="npc-vitals-section" class="flex flex-col gap-2.5 pb-4 border-b border-zinc-800">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-blue-400 text-xs">♥</span>
+                                            <app-icon name="parameter" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                                             <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.vitals_title">
                                                 Parametry Życiowe
                                             </h4>
@@ -1832,7 +1851,7 @@
                                 <div id="npc-skills-section" class="flex flex-col gap-2.5 pb-2">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-1.5">
-                                            <span class="text-blue-400 text-xs">⚡</span>
+                                            <app-icon name="skill" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
                                             <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.skills_title">
                                                 Zdolności i Umiejętności
                                             </h4>

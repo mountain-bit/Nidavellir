@@ -5,6 +5,8 @@
  * the UI, Graph visualization, context menus, and toolbars.
  */
 
+export const PARAGRAPH_SYMBOL = '§'
+
 export type IconName =
     | 'paragraph'
     | 'scene'
@@ -14,6 +16,9 @@ export type IconName =
     | 'location'
     | 'trait'
     | 'stat'
+    | 'parameter'
+    | 'skill'
+    | 'feature'
     | 'tag'
     | 'item'
     | 'class'
@@ -26,6 +31,8 @@ export type IconName =
     | 'arrow-left'
     | 'arrow-up'
     | 'arrow-down'
+    | 'chevron-right'
+    | 'chevron-down'
     | 'plus'
     | 'trash'
     | 'edit'
@@ -84,6 +91,18 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path>',
     },
+    parameter: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path>',
+    },
+    skill: {
+        viewBox: '0 0 24 24',
+        path: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polygon>',
+    },
+    feature: {
+        viewBox: '0 0 24 24',
+        path: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polygon>',
+    },
     tag: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>',
@@ -129,6 +148,14 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>',
     },
     'arrow-down': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>',
+    },
+    'chevron-right': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>',
+    },
+    'chevron-down': {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>',
     },

@@ -63,6 +63,7 @@ export interface IIdentifiableEntity {
     getTitle?: () => string
     setTitle?: (title: string) => void
     getContent?: () => Description
+    getDescription?: () => Description
     getColor?: () => string
     setColor?: (color: string) => void
     getIsNumberLocked?: () => boolean
@@ -88,6 +89,8 @@ export interface IIdentifiableEntity {
     setFeatures?: (features: Feature[]) => void
     addFeature?: (feat: Feature) => void
     removeFeature?: (featId: string) => void
+    getCustomAttributes?: () => { name: string; value: string }[]
+    setCustomAttributes?: (attrs: { name: string; value: string }[]) => void
     getAvatar?: () => string
     setAvatar?: (avatar: string) => void
     getValue?: () => string | number
@@ -564,7 +567,11 @@ export class MainWindowViewModel {
         }
 
         const entity = this.selectedItem.entity
-        const desc: Description = entity.getContent ? entity.getContent() : new Description()
+        const desc: Description = entity.getContent
+            ? entity.getContent()
+            : entity.getDescription
+              ? entity.getDescription()
+              : new Description()
         const safeName = this.selectedItem.name.replace(/[^a-zA-Z0-9_-]/g, '_')
         const fileName = `${safeName}_${fileType === 'text' ? 'text' : 'author'}.md`
 

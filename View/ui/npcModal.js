@@ -4,7 +4,7 @@
  * form inputs, and narrative drawer, delegating sub-responsibilities to specialized modules.
  */
 
-import { applyTranslations } from '../../dist/Utils/translate.js'
+import { applyTranslations, t } from '../../dist/Utils/translate.js'
 import { evaluateFormula, parseStatValueAsNumber } from './npcModal/formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcModal/npcCharacterSaver.js'
 import { clampModalPosition, initDraggable, initResizable } from './npcModal/npcDraggable.js'
@@ -161,7 +161,7 @@ export function toggleDescriptionDrawer(forceState) {
         drawer.classList.remove('hidden')
         if (arrow) arrow.textContent = '‹'
         if (btnToggle) {
-            btnToggle.setAttribute('title', 'Zwiń panel opisu narracyjnego')
+            btnToggle.setAttribute('title', t('npc.collapse_narrative'))
         }
 
         if (modal) {
@@ -196,7 +196,7 @@ export function toggleDescriptionDrawer(forceState) {
         drawer.classList.add('hidden')
         if (arrow) arrow.textContent = '›'
         if (btnToggle) {
-            btnToggle.setAttribute('title', 'Rozwiń panel opisu narracyjnego')
+            btnToggle.setAttribute('title', t('npc.expand_narrative'))
         }
 
         if (modal && wasOpen) {

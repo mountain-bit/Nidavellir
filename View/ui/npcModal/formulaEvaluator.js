@@ -4,6 +4,8 @@
  * Supports dice notation ("2d6", "d20+2"), Polish variable identifiers, and basic math operators.
  */
 
+import { t } from '../../../dist/Utils/translate.js'
+
 /**
  * Safely parses a stat value string into a numerical value.
  * Supports numbers ("15", "12.5"), dice notation ("d6", "2d6", "1d20+2"), or extracts leading digits.
@@ -93,7 +95,7 @@ export function evaluateFormula(formula, statsMap = {}) {
             }
             const parsed = parseFloat(numStr)
             if (isNaN(parsed)) {
-                return { result: null, error: `Niepoprawna liczba: ${numStr}` }
+                return { result: null, error: t('formula.invalid_number', { num: numStr }) }
             }
             tokens.push({ type: 'NUM', value: parsed })
             continue
@@ -145,13 +147,13 @@ export function evaluateFormula(formula, statsMap = {}) {
             if (identLower in normalizedStats) {
                 tokens.push({ type: 'NUM', value: normalizedStats[identLower] })
             } else {
-                return { result: null, error: `Brak cechy: ${ident}` }
+                return { result: null, error: t('formula.missing_stat', { name: ident }) }
             }
             continue
         }
 
         // Disallowed character
-        return { result: null, error: `Niedozwolony znak: '${char}'` }
+        return { result: null, error: t('formula.invalid_char', { char }) }
     }
 
     if (tokens.length === 0) return { result: null }
@@ -191,7 +193,7 @@ export function evaluateFormula(formula, statsMap = {}) {
                 outputQueue.push(top)
             }
             if (!foundLparen) {
-                return { result: null, error: 'Niezbalansowane nawiasy' }
+                return { result: null, error: t('formula.unbalanced_parens') }
             }
         }
     }
@@ -199,7 +201,7 @@ export function evaluateFormula(formula, statsMap = {}) {
     while (opStack.length > 0) {
         const top = opStack.pop()
         if (top.type === 'LPAREN' || top.type === 'RPAREN') {
-            return { result: null, error: 'Niezbalansowane nawiasy' }
+            return { result: null, error: t('formula.unbalanced_parens') }
         }
         outputQueue.push(top)
     }
@@ -211,11 +213,11 @@ export function evaluateFormula(formula, statsMap = {}) {
             evalStack.push(token.value)
         } else if (token.type === 'OP') {
             if (token.isUnary) {
-                if (evalStack.length < 1) return { result: null, error: 'Błąd składni wzoru' }
+                if (evalStack.length < 1) return { result: null, error: t('formula.syntax_error') }
                 const a = evalStack.pop()
                 evalStack.push(-a)
             } else {
-                if (evalStack.length < 2) return { result: null, error: 'Błąd składni wzoru' }
+                if (evalStack.length < 2) return { result: null, error: t('formula.syntax_error') }
                 const b = evalStack.pop()
                 const a = evalStack.pop()
                 let res = 0
@@ -230,15 +232,15 @@ export function evaluateFormula(formula, statsMap = {}) {
                         res = a * b
                         break
                     case '/':
-                        if (b === 0) return { result: null, error: 'Dzielenie przez zero' }
+                        if (b === 0) return { result: null, error: t('formula.div_zero') }
                         res = a / b
                         break
                     case '%':
-                        if (b === 0) return { result: null, error: 'Dzielenie przez zero' }
+                        if (b === 0) return { result: null, error: t('formula.div_zero') }
                         res = a % b
                         break
                     default:
-                        return { result: null, error: 'Nieznany operator' }
+                        return { result: null, error: t('formula.unknown_op') }
                 }
                 evalStack.push(res)
             }
@@ -246,7 +248,7 @@ export function evaluateFormula(formula, statsMap = {}) {
     }
 
     if (evalStack.length !== 1) {
-        return { result: null, error: 'Błąd składni wzoru' }
+        return { result: null, error: t('formula.syntax_error') }
     }
 
     const finalVal = evalStack[0]

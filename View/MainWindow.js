@@ -93,6 +93,9 @@ const appContext = {
     get projectParameters() {
         return projectData.projectParameters || []
     },
+    get projectFeatures() {
+        return projectData.projectFeatures || []
+    },
     get projectParagraphs() {
         return projectData.projectParagraphs
     },
@@ -233,7 +236,14 @@ function refreshActiveSection(type) {
         renderParagraphsList(appContext)
         renderScenesList(appContext)
     }
-    if (type === 'trait') renderTraitsList(appContext)
+    if (
+        type === 'trait' ||
+        type === 'stat' ||
+        type === 'parameter' ||
+        type === 'skill' ||
+        type === 'feature'
+    )
+        renderTraitsList(appContext)
     if (type === 'paragraph') {
         renderParagraphsList(appContext)
         renderConnectionsList(appContext)

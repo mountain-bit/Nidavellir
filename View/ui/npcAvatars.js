@@ -3,10 +3,12 @@
  * Clean, modern SVG representations of classic tabletop & fantasy RPG archetypes.
  */
 
+import { t } from '../../dist/Utils/translate.js'
+
 export const FANTASY_AVATARS = [
     {
         id: 'warrior',
-        name: 'Wojownik',
+        nameKey: 'avatars.warrior',
         category: 'combat',
         color: '#60a5fa',
         bgColor: 'rgba(59, 130, 246, 0.15)',
@@ -25,7 +27,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'mage',
-        name: 'Mag',
+        nameKey: 'avatars.mage',
         category: 'magic',
         color: '#3b82f6',
         bgColor: 'rgba(59, 130, 246, 0.18)',
@@ -38,7 +40,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'rogue',
-        name: 'Łotrzyk',
+        nameKey: 'avatars.rogue',
         category: 'stealth',
         color: '#38bdf8',
         bgColor: 'rgba(56, 189, 248, 0.15)',
@@ -53,7 +55,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'cleric',
-        name: 'Kapłan',
+        nameKey: 'avatars.priest',
         category: 'divine',
         color: '#818cf8',
         bgColor: 'rgba(129, 140, 248, 0.15)',
@@ -73,7 +75,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'ranger',
-        name: 'Łucznik',
+        nameKey: 'avatars.ranger',
         category: 'ranged',
         color: '#2dd4bf',
         bgColor: 'rgba(45, 212, 191, 0.15)',
@@ -88,7 +90,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'paladin',
-        name: 'Paladyn',
+        nameKey: 'avatars.paladin',
         category: 'holy',
         color: '#93c5fd',
         bgColor: 'rgba(147, 197, 253, 0.15)',
@@ -102,7 +104,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'bard',
-        name: 'Bard',
+        nameKey: 'avatars.bard',
         category: 'utility',
         color: '#a78bfa',
         bgColor: 'rgba(167, 139, 250, 0.15)',
@@ -116,7 +118,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'necromancer',
-        name: 'Nekromanta',
+        nameKey: 'avatars.necromancer',
         category: 'dark',
         color: '#7dd3fc',
         bgColor: 'rgba(125, 211, 252, 0.15)',
@@ -131,7 +133,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'druid',
-        name: 'Druid',
+        nameKey: 'avatars.druid',
         category: 'nature',
         color: '#38bdf8',
         bgColor: 'rgba(56, 189, 248, 0.15)',
@@ -144,7 +146,7 @@ export const FANTASY_AVATARS = [
     },
     {
         id: 'merchant',
-        name: 'Handlarz',
+        nameKey: 'avatars.merchant',
         category: 'civilian',
         color: '#94a3b8',
         bgColor: 'rgba(148, 163, 184, 0.15)',
@@ -158,6 +160,16 @@ export const FANTASY_AVATARS = [
         </svg>`,
     },
 ]
+
+/**
+ * Returns the translated display name for an avatar.
+ *
+ * @param {{ nameKey: string, id: string }} avatar
+ * @returns {string}
+ */
+export function getAvatarName(avatar) {
+    return t(avatar.nameKey) || avatar.id
+}
 
 export function getAvatarById(id) {
     return FANTASY_AVATARS.find(a => a.id === id) || FANTASY_AVATARS[0]

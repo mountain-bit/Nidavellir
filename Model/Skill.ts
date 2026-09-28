@@ -69,8 +69,8 @@ export class Skill {
         return this.value
     }
 
-    public setValue(value: string): void {
-        this.value = value
+    public setValue(value: string | number): void {
+        this.value = String(value)
     }
 
     public getStatName(): string {

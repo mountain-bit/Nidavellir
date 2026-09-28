@@ -5,7 +5,12 @@ import {
     Choice,
     DEFAULT_SCENE_COLOR,
     DEFAULT_TAG_COLOR,
+    Description,
+    Feature,
     Paragraph,
+    Parameter,
+    Skill,
+    Stat,
     TextCondition,
 } from '../../dist/ViewModel/MainWindowViewModel.js'
 import {
@@ -16,6 +21,8 @@ import {
     renderColorPresetButtonsHtml,
     renderEmptyPlaceholderHtml,
 } from './htmlTemplates.js'
+import { FANTASY_AVATARS, getAvatarById } from './npcAvatars.js'
+import { evaluateFormula } from './npcModal/formulaEvaluator.js'
 
 /**
  * Renders the top history tabs bar in the right sidebar.
@@ -31,7 +38,7 @@ export function renderHistoryBar(ctx) {
     const selected = ctx.vm.getSelectedItem()
 
     if (history.length === 0) {
-        container.innerHTML = `<span class="text-[10px] text-gray-500 italic px-1 select-none">${t('details.history')}: brak</span>`
+        container.innerHTML = `<span class="text-[10px] text-gray-500 italic px-1 select-none">${t('details.history')}: ${t('details.history_empty')}</span>`
         return
     }
 
@@ -127,18 +134,29 @@ export function renderDetailsPanel(ctx) {
     else if (type === 'character') entityScope = ctx.projectCharacters
     else if (type === 'location') entityScope = ctx.projectLocations
     else if (type === 'stat' || type === 'trait') entityScope = ctx.projectStats
+    else if (type === 'parameter') entityScope = ctx.projectParameters
+    else if (type === 'skill') entityScope = ctx.projectSkills
+    else if (type === 'feature') entityScope = ctx.projectFeatures
     else if (type === 'tag') entityScope = ctx.projectTags
 
     renderEntityHeaderModule(container, item)
+    renderAvatarModule(container, entity, type, ctx)
     renderNameModule(container, item, entityScope, ctx)
     renderColorModule(container, entity, type, ctx)
     renderParagraphNumberModule(container, entity, type, ctx)
+    renderStatValueModule(container, entity, type, ctx)
+    renderParameterConfigModule(container, entity, type, ctx)
+    renderSkillConfigModule(container, entity, type, ctx)
     renderSummaryModule(container, entity, ctx)
     renderFilesModule(container, entity, ctx)
     renderLocationsModule(container, entity, type, ctx)
     renderCharactersModule(container, entity, type, ctx)
     renderTagsModule(container, entity, type, ctx)
     renderTraitsModule(container, entity, type, ctx)
+    renderParametersModule(container, entity, type, ctx)
+    renderSkillsModule(container, entity, type, ctx)
+    renderFeaturesModule(container, entity, type, ctx)
+    renderCustomAttributesModule(container, entity, type, ctx)
     renderExitsModule(container, entity, type, ctx)
     renderQuickActionsModule(container, item, type, ctx)
 }
@@ -319,14 +337,79 @@ function renderChoiceDetails(container, choice, item, ctx) {
 function renderEntityHeaderModule(container, item) {
     const headerMod = document.createElement('section')
     headerMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    const typeKey = `details.type_${item.type}`
+    const typeLabel = t(typeKey) !== typeKey ? t(typeKey) : item.type.toUpperCase()
+
     headerMod.innerHTML = `
         <div class="flex items-center justify-between">
             <span class="text-[10px] uppercase font-bold tracking-widest text-[#71717a]">${t('details.type')}</span>
-            <span class="px-2 py-0.5 text-[11px] rounded border ${getTypeBadgeColor(item.type)} font-medium">${escapeHtml(item.type.toUpperCase())}</span>
+            <span class="px-2 py-0.5 text-[11px] rounded border ${getTypeBadgeColor(item.type)} font-medium">${escapeHtml(typeLabel)}</span>
         </div>
         <div class="text-[10px] text-gray-500 font-mono truncate">ID: ${escapeHtml(item.id)}</div>
     `
     container.appendChild(headerMod)
+}
+
+function renderAvatarModule(container, entity, type, ctx) {
+    if (type !== 'character' || typeof entity.getAvatar !== 'function') return
+
+    const avatarId = entity.getAvatar() || 'warrior'
+    const avatar = getAvatarById(avatarId)
+
+    const avatarMod = document.createElement('section')
+    avatarMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    avatarMod.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.avatar')}</span>
+            <span class="text-[10px] text-gray-400 capitalize">${escapeHtml(avatar.category || '')}</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <div id="details-avatar-preview" class="w-10 h-10 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-md border" style="background-color: ${avatar.bgColor}; color: ${avatar.color}; border-color: ${avatar.borderColor}">
+                ${avatar.svg}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-xs font-semibold text-white truncate">${escapeHtml(avatar.name)}</div>
+                <button type="button" id="btn-details-toggle-avatar-grid" class="mt-1 text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1 font-medium transition-colors">
+                    <span>${t('details.change_avatar')}</span>
+                    ${getIconSvg('chevron-down', 'w-3 h-3')}
+                </button>
+            </div>
+        </div>
+        <div id="details-avatar-grid" class="hidden grid grid-cols-4 gap-1.5 pt-2 border-t border-[#2d2d32]">
+            ${FANTASY_AVATARS.map(
+                av => `
+                <button type="button" data-avatar-id="${av.id}" class="details-avatar-btn group p-1.5 rounded flex flex-col items-center gap-1 bg-[#18181b] border ${av.id === avatarId ? 'border-blue-500 ring-1 ring-blue-500' : 'border-[#27272a] hover:border-[#3f3f46]'} cursor-pointer transition-all">
+                    <div class="w-6 h-6 rounded flex items-center justify-center p-0.5" style="background-color: ${av.bgColor}; color: ${av.color}">
+                        ${av.svg}
+                    </div>
+                    <span class="text-[9px] text-[#a1a1aa] group-hover:text-white truncate max-w-full">${escapeHtml(av.name)}</span>
+                </button>
+            `
+            ).join('')}
+        </div>
+    `
+
+    const toggleBtn = avatarMod.querySelector('#btn-details-toggle-avatar-grid')
+    const grid = avatarMod.querySelector('#details-avatar-grid')
+
+    if (toggleBtn && grid) {
+        toggleBtn.addEventListener('click', () => {
+            grid.classList.toggle('hidden')
+        })
+
+        grid.querySelectorAll('.details-avatar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const selectedAvatarId = btn.dataset.avatarId
+                if (selectedAvatarId && entity.setAvatar) {
+                    entity.setAvatar(selectedAvatarId)
+                    renderDetailsPanel(ctx)
+                    ctx.refreshActiveSection(type)
+                }
+            })
+        })
+    }
+
+    container.appendChild(avatarMod)
 }
 
 function renderNameModule(container, item, entityScope, ctx) {
@@ -577,12 +660,257 @@ function renderParagraphNumberModule(container, entity, type, ctx) {
     container.appendChild(numMod)
 }
 
+function renderStatValueModule(container, entity, type, ctx) {
+    if (type !== 'stat' && type !== 'trait') return
+    if (!entity.getValue || !entity.setValue) return
+
+    const valMod = document.createElement('section')
+    valMod.className = 'border-b border-[#333338] p-3 space-y-1.5'
+    valMod.innerHTML = `
+        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.stat_value')}</label>
+        <input id="details-stat-value-input" type="text" value="${escapeHtml(String(entity.getValue() ?? ''))}" placeholder="${t('details.trait_value')}"
+            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-amber-500" />
+    `
+
+    const input = valMod.querySelector('#details-stat-value-input')
+    const saveValue = () => {
+        const val = input.value.trim()
+        entity.setValue(val)
+        renderHistoryBar(ctx)
+        ctx.refreshActiveSection(type)
+    }
+
+    input.addEventListener('change', saveValue)
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            saveValue()
+            input.blur()
+        }
+    })
+
+    container.appendChild(valMod)
+}
+
+function renderParameterConfigModule(container, entity, type, ctx) {
+    if (type !== 'parameter') return
+    if (!entity.getMode || !entity.setMode) return
+
+    const currentMode = entity.getMode() || 'direct'
+    const currentValue = entity.getValue ? entity.getValue() : ''
+    const currentFormula = entity.getFormula ? entity.getFormula() : ''
+
+    const statsMap = {}
+    ;(ctx.projectStats || []).forEach(st => {
+        statsMap[st.getName()] = st.getValue()
+    })
+    const evalRes = evaluateFormula(currentFormula, statsMap)
+
+    const paramConfigMod = document.createElement('section')
+    paramConfigMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    paramConfigMod.innerHTML = `
+        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.parameter_mode')}</label>
+        <div class="grid grid-cols-2 gap-1.5 bg-[#18181b] p-1 rounded border border-[#27272a]">
+            <button type="button" id="btn-param-mode-direct" class="py-1 px-2 rounded text-xs font-medium cursor-pointer transition-colors ${currentMode === 'direct' ? 'bg-rose-950/80 text-rose-300 border border-rose-500/50' : 'text-gray-400 hover:text-white'}">
+                ${t('details.mode_direct')}
+            </button>
+            <button type="button" id="btn-param-mode-formula" class="py-1 px-2 rounded text-xs font-medium cursor-pointer transition-colors ${currentMode === 'formula' ? 'bg-rose-950/80 text-rose-300 border border-rose-500/50' : 'text-gray-400 hover:text-white'}">
+                ${t('details.mode_formula')}
+            </button>
+        </div>
+        <div id="param-direct-block" class="${currentMode === 'direct' ? '' : 'hidden'} space-y-1 pt-1">
+            <label class="block text-[11px] text-gray-400">${t('details.parameter_value')}</label>
+            <input id="details-param-val-input" type="text" value="${escapeHtml(String(currentValue))}" placeholder="100"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-rose-500" />
+        </div>
+        <div id="param-formula-block" class="${currentMode === 'formula' ? '' : 'hidden'} space-y-1 pt-1">
+            <label class="block text-[11px] text-gray-400">${t('details.parameter_formula')}</label>
+            <input id="details-param-formula-input" type="text" value="${escapeHtml(currentFormula)}" placeholder="Siła * 2 + 10"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-rose-500" />
+            <div class="flex items-center justify-between text-[10px] text-gray-400 pt-0.5">
+                <span>${t('details.calculated_preview')}:</span>
+                <span id="param-formula-preview" class="font-mono font-bold ${evalRes.result !== null ? 'text-emerald-400' : 'text-amber-400'}">${evalRes.result !== null ? evalRes.result : evalRes.error || '—'}</span>
+            </div>
+        </div>
+    `
+
+    const btnDirect = paramConfigMod.querySelector('#btn-param-mode-direct')
+    const btnFormula = paramConfigMod.querySelector('#btn-param-mode-formula')
+    const valInput = paramConfigMod.querySelector('#details-param-val-input')
+    const formulaInput = paramConfigMod.querySelector('#details-param-formula-input')
+    const formulaPreview = paramConfigMod.querySelector('#param-formula-preview')
+
+    btnDirect.addEventListener('click', () => {
+        entity.setMode('direct')
+        renderDetailsPanel(ctx)
+        ctx.refreshActiveSection(type)
+    })
+
+    btnFormula.addEventListener('click', () => {
+        entity.setMode('formula')
+        renderDetailsPanel(ctx)
+        ctx.refreshActiveSection(type)
+    })
+
+    if (valInput) {
+        valInput.addEventListener('change', () => {
+            if (entity.setValue) entity.setValue(valInput.value.trim())
+            ctx.refreshActiveSection(type)
+        })
+        valInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (entity.setValue) entity.setValue(valInput.value.trim())
+                valInput.blur()
+                ctx.refreshActiveSection(type)
+            }
+        })
+    }
+
+    if (formulaInput) {
+        formulaInput.addEventListener('input', () => {
+            const formVal = formulaInput.value.trim()
+            const res = evaluateFormula(formVal, statsMap)
+            if (formulaPreview) {
+                formulaPreview.textContent =
+                    res.result !== null ? String(res.result) : res.error || '—'
+                formulaPreview.className = `font-mono font-bold ${res.result !== null ? 'text-emerald-400' : 'text-amber-400'}`
+            }
+        })
+        formulaInput.addEventListener('change', () => {
+            const formVal = formulaInput.value.trim()
+            if (entity.setFormula) entity.setFormula(formVal)
+            ctx.refreshActiveSection(type)
+        })
+        formulaInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const formVal = formulaInput.value.trim()
+                if (entity.setFormula) entity.setFormula(formVal)
+                formulaInput.blur()
+                ctx.refreshActiveSection(type)
+            }
+        })
+    }
+
+    container.appendChild(paramConfigMod)
+}
+
+function renderSkillConfigModule(container, entity, type, ctx) {
+    if (type !== 'skill') return
+    if (!entity.getMode || !entity.setMode) return
+
+    const currentMode = entity.getMode() || 'direct'
+    const currentValue = entity.getValue ? entity.getValue() : ''
+    const currentStat = entity.getStatName ? entity.getStatName() : ''
+    const currentMod = entity.getModifier ? entity.getModifier() : '+0'
+
+    const skillConfigMod = document.createElement('section')
+    skillConfigMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    skillConfigMod.innerHTML = `
+        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.skill_mode')}</label>
+        <div class="grid grid-cols-2 gap-1.5 bg-[#18181b] p-1 rounded border border-[#27272a]">
+            <button type="button" id="btn-skill-mode-direct" class="py-1 px-2 rounded text-xs font-medium cursor-pointer transition-colors ${currentMode === 'direct' ? 'bg-blue-950/80 text-blue-300 border border-blue-500/50' : 'text-gray-400 hover:text-white'}">
+                ${t('details.mode_direct')}
+            </button>
+            <button type="button" id="btn-skill-mode-stat" class="py-1 px-2 rounded text-xs font-medium cursor-pointer transition-colors ${currentMode === 'stat_mod' ? 'bg-blue-950/80 text-blue-300 border border-blue-500/50' : 'text-gray-400 hover:text-white'}">
+                ${t('details.mode_stat_mod')}
+            </button>
+        </div>
+        <div id="skill-direct-block" class="${currentMode === 'direct' ? '' : 'hidden'} space-y-1 pt-1">
+            <label class="block text-[11px] text-gray-400">${t('details.skill_value')}</label>
+            <input id="details-skill-val-input" type="text" value="${escapeHtml(currentValue)}" placeholder="+2"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-blue-500" />
+        </div>
+        <div id="skill-stat-block" class="${currentMode === 'stat_mod' ? '' : 'hidden'} space-y-2 pt-1">
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${t('details.skill_stat')}</label>
+                <select id="details-skill-stat-select" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                    <option value="">-- ${t('details.traits')} --</option>
+                    ${(ctx.projectStats || [])
+                        .map(
+                            st =>
+                                `<option value="${escapeHtml(st.getName())}" ${st.getName() === currentStat ? 'selected' : ''}>${escapeHtml(st.getName())}</option>`
+                        )
+                        .join('')}
+                </select>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${t('details.skill_mod')}</label>
+                <input id="details-skill-mod-input" type="text" value="${escapeHtml(currentMod)}" placeholder="+2"
+                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-blue-500" />
+            </div>
+        </div>
+    `
+
+    const btnDirect = skillConfigMod.querySelector('#btn-skill-mode-direct')
+    const btnStat = skillConfigMod.querySelector('#btn-skill-mode-stat')
+    const valInput = skillConfigMod.querySelector('#details-skill-val-input')
+    const statSelect = skillConfigMod.querySelector('#details-skill-stat-select')
+    const modInput = skillConfigMod.querySelector('#details-skill-mod-input')
+
+    btnDirect.addEventListener('click', () => {
+        entity.setMode('direct')
+        renderDetailsPanel(ctx)
+        ctx.refreshActiveSection(type)
+    })
+
+    btnStat.addEventListener('click', () => {
+        entity.setMode('stat_mod')
+        renderDetailsPanel(ctx)
+        ctx.refreshActiveSection(type)
+    })
+
+    if (valInput) {
+        valInput.addEventListener('change', () => {
+            if (entity.setValue) entity.setValue(valInput.value.trim())
+            ctx.refreshActiveSection(type)
+        })
+        valInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (entity.setValue) entity.setValue(valInput.value.trim())
+                valInput.blur()
+                ctx.refreshActiveSection(type)
+            }
+        })
+    }
+
+    if (statSelect) {
+        statSelect.addEventListener('change', () => {
+            if (entity.setStatName) entity.setStatName(statSelect.value)
+            ctx.refreshActiveSection(type)
+        })
+    }
+
+    if (modInput) {
+        modInput.addEventListener('change', () => {
+            if (entity.setModifier) entity.setModifier(modInput.value.trim())
+            ctx.refreshActiveSection(type)
+        })
+        modInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                if (entity.setModifier) entity.setModifier(modInput.value.trim())
+                modInput.blur()
+                ctx.refreshActiveSection(type)
+            }
+        })
+    }
+
+    container.appendChild(skillConfigMod)
+}
+
 function renderSummaryModule(container, entity, ctx) {
-    if (!entity.getContent || !entity.getContent()) return
+    const desc =
+        typeof entity.getContent === 'function'
+            ? entity.getContent()
+            : typeof entity.getDescription === 'function'
+              ? entity.getDescription()
+              : null
+    if (!desc) return
 
     const summaryMod = document.createElement('section')
     summaryMod.className = 'border-b border-[#333338] p-3 space-y-1.5'
-    const currentSummary = entity.getContent().getSummary() || ''
+    const currentSummary =
+        (typeof desc.getSummary === 'function' ? desc.getSummary() : '') ||
+        (typeof desc.getText === 'function' ? desc.getText() : '') ||
+        ''
 
     summaryMod.innerHTML = `
         <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.summary')}</label>
@@ -592,14 +920,20 @@ function renderSummaryModule(container, entity, ctx) {
 
     const summaryInput = summaryMod.querySelector('#details-summary-input')
     summaryInput.addEventListener('input', () => {
-        ctx.vm.updateSummary(summaryInput.value)
+        if (typeof ctx.vm.updateSummary === 'function') {
+            ctx.vm.updateSummary(summaryInput.value)
+        } else if (typeof desc.setSummary === 'function') {
+            desc.setSummary(summaryInput.value)
+        } else if (typeof desc.setText === 'function') {
+            desc.setText(summaryInput.value)
+        }
     })
 
     container.appendChild(summaryMod)
 }
 
 function renderFilesModule(container, entity, ctx) {
-    if (!entity.getContent) return
+    if (!entity.getContent && !entity.getDescription) return
 
     const filesMod = document.createElement('section')
     filesMod.className = 'border-b border-[#333338] p-3 space-y-2'
@@ -876,13 +1210,21 @@ function renderTraitsModule(container, entity, type, ctx) {
     const statsList = entity.getStats() || []
 
     statsMod.innerHTML = `
-        <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.traits')}</div>
-        <div id="details-stats-list" class="flex flex-col gap-1 min-h-[20px]"></div>
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
+                <span class="text-amber-400 inline-flex items-center">${getIconSvg('stat', 'w-3.5 h-3.5')}</span>
+                <span>${t('details.traits')}</span>
+            </span>
+            <span class="text-[10px] text-gray-500 font-mono">${statsList.length}</span>
+        </div>
+        <div id="details-stats-list" class="flex flex-col gap-1.5 min-h-[20px]">
+            ${statsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('left_panel.no_stats')}</span>` : ''}
+        </div>
         <div class="flex gap-1 pt-1">
             <select id="details-add-stat-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
                 <option value="">-- ${t('details.traits')} --</option>
             </select>
-            <button id="btn-details-add-stat" type="button" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium cursor-pointer">
+            <button id="btn-details-add-stat" type="button" class="px-2.5 py-1 bg-amber-700 hover:bg-amber-600 rounded text-xs text-white font-medium cursor-pointer transition-colors">
                 ${t('details.add_trait')}
             </button>
         </div>
@@ -892,26 +1234,50 @@ function renderTraitsModule(container, entity, type, ctx) {
     statsList.forEach(st => {
         const row = document.createElement('div')
         row.className =
-            'flex items-center justify-between bg-[#18181b] px-2 py-1 rounded border border-[#27272a] text-xs'
+            'flex items-center justify-between bg-[#18181b] px-2 py-1.5 rounded border border-[#27272a] hover:border-amber-500/40 text-xs transition-colors'
         row.innerHTML = `
-            <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5">
-                <span class="text-amber-400 shrink-0">${getIconSvg('trait', 'w-3.5 h-3.5')}</span>
-                <span>${escapeHtml(st.getName())}</span>
+            <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5 min-w-0 truncate">
+                <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
+                <span class="truncate">${escapeHtml(st.getName())}</span>
             </span>
-            <button class="text-gray-400 hover:text-red-400 ml-1 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+            <div class="flex items-center gap-1.5 shrink-0">
+                <input type="text" class="stat-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-amber-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(st.getValue ? st.getValue() : ''))}" placeholder="10" />
+                <button type="button" class="btn-remove-stat text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+            </div>
         `
-        row.querySelector('button').addEventListener('click', () => {
+
+        const valInput = row.querySelector('.stat-val-input')
+        if (valInput) {
+            valInput.addEventListener('change', () => {
+                if (st.setValue) st.setValue(valInput.value.trim())
+                ctx.refreshActiveSection(type)
+            })
+            valInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    if (st.setValue) st.setValue(valInput.value.trim())
+                    valInput.blur()
+                    ctx.refreshActiveSection(type)
+                }
+            })
+        }
+
+        row.querySelector('.btn-remove-stat').addEventListener('click', () => {
             ctx.vm.removeStatFromSelected(st.getId())
             renderDetailsPanel(ctx)
             ctx.refreshActiveSection(type)
         })
+
         statsListEl.appendChild(row)
     })
 
     const statSelect = statsMod.querySelector('#details-add-stat-select')
+    const availableStats = (ctx.projectStats || []).filter(
+        stObj =>
+            !statsList.some(st => st.getId() === stObj.getId() || st.getName() === stObj.getName())
+    )
     statSelect.innerHTML =
         `<option value="">-- ${t('details.traits')} --</option>` +
-        ctx.projectStats
+        availableStats
             .map(
                 st =>
                     `<option value="${escapeHtml(st.getId())}">${escapeHtml(st.getName())}</option>`
@@ -920,15 +1286,428 @@ function renderTraitsModule(container, entity, type, ctx) {
 
     statsMod.querySelector('#btn-details-add-stat').addEventListener('click', () => {
         const statId = statSelect.value
-        const statObj = ctx.projectStats.find(s => s.getId() === statId)
+        const statObj = (ctx.projectStats || []).find(s => s.getId() === statId)
         if (statObj) {
-            ctx.vm.addStatToSelected(statObj)
+            const clone = new Stat(
+                statObj.getId(),
+                statObj.getName(),
+                statObj.getDescription ? statObj.getDescription() : new Description(),
+                statObj.getValue ? statObj.getValue() : ''
+            )
+            ctx.vm.addStatToSelected(clone)
             renderDetailsPanel(ctx)
             ctx.refreshActiveSection(type)
         }
     })
 
     container.appendChild(statsMod)
+}
+
+function renderParametersModule(container, entity, type, ctx) {
+    if (!entity.getParameters || !entity.addParameter || !entity.removeParameter) return
+
+    const paramsMod = document.createElement('section')
+    paramsMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    const paramsList = entity.getParameters() || []
+
+    const charStatsMap = {}
+    if (entity.getStats) {
+        ;(entity.getStats() || []).forEach(st => {
+            charStatsMap[st.getName()] = st.getValue()
+        })
+    }
+
+    paramsMod.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
+                <span class="text-rose-400 inline-flex items-center">${getIconSvg('parameter', 'w-3.5 h-3.5')}</span>
+                <span>${t('details.parameters')}</span>
+            </span>
+            <span class="text-[10px] text-gray-500 font-mono">${paramsList.length}</span>
+        </div>
+        <div id="details-params-list" class="flex flex-col gap-1.5 min-h-[20px]">
+            ${paramsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_parameters')}</span>` : ''}
+        </div>
+        <div class="flex gap-1 pt-1">
+            <select id="details-add-param-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
+                <option value="">-- ${t('details.select_parameter')} --</option>
+            </select>
+            <button id="btn-details-add-param" type="button" class="px-2.5 py-1 bg-rose-700 hover:bg-rose-600 rounded text-xs text-white font-medium cursor-pointer transition-colors">
+                ${t('details.add_parameter')}
+            </button>
+        </div>
+    `
+
+    const paramsListEl = paramsMod.querySelector('#details-params-list')
+    paramsList.forEach(p => {
+        const row = document.createElement('div')
+        row.className =
+            'flex items-center justify-between bg-[#18181b] px-2 py-1.5 rounded border border-[#27272a] hover:border-rose-500/40 text-xs transition-colors'
+
+        let valueDisplay = ''
+        if (p.getMode && p.getMode() === 'formula') {
+            const formula = p.getFormula ? p.getFormula() : ''
+            const evalRes = evaluateFormula(formula, charStatsMap)
+            const calcText = evalRes.result !== null ? ` (${evalRes.result})` : ''
+            valueDisplay = `<span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-950/60 text-rose-300 font-mono border border-rose-500/40 font-bold truncate max-w-[140px]" title="${escapeHtml(formula)}${calcText}">= ${escapeHtml(formula)}${calcText ? `<span class="text-emerald-400 font-semibold">${calcText}</span>` : ''}</span>`
+        } else {
+            valueDisplay = `<input type="text" class="param-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-rose-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(p.getValue ? p.getValue() : ''))}" placeholder="100" />`
+        }
+
+        row.innerHTML = `
+            <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5 min-w-0 truncate">
+                <span class="text-rose-400 shrink-0 inline-flex items-center">${getIconSvg('parameter', 'w-3 h-3')}</span>
+                <span class="truncate">${escapeHtml(p.getName())}</span>
+            </span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                ${valueDisplay}
+                <button type="button" class="btn-remove-param text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+            </div>
+        `
+
+        const valInput = row.querySelector('.param-val-input')
+        if (valInput) {
+            valInput.addEventListener('change', () => {
+                if (p.setValue) p.setValue(valInput.value.trim())
+                ctx.refreshActiveSection(type)
+            })
+            valInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    if (p.setValue) p.setValue(valInput.value.trim())
+                    valInput.blur()
+                    ctx.refreshActiveSection(type)
+                }
+            })
+        }
+
+        row.querySelector('.btn-remove-param').addEventListener('click', () => {
+            ctx.vm.removeParameterFromSelected(p.getId())
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        })
+
+        paramsListEl.appendChild(row)
+    })
+
+    const paramSelect = paramsMod.querySelector('#details-add-param-select')
+    const availableParams = (ctx.projectParameters || []).filter(
+        pObj => !paramsList.some(p => p.getId() === pObj.getId() || p.getName() === pObj.getName())
+    )
+    paramSelect.innerHTML =
+        `<option value="">-- ${t('details.select_parameter')} --</option>` +
+        availableParams
+            .map(
+                pObj =>
+                    `<option value="${escapeHtml(pObj.getId())}">${escapeHtml(pObj.getName())}</option>`
+            )
+            .join('')
+
+    paramsMod.querySelector('#btn-details-add-param').addEventListener('click', () => {
+        const paramId = paramSelect.value
+        const paramObj = (ctx.projectParameters || []).find(p => p.getId() === paramId)
+        if (paramObj) {
+            const clone = new Parameter(
+                paramObj.getId(),
+                paramObj.getName(),
+                paramObj.getDescription ? paramObj.getDescription() : new Description(),
+                paramObj.getMode ? paramObj.getMode() : 'direct',
+                paramObj.getValue ? paramObj.getValue() : '',
+                paramObj.getFormula ? paramObj.getFormula() : '',
+                paramObj.getCalculatedValue ? paramObj.getCalculatedValue() : null
+            )
+            ctx.vm.addParameterToSelected(clone)
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        }
+    })
+
+    container.appendChild(paramsMod)
+}
+
+function renderSkillsModule(container, entity, type, ctx) {
+    if (!entity.getSkills || !entity.addSkill || !entity.removeSkill) return
+
+    const skillsMod = document.createElement('section')
+    skillsMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    const skillsList = entity.getSkills() || []
+
+    skillsMod.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
+                <span class="text-blue-400 inline-flex items-center">${getIconSvg('skill', 'w-3.5 h-3.5')}</span>
+                <span>${t('details.skills')}</span>
+            </span>
+            <span class="text-[10px] text-gray-500 font-mono">${skillsList.length}</span>
+        </div>
+        <div id="details-skills-list" class="flex flex-col gap-1.5 min-h-[20px]">
+            ${skillsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_skills')}</span>` : ''}
+        </div>
+        <div class="flex gap-1 pt-1">
+            <select id="details-add-skill-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
+                <option value="">-- ${t('details.select_skill')} --</option>
+            </select>
+            <button id="btn-details-add-skill" type="button" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium cursor-pointer transition-colors">
+                ${t('details.add_skill')}
+            </button>
+        </div>
+    `
+
+    const skillsListEl = skillsMod.querySelector('#details-skills-list')
+    skillsList.forEach(sk => {
+        const row = document.createElement('div')
+        row.className =
+            'flex items-center justify-between bg-[#18181b] px-2 py-1.5 rounded border border-[#27272a] hover:border-blue-500/40 text-xs transition-colors'
+
+        let valueDisplay = ''
+        if (sk.getMode && sk.getMode() === 'stat_mod') {
+            const statName = sk.getStatName ? sk.getStatName() : ''
+            const mod = sk.getModifier ? sk.getModifier() : '+0'
+            valueDisplay = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-950/60 text-blue-300 font-mono border border-blue-500/40 font-bold truncate max-w-[120px]">${escapeHtml(statName)} ${escapeHtml(mod)}</span>`
+        } else {
+            valueDisplay = `<input type="text" class="skill-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-blue-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(sk.getValue ? sk.getValue() : ''))}" placeholder="+1" />`
+        }
+
+        row.innerHTML = `
+            <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5 min-w-0 truncate">
+                <span class="text-blue-400 shrink-0 inline-flex items-center">${getIconSvg('skill', 'w-3 h-3')}</span>
+                <span class="truncate">${escapeHtml(sk.getName())}</span>
+            </span>
+            <div class="flex items-center gap-1.5 shrink-0">
+                ${valueDisplay}
+                <button type="button" class="btn-remove-skill text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+            </div>
+        `
+
+        const valInput = row.querySelector('.skill-val-input')
+        if (valInput) {
+            valInput.addEventListener('change', () => {
+                if (sk.setValue) sk.setValue(valInput.value.trim())
+                ctx.refreshActiveSection(type)
+            })
+            valInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    if (sk.setValue) sk.setValue(valInput.value.trim())
+                    valInput.blur()
+                    ctx.refreshActiveSection(type)
+                }
+            })
+        }
+
+        row.querySelector('.btn-remove-skill').addEventListener('click', () => {
+            ctx.vm.removeSkillFromSelected(sk.getId())
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        })
+
+        skillsListEl.appendChild(row)
+    })
+
+    const skillSelect = skillsMod.querySelector('#details-add-skill-select')
+    const availableSkills = (ctx.projectSkills || []).filter(
+        skObj =>
+            !skillsList.some(sk => sk.getId() === skObj.getId() || sk.getName() === skObj.getName())
+    )
+    skillSelect.innerHTML =
+        `<option value="">-- ${t('details.select_skill')} --</option>` +
+        availableSkills
+            .map(
+                skObj =>
+                    `<option value="${escapeHtml(skObj.getId())}">${escapeHtml(skObj.getName())}</option>`
+            )
+            .join('')
+
+    skillsMod.querySelector('#btn-details-add-skill').addEventListener('click', () => {
+        const skillId = skillSelect.value
+        const skillObj = (ctx.projectSkills || []).find(sk => sk.getId() === skillId)
+        if (skillObj) {
+            const clone = new Skill(
+                skillObj.getId(),
+                skillObj.getName(),
+                skillObj.getDescription ? skillObj.getDescription() : new Description(),
+                skillObj.getMode ? skillObj.getMode() : 'direct',
+                skillObj.getValue ? skillObj.getValue() : '',
+                skillObj.getStatName ? skillObj.getStatName() : '',
+                skillObj.getModifier ? skillObj.getModifier() : ''
+            )
+            ctx.vm.addSkillToSelected(clone)
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        }
+    })
+
+    container.appendChild(skillsMod)
+}
+
+function renderFeaturesModule(container, entity, type, ctx) {
+    if (!entity.getFeatures || !entity.addFeature || !entity.removeFeature) return
+
+    const featMod = document.createElement('section')
+    featMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    const featuresList = entity.getFeatures() || []
+
+    featMod.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
+                <span class="text-purple-400 inline-flex items-center">${getIconSvg('feature', 'w-3.5 h-3.5')}</span>
+                <span>${t('details.features')}</span>
+            </span>
+            <span class="text-[10px] text-gray-500 font-mono">${featuresList.length}</span>
+        </div>
+        <div id="details-features-list" class="flex flex-col gap-1.5 min-h-[20px]">
+            ${featuresList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_features')}</span>` : ''}
+        </div>
+        <div class="flex gap-1 pt-1">
+            <select id="details-add-feature-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
+                <option value="">-- ${t('details.select_feature')} --</option>
+            </select>
+            <button id="btn-details-add-feature" type="button" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 rounded text-xs text-white font-medium cursor-pointer transition-colors">
+                ${t('details.add_feature')}
+            </button>
+        </div>
+    `
+
+    const featuresListEl = featMod.querySelector('#details-features-list')
+    featuresList.forEach(f => {
+        const row = document.createElement('div')
+        row.className =
+            'flex items-center justify-between bg-[#18181b] px-2 py-1.5 rounded border border-[#27272a] hover:border-purple-500/40 text-xs transition-colors'
+
+        const descText =
+            f.getDescription && typeof f.getDescription === 'function'
+                ? f.getDescription().getText() || f.getDescription().getSummary()
+                : ''
+
+        row.innerHTML = `
+            <div class="min-w-0 flex flex-col flex-1 pr-2">
+                <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5 truncate">
+                    <span class="text-purple-400 shrink-0 inline-flex items-center">${getIconSvg('feature', 'w-3 h-3')}</span>
+                    <span class="truncate">${escapeHtml(f.getName())}</span>
+                </span>
+                ${descText ? `<span class="text-[10px] text-gray-400 truncate pl-3.5 italic" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span>` : ''}
+            </div>
+            <button type="button" class="btn-remove-feature text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center shrink-0" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+        `
+
+        row.querySelector('.btn-remove-feature').addEventListener('click', () => {
+            ctx.vm.removeFeatureFromSelected(f.getId())
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        })
+
+        featuresListEl.appendChild(row)
+    })
+
+    const featureSelect = featMod.querySelector('#details-add-feature-select')
+    const availableFeatures = (ctx.projectFeatures || []).filter(
+        fObj =>
+            !featuresList.some(f => f.getId() === fObj.getId() || f.getName() === fObj.getName())
+    )
+    featureSelect.innerHTML =
+        `<option value="">-- ${t('details.select_feature')} --</option>` +
+        availableFeatures
+            .map(
+                fObj =>
+                    `<option value="${escapeHtml(fObj.getId())}">${escapeHtml(fObj.getName())}</option>`
+            )
+            .join('')
+
+    featMod.querySelector('#btn-details-add-feature').addEventListener('click', () => {
+        const featId = featureSelect.value
+        const featObj = (ctx.projectFeatures || []).find(f => f.getId() === featId)
+        if (featObj) {
+            const clone = new Feature(
+                featObj.getId(),
+                featObj.getName(),
+                featObj.getDescription ? featObj.getDescription() : new Description()
+            )
+            ctx.vm.addFeatureToSelected(clone)
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        }
+    })
+
+    container.appendChild(featMod)
+}
+
+function renderCustomAttributesModule(container, entity, type, ctx) {
+    if (!entity.getCustomAttributes || !entity.setCustomAttributes) return
+
+    const customMod = document.createElement('section')
+    customMod.className = 'border-b border-[#333338] p-3 space-y-2'
+    const customAttrs = entity.getCustomAttributes() || []
+
+    customMod.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.custom_attributes')}</span>
+            <span class="text-[10px] text-gray-500 font-mono">${customAttrs.length}</span>
+        </div>
+        <div id="details-custom-attrs-list" class="flex flex-col gap-1.5 min-h-[20px]">
+            ${customAttrs.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_custom_attributes')}</span>` : ''}
+        </div>
+        <div class="flex gap-1.5 pt-1 items-center">
+            <input type="text" id="details-add-attr-name" placeholder="${t('details.attr_name_placeholder')}" class="w-1/2 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
+            <input type="text" id="details-add-attr-val" placeholder="${t('details.attr_value_placeholder')}" class="w-1/2 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500" />
+            <button id="btn-details-add-attr" type="button" class="px-2 py-1 bg-zinc-700 hover:bg-zinc-600 rounded text-xs text-white font-medium cursor-pointer shrink-0">
+                ${t('buttons.add')}
+            </button>
+        </div>
+    `
+
+    const attrsListEl = customMod.querySelector('#details-custom-attrs-list')
+    customAttrs.forEach((attr, idx) => {
+        const row = document.createElement('div')
+        row.className =
+            'flex items-center justify-between gap-1.5 bg-[#18181b] px-2 py-1 rounded border border-[#27272a] text-xs'
+        row.innerHTML = `
+            <input type="text" class="attr-name-input flex-1 bg-[#202023] border border-transparent hover:border-[#3f3f46] focus:border-blue-500 rounded px-1.5 py-0.5 text-xs text-white" value="${escapeHtml(attr.name)}" />
+            <span class="text-gray-500 font-mono">:</span>
+            <input type="text" class="attr-val-input flex-1 bg-[#202023] border border-transparent hover:border-[#3f3f46] focus:border-blue-500 rounded px-1.5 py-0.5 text-xs text-white" value="${escapeHtml(String(attr.value))}" />
+            <button type="button" class="btn-remove-attr text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center shrink-0" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+        `
+
+        const nameInput = row.querySelector('.attr-name-input')
+        const valInput = row.querySelector('.attr-val-input')
+        const saveAttr = () => {
+            attr.name = nameInput.value.trim()
+            attr.value = valInput.value.trim()
+            entity.setCustomAttributes(customAttrs)
+            ctx.refreshActiveSection(type)
+        }
+        nameInput.addEventListener('change', saveAttr)
+        valInput.addEventListener('change', saveAttr)
+
+        row.querySelector('.btn-remove-attr').addEventListener('click', () => {
+            customAttrs.splice(idx, 1)
+            entity.setCustomAttributes(customAttrs)
+            renderDetailsPanel(ctx)
+            ctx.refreshActiveSection(type)
+        })
+
+        attrsListEl.appendChild(row)
+    })
+
+    const newNameInput = customMod.querySelector('#details-add-attr-name')
+    const newValInput = customMod.querySelector('#details-add-attr-val')
+    const addBtn = customMod.querySelector('#btn-details-add-attr')
+
+    const handleAddAttr = () => {
+        const aName = newNameInput.value.trim()
+        const aVal = newValInput.value.trim()
+        if (!aName) return
+        entity.setCustomAttributes([...customAttrs, { name: aName, value: aVal }])
+        renderDetailsPanel(ctx)
+        ctx.refreshActiveSection(type)
+    }
+
+    addBtn.addEventListener('click', handleAddAttr)
+    newNameInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAddAttr()
+    })
+    newValInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleAddAttr()
+    })
+
+    container.appendChild(customMod)
 }
 
 function renderExitsModule(container, entity, type, ctx) {
@@ -986,7 +1765,7 @@ function renderExitsModule(container, entity, type, ctx) {
             .map(p => {
                 const isSelf = p.getId() === entity.getId()
                 const title = p.getTitle() || p.getId()
-                return `<option value="${escapeHtml(p.getId())}">§ ${escapeHtml(title)}${isSelf ? ' (ten paragraf)' : ''}</option>`
+                return `<option value="${escapeHtml(p.getId())}">§ ${escapeHtml(title)}${isSelf ? ` ${t('details.this_paragraph')}` : ''}</option>`
             })
             .join('')
         targetSelect.innerHTML = options
@@ -1081,7 +1860,7 @@ function renderExitsModule(container, entity, type, ctx) {
             card.innerHTML = `
                 <div class="flex items-center justify-between gap-1">
                     <span class="text-xs text-emerald-400 font-medium truncate flex items-center gap-1 min-w-0" title="${escapeHtml(toTitle)}">
-                        <span class="text-blue-400 shrink-0">→</span>
+                        <span class="text-blue-400 shrink-0 inline-flex items-center">${getIconSvg('arrow-right', 'w-3 h-3')}</span>
                         <span class="truncate">§ ${escapeHtml(toTitle)}</span>
                     </span>
                     <div class="flex items-center gap-1 shrink-0">
