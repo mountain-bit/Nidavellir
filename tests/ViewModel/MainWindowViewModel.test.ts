@@ -837,7 +837,7 @@ describe('MainWindowViewModel', () => {
             expect(vm.searchAndFilterFeatures([f1, f2])).toEqual([f1])
         })
 
-        it('generuje dynamiczne sugestie dla cech, parametrów, umiejętności, tagów i cech specjalnych', () => {
+        it('generuje dynamiczne sugestie TYLKO dla elementów istniejących w Cechy i atrybuty', () => {
             const char = vm.createCharacter('Wojownik')
             char.addStat(vm.createStat('Percepcja'))
             char.addSkill(vm.createSkill('Kradzież'))
@@ -845,26 +845,58 @@ describe('MainWindowViewModel', () => {
             char.addFeature(vm.createFeature('Blizna'))
             char.addTag(vm.createTag('Wojownik'))
 
+            // Cechy / Stats: TYLKO istniejące w przekazanej tablicy projektu
             const suggestedStats = vm.getSuggestedStats([vm.createStat('Szczęście')], [char])
-            expect(suggestedStats).toContain('Siła') // default
-            expect(suggestedStats).toContain('Szczęście') // existing
-            expect(suggestedStats).toContain('Percepcja') // from character
+            expect(suggestedStats).not.toContain('Siła') // brak domyślnych
+            expect(suggestedStats).not.toContain('Zręczność')
+            expect(suggestedStats).toEqual(['Szczęście'])
 
-            const suggestedParams = vm.getSuggestedParameters([], [char])
-            expect(suggestedParams).toContain('Punkty Życia (HP)')
-            expect(suggestedParams).toContain('Wytrzymałość')
+            // Pusta lista cech zwraca pustą tablicę sugestii
+            expect(vm.getSuggestedStats([])).toEqual([])
 
-            const suggestedSkills = vm.getSuggestedSkills([], [char])
-            expect(suggestedSkills).toContain('Walka wręcz')
-            expect(suggestedSkills).toContain('Kradzież')
+            // Parametry: TYLKO z listy projektu
+            const suggestedParams = vm.getSuggestedParameters(
+                [vm.createParameter('Wytrzymałość')],
+                [char]
+            )
+            expect(suggestedParams).not.toContain('Punkty Życia (HP)')
+            expect(suggestedParams).toEqual(['Wytrzymałość'])
+            expect(vm.getSuggestedParameters([])).toEqual([])
 
-            const suggestedFeatures = vm.getSuggestedFeatures([], [char])
-            expect(suggestedFeatures).toContain('Rasa')
-            expect(suggestedFeatures).toContain('Blizna')
+            // Umiejętności: TYLKO z listy projektu
+            const suggestedSkills = vm.getSuggestedSkills([vm.createSkill('Alchemia')], [char])
+            expect(suggestedSkills).not.toContain('Walka wręcz')
+            expect(suggestedSkills).toEqual(['Alchemia'])
+            expect(vm.getSuggestedSkills([])).toEqual([])
 
+            // Przymioty specjalne / Atrybuty: TYLKO z listy projektu
+            const suggestedFeatures = vm.getSuggestedFeatures(
+                [vm.createFeature('Noktowizja')],
+                [char]
+            )
+            expect(suggestedFeatures).not.toContain('Rasa')
+            expect(suggestedFeatures).toEqual(['Noktowizja'])
+            expect(vm.getSuggestedFeatures([])).toEqual([])
+
+            // Tagi z projektu i postaci
             const suggestedTags = vm.getSuggestedTags([vm.createTag('Bohater')], [char])
             expect(suggestedTags).toContain('Bohater')
             expect(suggestedTags).toContain('Wojownik')
+
+            // Dynamiczne zliczanie cech, atrybutów, parametrów i umiejętności
+            const counts = vm.getProjectTraitsCounts(
+                [vm.createStat('S1'), vm.createStat('S2')],
+                [vm.createParameter('P1')],
+                [vm.createSkill('Sk1'), vm.createSkill('Sk2'), vm.createSkill('Sk3')],
+                [vm.createFeature('F1')]
+            )
+            expect(counts).toEqual({
+                stats: 2,
+                parameters: 1,
+                skills: 3,
+                features: 1,
+                total: 7,
+            })
         })
 
         it('pozwala dodawać i usuwać umiejętności, parametry oraz cechy z zaznaczonej encji', () => {

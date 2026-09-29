@@ -417,6 +417,13 @@ export function renderTraitsList(ctx) {
 
     attachContextMenuListeners(container, 'feature', features, ctx)
     attachItemSelectionListeners(container, 'feature', features, ctx)
+
+    if (typeof ctx?.updateTraitsCounterUI === 'function') {
+        ctx.updateTraitsCounterUI()
+    }
+    if (typeof ctx?.renderDynamicSuggestions === 'function') {
+        ctx.renderDynamicSuggestions()
+    }
 }
 
 /**

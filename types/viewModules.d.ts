@@ -184,7 +184,50 @@ declare module '*/View/ui/npcModal.js' {
     export function clearNpcTags(): void
     export function renderNpcTags(): void
     export function initNpcTagsController(ctx?: unknown): void
+    export interface ITraitsCounts {
+        project: {
+            stats: number
+            parameters: number
+            skills: number
+            features: number
+            tags: number
+            total: number
+        }
+        npc: {
+            stats: number
+            parameters: number
+            skills: number
+            features: number
+            tags: number
+            total: number
+        }
+    }
+    export function getTraitsCounts(ctx?: unknown): ITraitsCounts
+    export function updateTraitsCounterUI(ctx?: unknown): ITraitsCounts
     export function renderDynamicSuggestions(ctx?: unknown): void
+}
+
+declare module '*/View/ui/npcModal/npcTraitsCounter.js' {
+    export interface ITraitsCounts {
+        project: {
+            stats: number
+            parameters: number
+            skills: number
+            features: number
+            tags: number
+            total: number
+        }
+        npc: {
+            stats: number
+            parameters: number
+            skills: number
+            features: number
+            tags: number
+            total: number
+        }
+    }
+    export function getTraitsCounts(ctx?: unknown): ITraitsCounts
+    export function updateTraitsCounterUI(ctx?: unknown): ITraitsCounts
 }
 
 declare module '*/View/ui/contextMenu.js' {

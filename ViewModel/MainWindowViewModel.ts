@@ -100,7 +100,7 @@ export interface IIdentifiableEntity {
     getCalculatedValue?: () => number | null
     setCalculatedValue?: (val: number | null) => void
     getMode?: () => string
-    setMode?: (mode: any) => void
+    setMode?(mode: string): void
     getStatName?: () => string
     setStatName?: (name: string) => void
     getModifier?: () => string
@@ -1107,97 +1107,61 @@ export class MainWindowViewModel {
         return features.filter(f => f.getName().toLowerCase().includes(query))
     }
 
-    public getSuggestedStats(existingStats: Stat[] = [], characters: NPC[] = []): string[] {
+    public getSuggestedStats(existingStats: Stat[] = [], _characters: NPC[] = []): string[] {
         const set = new Set<string>()
-        const defaults = [
-            'Siła',
-            'Zręczność',
-            'Kondycja',
-            'Inteligencja',
-            'Mądrość',
-            'Charyzma',
-            'Percepcja',
-        ]
-        defaults.forEach(d => set.add(d))
         existingStats.forEach(s => {
             const n = (s.getName() || '').trim()
             if (n) set.add(n)
-        })
-        characters.forEach(c => {
-            const stats = typeof c.getStats === 'function' ? c.getStats() : []
-            stats.forEach(s => {
-                const n = (s.getName() || '').trim()
-                if (n) set.add(n)
-            })
         })
         return Array.from(set)
     }
 
     public getSuggestedParameters(
         existingParameters: Parameter[] = [],
-        characters: NPC[] = []
+        _characters: NPC[] = []
     ): string[] {
         const set = new Set<string>()
-        const defaults = ['Punkty Życia (HP)', 'Mana', 'Kondycja', 'Pancerz', 'Udźwig']
-        defaults.forEach(d => set.add(d))
         existingParameters.forEach(p => {
             const n = (p.getName() || '').trim()
             if (n) set.add(n)
         })
-        characters.forEach(c => {
-            const params = typeof c.getParameters === 'function' ? c.getParameters() : []
-            params.forEach(p => {
-                const n = (p.getName() || '').trim()
-                if (n) set.add(n)
-            })
-        })
         return Array.from(set)
     }
 
-    public getSuggestedSkills(existingSkills: Skill[] = [], characters: NPC[] = []): string[] {
+    public getSuggestedSkills(existingSkills: Skill[] = [], _characters: NPC[] = []): string[] {
         const set = new Set<string>()
-        const defaults = [
-            'Walka wręcz',
-            'Strzelectwo',
-            'Skradanie',
-            'Otwieranie zamków',
-            'Magia',
-            'Perswazja',
-        ]
-        defaults.forEach(d => set.add(d))
         existingSkills.forEach(s => {
             const n = (s.getName() || '').trim()
             if (n) set.add(n)
-        })
-        characters.forEach(c => {
-            const skills = typeof c.getSkills === 'function' ? c.getSkills() : []
-            skills.forEach(s => {
-                const n = (s.getName() || '').trim()
-                if (n) set.add(n)
-            })
         })
         return Array.from(set)
     }
 
     public getSuggestedFeatures(
         existingFeatures: Feature[] = [],
-        characters: NPC[] = []
+        _characters: NPC[] = []
     ): string[] {
         const set = new Set<string>()
-        const defaults = ['Rasa', 'Zawód', 'Rola', 'Frakcja', 'Nastawienie']
-        defaults.forEach(d => set.add(d))
         existingFeatures.forEach(f => {
             const n = (f.getName() || '').trim()
             if (n) set.add(n)
         })
-        characters.forEach(c => {
-            const feats = typeof c.getFeatures === 'function' ? c.getFeatures() : []
-            feats.forEach(f => {
-                const n = (f.getName() || '').trim()
-                if (n) set.add(n)
-            })
-        })
         return Array.from(set)
+    }
+
+    public getProjectTraitsCounts(
+        stats: Stat[] = [],
+        parameters: Parameter[] = [],
+        skills: Skill[] = [],
+        features: Feature[] = []
+    ): { stats: number; parameters: number; skills: number; features: number; total: number } {
+        return {
+            stats: stats.length,
+            parameters: parameters.length,
+            skills: skills.length,
+            features: features.length,
+            total: stats.length + parameters.length + skills.length + features.length,
+        }
     }
 
     public getSuggestedTags(existingTags: Tag[] = [], characters: NPC[] = []): string[] {

@@ -40,6 +40,7 @@ import {
     updateVitalFormulasPreview,
 } from './npcModal/npcSectionControllers.js'
 import * as state from './npcModal/npcState.js'
+import { getTraitsCounts, updateTraitsCounterUI } from './npcModal/npcTraitsCounter.js'
 
 // Re-export pure domain & section helpers for 100% public API compatibility
 export {
@@ -57,6 +58,7 @@ export {
     editNpcStat,
     editNpcVital,
     evaluateFormula,
+    getTraitsCounts,
     initNpcTagsController,
     parseStatValueAsNumber,
     removeCustomAttribute,
@@ -72,6 +74,7 @@ export {
     renderNpcVitals,
     updateSelectedAvatarPreview,
     updateSkillStatDropdowns,
+    updateTraitsCounterUI,
     updateVitalFormulasPreview,
 }
 
@@ -648,6 +651,8 @@ export function setupNpcModal(ctx) {
         isDescriptionDrawerOpen,
         toggleDescriptionDrawer,
         resetNpcModalForm,
+        getTraitsCounts,
+        updateTraitsCounterUI,
     }
 
     if (ctx) {

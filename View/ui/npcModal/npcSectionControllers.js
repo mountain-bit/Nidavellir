@@ -20,6 +20,7 @@ import {
     renderVitalPreviewBadgeHtml,
     renderVitalRowHtml,
 } from './npcTemplates.js'
+import { updateTraitsCounterUI } from './npcTraitsCounter.js'
 
 // ==========================================
 // 1. Avatar Picker Section
@@ -169,6 +170,7 @@ export function renderCustomAttributes() {
     if (customAttributes.length === 0) {
         listContainer.innerHTML = ''
         if (emptyNotice) emptyNotice.classList.remove('hidden')
+        updateTraitsCounterUI()
         return
     }
 
@@ -243,6 +245,8 @@ export function renderCustomAttributes() {
             })
         }
     })
+
+    updateTraitsCounterUI()
 }
 
 /**
@@ -328,6 +332,7 @@ export function renderNpcStats() {
     if (npcStats.length === 0) {
         listContainer.innerHTML = ''
         if (emptyNotice) emptyNotice.classList.remove('hidden')
+        updateTraitsCounterUI()
         return
     }
 
@@ -408,6 +413,8 @@ export function renderNpcStats() {
             })
         }
     })
+
+    updateTraitsCounterUI()
 }
 
 /**
@@ -521,6 +528,7 @@ export function renderNpcSkills() {
     if (npcSkills.length === 0) {
         listContainer.innerHTML = ''
         if (emptyNotice) emptyNotice.classList.remove('hidden')
+        updateTraitsCounterUI()
         return
     }
 
@@ -635,6 +643,8 @@ export function renderNpcSkills() {
             })
         }
     })
+
+    updateTraitsCounterUI()
 }
 
 /**
@@ -742,6 +752,7 @@ export function renderNpcVitals() {
     if (npcVitals.length === 0) {
         listContainer.innerHTML = ''
         if (emptyNotice) emptyNotice.classList.remove('hidden')
+        updateTraitsCounterUI()
         return
     }
 
@@ -848,6 +859,8 @@ export function renderNpcVitals() {
             })
         }
     })
+
+    updateTraitsCounterUI()
 }
 
 /**
@@ -1093,184 +1106,224 @@ export function renderDynamicSuggestions(ctx) {
     const effectiveCtx = ctx || state.getActiveCtx() || {}
     const vm = effectiveCtx.vm
 
-    // 1. Stats suggestions
+    // 1. Stats suggestions (ONLY existing in project "Cechy i atrybuty")
     const statsContainer = document.getElementById('npc-suggested-stats')
     if (statsContainer) {
         const existingStats =
-            effectiveCtx.projectStats || (vm?.project?.getStats ? vm.project.getStats() : [])
+            effectiveCtx.projectStats || (vm?.project?.getStats ? vm.project.getStats() : []) || []
         const characters =
             effectiveCtx.projectCharacters ||
-            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
+            []
         const suggestedStats = vm?.getSuggestedStats
             ? vm.getSuggestedStats(existingStats, characters)
-            : [
-                  t('npc.stat_presets.strength'),
-                  t('npc.stat_presets.dexterity'),
-                  t('npc.stat_presets.constitution'),
-                  t('npc.stat_presets.intelligence'),
-                  t('npc.stat_presets.wisdom'),
-                  t('npc.stat_presets.charisma'),
-                  t('npc.stat_presets.perception'),
-              ]
+            : existingStats.map(s => (s.getName ? s.getName() : s.name)).filter(Boolean)
 
-        statsContainer.innerHTML = suggestedStats
-            .map(name => renderSuggestedChipHtml({ type: 'stat', name }))
-            .join('')
+        if (suggestedStats.length === 0) {
+            statsContainer.innerHTML = `<span class="text-[10px] text-zinc-500 italic py-0.5" data-i18n="npc.no_suggestions_hint">${t('npc.no_suggestions_hint', 'Brak w „Cechy i Atrybuty”')}</span>`
+        } else {
+            statsContainer.innerHTML = suggestedStats
+                .map(name => renderSuggestedChipHtml({ type: 'stat', name }))
+                .join('')
 
-        statsContainer.querySelectorAll('.npc-stat-preset-chip').forEach(chip => {
-            chip.addEventListener('click', e => {
-                e.preventDefault()
-                const name = chip.dataset.presetStat
-                if (name) addNpcStat(name, '', true)
+            statsContainer.querySelectorAll('.npc-stat-preset-chip').forEach(chip => {
+                chip.addEventListener('click', e => {
+                    e.preventDefault()
+                    const name = chip.dataset.presetStat
+                    if (name) {
+                        const found = existingStats.find(
+                            s => (s.getName ? s.getName() : s.name) === name
+                        )
+                        const val = found
+                            ? found.getValue
+                                ? found.getValue()
+                                : found.value || ''
+                            : ''
+                        addNpcStat(name, String(val), true)
+                    }
+                })
             })
-        })
+        }
     }
 
-    // 2. Vitals suggestions
+    // 2. Vitals suggestions (ONLY existing in project "Cechy i atrybuty")
     const vitalsContainer = document.getElementById('npc-suggested-vitals')
     if (vitalsContainer) {
         const existingParams =
             effectiveCtx.projectParameters ||
-            (vm?.project?.getGlobalParameters ? vm.project.getGlobalParameters() : [])
+            (vm?.project?.getGlobalParameters ? vm.project.getGlobalParameters() : []) ||
+            []
         const characters =
             effectiveCtx.projectCharacters ||
-            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
+            []
         const suggestedVitals = vm?.getSuggestedParameters
             ? vm.getSuggestedParameters(existingParams, characters)
-            : [
-                  t('npc.vital_presets.hp'),
-                  t('npc.vital_presets.mana'),
-                  t('npc.vital_presets.stamina'),
-                  t('npc.vital_presets.armor'),
-                  t('npc.vital_presets.carrying'),
-              ]
+            : existingParams.map(p => (p.getName ? p.getName() : p.name)).filter(Boolean)
 
-        vitalsContainer.innerHTML = suggestedVitals
-            .map(name => renderSuggestedChipHtml({ type: 'vital', name }))
-            .join('')
+        if (suggestedVitals.length === 0) {
+            vitalsContainer.innerHTML = `<span class="text-[10px] text-zinc-500 italic py-0.5" data-i18n="npc.no_suggestions_hint">${t('npc.no_suggestions_hint', 'Brak w „Cechy i Atrybuty”')}</span>`
+        } else {
+            vitalsContainer.innerHTML = suggestedVitals
+                .map(name => renderSuggestedChipHtml({ type: 'vital', name }))
+                .join('')
 
-        vitalsContainer.querySelectorAll('.npc-vital-preset-chip').forEach(chip => {
-            chip.addEventListener('click', e => {
-                e.preventDefault()
-                const name = chip.dataset.presetVital
-                if (!name) return
-                const strengthName = t('npc.stat_presets.strength')
-                const intelName = t('npc.stat_presets.intelligence')
-                if (
-                    name.includes('HP') ||
-                    name.includes('Życia') ||
-                    name.includes(t('npc.vital_presets.hp'))
-                ) {
-                    addNpcVital(name, 'formula', '', `${strengthName} * 4 + 10`, true)
-                } else if (
-                    name.includes('Mana') ||
-                    name.includes('Magia') ||
-                    name.includes(t('npc.vital_presets.mana'))
-                ) {
-                    addNpcVital(name, 'formula', '', `${intelName} * 3`, true)
-                } else {
-                    addNpcVital(name, 'direct', '10', '', true)
-                }
+            vitalsContainer.querySelectorAll('.npc-vital-preset-chip').forEach(chip => {
+                chip.addEventListener('click', e => {
+                    e.preventDefault()
+                    const name = chip.dataset.presetVital
+                    if (!name) return
+                    const foundParam = existingParams.find(
+                        p => (p.getName ? p.getName() : p.name) === name
+                    )
+                    const mode = foundParam
+                        ? foundParam.getMode
+                            ? foundParam.getMode()
+                            : foundParam.mode || 'direct'
+                        : 'direct'
+                    const val = foundParam
+                        ? foundParam.getValue
+                            ? foundParam.getValue()
+                            : (foundParam.value ?? '')
+                        : '10'
+                    const formula = foundParam
+                        ? foundParam.getFormula
+                            ? foundParam.getFormula()
+                            : foundParam.formula || ''
+                        : ''
+                    addNpcVital(name, mode, String(val), formula, true)
+                })
             })
-        })
+        }
     }
 
-    // 3. Skills suggestions
+    // 3. Skills suggestions (ONLY existing in project "Cechy i atrybuty")
     const skillsContainer = document.getElementById('npc-suggested-skills')
     if (skillsContainer) {
         const existingSkills =
-            effectiveCtx.projectSkills || (vm?.project?.getSkills ? vm.project.getSkills() : [])
+            effectiveCtx.projectSkills ||
+            (vm?.project?.getSkills ? vm.project.getSkills() : []) ||
+            []
         const characters =
             effectiveCtx.projectCharacters ||
-            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
+            []
         const suggestedSkills = vm?.getSuggestedSkills
             ? vm.getSuggestedSkills(existingSkills, characters)
-            : [
-                  t('npc.skill_presets.melee'),
-                  t('npc.skill_presets.ranged'),
-                  t('npc.skill_presets.stealth'),
-                  t('npc.skill_presets.lockpicking'),
-                  t('npc.skill_presets.magic'),
-                  t('npc.skill_presets.persuasion'),
-              ]
+            : existingSkills.map(s => (s.getName ? s.getName() : s.name)).filter(Boolean)
 
-        skillsContainer.innerHTML = suggestedSkills
-            .map(name => renderSuggestedChipHtml({ type: 'skill', name }))
-            .join('')
+        if (suggestedSkills.length === 0) {
+            skillsContainer.innerHTML = `<span class="text-[10px] text-zinc-500 italic py-0.5" data-i18n="npc.no_suggestions_hint">${t('npc.no_suggestions_hint', 'Brak w „Cechy i Atrybuty”')}</span>`
+        } else {
+            skillsContainer.innerHTML = suggestedSkills
+                .map(name => renderSuggestedChipHtml({ type: 'skill', name }))
+                .join('')
 
-        skillsContainer.querySelectorAll('.npc-skill-preset-chip').forEach(chip => {
-            chip.addEventListener('click', e => {
-                e.preventDefault()
-                const name = chip.dataset.presetSkill
-                if (name) addNpcSkill(name, 'direct', '')
+            skillsContainer.querySelectorAll('.npc-skill-preset-chip').forEach(chip => {
+                chip.addEventListener('click', e => {
+                    e.preventDefault()
+                    const name = chip.dataset.presetSkill
+                    if (!name) return
+                    const foundSkill = existingSkills.find(
+                        s => (s.getName ? s.getName() : s.name) === name
+                    )
+                    const mode = foundSkill
+                        ? foundSkill.getMode
+                            ? foundSkill.getMode()
+                            : foundSkill.mode || 'direct'
+                        : 'direct'
+                    const val = foundSkill
+                        ? foundSkill.getValue
+                            ? foundSkill.getValue()
+                            : foundSkill.value || ''
+                        : ''
+                    const statName = foundSkill
+                        ? foundSkill.getStatName
+                            ? foundSkill.getStatName()
+                            : foundSkill.statName || ''
+                        : ''
+                    const modifier = foundSkill
+                        ? foundSkill.getModifier
+                            ? foundSkill.getModifier()
+                            : foundSkill.modifier || ''
+                        : ''
+                    addNpcSkill(name, mode, String(val), statName, modifier, true)
+                })
             })
-        })
+        }
     }
 
-    // 4. Attributes / Identity suggestions
+    // 4. Attributes / Identity suggestions (ONLY existing in project "Cechy i atrybuty")
     const attrsContainer = document.getElementById('npc-suggested-attributes')
     if (attrsContainer) {
         const existingFeatures =
             effectiveCtx.projectFeatures ||
-            (vm?.project?.getFeatures ? vm.project.getFeatures() : [])
+            (vm?.project?.getFeatures ? vm.project.getFeatures() : []) ||
+            []
         const characters =
             effectiveCtx.projectCharacters ||
-            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
+            []
         const suggestedAttrs = vm?.getSuggestedFeatures
             ? vm.getSuggestedFeatures(existingFeatures, characters)
-            : [
-                  t('npc.presets.race'),
-                  t('npc.presets.profession'),
-                  t('npc.presets.role'),
-                  t('npc.presets.faction'),
-                  t('npc.presets.alignment'),
-              ]
+            : existingFeatures.map(f => (f.getName ? f.getName() : f.name)).filter(Boolean)
 
-        attrsContainer.innerHTML = suggestedAttrs
-            .map(name => renderSuggestedChipHtml({ type: 'attribute', name }))
-            .join('')
+        if (suggestedAttrs.length === 0) {
+            attrsContainer.innerHTML = `<span class="text-[10px] text-zinc-500 italic py-0.5" data-i18n="npc.no_suggestions_hint">${t('npc.no_suggestions_hint', 'Brak w „Cechy i Atrybuty”')}</span>`
+        } else {
+            attrsContainer.innerHTML = suggestedAttrs
+                .map(name => renderSuggestedChipHtml({ type: 'attribute', name }))
+                .join('')
 
-        attrsContainer.querySelectorAll('.npc-preset-chip').forEach(chip => {
-            chip.addEventListener('click', e => {
-                e.preventDefault()
-                const name = chip.dataset.presetName
-                if (name) addCustomAttribute(name, '', true)
+            attrsContainer.querySelectorAll('.npc-preset-chip').forEach(chip => {
+                chip.addEventListener('click', e => {
+                    e.preventDefault()
+                    const name = chip.dataset.presetName
+                    if (!name) return
+                    const foundFeat = existingFeatures.find(
+                        f => (f.getName ? f.getName() : f.name) === name
+                    )
+                    const val = foundFeat
+                        ? foundFeat.getValue
+                            ? foundFeat.getValue()
+                            : foundFeat.value || ''
+                        : ''
+                    addCustomAttribute(name, String(val), true)
+                })
             })
-        })
+        }
     }
 
     // 5. Tags suggestions
     const tagsContainer = document.getElementById('npc-suggested-tags')
     if (tagsContainer) {
         const existingTags =
-            effectiveCtx.projectTags || (vm?.project?.getTags ? vm.project.getTags() : [])
+            effectiveCtx.projectTags || (vm?.project?.getTags ? vm.project.getTags() : []) || []
         const characters =
             effectiveCtx.projectCharacters ||
-            (vm?.project?.getCharacters ? vm.project.getCharacters() : [])
+            (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
+            []
         let suggestedTags = vm?.getSuggestedTags
             ? vm.getSuggestedTags(existingTags, characters)
-            : []
+            : existingTags.map(tObj => (tObj.getName ? tObj.getName() : tObj.name)).filter(Boolean)
 
         if (suggestedTags.length === 0) {
-            suggestedTags = [
-                t('npc.tag_presets.ally'),
-                t('npc.tag_presets.enemy'),
-                t('npc.tag_presets.merchant'),
-                t('npc.tag_presets.guide'),
-                t('npc.tag_presets.boss'),
-            ]
-        }
+            tagsContainer.innerHTML = `<span class="text-[10px] text-zinc-500 italic py-0.5" data-i18n="npc.no_existing_tags">${t('npc.no_existing_tags', 'Brak istniejących tagów')}</span>`
+        } else {
+            tagsContainer.innerHTML = suggestedTags
+                .map(name => renderSuggestedChipHtml({ type: 'tag', name }))
+                .join('')
 
-        tagsContainer.innerHTML = suggestedTags
-            .map(name => renderSuggestedChipHtml({ type: 'tag', name }))
-            .join('')
-
-        tagsContainer.querySelectorAll('.npc-tag-preset-chip').forEach(chip => {
-            chip.addEventListener('click', e => {
-                e.preventDefault()
-                const name = chip.dataset.presetTag
-                if (name) addNpcTag(name)
+            tagsContainer.querySelectorAll('.npc-tag-preset-chip').forEach(chip => {
+                chip.addEventListener('click', e => {
+                    e.preventDefault()
+                    const name = chip.dataset.presetTag
+                    if (name) addNpcTag(name)
+                })
             })
-        })
+        }
     }
+
+    // Update dynamic counter module
+    updateTraitsCounterUI(effectiveCtx)
 }

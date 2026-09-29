@@ -31,7 +31,7 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
-import { setupNpcModal } from './ui/npcModal.js'
+import { renderDynamicSuggestions, setupNpcModal, updateTraitsCounterUI } from './ui/npcModal.js'
 import {
     renderEditorTabs,
     saveActiveFile,
@@ -116,6 +116,8 @@ const appContext = {
     renderCharactersList: () => renderCharactersList(appContext),
     renderLocationsList: () => renderLocationsList(appContext),
     renderTraitsList: () => renderTraitsList(appContext),
+    renderDynamicSuggestions: () => renderDynamicSuggestions(appContext),
+    updateTraitsCounterUI: () => updateTraitsCounterUI(appContext),
     renderConnectionsList: () => renderConnectionsList(appContext),
     renderFilterTags: () => renderFilterTags(appContext),
     populateFilterSelects: () => populateFilterSelects(appContext),
@@ -242,8 +244,11 @@ function refreshActiveSection(type) {
         type === 'parameter' ||
         type === 'skill' ||
         type === 'feature'
-    )
+    ) {
         renderTraitsList(appContext)
+        renderDynamicSuggestions(appContext)
+        updateTraitsCounterUI(appContext)
+    }
     if (type === 'paragraph') {
         renderParagraphsList(appContext)
         renderConnectionsList(appContext)

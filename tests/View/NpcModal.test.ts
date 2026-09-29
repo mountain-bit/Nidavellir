@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { Description } from '../../Model/Description'
 import { Feature } from '../../Model/Feature'
 import { NPC } from '../../Model/NPC'
 import { Parameter } from '../../Model/Parameter'
@@ -93,11 +94,7 @@ describe('NpcModal Floating Window Controller', () => {
                                 <div id="npc-custom-attributes-section">
                                     <button id="btn-add-custom-attribute" type="button">Dodaj pole</button>
                                     <div id="npc-suggested-attributes-container">
-                                        <div id="npc-suggested-attributes">
-                                            <button type="button" class="npc-preset-chip" data-preset-name="Rasa">Rasa</button>
-                                            <button type="button" class="npc-preset-chip" data-preset-name="Zawód">Zawód</button>
-                                            <button type="button" class="npc-preset-chip" data-preset-name="Rola">Rola</button>
-                                        </div>
+                                        <div id="npc-suggested-attributes"></div>
                                     </div>
                                     <div id="npc-custom-attributes-list"></div>
                                     <div id="npc-custom-attributes-empty">Brak atrybutów</div>
@@ -123,10 +120,7 @@ describe('NpcModal Floating Window Controller', () => {
                                 <div id="npc-stats-section">
                                     <button id="btn-add-npc-stat" type="button">Dodaj cechę</button>
                                     <div id="npc-suggested-stats-container">
-                                        <div id="npc-suggested-stats">
-                                            <button type="button" class="npc-stat-preset-chip" data-preset-stat="Siła">Siła</button>
-                                            <button type="button" class="npc-stat-preset-chip" data-preset-stat="Zręczność">Zręczność</button>
-                                        </div>
+                                        <div id="npc-suggested-stats"></div>
                                     </div>
                                     <div id="npc-stats-list"></div>
                                     <div id="npc-stats-empty">Brak cech</div>
@@ -135,10 +129,7 @@ describe('NpcModal Floating Window Controller', () => {
                                 <div id="npc-skills-section">
                                     <button id="btn-add-npc-skill" type="button">Dodaj umiejętność</button>
                                     <div id="npc-suggested-skills-container">
-                                        <div id="npc-suggested-skills">
-                                            <button type="button" class="npc-skill-preset-chip" data-preset-skill="Walka wręcz">Walka wręcz</button>
-                                            <button type="button" class="npc-skill-preset-chip" data-preset-skill="Skradanie">Skradanie</button>
-                                        </div>
+                                        <div id="npc-suggested-skills"></div>
                                     </div>
                                     <div id="npc-skills-list"></div>
                                     <div id="npc-skills-empty">Brak umiejętności</div>
@@ -147,11 +138,7 @@ describe('NpcModal Floating Window Controller', () => {
                                 <div id="npc-vitals-section">
                                     <button id="btn-add-npc-vital" type="button">Dodaj parametr</button>
                                     <div id="npc-suggested-vitals-container">
-                                        <div id="npc-suggested-vitals">
-                                            <button type="button" class="npc-vital-preset-chip" data-preset-vital="Punkty Życia (HP)">+ Punkty Życia (HP)</button>
-                                            <button type="button" class="npc-vital-preset-chip" data-preset-vital="Mana">+ Mana</button>
-                                            <button type="button" class="npc-vital-preset-chip" data-preset-vital="Kondycja">+ Kondycja</button>
-                                        </div>
+                                        <div id="npc-suggested-vitals"></div>
                                     </div>
                                     <div id="npc-vitals-list"></div>
                                     <div id="npc-vitals-empty">Brak parametrów</div>
@@ -462,7 +449,9 @@ describe('NpcModal Floating Window Controller', () => {
     })
 
     it('dodaje atrybut z predefiniowaną nazwą po kliknięciu chipu sugestii (np. Rasa, Zawód)', () => {
-        setupNpcModal()
+        setupNpcModal({
+            projectFeatures: [new Feature('f-1', 'Rasa')],
+        })
 
         const list = document.getElementById('npc-custom-attributes-list')!
         const raceChip = document.querySelector(
@@ -605,7 +594,9 @@ describe('NpcModal Floating Window Controller', () => {
     })
 
     it('obsługuje chipy sugestii cech (np. Siła)', () => {
-        setupNpcModal()
+        setupNpcModal({
+            projectStats: [new Stat('s-1', 'Siła', new Description(), '10')],
+        })
 
         const list = document.getElementById('npc-stats-list')!
         const strChip = document.querySelector(
@@ -622,7 +613,9 @@ describe('NpcModal Floating Window Controller', () => {
     })
 
     it('dodaje umiejętność w trybie bezpośrednim (np. d6) oraz obsługuje chipy sugestii', () => {
-        setupNpcModal()
+        setupNpcModal({
+            projectSkills: [new Skill('sk-1', 'Walka wręcz')],
+        })
 
         const list = document.getElementById('npc-skills-list')!
         const meleeChip = document.querySelector(
@@ -789,7 +782,18 @@ describe('NpcModal Floating Window Controller', () => {
         })
 
         it('dodaje parametr życiowy manualnie oraz z chipów presetów', () => {
-            setupNpcModal()
+            setupNpcModal({
+                projectParameters: [
+                    new Parameter(
+                        'p-1',
+                        'Punkty Życia (HP)',
+                        new Description(),
+                        'formula',
+                        '',
+                        'Siła * 4 + 10'
+                    ),
+                ],
+            })
 
             // Manual add
             const vitalId = addNpcVital('Pancerz', 'direct', '5')
