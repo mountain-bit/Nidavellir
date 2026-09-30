@@ -7,6 +7,7 @@ import { Feature } from '../Model/Feature'
 import { Item } from '../Model/Item'
 import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
+import { NPC_Template } from '../Model/NPC_Template'
 import { Paragraph } from '../Model/Paragraph'
 import { Parameter } from '../Model/Parameter'
 import { Scene } from '../Model/Scene'
@@ -29,6 +30,7 @@ export {
     Item,
     Location,
     NPC,
+    NPC_Template,
     Paragraph,
     Parameter,
     Scene,
@@ -134,6 +136,7 @@ export interface IHistoryItem {
         | 'paragraph'
         | 'scene'
         | 'character'
+        | 'template'
         | 'location'
         | 'item'
         | 'stat'
@@ -773,6 +776,12 @@ export class MainWindowViewModel {
         return new NPC(id, name)
     }
 
+    public createTemplate(nameInput?: string, defaultName: string = 'New template'): NPC_Template {
+        const name = (nameInput ?? '').trim() || defaultName
+        const id = this.idGenerator('template')
+        return new NPC_Template(id, name)
+    }
+
     public createLocation(nameInput?: string, defaultName: string = 'New location'): Location {
         const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('location')
@@ -787,26 +796,64 @@ export class MainWindowViewModel {
 
     public createSkill(
         nameInput?: string,
-        defaultName: string = 'New skill',
-        mode: 'direct' | 'stat_mod' = 'direct',
-        value: string = '',
-        statName: string = '',
-        modifier: string = ''
+        defaultNameOrMode: string = 'New skill',
+        modeOrValue: 'direct' | 'stat_mod' | string = 'direct',
+        valueOrStatName: string = '',
+        statNameOrMod: string = '',
+        modifierInput: string = ''
     ): Skill {
-        const name = (nameInput ?? '').trim() || defaultName
+        let name: string
+        let mode: 'direct' | 'stat_mod' = 'direct'
+        let value: string = ''
+        let statName: string = ''
+        let modifier: string = ''
+
+        if (defaultNameOrMode === 'direct' || defaultNameOrMode === 'stat_mod') {
+            name = (nameInput ?? '').trim() || 'New skill'
+            mode = defaultNameOrMode
+            value = (modeOrValue as string) ?? ''
+            statName = valueOrStatName ?? ''
+            modifier = statNameOrMod ?? ''
+        } else {
+            name = (nameInput ?? '').trim() || defaultNameOrMode
+            mode = modeOrValue === 'stat_mod' ? 'stat_mod' : 'direct'
+            value = (valueOrStatName as string) ?? ''
+            statName = statNameOrMod ?? ''
+            modifier = modifierInput ?? ''
+        }
+
         const id = this.idGenerator('skill')
         return new Skill(id, name, new Description(), mode, value, statName, modifier)
     }
 
     public createParameter(
         nameInput?: string,
-        defaultName: string = 'New parameter',
-        mode: 'direct' | 'formula' = 'direct',
-        value: string | number = '',
-        formula: string = '',
-        calculatedValue: number | null = null
+        defaultNameOrMode: string = 'New parameter',
+        modeOrValue: 'direct' | 'formula' | string | number = 'direct',
+        valueOrFormula: string | number = '',
+        formulaOrCalc: string | number | null = '',
+        calculatedValueInput: number | null = null
     ): Parameter {
-        const name = (nameInput ?? '').trim() || defaultName
+        let name: string
+        let mode: 'direct' | 'formula' = 'direct'
+        let value: string | number = ''
+        let formula: string = ''
+        let calculatedValue: number | null = null
+
+        if (defaultNameOrMode === 'direct' || defaultNameOrMode === 'formula') {
+            name = (nameInput ?? '').trim() || 'New parameter'
+            mode = defaultNameOrMode
+            value = (modeOrValue as string | number) ?? ''
+            formula = (valueOrFormula as string) ?? ''
+            calculatedValue = typeof formulaOrCalc === 'number' ? formulaOrCalc : null
+        } else {
+            name = (nameInput ?? '').trim() || defaultNameOrMode
+            mode = modeOrValue === 'formula' ? 'formula' : 'direct'
+            value = valueOrFormula ?? ''
+            formula = (formulaOrCalc as string) ?? ''
+            calculatedValue = calculatedValueInput
+        }
+
         const id = this.idGenerator('parameter')
         return new Parameter(id, name, new Description(), mode, value, formula, calculatedValue)
     }
@@ -1061,6 +1108,16 @@ export class MainWindowViewModel {
         const query = this.characterSearchQuery.trim().toLowerCase()
         if (!query) return characters
         return characters.filter(
+            p =>
+                p.getName().toLowerCase().includes(query) ||
+                p.getTags().some(t => t.getName().toLowerCase().includes(query))
+        )
+    }
+
+    public searchAndFilterTemplates(templates: NPC_Template[]): NPC_Template[] {
+        const query = this.characterSearchQuery.trim().toLowerCase()
+        if (!query) return templates
+        return templates.filter(
             p =>
                 p.getName().toLowerCase().includes(query) ||
                 p.getTags().some(t => t.getName().toLowerCase().includes(query))

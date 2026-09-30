@@ -49,8 +49,15 @@
         "default_name": "Neuer Charakter"
     },
     "npc": {
-        "modal_title": "NPC-Charakter erstellen",
-        "modal_subtitle": "Definiere einen neuen Nicht-Spieler-Charakter im Projekt",
+        "modal_title": "NPC-Charakterbogen",
+        "modal_subtitle": "Erstellung und Anpassung eines Nicht-Spieler-Charakters",
+        "template_modal_title": "NPC-Vorlagenbogen",
+        "template_modal_subtitle": "Erstellung und Anpassung eines Nicht-Spieler-Archetyps",
+        "template_badge": "Vorlage",
+        "template_name_label": "Vorlagenname",
+        "template_name_placeholder": "z.B. Stadtwache, Waldräuber, Kultist...",
+        "template_summary_placeholder": "Kurze Zusammenfassung des Archetyps (z.B. Zweck, Verhalten)...",
+        "drag_template_title": "Ziehen, um Vorlagenbogen zu verschieben",
         "name_label": "Charaktername",
         "name_placeholder": "z.B. Stadtwache, Meister Elion...",
         "summary_label": "Zusammenfassung",
@@ -150,7 +157,7 @@
         "vital_direct_value_placeholder": "Wert / Würfel (z. B. 100, 2d10)",
         "vital_formula_placeholder": "Formel (z. B. Stärke * 4 + 10)",
         "vital_formula_hint": "Du kannst oben definierte Attributnamen und +, -, *, /, % Operatoren mit () Klammern verwenden",
-        "vital_formula_missing_stat": "Fehlendes Attribut: {stat}",
+        "vital_formula_missing_stat": "Fehlendes Attribut: {{stat}}",
         "vital_formula_syntax_error": "Formelfehler",
         "empty_vitals": "Keine Vitalwerte definiert. Nutze die Vorschläge oben oder füge einen eigenen Wert hinzu.",
         "vital_presets": {
@@ -170,10 +177,14 @@
         "empty_tags": "Keine Tags zugewiesen. Klicken Sie auf „Tag hinzufügen“ oder wählen Sie oben aus.",
         "remove_tag": "Tag entfernen",
         "btn_create": "Charakter erstellen",
+        "btn_create_template": "Vorlage erstellen",
         "btn_cancel": "Abbrechen",
         "validation_name_required": "Charaktername ist erforderlich",
+        "validation_template_name_required": "Vorlagenname ist erforderlich",
         "created_success_title": "Charakter erstellt",
-        "created_success_msg": "Charakter {name} erfolgreich erstellt",
+        "created_success_msg": "Charakter {{name}} erfolgreich erstellt",
+        "template_created_success_title": "Vorlage erstellt",
+        "template_created_success_msg": "Vorlage {{name}} erfolgreich erstellt",
         "no_existing_tags": "Keine vorhandenen Tags",
         "tag_already_assigned": "Bereits zugewiesen",
         "add_tag_name": "Tag {{name}} hinzufügen",
@@ -185,7 +196,26 @@
             "merchant": "Händler",
             "guide": "Führer",
             "boss": "Boss"
-        }
+        },
+        "applied_templates_title": "Vorlagen & Archetypen",
+        "apply_template_btn": "Vorlage anwenden",
+        "apply_template_title": "Vorlage auswählen und anwenden",
+        "search_template_placeholder": "Vorlagen suchen...",
+        "no_templates_in_project": "Keine Vorlagen im Projekt.",
+        "create_first_template": "+ Erste Vorlage erstellen",
+        "template_applied_toast": "Vorlage \"{{name}}\" angewendet",
+        "template_already_applied": "Vorlage \"{{name}}\" wurde bereits angewendet",
+        "template_removed": "Vorlage \"{{name}}\" getrennt",
+        "btn_save_changes": "Änderungen speichern",
+        "modal_edit_title": "NSC-Charakter bearbeiten",
+        "modal_edit_subtitle": "Modifizieren und anpassen des Nicht-Spieler-Charakters",
+        "template_modal_edit_title": "NSC-Vorlage bearbeiten",
+        "template_modal_edit_subtitle": "Modifizieren und anpassen des NSC-Archetyps",
+        "updated_success_title": "Charakter aktualisiert",
+        "updated_success_msg": "Charakter {{name}} erfolgreich aktualisiert",
+        "template_updated_success_title": "Vorlage aktualisiert",
+        "template_updated_success_msg": "Vorlage {{name}} erfolgreich aktualisiert",
+        "edit_badge": "Bearbeiten"
     },
     "trait": {
         "default_name": "Neues Merkmal"
@@ -315,6 +345,12 @@
         "paragraphs": "Absätze",
         "scenes": "Szenen",
         "characters": "Charaktere & Vorlagen",
+        "add_character": "Charakter",
+        "add_template": "Vorlage",
+        "characters_section": "Charaktere",
+        "templates_section": "Vorlagen",
+        "no_characters_in_section": "Keine Charaktere im Projekt",
+        "no_templates_in_section": "Keine Vorlagen im Projekt",
         "locations": "Orte",
         "traits": "Merkmale & Attribute",
         "main_character": "Hauptcharakter (Spieler)",
@@ -368,7 +404,6 @@
         "drag_item_hint": "Ziehen, um Element zuzuweisen",
         "scene_name_placeholder": "Szenenname (oder leer lassen)",
 
-        "add_character": "Charakter hinzufügen",
         "add_location": "Ort hinzufügen",
         "add_trait": "Merkmal hinzufügen",
         "add_tag": "Tag hinzufügen",
@@ -389,7 +424,8 @@
         "add_tag": "Tag hinzufügen",
         "add_trait": "Merkmal hinzufügen",
         "rename_prompt": "Geben Sie einen neuen Namen ein:",
-        "confirm_delete": "Möchten Sie \"{{name}}\" wirklich löschen?"
+        "confirm_delete": "Möchten Sie \"{{name}}\" wirklich löschen?",
+        "create_character_from_template": "Charakter aus dieser Vorlage erstellen"
     },
     "settings": {
         "title": "Editor-Einstellungen",
@@ -595,6 +631,7 @@
         "type_skill": "Fertigkeit",
         "type_feature": "Spezielle Eigenschaft",
         "type_character": "NSC-Charakter",
+        "type_template": "NSC-Vorlage",
         "choices": "Sprünge / Entscheidungen",
         "combat": "Kampfbegegnung",
         "no_choices": "Keine Sprünge konfiguriert",
@@ -621,6 +658,14 @@
         "paragraph_exits": "Ausgänge / Sprünge des Absatzes",
         "add_exit": "+ Ausgang hinzufügen",
         "no_exits": "Keine Ausgänge für diesen Absatz konfiguriert",
-        "edit_connection": "Sprung bearbeiten"
+        "edit_connection": "Sprung bearbeiten",
+        "edit_character": "Charakter bearbeiten",
+        "edit_template": "Vorlage bearbeiten",
+        "readonly_badge": "Schreibgeschützt",
+        "no_summary": "Keine Zusammenfassung",
+        "narrative_description": "Erzählbeschreibung",
+        "no_description": "Keine Erzählbeschreibung",
+        "no_traits": "Keine definierten Merkmale",
+        "create_character_from_template": "Charakter aus dieser Vorlage erstellen"
     }
 }

@@ -81,6 +81,9 @@ const appContext = {
     get projectCharacters() {
         return projectData.projectCharacters
     },
+    get projectTemplates() {
+        return projectData.projectTemplates || []
+    },
     get projectLocations() {
         return projectData.projectLocations
     },

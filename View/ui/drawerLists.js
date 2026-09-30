@@ -147,50 +147,173 @@ export function renderTagsList(ctx) {
  *
  * @param {object} ctx Application UI Context
  */
+let charactersSectionCollapsed = false
+let templatesSectionCollapsed = false
+
+export function getCharactersSectionCollapsed() {
+    return charactersSectionCollapsed
+}
+
+export function setCharactersSectionCollapsed(val) {
+    charactersSectionCollapsed = Boolean(val)
+}
+
+export function getTemplatesSectionCollapsed() {
+    return templatesSectionCollapsed
+}
+
+export function setTemplatesSectionCollapsed(val) {
+    templatesSectionCollapsed = Boolean(val)
+}
+
 export function renderCharactersList(ctx) {
     const container = document.getElementById('characters-list-container')
     if (!container) return
 
-    const filtered = ctx.vm.searchAndFilterCharacters(ctx.projectCharacters)
-    if (filtered.length === 0) {
+    const charactersList = ctx.projectCharacters || []
+    const templatesList = ctx.projectTemplates || []
+
+    const filteredCharacters =
+        ctx.vm && typeof ctx.vm.searchAndFilterCharacters === 'function'
+            ? ctx.vm.searchAndFilterCharacters(charactersList)
+            : charactersList
+
+    const filteredTemplates =
+        ctx.vm && typeof ctx.vm.searchAndFilterTemplates === 'function'
+            ? ctx.vm.searchAndFilterTemplates(templatesList)
+            : templatesList
+
+    const totalCount = filteredCharacters.length + filteredTemplates.length
+    if (totalCount === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_characters">${t('left_panel.no_characters')}</p>`
         return
     }
 
-    container.innerHTML = filtered
-        .map(c => {
-            const tagsBadges = c
-                .getTags()
-                .map(
-                    tObj =>
-                        `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.getColor())}">${escapeHtml(tObj.getName())}</span>`
-                )
-                .join(' ')
-            const traitsBadges = c
-                .getStats()
-                .map(
-                    tr =>
-                        `<span class="px-1 py-0.5 rounded bg-blue-900/60 text-blue-200 text-[9px]">${escapeHtml(tr.getName())}</span>`
-                )
-                .join(' ')
+    const renderCard = (item, type, iconColor) => {
+        const tagsBadges = (typeof item.getTags === 'function' ? item.getTags() : [])
+            .map(
+                tObj =>
+                    `<span class="px-1 py-0.5 rounded text-[9px] text-white" style="background-color: ${escapeHtml(tObj.getColor())}">${escapeHtml(tObj.getName())}</span>`
+            )
+            .join(' ')
+        const traitsBadges = (typeof item.getStats === 'function' ? item.getStats() : [])
+            .map(
+                tr =>
+                    `<span class="px-1 py-0.5 rounded bg-blue-900/60 text-blue-200 text-[9px]">${escapeHtml(tr.getName())}</span>`
+            )
+            .join(' ')
 
-            return `
-                <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-grab active:cursor-grabbing select-none" data-item-type="character" data-item-id="${escapeHtml(c.getId())}" draggable="true" title="${t('left_panel.drag_item_hint')}">
-                    <div class="flex items-center justify-between">
-                        <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
-                            <span class="text-purple-400 shrink-0">${getIconSvg('character', 'w-3.5 h-3.5')}</span>
-                            <span>${escapeHtml(c.getName())}</span>
-                        </span>
-                    </div>
-                    ${tagsBadges || traitsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges} ${traitsBadges}</div>` : ''}
+        const iconName = type === 'template' ? 'template' : 'character'
+        const badgeLabel = typeof t === 'function' ? t('npc.template_badge') : 'Szablon'
+
+        return `
+            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-grab active:cursor-grabbing select-none transition-colors" data-item-type="${type}" data-item-id="${escapeHtml(item.getId())}" draggable="true" title="${t('left_panel.drag_item_hint')}">
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-white text-xs truncate flex items-center gap-1.5 min-w-0">
+                        <span class="${iconColor} shrink-0 inline-flex items-center">${getIconSvg(iconName, 'w-3.5 h-3.5')}</span>
+                        <span class="truncate">${escapeHtml(item.getName())}</span>
+                    </span>
+                    ${type === 'template' ? `<span class="px-1 py-0.2 rounded text-[8px] bg-purple-950/70 text-purple-300 border border-purple-800/40 uppercase font-mono font-semibold shrink-0">${badgeLabel}</span>` : ''}
                 </div>
-            `
+                ${tagsBadges || traitsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${tagsBadges} ${traitsBadges}</div>` : ''}
+            </div>
+        `
+    }
+
+    let html = ''
+
+    // 1. Sekcja Postaci (Characters)
+    const charChevron = charactersSectionCollapsed
+        ? getIconSvg('chevron-right', 'w-3 h-3')
+        : getIconSvg('chevron-down', 'w-3 h-3')
+
+    html += `
+        <div class="characters-group mb-3">
+            <button
+                type="button"
+                id="btn-toggle-characters-section"
+                class="w-full flex items-center justify-between text-[11px] font-bold text-blue-400 uppercase tracking-wider px-1 mb-1 pb-1 border-b border-[#2d2d32] select-none hover:text-blue-300 transition-colors cursor-pointer group"
+                title="${charactersSectionCollapsed ? 'Rozwiń postacie' : 'Zwiń postacie'}"
+            >
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-flex items-center text-blue-400 group-hover:scale-110 transition-transform">${charChevron}</span>
+                    <span class="inline-flex items-center text-blue-400">${getIconSvg('character', 'w-3.5 h-3.5')}</span>
+                    <span data-i18n="left_panel.characters_section">${t('left_panel.characters_section')}</span>
+                </span>
+                <span class="px-1.5 py-0.2 rounded-full bg-blue-950/60 text-blue-300 border border-blue-800/40 text-[9px] font-mono">${filteredCharacters.length}</span>
+            </button>
+            <div id="characters-section-body" class="${charactersSectionCollapsed ? 'hidden' : 'space-y-1'}">
+                ${
+                    filteredCharacters.length === 0
+                        ? `<p class="italic text-gray-500 text-[11px] px-1 py-1" data-i18n="left_panel.no_characters_in_section">${t('left_panel.no_characters_in_section')}</p>`
+                        : filteredCharacters
+                              .map(c => renderCard(c, 'character', 'text-blue-400'))
+                              .join('')
+                }
+            </div>
+        </div>
+    `
+
+    // 2. Sekcja Szablonów (Templates)
+    const tplChevron = templatesSectionCollapsed
+        ? getIconSvg('chevron-right', 'w-3 h-3')
+        : getIconSvg('chevron-down', 'w-3 h-3')
+
+    html += `
+        <div class="templates-group mb-3">
+            <button
+                type="button"
+                id="btn-toggle-templates-section"
+                class="w-full flex items-center justify-between text-[11px] font-bold text-purple-400 uppercase tracking-wider px-1 mb-1 pb-1 border-b border-[#2d2d32] select-none hover:text-purple-300 transition-colors cursor-pointer group"
+                title="${templatesSectionCollapsed ? 'Rozwiń szablony' : 'Zwiń szablony'}"
+            >
+                <span class="flex items-center gap-1.5">
+                    <span class="inline-flex items-center text-purple-400 group-hover:scale-110 transition-transform">${tplChevron}</span>
+                    <span class="inline-flex items-center text-purple-400">${getIconSvg('template', 'w-3.5 h-3.5')}</span>
+                    <span data-i18n="left_panel.templates_section">${t('left_panel.templates_section')}</span>
+                </span>
+                <span class="px-1.5 py-0.2 rounded-full bg-purple-950/60 text-purple-300 border border-purple-800/40 text-[9px] font-mono">${filteredTemplates.length}</span>
+            </button>
+            <div id="templates-section-body" class="${templatesSectionCollapsed ? 'hidden' : 'space-y-1'}">
+                ${
+                    filteredTemplates.length === 0
+                        ? `<p class="italic text-gray-500 text-[11px] px-1 py-1" data-i18n="left_panel.no_templates_in_section">${t('left_panel.no_templates_in_section')}</p>`
+                        : filteredTemplates
+                              .map(tObj => renderCard(tObj, 'template', 'text-purple-400'))
+                              .join('')
+                }
+            </div>
+        </div>
+    `
+
+    container.innerHTML = html
+
+    // Attach collapsible toggles
+    const btnToggleCharacters = document.getElementById('btn-toggle-characters-section')
+    if (btnToggleCharacters) {
+        btnToggleCharacters.addEventListener('click', e => {
+            e.preventDefault()
+            charactersSectionCollapsed = !charactersSectionCollapsed
+            renderCharactersList(ctx)
         })
-        .join('')
+    }
+
+    const btnToggleTemplates = document.getElementById('btn-toggle-templates-section')
+    if (btnToggleTemplates) {
+        btnToggleTemplates.addEventListener('click', e => {
+            e.preventDefault()
+            templatesSectionCollapsed = !templatesSectionCollapsed
+            renderCharactersList(ctx)
+        })
+    }
 
     attachDragStartListeners(container, 'character')
-    attachContextMenuListeners(container, 'character', ctx.projectCharacters, ctx)
-    attachItemSelectionListeners(container, 'character', ctx.projectCharacters, ctx)
+    attachContextMenuListeners(container, 'character', ctx.projectCharacters || [], ctx)
+    attachItemSelectionListeners(container, 'character', ctx.projectCharacters || [], ctx)
+
+    attachDragStartListeners(container, 'template')
+    attachContextMenuListeners(container, 'template', ctx.projectTemplates || [], ctx)
+    attachItemSelectionListeners(container, 'template', ctx.projectTemplates || [], ctx)
 }
 
 /**

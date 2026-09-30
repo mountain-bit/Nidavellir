@@ -1,7 +1,9 @@
 import { Description } from './Description'
 import { Feature } from './Feature'
+import { Parameter } from './Parameter'
 import { Skill } from './Skill'
 import { Stat } from './Stat'
+import { Tag } from './Tag'
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export class NPC_Template {
@@ -11,6 +13,10 @@ export class NPC_Template {
     private stats: Stat[] = []
     private skills: Skill[] = []
     private features: Feature[] = []
+    private tags: Tag[] = []
+    private avatar: string = 'warrior'
+    private parameters: Parameter[] = []
+    private customAttributes: { name: string; value: string }[] = []
 
     constructor(
         id: string = '',
@@ -18,7 +24,11 @@ export class NPC_Template {
         description: Description = new Description(),
         stats: Stat[] = [],
         skills: Skill[] = [],
-        features: Feature[] = []
+        features: Feature[] = [],
+        tags: Tag[] = [],
+        avatar: string = 'warrior',
+        parameters: Parameter[] = [],
+        customAttributes: { name: string; value: string }[] = []
     ) {
         this.id = id
         this.name = name
@@ -26,6 +36,10 @@ export class NPC_Template {
         this.stats = stats
         this.skills = skills
         this.features = features
+        this.tags = tags
+        this.avatar = avatar
+        this.parameters = parameters
+        this.customAttributes = customAttributes
     }
 
     public getId(): string {
@@ -56,6 +70,22 @@ export class NPC_Template {
         this.description = description
     }
 
+    public getSummary(): string {
+        return this.description.getSummary()
+    }
+
+    public setSummary(summary: string): void {
+        this.description.setSummary(summary)
+    }
+
+    public getAvatar(): string {
+        return this.avatar
+    }
+
+    public setAvatar(avatar: string): void {
+        this.avatar = avatar
+    }
+
     public getStats(): Stat[] {
         return this.stats
     }
@@ -65,19 +95,21 @@ export class NPC_Template {
     }
 
     public getStat(id: string): string | number | undefined {
-        return this.stats.find(c => c.getId() === id)?.getValue()
+        return this.stats.find(c => c.getId() === id || c.getName() === id)?.getValue()
     }
 
     public addStat(stat: Stat): void {
-        this.stats.push(stat)
+        if (!this.stats.some(c => c.getId() === stat.getId() || c.getName() === stat.getName())) {
+            this.stats.push(stat)
+        }
     }
 
     public removeStat(id: string): void {
-        this.stats = this.stats.filter(c => c.getId() !== id)
+        this.stats = this.stats.filter(c => c.getId() !== id && c.getName() !== id)
     }
 
     public hasStat(id: string): boolean {
-        return this.stats.some(c => c.getId() === id)
+        return this.stats.some(c => c.getId() === id || c.getName() === id)
     }
 
     public getSkills(): Skill[] {
@@ -89,19 +121,53 @@ export class NPC_Template {
     }
 
     public getSkill(id: string): Skill | undefined {
-        return this.skills.find(u => u.getId() === id)
+        return this.skills.find(u => u.getId() === id || u.getName() === id)
     }
 
     public addSkill(skill: Skill): void {
-        this.skills.push(skill)
+        if (
+            !this.skills.some(u => u.getId() === skill.getId() || u.getName() === skill.getName())
+        ) {
+            this.skills.push(skill)
+        }
     }
 
     public removeSkill(id: string): void {
-        this.skills = this.skills.filter(u => u.getId() !== id)
+        this.skills = this.skills.filter(u => u.getId() !== id && u.getName() !== id)
     }
 
     public hasSkill(id: string): boolean {
-        return this.skills.some(u => u.getId() === id)
+        return this.skills.some(u => u.getId() === id || u.getName() === id)
+    }
+
+    public getParameters(): Parameter[] {
+        return this.parameters
+    }
+
+    public setParameters(parameters: Parameter[]): void {
+        this.parameters = parameters
+    }
+
+    public getParameter(id: string): Parameter | undefined {
+        return this.parameters.find(p => p.getId() === id || p.getName() === id)
+    }
+
+    public addParameter(parameter: Parameter): void {
+        if (
+            !this.parameters.some(
+                p => p.getId() === parameter.getId() || p.getName() === parameter.getName()
+            )
+        ) {
+            this.parameters.push(parameter)
+        }
+    }
+
+    public removeParameter(id: string): void {
+        this.parameters = this.parameters.filter(p => p.getId() !== id && p.getName() !== id)
+    }
+
+    public hasParameter(id: string): boolean {
+        return this.parameters.some(p => p.getId() === id || p.getName() === id)
     }
 
     public getFeatures(): Feature[] {
@@ -113,35 +179,82 @@ export class NPC_Template {
     }
 
     public getFeature(id: string): Feature | undefined {
-        return this.features.find(p => p.getId() === id)
+        return this.features.find(p => p.getId() === id || p.getName() === id)
     }
 
     public addFeature(feature: Feature): void {
-        this.features.push(feature)
+        if (
+            !this.features.some(
+                p => p.getId() === feature.getId() || p.getName() === feature.getName()
+            )
+        ) {
+            this.features.push(feature)
+        }
     }
 
     public removeFeature(id: string): void {
-        this.features = this.features.filter(p => p.getId() !== id)
+        this.features = this.features.filter(p => p.getId() !== id && p.getName() !== id)
     }
 
     public hasFeature(id: string): boolean {
-        return this.features.some(p => p.getId() === id)
+        return this.features.some(p => p.getId() === id || p.getName() === id)
+    }
+
+    public getTags(): Tag[] {
+        return this.tags
+    }
+
+    public setTags(tags: Tag[]): void {
+        this.tags = tags
+    }
+
+    public addTag(tag: Tag): void {
+        if (!this.tags.some(t => t.getId() === tag.getId() || t.getName() === tag.getName())) {
+            this.tags.push(tag)
+        }
+    }
+
+    public removeTag(tagIdOrName: string): void {
+        this.tags = this.tags.filter(t => t.getId() !== tagIdOrName && t.getName() !== tagIdOrName)
+    }
+
+    public hasTag(tagIdOrName: string): boolean {
+        return this.tags.some(t => t.getId() === tagIdOrName || t.getName() === tagIdOrName)
+    }
+
+    public getCustomAttributes(): { name: string; value: string }[] {
+        return this.customAttributes
+    }
+
+    public setCustomAttributes(attrs: { name: string; value: string }[]): void {
+        this.customAttributes = attrs
     }
 
     public static fromJSON(json: any): NPC_Template {
         if (!json) return new NPC_Template('')
+        const tagsParsed = (json.tags || []).map((t: any) => Tag.fromJSON(t))
         const name = json.name ?? ''
         const descData = json.description
         const statsData = json.stats || json.traits || []
         const skillsData = json.skills || []
         const featuresData = json.features || json.qualities || []
+        const paramsData = json.parameters || json.vitals || []
+        const avatar = json.avatar ?? 'warrior'
+        const customAttrs = (json.customAttributes || []).map((ca: any) => ({
+            name: ca.name || ca.key || '',
+            value: String(ca.value ?? ''),
+        }))
         return new NPC_Template(
             json.id || '',
             name,
             Description.fromJSON(descData),
             statsData.map((c: any) => Stat.fromJSON(c)),
             skillsData.map((u: any) => Skill.fromJSON(u)),
-            featuresData.map((p: any) => Feature.fromJSON(p))
+            featuresData.map((p: any) => Feature.fromJSON(p)),
+            tagsParsed,
+            avatar,
+            paramsData.map((p: any) => Parameter.fromJSON(p)),
+            customAttrs
         )
     }
 
@@ -149,10 +262,14 @@ export class NPC_Template {
         return {
             id: this.id,
             name: this.name,
+            avatar: this.avatar,
             description: this.description,
             stats: this.stats,
             skills: this.skills,
+            parameters: this.parameters,
             features: this.features,
+            tags: this.tags,
+            customAttributes: this.customAttributes,
         }
     }
 }

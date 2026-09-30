@@ -69,6 +69,14 @@ export class NPC {
         this.description = description
     }
 
+    public getSummary(): string {
+        return this.description.getSummary()
+    }
+
+    public setSummary(summary: string): void {
+        this.description.setSummary(summary)
+    }
+
     public getAvatar(): string {
         return this.avatar
     }

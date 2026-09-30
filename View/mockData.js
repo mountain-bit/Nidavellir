@@ -42,6 +42,11 @@ export function createMockProjectData(vm) {
         vm.createCharacter('Kupiec Jan'),
     ]
 
+    const projectTemplates = [
+        vm.createTemplate('Archetyp Strażnika'),
+        vm.createTemplate('Bandyta leśny (szablon)'),
+    ]
+
     const projectLocations = [
         vm.createLocation('Karczma Pod Różą'),
         vm.createLocation('Mroczny Las'),
@@ -145,6 +150,7 @@ export function createMockProjectData(vm) {
         files: { ...mockFiles },
         projectTags,
         projectCharacters,
+        projectTemplates,
         projectLocations,
         projectStats,
         projectSkills,
@@ -186,6 +192,7 @@ export function extractProjectData(project, files = {}) {
             files: {},
             projectTags: [],
             projectCharacters: [],
+            projectTemplates: [],
             projectLocations: [],
             projectStats: [],
             projectSkills: [],
@@ -207,6 +214,7 @@ export function extractProjectData(project, files = {}) {
               ? project.getTagList()
               : []
     const characters = typeof project.getCharacters === 'function' ? project.getCharacters() : []
+    const templates = typeof project.getTemplates === 'function' ? project.getTemplates() : []
     const locations = typeof project.getLocations === 'function' ? project.getLocations() : []
     const stats = typeof project.getGlobalStats === 'function' ? project.getGlobalStats() : []
     const skills = typeof project.getGlobalSkills === 'function' ? project.getGlobalSkills() : []
@@ -219,6 +227,7 @@ export function extractProjectData(project, files = {}) {
         files: files || {},
         projectTags: tags,
         projectCharacters: characters,
+        projectTemplates: templates,
         projectLocations: locations,
         projectStats: stats,
         projectSkills: skills,
@@ -259,6 +268,7 @@ export async function loadRealProjectData(vm, options = {}) {
         files: options.files || {},
         projectTags: [],
         projectCharacters: [],
+        projectTemplates: [],
         projectLocations: [],
         projectStats: [],
         projectSkills: [],

@@ -8,13 +8,36 @@ let npcStats = []
 let npcSkills = []
 let npcVitals = []
 let npcTags = []
+let appliedTemplates = []
 let currentAvatarId = 'warrior'
 let isDrawerOpen = false
 let hasBeenPositioned = false
+let modalMode = 'character'
 let activeModal = null
 let activeCtx = null
 let globalKeydownHandler = null
 let globalOutsideClickHandler = null
+let editingEntity = null
+
+export function getEditingEntity() {
+    return editingEntity
+}
+
+export function setEditingEntity(entity) {
+    editingEntity = entity || null
+}
+
+export function isEditingMode() {
+    return Boolean(editingEntity)
+}
+
+export function getModalMode() {
+    return modalMode
+}
+
+export function setModalMode(mode) {
+    modalMode = mode === 'template' ? 'template' : 'character'
+}
 
 // --- Custom Attributes ---
 
@@ -383,6 +406,28 @@ export function setGlobalOutsideClickHandler(handler) {
     globalOutsideClickHandler = handler
 }
 
+export function getAppliedTemplates() {
+    return appliedTemplates
+}
+
+export function addAppliedTemplateState(tpl) {
+    if (!tpl) return
+    const id = tpl.id || (typeof tpl.getId === 'function' ? tpl.getId() : '')
+    const name = tpl.name || (typeof tpl.getName === 'function' ? tpl.getName() : '')
+    const avatar = tpl.avatar || (typeof tpl.getAvatar === 'function' ? tpl.getAvatar() : 'warrior')
+    if (id && !appliedTemplates.some(t => t.id === id)) {
+        appliedTemplates.push({ id, name, avatar })
+    }
+}
+
+export function removeAppliedTemplateState(id) {
+    appliedTemplates = appliedTemplates.filter(t => t.id !== id)
+}
+
+export function clearAppliedTemplates() {
+    appliedTemplates = []
+}
+
 /**
  * Resets state arrays and default values.
  */
@@ -392,6 +437,8 @@ export function resetState() {
     npcSkills = []
     npcVitals = []
     npcTags = []
+    appliedTemplates = []
     currentAvatarId = 'warrior'
     isDrawerOpen = false
+    editingEntity = null
 }

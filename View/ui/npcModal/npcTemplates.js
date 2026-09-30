@@ -684,3 +684,88 @@ export function renderSuggestedChipHtml({ type, name, extraData = '' }) {
         </button>
     `
 }
+
+/**
+ * Renders an applied template badge/chip with remove button.
+ *
+ * @param {{ id: string, name: string, avatar?: string }} tpl
+ * @returns {string}
+ */
+export function renderAppliedTemplateChipHtml(tpl) {
+    const name = tpl.name || 'Szablon'
+    const id = tpl.id || ''
+    return `
+        <div class="npc-applied-template-chip inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-950/70 border border-purple-500/40 text-purple-200 text-xs font-medium shadow-sm group select-none transition-all hover:border-purple-400" data-template-id="${escapeAttr(id)}">
+            <span class="inline-flex items-center text-purple-400 shrink-0">${getIconSvg('template', 'w-3 h-3')}</span>
+            <span class="truncate font-semibold tracking-wide">${escapeHtml(name)}</span>
+            <button
+                type="button"
+                class="btn-remove-applied-template ml-1 p-0.5 rounded text-purple-400/70 hover:text-red-300 hover:bg-red-500/20 cursor-pointer inline-flex items-center transition-colors"
+                data-template-id="${escapeAttr(id)}"
+                title="${safeT('buttons.delete', 'Usuń')}"
+            >
+                ${getIconSvg('close', 'w-3 h-3')}
+            </button>
+        </div>
+    `
+}
+
+/**
+ * Renders an item in the template dropdown menu.
+ *
+ * @param {object} tpl
+ * @param {boolean} isApplied
+ * @returns {string}
+ */
+export function renderTemplateDropdownItemHtml(tpl, isApplied = false) {
+    const id = tpl.id || (typeof tpl.getId === 'function' ? tpl.getId() : '')
+    const name = tpl.name || (typeof tpl.getName === 'function' ? tpl.getName() : 'Szablon')
+    const summary =
+        typeof tpl.getSummary === 'function' ? tpl.getSummary() : tpl.description?.summary || ''
+
+    const statsCount =
+        typeof tpl.getStats === 'function'
+            ? tpl.getStats().length
+            : Array.isArray(tpl.stats)
+              ? tpl.stats.length
+              : 0
+
+    const vitalsCount =
+        typeof tpl.getParameters === 'function'
+            ? tpl.getParameters().length
+            : Array.isArray(tpl.parameters)
+              ? tpl.parameters.length
+              : 0
+
+    const traitsBadge =
+        statsCount || vitalsCount
+            ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 font-mono">${statsCount} cech, ${vitalsCount} param.</span>`
+            : ''
+
+    return `
+        <button
+            type="button"
+            class="template-dropdown-item w-full flex items-center justify-between p-2 rounded-lg hover:bg-purple-950/50 border border-transparent hover:border-purple-500/30 transition-all cursor-pointer text-left group select-none"
+            data-template-id="${escapeAttr(id)}"
+            data-template-name="${escapeAttr(name)}"
+        >
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+                <div class="w-6 h-6 rounded flex items-center justify-center bg-purple-900/50 text-purple-300 border border-purple-700/40 shrink-0 group-hover:scale-105 transition-transform">
+                    ${getIconSvg('template', 'w-3.5 h-3.5')}
+                </div>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-semibold text-zinc-200 group-hover:text-purple-200 truncate">${escapeHtml(name)}</span>
+                    ${summary ? `<span class="text-[10px] text-zinc-400 truncate">${escapeHtml(summary)}</span>` : ''}
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+                ${traitsBadge}
+                ${
+                    isApplied
+                        ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-900/60 text-purple-200 border border-purple-700/50 font-mono font-semibold">${safeT('npc.template_already_applied_badge', 'Użyty')}</span>`
+                        : `<span class="text-xs text-purple-400 group-hover:text-purple-200 font-bold group-hover:scale-125 transition-transform">+</span>`
+                }
+            </div>
+        </button>
+    `
+}

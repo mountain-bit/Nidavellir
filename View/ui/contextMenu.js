@@ -55,6 +55,15 @@ export function openContextMenu(x, y, target) {
         }
     }
 
+    const ctxCreateFromTemplate = document.getElementById('ctx-create-character-from-template')
+    if (ctxCreateFromTemplate) {
+        if (target.type === 'template') {
+            ctxCreateFromTemplate.classList.remove('hidden')
+        } else {
+            ctxCreateFromTemplate.classList.add('hidden')
+        }
+    }
+
     if (ctxMenu) {
         ctxMenu.style.left = `${x}px`
         ctxMenu.style.top = `${y}px`
@@ -412,6 +421,18 @@ export function setupSectionControlsAndContextMenu(ctx) {
         }
     })
 
+    const ctxCreateFromTemplate = document.getElementById('ctx-create-character-from-template')
+    if (ctxCreateFromTemplate) {
+        ctxCreateFromTemplate.addEventListener('click', () => {
+            if (!activeContextMenuTarget || activeContextMenuTarget.type !== 'template') return
+            const tpl = activeContextMenuTarget.item
+            if (typeof ctx.openNpcModal === 'function') {
+                ctx.openNpcModal({ mode: 'character', applyTemplate: tpl })
+            }
+            if (ctxMenu) ctxMenu.classList.add('hidden')
+        })
+    }
+
     if (ctxEditTitle) {
         ctxEditTitle.addEventListener('click', () => {
             if (!activeContextMenuTarget) return
@@ -445,6 +466,15 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     const idx = ctx.projectCharacters.findIndex(c => c.getId() === id)
                     if (idx !== -1) ctx.projectCharacters.splice(idx, 1)
                     if (ctx.populateFilterSelects) ctx.populateFilterSelects()
+                } else if (activeContextMenuTarget.type === 'template') {
+                    const tpls = ctx.projectTemplates || []
+                    const idx = tpls.findIndex(
+                        t => (typeof t.getId === 'function' ? t.getId() : t.id) === id
+                    )
+                    if (idx !== -1) tpls.splice(idx, 1)
+                    if (ctx.vm?.project && typeof ctx.vm.project.removeTemplate === 'function') {
+                        ctx.vm.project.removeTemplate(id)
+                    }
                 } else if (activeContextMenuTarget.type === 'location') {
                     const idx = ctx.projectLocations.findIndex(l => l.getId() === id)
                     if (idx !== -1) ctx.projectLocations.splice(idx, 1)

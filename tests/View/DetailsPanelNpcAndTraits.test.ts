@@ -5,6 +5,7 @@ import { initTranslationsWithLocale } from '../../dist/Utils/translate.js'
 import { Description } from '../../Model/Description'
 import { Feature } from '../../Model/Feature'
 import { NPC } from '../../Model/NPC'
+import { NPC_Template } from '../../Model/NPC_Template'
 import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
@@ -17,6 +18,7 @@ interface IMockAppContext {
     projectParagraphs: unknown[]
     projectScenes: unknown[]
     projectCharacters: NPC[]
+    projectTemplates?: NPC_Template[]
     projectLocations: unknown[]
     projectStats: Stat[]
     projectParameters: Parameter[]
@@ -31,6 +33,7 @@ interface IMockAppContext {
     updateMainWorkspaceUI: () => void
     refreshActiveSection: (type: string) => void
     openNarrativeEditor: (filePath: string, title: string) => void
+    openNpcModal?: (options?: unknown) => void
     storyGraphInstance: { render: (force: boolean) => void; focusOnElement: (id: string) => void }
 }
 
@@ -58,6 +61,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             projectParagraphs: [],
             projectScenes: [],
             projectCharacters: [],
+            projectTemplates: [],
             projectLocations: [],
             projectStats: [],
             projectParameters: [],
@@ -72,6 +76,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             updateMainWorkspaceUI: vi.fn(),
             refreshActiveSection: vi.fn(),
             openNarrativeEditor: vi.fn(),
+            openNpcModal: vi.fn(),
             storyGraphInstance: {
                 render: vi.fn(),
                 focusOnElement: vi.fn(),
@@ -79,7 +84,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
         }
     })
 
-    describe('NPC Rendering and Details', () => {
+    describe('NPC Rendering and Details (Read-only mode)', () => {
         let npc: NPC
 
         beforeEach(() => {
@@ -112,6 +117,9 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
 
             // Dodaj przymioty
             npc.addFeature(new Feature('feat-1', 'Odporność na magię', new Description('Odporny')))
+
+            // Dodaj tagi
+            npc.addTag(new Tag('tag-1', 'Wiedźmini'))
 
             // Dodaj niestandardowe atrybuty
             npc.setCustomAttributes([
@@ -154,9 +162,35 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
 
             expect(detailsContent.innerHTML).toContain('Geralt')
             expect(detailsContent.innerHTML).toContain('Postać NPC')
+            expect(detailsContent.innerHTML).not.toContain('Tylko do odczytu')
+            expect(detailsContent.querySelector('#details-name-display')).not.toBeNull()
+            expect(detailsContent.querySelector('#details-name-input')).toBeNull()
         })
 
-        it('should render avatar module and allow changing avatar', () => {
+        it('should render edit button and trigger openNpcModal with mode character and editEntity on click', () => {
+            renderDetailsPanel(ctx)
+
+            const editBtn = detailsContent.querySelector(
+                '#btn-details-edit-npc'
+            ) as HTMLButtonElement
+            expect(editBtn).not.toBeNull()
+            expect(editBtn.textContent).toContain('Edytuj postać')
+
+            editBtn.click()
+            expect(ctx.openNpcModal).toHaveBeenCalledWith({
+                mode: 'character',
+                editEntity: npc,
+            })
+
+            const bottomEditBtn = detailsContent.querySelector(
+                '#btn-details-bottom-edit-npc'
+            ) as HTMLButtonElement
+            expect(bottomEditBtn).not.toBeNull()
+            bottomEditBtn.click()
+            expect(ctx.openNpcModal).toHaveBeenCalledTimes(2)
+        })
+
+        it('should render avatar in read-only mode without change button or grid', () => {
             renderDetailsPanel(ctx)
 
             const avatarPreview = detailsContent.querySelector(
@@ -164,31 +198,17 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             ) as HTMLElement
             expect(avatarPreview).not.toBeNull()
 
-            // Otwarcie selektora awatara
-            const toggleBtn = detailsContent.querySelector(
-                '#btn-details-toggle-avatar-grid'
-            ) as HTMLButtonElement
-            expect(toggleBtn).not.toBeNull()
-            toggleBtn.click()
-
-            const grid = detailsContent.querySelector('#details-avatar-grid')
-            expect(grid).not.toBeNull()
-            expect(grid!.classList.contains('hidden')).toBe(false)
-
-            // Wybór innego awatara
-            const mageOption = grid!.querySelector(
-                '.details-avatar-btn[data-avatar-id="mage"]'
-            ) as HTMLElement
-            expect(mageOption).not.toBeNull()
-            mageOption.click()
-
-            expect(npc.getAvatar()).toBe('mage')
+            // Brak przycisku zmiany awatara i brak siatki wyboru
+            expect(detailsContent.querySelector('#btn-details-toggle-avatar-grid')).toBeNull()
+            expect(detailsContent.querySelector('#details-avatar-grid')).toBeNull()
         })
 
-        it('should render summary and author notes module for NPC using getDescription()', () => {
+        it('should render summary and author notes module for NPC using getDescription() in read-only', () => {
             renderDetailsPanel(ctx)
 
             expect(detailsContent.innerHTML).toContain('Wojownik z północy')
+            // Brak edytowalnego pola tekstowego
+            expect(detailsContent.querySelector('#details-summary-input')).toBeNull()
 
             // Sprawdzenie obecności sekcji plików narracyjnych
             const btnPlayerText = detailsContent.querySelector(
@@ -201,53 +221,34 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             expect(btnAuthorNotes).not.toBeNull()
         })
 
-        it('should render NPC stats list with values, allow editing and deleting', () => {
+        it('should render tags in read-only mode without delete buttons or add controls', () => {
+            renderDetailsPanel(ctx)
+
+            expect(detailsContent.innerHTML).toContain('#Wiedźmini')
+            expect(detailsContent.querySelector('#details-add-tag-select')).toBeNull()
+            expect(detailsContent.querySelector('#btn-details-add-tag')).toBeNull()
+        })
+
+        it('should render NPC stats list with values in read-only mode without input fields or delete buttons', () => {
             renderDetailsPanel(ctx)
 
             const statRows = detailsContent.querySelectorAll('#details-stats-list > div')
             expect(statRows.length).toBe(2)
 
-            // Edycja wartości cechy
-            const inputSila = statRows[0].querySelector('.stat-val-input') as HTMLInputElement
-            expect(inputSila).not.toBeNull()
-            expect(inputSila.value).toBe('16')
+            // Brak pól input do edycji wartości oraz brak przycisków usuwania
+            expect(detailsContent.querySelectorAll('.stat-val-input').length).toBe(0)
+            expect(detailsContent.querySelectorAll('.btn-remove-stat').length).toBe(0)
+            expect(detailsContent.querySelector('#details-add-stat-select')).toBeNull()
+            expect(detailsContent.querySelector('#btn-details-add-stat')).toBeNull()
 
-            inputSila.value = '18'
-            inputSila.dispatchEvent(new Event('change'))
-
-            const updatedStat = npc.getStats().find(s => s.getId() === 'stat-1')
-            expect(updatedStat?.getValue()).toBe('18')
-
-            // Usunięcie cechy
-            const deleteBtn = statRows[1].querySelector('.btn-remove-stat') as HTMLButtonElement
-            expect(deleteBtn).not.toBeNull()
-            deleteBtn.click()
-
-            expect(npc.getStats()).toHaveLength(1)
-            expect(npc.getStats()[0].getId()).toBe('stat-1')
+            // Wartości cech są wyświetlane jako tekst
+            expect(detailsContent.innerHTML).toContain('Siła')
+            expect(detailsContent.innerHTML).toContain('16')
+            expect(detailsContent.innerHTML).toContain('Zręczność')
+            expect(detailsContent.innerHTML).toContain('14')
         })
 
-        it('should allow assigning an unassigned stat from projectStats to the NPC', () => {
-            renderDetailsPanel(ctx)
-
-            const assignSelect = detailsContent.querySelector(
-                '#details-add-stat-select'
-            ) as HTMLSelectElement
-            const assignBtn = detailsContent.querySelector(
-                '#btn-details-add-stat'
-            ) as HTMLButtonElement
-
-            expect(assignSelect).not.toBeNull()
-            expect(assignSelect.options.length).toBe(2) // Pusta opcja + 'Mądrość' (stat-3)
-            assignSelect.value = 'stat-3'
-
-            assignBtn.click()
-
-            expect(npc.getStats()).toHaveLength(3)
-            expect(npc.getStats().some(s => s.getId() === 'stat-3')).toBe(true)
-        })
-
-        it('should render NPC parameters with calculated formula values and allow deletion', () => {
+        it('should render NPC parameters with calculated formula values in read-only mode', () => {
             renderDetailsPanel(ctx)
 
             const paramRows = detailsContent.querySelectorAll('#details-params-list > div')
@@ -257,138 +258,125 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             expect(detailsContent.innerHTML).toContain('Siła * 10')
             expect(detailsContent.innerHTML).toContain('160')
 
-            // Usunięcie parametru
-            const removeBtn = paramRows[0].querySelector('.btn-remove-param') as HTMLButtonElement
-            expect(removeBtn).not.toBeNull()
-            removeBtn.click()
-
-            expect(npc.getParameters()).toHaveLength(0)
+            // Brak elementów edycyjnych
+            expect(detailsContent.querySelectorAll('.param-val-input').length).toBe(0)
+            expect(detailsContent.querySelectorAll('.btn-remove-param').length).toBe(0)
+            expect(detailsContent.querySelector('#details-add-param-select')).toBeNull()
+            expect(detailsContent.querySelector('#btn-details-add-param')).toBeNull()
         })
 
-        it('should allow assigning an unassigned parameter from projectParameters to the NPC', () => {
-            renderDetailsPanel(ctx)
-
-            const assignSelect = detailsContent.querySelector(
-                '#details-add-param-select'
-            ) as HTMLSelectElement
-            const assignBtn = detailsContent.querySelector(
-                '#btn-details-add-param'
-            ) as HTMLButtonElement
-
-            expect(assignSelect).not.toBeNull()
-            assignSelect.value = 'param-2'
-
-            assignBtn.click()
-
-            expect(npc.getParameters()).toHaveLength(2)
-            expect(npc.getParameters().some(p => p.getId() === 'param-2')).toBe(true)
-        })
-
-        it('should render NPC skills and allow adding/removing skills', () => {
+        it('should render NPC skills in read-only mode', () => {
             renderDetailsPanel(ctx)
 
             const skillRows = detailsContent.querySelectorAll('#details-skills-list > div')
             expect(skillRows.length).toBe(1)
 
-            // Sprawdzenie wskaźnika modyfikatora
+            expect(detailsContent.innerHTML).toContain('Fechtunek')
             expect(detailsContent.innerHTML).toContain('Zręczność')
+            expect(detailsContent.innerHTML).toContain('+3')
 
-            // Dodanie umiejętności 'Alchemia'
-            const assignSelect = detailsContent.querySelector(
-                '#details-add-skill-select'
-            ) as HTMLSelectElement
-            const assignBtn = detailsContent.querySelector(
-                '#btn-details-add-skill'
-            ) as HTMLButtonElement
-
-            assignSelect.value = 'skill-2'
-            assignBtn.click()
-
-            expect(npc.getSkills()).toHaveLength(2)
-
-            // Usunięcie umiejętności
-            const removeBtn = skillRows[0].querySelector('.btn-remove-skill') as HTMLButtonElement
-            removeBtn.click()
-
-            expect(npc.getSkills()).toHaveLength(1)
-            expect(npc.getSkills()[0].getId()).toBe('skill-2')
+            // Brak kontrolek edycji
+            expect(detailsContent.querySelectorAll('.skill-val-input').length).toBe(0)
+            expect(detailsContent.querySelectorAll('.btn-remove-skill').length).toBe(0)
+            expect(detailsContent.querySelector('#details-add-skill-select')).toBeNull()
+            expect(detailsContent.querySelector('#btn-details-add-skill')).toBeNull()
         })
 
-        it('should render NPC features and allow adding/removing features', () => {
+        it('should render NPC features in read-only mode', () => {
             renderDetailsPanel(ctx)
 
             const featRows = detailsContent.querySelectorAll('#details-features-list > div')
             expect(featRows.length).toBe(1)
             expect(detailsContent.innerHTML).toContain('Odporność na magię')
 
-            // Dodanie 'Znak Igni'
-            const assignSelect = detailsContent.querySelector(
-                '#details-add-feature-select'
-            ) as HTMLSelectElement
-            const assignBtn = detailsContent.querySelector(
-                '#btn-details-add-feature'
-            ) as HTMLButtonElement
-
-            assignSelect.value = 'feat-2'
-            assignBtn.click()
-
-            expect(npc.getFeatures()).toHaveLength(2)
-
-            // Usunięcie
-            const removeBtn = featRows[0].querySelector('.btn-remove-feature') as HTMLButtonElement
-            removeBtn.click()
-
-            expect(npc.getFeatures()).toHaveLength(1)
-            expect(npc.getFeatures()[0].getId()).toBe('feat-2')
+            expect(detailsContent.querySelectorAll('.btn-remove-feature').length).toBe(0)
+            expect(detailsContent.querySelector('#details-add-feature-select')).toBeNull()
+            expect(detailsContent.querySelector('#btn-details-add-feature')).toBeNull()
         })
 
-        it('should render custom attributes, allow inline editing, adding and deleting', () => {
+        it('should render custom attributes in read-only mode without inputs or delete buttons', () => {
             renderDetailsPanel(ctx)
 
-            const nameInputs = detailsContent.querySelectorAll(
-                '.attr-name-input'
-            ) as NodeListOf<HTMLInputElement>
-            const valInputs = detailsContent.querySelectorAll(
-                '.attr-val-input'
-            ) as NodeListOf<HTMLInputElement>
+            expect(detailsContent.innerHTML).toContain('Rasa')
+            expect(detailsContent.innerHTML).toContain('Wiedźmin')
+            expect(detailsContent.innerHTML).toContain('Status')
+            expect(detailsContent.innerHTML).toContain('Wędrowiec')
 
-            expect(nameInputs.length).toBe(2)
-            expect(nameInputs[0].value).toBe('Rasa')
-            expect(valInputs[0].value).toBe('Wiedźmin')
+            expect(detailsContent.querySelectorAll('.attr-name-input').length).toBe(0)
+            expect(detailsContent.querySelectorAll('.attr-val-input').length).toBe(0)
+            expect(detailsContent.querySelectorAll('.btn-remove-attr').length).toBe(0)
+            expect(detailsContent.querySelector('#details-add-attr-name')).toBeNull()
+            expect(detailsContent.querySelector('#btn-details-add-attr')).toBeNull()
+        })
+    })
 
-            // Edycja klucza i wartości
-            nameInputs[0].value = 'Pochodzenie'
-            nameInputs[0].dispatchEvent(new Event('change'))
-            valInputs[0].value = 'Rivia'
-            valInputs[0].dispatchEvent(new Event('change'))
+    describe('Template Rendering and Details (Read-only mode)', () => {
+        let template: NPC_Template
 
-            const attrs = npc.getCustomAttributes()
-            expect(attrs[0].name).toBe('Pochodzenie')
-            expect(attrs[0].value).toBe('Rivia')
+        beforeEach(() => {
+            const desc = new Description('Szablon strażnika miejskiego', 'Szablon strażnika')
+            template = new NPC_Template(
+                'tpl-1',
+                'Strażnik Miejski',
+                desc,
+                [new Stat('stat-1', 'Siła', new Description(), '12')],
+                [new Skill('skill-1', 'Walka wręcz', new Description(), 'direct', '+2')],
+                [new Feature('feat-1', 'Czujność', new Description('Zawsze czujny'))],
+                [new Tag('tag-1', 'Straż')],
+                'guardian',
+                [new Parameter('param-1', 'Punkty życia', new Description(), 'direct', 50)],
+                [{ name: 'Pozycja', value: 'Warta' }]
+            )
 
-            // Dodanie nowego atrybutu
-            const newName = detailsContent.querySelector(
-                '#details-add-attr-name'
-            ) as HTMLInputElement
-            const newVal = detailsContent.querySelector('#details-add-attr-val') as HTMLInputElement
-            const addBtn = detailsContent.querySelector(
-                '#btn-details-add-attr'
+            ctx.projectTemplates = [template]
+            vm.selectElement(template, 'template')
+        })
+
+        it('should render template with name, avatar and stats', () => {
+            renderDetailsPanel(ctx)
+
+            expect(detailsContent.innerHTML).toContain('Strażnik Miejski')
+            expect(detailsContent.innerHTML).toContain('Szablon postaci')
+            expect(detailsContent.innerHTML).not.toContain('Tylko do odczytu')
+            expect(detailsContent.innerHTML).toContain('Siła')
+            expect(detailsContent.innerHTML).toContain('12')
+            expect(detailsContent.innerHTML).toContain('Walka wręcz')
+            expect(detailsContent.innerHTML).toContain('Czujność')
+            expect(detailsContent.innerHTML).toContain('#Straż')
+            expect(detailsContent.innerHTML).toContain('Pozycja')
+            expect(detailsContent.innerHTML).toContain('Warta')
+        })
+
+        it('should render edit template button and trigger openNpcModal with mode template', () => {
+            renderDetailsPanel(ctx)
+
+            const editBtn = detailsContent.querySelector(
+                '#btn-details-edit-npc'
             ) as HTMLButtonElement
+            expect(editBtn).not.toBeNull()
+            expect(editBtn.textContent).toContain('Edytuj szablon')
 
-            newName.value = 'Rząd'
-            newVal.value = 'Gildia'
-            addBtn.click()
+            editBtn.click()
+            expect(ctx.openNpcModal).toHaveBeenCalledWith({
+                mode: 'template',
+                editEntity: template,
+            })
+        })
 
-            expect(npc.getCustomAttributes()).toHaveLength(3)
-            expect(npc.getCustomAttributes()[2]).toEqual({ name: 'Rząd', value: 'Gildia' })
+        it('should render create character from template button in quick actions', () => {
+            renderDetailsPanel(ctx)
 
-            // Usunięcie atrybutu
-            const deleteBtns = detailsContent.querySelectorAll(
-                '.btn-remove-attr'
-            ) as NodeListOf<HTMLButtonElement>
-            deleteBtns[1].click() // Usuwa 'Status'
+            const createBtn = detailsContent.querySelector(
+                '#btn-details-create-npc-from-template'
+            ) as HTMLButtonElement
+            expect(createBtn).not.toBeNull()
+            expect(createBtn.textContent).toContain('Stwórz postać z tego szablonu')
 
-            expect(npc.getCustomAttributes()).toHaveLength(2)
+            createBtn.click()
+            expect(ctx.openNpcModal).toHaveBeenCalledWith({
+                mode: 'character',
+                templateId: 'tpl-1',
+            })
         })
     })
 

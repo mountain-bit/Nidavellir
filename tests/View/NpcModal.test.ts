@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { Description } from '../../Model/Description'
 import { Feature } from '../../Model/Feature'
 import { NPC } from '../../Model/NPC'
+import { NPC_Template } from '../../Model/NPC_Template'
 import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
@@ -32,6 +33,7 @@ import {
     evaluateFormula,
     getAvailableStatNames,
     getCustomAttributes,
+    getModalMode,
     getNpcDescription,
     getNpcName,
     getNpcSkills,
@@ -42,6 +44,7 @@ import {
     getSelectedAvatarId,
     isDescriptionDrawerOpen,
     openNpcModal,
+    openNpcTemplateModal,
     parseStatValueAsNumber,
     removeCustomAttribute,
     removeNpcSkill,
@@ -50,7 +53,9 @@ import {
     renderDynamicSuggestions,
     resetNpcModalForm,
     saveNpcCharacter,
+    saveNpcTemplate,
     setCustomAttributes,
+    setModalMode,
     setNpcDescription,
     setNpcName,
     setNpcSkills,
@@ -63,6 +68,7 @@ import {
     updateSkillStatDropdowns,
     updateVitalFormulasPreview,
 } from '../../View/ui/npcModal.js'
+import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('NpcModal Floating Window Controller', () => {
     beforeEach(() => {
@@ -71,11 +77,19 @@ describe('NpcModal Floating Window Controller', () => {
                 <span>+</span>
                 <span>Dodaj</span>
             </button>
+            <button id="btn-add-template">
+                <span>+ Szablon</span>
+            </button>
             <button data-action="open-npc-modal">Otwórz modal</button>
+            <button data-action="open-npc-template-modal">Otwórz szablon</button>
 
             <div id="npc-create-modal" class="hidden fixed" style="left: 100px; top: 100px; width: 520px; height: 380px;">
                 <div id="npc-create-modal-header">
-                    <h2>Tworzenie postaci NPC</h2>
+                    <h2 id="npc-create-modal-title">
+                        <span>Karta Postaci NPC</span>
+                        <span>Folio</span>
+                    </h2>
+                    <p>Tworzenie i personalizacja bohatera niezależnego</p>
                     <button id="btn-close-npc-modal">Zamknij</button>
                 </div>
                 <div id="npc-window-content-row">
@@ -150,7 +164,9 @@ describe('NpcModal Floating Window Controller', () => {
 
                                 <div id="npc-create-modal-footer">
                                     <button type="button" id="btn-cancel-npc-modal">Anuluj</button>
-                                    <button type="submit" id="btn-save-npc-modal">Utwórz postać</button>
+                                    <button type="submit" id="btn-save-npc-modal">
+                                        <span id="npc-modal-submit-text">Utwórz postać</span>
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -227,6 +243,49 @@ describe('NpcModal Floating Window Controller', () => {
         expect(modal.classList.contains('hidden')).toBe(false)
         closeNpcModal()
         expect(modal.classList.contains('hidden')).toBe(true)
+    })
+
+    it('czyści i resetuje wszystkie pola i stan po zamknięciu i ponownym otwarciu okna', () => {
+        setupNpcModal()
+
+        openNpcModal()
+        setNpcName('Tymczasowy Rycerz')
+        setNpcSummary('Krótkie podsumowanie rycerza')
+        setNpcDescription('Szczegółowy opis fabularny')
+        addCustomAttribute('Gildia', 'Czarne Tarcze')
+        addNpcStat('Siła', '18')
+        addNpcSkill('Miecz', 'direct', '+5')
+        addNpcVital('Zdrowie', 'direct', '100')
+        addNpcTag('Rycerz')
+        setSelectedAvatarId('paladin')
+
+        expect(getNpcName()).toBe('Tymczasowy Rycerz')
+        expect(getCustomAttributes()).toHaveLength(1)
+        expect(getNpcStats()).toHaveLength(1)
+        expect(getNpcSkills()).toHaveLength(1)
+        expect(getNpcVitals()).toHaveLength(1)
+        expect(getNpcTags()).toHaveLength(1)
+        expect(getSelectedAvatarId()).toBe('paladin')
+
+        // Zamknięcie okna (np. przycisk X lub Escape lub closeNpcModal)
+        closeNpcModal()
+
+        // Wszystkie pola powinny być wyczyszczone
+        expect(getNpcName()).toBe('')
+        expect(getNpcSummary()).toBe('')
+        expect(getNpcDescription()).toBe('')
+        expect(getCustomAttributes()).toHaveLength(0)
+        expect(getNpcStats()).toHaveLength(0)
+        expect(getNpcSkills()).toHaveLength(0)
+        expect(getNpcVitals()).toHaveLength(0)
+        expect(getNpcTags()).toHaveLength(0)
+        expect(getSelectedAvatarId()).toBe('warrior')
+
+        // Ponowne otwarcie okna - formularz jest w 100% czysty
+        openNpcModal()
+        expect(getNpcName()).toBe('')
+        expect(getCustomAttributes()).toHaveLength(0)
+        expect(getNpcStats()).toHaveLength(0)
     })
 
     it('Escape najpierw zamyka popover wyboru awatara, a dopiero potem całe okienko', () => {
@@ -1630,6 +1689,265 @@ describe('NpcModal Floating Window Controller', () => {
             // 3. Sprawdzenie odświeżenia UI
             expect(refreshedCharacters).toBe(true)
             expect(refreshedTraits).toBe(true)
+        })
+    })
+
+    describe('Tryb szablonu (Template Mode)', () => {
+        it('przełącza UI na tryb szablonu po wywołaniu openNpcTemplateModal()', () => {
+            setupNpcModal()
+            openNpcTemplateModal()
+            expect(getModalMode()).toBe('template')
+
+            const modal = document.getElementById('npc-create-modal')
+            expect(modal?.classList.contains('hidden')).toBe(false)
+
+            const title = document.getElementById('npc-create-modal-title')
+            expect(title?.textContent?.toLowerCase()).toContain('szablon')
+
+            const badge = document.querySelector('#npc-create-modal-title span:last-child')
+            expect(badge?.textContent).toBe('Szablon')
+
+            const nameInput = document.getElementById('npc-name-input') as HTMLInputElement
+            expect(nameInput?.placeholder).toContain('Strażnik miejski')
+
+            const saveBtn = document.getElementById('btn-save-npc-modal')
+            expect(saveBtn?.textContent).toContain('szablon')
+        })
+
+        it('kliknięcie w przycisk #btn-add-template lub [data-action="open-npc-template-modal"] otwiera modal w trybie template', () => {
+            setupNpcModal()
+
+            // Domyślnie modal jest ukryty
+            const modal = document.getElementById('npc-create-modal')
+            modal?.classList.add('hidden')
+            setModalMode('character')
+
+            const btnAddTemplate = document.getElementById('btn-add-template')
+            btnAddTemplate?.click()
+
+            expect(getModalMode()).toBe('template')
+            expect(modal?.classList.contains('hidden')).toBe(false)
+
+            // Zamknięcie i test dla data-action="open-npc-template-modal"
+            modal?.classList.add('hidden')
+            setModalMode('character')
+
+            const dataBtn = document.querySelector(
+                '[data-action="open-npc-template-modal"]'
+            ) as HTMLElement
+            dataBtn?.click()
+
+            expect(getModalMode()).toBe('template')
+            expect(modal?.classList.contains('hidden')).toBe(false)
+        })
+
+        it('zapisuje NPC_Template przy saveNpcTemplate() i rejestruje w ctx.projectTemplates oraz globalnych cechach', () => {
+            setupNpcModal()
+            openNpcTemplateModal()
+
+            const projectTemplates: any[] = []
+            const projectStats: any[] = []
+            const projectParameters: any[] = []
+            const projectSkills: any[] = []
+            const projectTags: any[] = []
+
+            let refreshed = false
+            const ctx = {
+                projectTemplates,
+                projectStats,
+                projectParameters,
+                projectSkills,
+                projectTags,
+                renderCharactersList: () => {
+                    refreshed = true
+                },
+                renderTraitsList: () => {},
+            }
+
+            setNpcName('Szablon Rozbójnika')
+            setNpcSummary('Archetyp leśnego zbójcy')
+            setNpcDescription('Wywodzi się z głębokich borów...')
+            setSelectedAvatarId('rogue')
+
+            addNpcStat('Zręczność', '16')
+            addNpcSkill('Kradzież', 'direct', '+3')
+            addNpcVital('Energia', 'direct', '50')
+            addNpcTag('Wróg')
+            addCustomAttribute('Frakcja', 'Zbójnicy')
+
+            const tpl = saveNpcTemplate(ctx)
+            expect(tpl).toBeTruthy()
+            expect(tpl.getName()).toBe('Szablon Rozbójnika')
+            expect(tpl.getAvatar()).toBe('rogue')
+            expect(tpl.getSummary()).toBe('Archetyp leśnego zbójcy')
+            expect(tpl.getCustomAttributes()).toEqual([{ name: 'Frakcja', value: 'Zbójnicy' }])
+
+            expect(projectTemplates).toHaveLength(1)
+            expect(projectTemplates[0].getName()).toBe('Szablon Rozbójnika')
+            expect(refreshed).toBe(true)
+        })
+    })
+
+    describe('Modyfikacja NPC i szablonów - zapisywanie parametrów (vitals)', () => {
+        it('podczas modyfikacji NPC zapisuje wartość nowo dodanego parametru w trybie bezpośrednim bez konieczności ręcznego potwierdzania wiersza', () => {
+            setupNpcModal()
+            const existingNpc = new NPC('npc-100', 'Wiedźmin Geralt')
+            openNpcModal({ mode: 'character', editEntity: existingNpc })
+
+            const btnAddVital = document.getElementById('btn-add-npc-vital')
+            btnAddVital?.click()
+
+            const vitalRow = document.querySelector('.npc-vital-row') as HTMLElement
+            expect(vitalRow).toBeTruthy()
+
+            const nameInput = vitalRow.querySelector(
+                '[data-vital-field="name"]'
+            ) as HTMLInputElement
+            const valInput = vitalRow.querySelector(
+                '[data-vital-field="value"]'
+            ) as HTMLInputElement
+
+            nameInput.value = 'Wytrzymałość'
+            nameInput.dispatchEvent(new Event('input'))
+
+            valInput.value = '120'
+            valInput.dispatchEvent(new Event('input'))
+
+            const btnSave = document.getElementById('btn-save-npc-modal')
+            btnSave?.click()
+
+            expect(existingNpc.getParameters()).toHaveLength(1)
+            const param = existingNpc.getParameters()[0]
+            expect(param.getName()).toBe('Wytrzymałość')
+            expect(param.getValue()).toBe('120')
+            expect(param.getMode()).toBe('direct')
+        })
+
+        it('podczas modyfikacji NPC z użyciem MainWindowViewModel.createParameter poprawnie zapisuje wartość i tryb parametru', () => {
+            setupNpcModal()
+            const vm = new MainWindowViewModel()
+            const existingNpc = new NPC('npc-101', 'Yennefer z Vengerbergu')
+            openNpcModal({ mode: 'character', editEntity: existingNpc })
+
+            const ctx = {
+                vm,
+                projectParameters: [] as any[],
+                projectStats: [] as any[],
+                projectSkills: [] as any[],
+                projectTags: [] as any[],
+                renderCharactersList: () => {},
+                renderTraitsList: () => {},
+            }
+
+            const btnAddVital = document.getElementById('btn-add-npc-vital')
+            btnAddVital?.click()
+
+            const vitalRow = document.querySelector('.npc-vital-row') as HTMLElement
+            const nameInput = vitalRow.querySelector(
+                '[data-vital-field="name"]'
+            ) as HTMLInputElement
+            const valInput = vitalRow.querySelector(
+                '[data-vital-field="value"]'
+            ) as HTMLInputElement
+
+            nameInput.value = 'Mana'
+            valInput.value = '250'
+
+            const saved = saveNpcCharacter(ctx)
+            expect(saved).toBe(existingNpc)
+
+            expect(existingNpc.getParameters()).toHaveLength(1)
+            const param = existingNpc.getParameters()[0]
+            expect(param.getName()).toBe('Mana')
+            expect(param.getValue()).toBe('250')
+            expect(param.getMode()).toBe('direct')
+        })
+
+        it('podczas modyfikacji NPC poprawnie zapisuje parametr w trybie formuły', () => {
+            setupNpcModal()
+            const vm = new MainWindowViewModel()
+            const existingNpc = new NPC('npc-102', 'Ciri')
+            existingNpc.addStat(new Stat('stat-1', 'Zręczność', new Description(), '15'))
+            openNpcModal({ mode: 'character', editEntity: existingNpc })
+
+            const ctx = {
+                vm,
+                projectParameters: [] as any[],
+                projectStats: [] as any[],
+                projectSkills: [] as any[],
+                projectTags: [] as any[],
+                renderCharactersList: () => {},
+                renderTraitsList: () => {},
+            }
+
+            const btnAddVital = document.getElementById('btn-add-npc-vital')
+            btnAddVital?.click()
+
+            const vitalRow = document.querySelector('.npc-vital-row') as HTMLElement
+            const nameInput = vitalRow.querySelector(
+                '[data-vital-field="name"]'
+            ) as HTMLInputElement
+            const modeSelect = vitalRow.querySelector(
+                '[data-vital-field="mode"]'
+            ) as HTMLSelectElement
+            const formulaInput = vitalRow.querySelector(
+                '[data-vital-field="formula"]'
+            ) as HTMLInputElement
+
+            nameInput.value = 'Szybkość'
+            modeSelect.value = 'formula'
+            modeSelect.dispatchEvent(new Event('change'))
+
+            formulaInput.value = 'Zręczność * 2'
+            formulaInput.dispatchEvent(new Event('input'))
+
+            saveNpcCharacter(ctx)
+
+            const param = existingNpc.getParameter('Szybkość')
+            expect(param).toBeTruthy()
+            expect(param?.getMode()).toBe('formula')
+            expect(param?.getFormula()).toBe('Zręczność * 2')
+        })
+
+        it('podczas modyfikacji NPC_Template zapisuje wartość nowo dodanego parametru', () => {
+            setupNpcModal()
+            const vm = new MainWindowViewModel()
+            const tpl = new NPC_Template('tpl-100', 'Szablon Maga')
+            openNpcModal({ mode: 'template', editEntity: tpl })
+
+            const ctx = {
+                vm,
+                projectTemplates: [tpl],
+                projectParameters: [] as any[],
+                projectStats: [] as any[],
+                projectSkills: [] as any[],
+                projectTags: [] as any[],
+                renderCharactersList: () => {},
+                renderTraitsList: () => {},
+            }
+
+            const btnAddVital = document.getElementById('btn-add-npc-vital')
+            btnAddVital?.click()
+
+            const vitalRow = document.querySelector('.npc-vital-row') as HTMLElement
+            const nameInput = vitalRow.querySelector(
+                '[data-vital-field="name"]'
+            ) as HTMLInputElement
+            const valInput = vitalRow.querySelector(
+                '[data-vital-field="value"]'
+            ) as HTMLInputElement
+
+            nameInput.value = 'Moc Magiczna'
+            valInput.value = '80'
+
+            const saved = saveNpcTemplate(ctx)
+            expect(saved).toBe(tpl)
+
+            expect(tpl.getParameters()).toHaveLength(1)
+            const param = tpl.getParameters()[0]
+            expect(param.getName()).toBe('Moc Magiczna')
+            expect(param.getValue()).toBe('80')
+            expect(param.getMode()).toBe('direct')
         })
     })
 })

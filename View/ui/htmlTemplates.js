@@ -59,6 +59,8 @@ export function getTypeBadgeColor(type) {
             return 'bg-blue-900/60 text-blue-300 border-blue-700/50'
         case 'character':
             return 'bg-purple-900/60 text-purple-300 border-purple-700/50'
+        case 'template':
+            return 'bg-purple-950/70 text-purple-200 border-purple-600/50'
         case 'location':
             return 'bg-amber-900/60 text-amber-300 border-amber-700/50'
         case 'stat':

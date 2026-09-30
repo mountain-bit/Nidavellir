@@ -5,6 +5,7 @@ import { Feature } from './Feature'
 import { Item } from './Item'
 import { Location } from './Location'
 import { NPC } from './NPC'
+import { NPC_Template } from './NPC_Template'
 import { Parameter } from './Parameter'
 import { PlayerCharacter } from './PlayerCharacter'
 import { Scene } from './Scene'
@@ -22,6 +23,7 @@ export class Project {
     private scenes: Scene[] = []
     private locations: Location[] = []
     private characters: NPC[] = []
+    private templates: NPC_Template[] = []
     private items: Item[] = []
     private characterClasses: CharacterClass[] = []
     private playerCharacter: PlayerCharacter = new PlayerCharacter()
@@ -47,7 +49,8 @@ export class Project {
         globalStats: Stat[] = [],
         globalSkills: Skill[] = [],
         globalFeatures: Feature[] = [],
-        globalParameters: Parameter[] = []
+        globalParameters: Parameter[] = [],
+        templates: NPC_Template[] = []
     ) {
         this.id = id
         this.name = name
@@ -64,6 +67,7 @@ export class Project {
         this.globalSkills = globalSkills
         this.globalFeatures = globalFeatures
         this.globalParameters = globalParameters
+        this.templates = templates
     }
 
     public getId(): string {
@@ -180,6 +184,32 @@ export class Project {
 
     public hasCharacter(id: string): boolean {
         return this.characters.some(p => p.getId() === id)
+    }
+
+    public getTemplates(): NPC_Template[] {
+        return this.templates
+    }
+
+    public setTemplates(templates: NPC_Template[]): void {
+        this.templates = templates
+    }
+
+    public addTemplate(template: NPC_Template): void {
+        this.templates.push(template)
+    }
+
+    public removeTemplate(idOrName: string): void {
+        this.templates = this.templates.filter(
+            p => p.getId() !== idOrName && p.getName() !== idOrName
+        )
+    }
+
+    public getTemplate(idOrName: string): NPC_Template | undefined {
+        return this.templates.find(p => p.getId() === idOrName || p.getName() === idOrName)
+    }
+
+    public hasTemplate(idOrName: string): boolean {
+        return this.templates.some(p => p.getId() === idOrName || p.getName() === idOrName)
     }
 
     public getItems(): Item[] {
@@ -332,6 +362,7 @@ export class Project {
     public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Project {
         const locations = (entities.Locations ?? []).map(l => Location.fromJSON(l))
         const characters = (entities.NPC ?? []).map(n => NPC.fromJSON(n))
+        const templates = (entities.Templates ?? []).map(t => NPC_Template.fromJSON(t))
         const items = (entities.Items ?? []).map(p => Item.fromJSON(p))
         const characterClasses = (entities.CharacterClasses ?? []).map(k =>
             CharacterClass.fromJSON(k)
@@ -377,7 +408,8 @@ export class Project {
             globalStats,
             globalSkills,
             globalFeatures,
-            globalParameters
+            globalParameters,
+            templates
         )
     }
 

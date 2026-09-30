@@ -43,6 +43,7 @@ describe('mockData and projectData provider', () => {
             expect(data.projectStats).toHaveLength(2)
             expect(data.projectParagraphs).toHaveLength(3)
             expect(data.projectScenes).toHaveLength(2)
+            expect(data.projectTemplates).toBeDefined()
         })
 
         it('should configure mock paragraphs with positions, choices, and conditions', () => {
@@ -113,6 +114,7 @@ describe('mockData and projectData provider', () => {
                 projectFeatures: [],
                 projectParagraphs: [],
                 projectScenes: [],
+                projectTemplates: [],
             })
         })
 
@@ -150,6 +152,7 @@ describe('mockData and projectData provider', () => {
             expect(extracted.projectTags).toHaveLength(1)
             expect(extracted.projectCharacters).toHaveLength(1)
             expect(extracted.projectFeatures).toEqual([])
+            expect(extracted.projectTemplates).toEqual([])
         })
     })
 

@@ -4,11 +4,13 @@
  * Avatars, Custom Attributes, Stats, Skills, and Vitals.
  */
 
+import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { FANTASY_AVATARS, getAvatarById } from '../npcAvatars.js'
 import { evaluateFormula } from './formulaEvaluator.js'
 import * as state from './npcState.js'
 import {
+    renderAppliedTemplateChipHtml,
     renderAttributeRowHtml,
     renderAvailableTagItemHtml,
     renderAvatarGridItemHtml,
@@ -17,10 +19,12 @@ import {
     renderSkillStatOptionsHtml,
     renderStatRowHtml,
     renderSuggestedChipHtml,
+    renderTemplateDropdownItemHtml,
     renderVitalPreviewBadgeHtml,
     renderVitalRowHtml,
 } from './npcTemplates.js'
 import { updateTraitsCounterUI } from './npcTraitsCounter.js'
+import { mergeTemplateIntoModalState } from './templateMerger.js'
 
 // ==========================================
 // 1. Avatar Picker Section
@@ -692,9 +696,88 @@ export function removeNpcSkill(id) {
 export function confirmNpcVital(id) {
     const targetVital = state.findNpcVital(id)
     if (targetVital) {
+        const row = document.querySelector(`.npc-vital-row[data-vital-id="${id}"]`)
+        if (row) {
+            const nameInput = row.querySelector('[data-vital-field="name"]')
+            const modeSelect = row.querySelector('[data-vital-field="mode"]')
+            const valInput = row.querySelector('[data-vital-field="value"]')
+            const formulaInput = row.querySelector('[data-vital-field="formula"]')
+            if (nameInput) targetVital.name = nameInput.value
+            if (modeSelect) targetVital.mode = modeSelect.value
+            if (valInput) targetVital.value = valInput.value
+            if (formulaInput) targetVital.formula = formulaInput.value
+        }
         targetVital.isEditing = false
         renderNpcVitals()
     }
+}
+
+/**
+ * Synchronizes all currently active/open input fields from the DOM into the internal state.
+ * Ensures that values being typed without blurring or pressing Enter are not lost when clicking Save.
+ */
+export function syncActiveModalInputs() {
+    // 1. Sync vitals
+    document.querySelectorAll('.npc-vital-row').forEach(row => {
+        const vitalId = row.dataset.vitalId
+        const vital = state.findNpcVital(vitalId)
+        if (!vital) return
+
+        const nameInput = row.querySelector('[data-vital-field="name"]')
+        const modeSelect = row.querySelector('[data-vital-field="mode"]')
+        const valInput = row.querySelector('[data-vital-field="value"]')
+        const formulaInput = row.querySelector('[data-vital-field="formula"]')
+
+        if (nameInput) vital.name = nameInput.value
+        if (modeSelect) vital.mode = modeSelect.value
+        if (valInput) vital.value = valInput.value
+        if (formulaInput) vital.formula = formulaInput.value
+    })
+
+    // 2. Sync stats
+    document.querySelectorAll('.npc-stat-row').forEach(row => {
+        const statId = row.dataset.statId
+        const stat = state.findNpcStat(statId)
+        if (!stat) return
+
+        const nameInput = row.querySelector('[data-stat-field="name"]')
+        const valInput = row.querySelector('[data-stat-field="value"]')
+
+        if (nameInput) stat.name = nameInput.value
+        if (valInput) stat.value = valInput.value
+    })
+
+    // 3. Sync skills
+    document.querySelectorAll('.npc-skill-row').forEach(row => {
+        const skillId = row.dataset.skillId
+        const skill = state.findNpcSkill(skillId)
+        if (!skill) return
+
+        const nameInput = row.querySelector('[data-skill-field="name"]')
+        const modeSelect = row.querySelector('[data-skill-field="mode"]')
+        const valInput = row.querySelector('[data-skill-field="value"]')
+        const statSelect = row.querySelector('[data-skill-field="statName"]')
+        const modInput = row.querySelector('[data-skill-field="modifier"]')
+
+        if (nameInput) skill.name = nameInput.value
+        if (modeSelect) skill.mode = modeSelect.value
+        if (valInput) skill.value = valInput.value
+        if (statSelect) skill.statName = statSelect.value
+        if (modInput) skill.modifier = modInput.value
+    })
+
+    // 4. Sync custom attributes
+    document.querySelectorAll('.npc-custom-attr-row').forEach(row => {
+        const attrId = row.dataset.attrId
+        const attr = state.findCustomAttribute(attrId)
+        if (!attr) return
+
+        const nameInput = row.querySelector('[data-attr-field="name"]')
+        const valInput = row.querySelector('[data-attr-field="value"]')
+
+        if (nameInput) attr.name = nameInput.value
+        if (valInput) attr.value = valInput.value
+    })
 }
 
 /**
@@ -784,6 +867,12 @@ export function renderNpcVitals() {
             nameInput.addEventListener('input', e => {
                 targetVital.name = e.target.value
             })
+            nameInput.addEventListener('change', e => {
+                targetVital.name = e.target.value
+            })
+            nameInput.addEventListener('blur', e => {
+                targetVital.name = e.target.value
+            })
             nameInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
                     e.preventDefault()
@@ -806,6 +895,12 @@ export function renderNpcVitals() {
             valInput.addEventListener('input', e => {
                 targetVital.value = e.target.value
             })
+            valInput.addEventListener('change', e => {
+                targetVital.value = e.target.value
+            })
+            valInput.addEventListener('blur', e => {
+                targetVital.value = e.target.value
+            })
             valInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
                     e.preventDefault()
@@ -818,6 +913,13 @@ export function renderNpcVitals() {
             formulaInput.addEventListener('input', e => {
                 targetVital.formula = e.target.value
                 updateVitalFormulasPreview()
+            })
+            formulaInput.addEventListener('change', e => {
+                targetVital.formula = e.target.value
+                updateVitalFormulasPreview()
+            })
+            formulaInput.addEventListener('blur', e => {
+                targetVital.formula = e.target.value
             })
             formulaInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
@@ -1326,4 +1428,362 @@ export function renderDynamicSuggestions(ctx) {
 
     // Update dynamic counter module
     updateTraitsCounterUI(effectiveCtx)
+}
+
+// ==========================================
+// 7. Applied Templates & Dropdown Section
+// ==========================================
+
+/**
+ * Returns available templates from context or project.
+ *
+ * @param {object} [ctx]
+ * @returns {any[]}
+ */
+export function getAvailableTemplates(ctx) {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    const vm = effectiveCtx.vm
+
+    let list = []
+    if (Array.isArray(effectiveCtx.projectTemplates) && effectiveCtx.projectTemplates.length > 0) {
+        list = effectiveCtx.projectTemplates
+    } else if (vm?.project && typeof vm.project.getTemplates === 'function') {
+        const tpls = vm.project.getTemplates()
+        if (Array.isArray(tpls)) list = tpls
+    } else if (typeof effectiveCtx.getTemplates === 'function') {
+        const tpls = effectiveCtx.getTemplates()
+        if (Array.isArray(tpls)) list = tpls
+    }
+
+    return Array.isArray(list) ? list : []
+}
+
+/**
+ * Renders the chip list of currently applied templates and updates the counter badge.
+ */
+export function renderAppliedTemplates() {
+    const listContainer = document.getElementById('npc-applied-templates-list')
+    const countBadge = document.getElementById('npc-applied-templates-count')
+    const applied = state.getAppliedTemplates()
+
+    if (countBadge) {
+        countBadge.textContent = String(applied.length)
+        if (applied.length > 0) {
+            countBadge.className =
+                'text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30'
+        } else {
+            countBadge.className =
+                'text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20'
+        }
+    }
+
+    if (!listContainer) return
+
+    if (applied.length === 0) {
+        listContainer.innerHTML = ''
+        return
+    }
+
+    listContainer.innerHTML = applied.map(tpl => renderAppliedTemplateChipHtml(tpl)).join('')
+
+    // Attach remove listeners
+    listContainer.querySelectorAll('.btn-remove-applied-template').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
+            e.stopPropagation()
+            const tplId = btn.dataset.templateId
+            if (tplId) {
+                removeAppliedTemplate(tplId)
+            }
+        })
+    })
+}
+
+/**
+ * Removes an applied template from the character/template tracking.
+ *
+ * @param {string} templateId
+ * @param {object} [ctx]
+ */
+export function removeAppliedTemplate(templateId, ctx) {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    state.removeAppliedTemplateState(templateId)
+    renderAppliedTemplates()
+    if (isTemplateDropdownOpen()) {
+        renderTemplateDropdownList(effectiveCtx)
+    }
+}
+
+/**
+ * Checks whether the template dropdown menu is currently visible.
+ *
+ * @returns {boolean}
+ */
+export function isTemplateDropdownOpen() {
+    const menu = document.getElementById('npc-template-dropdown-menu')
+    return menu ? !menu.classList.contains('hidden') : false
+}
+
+/**
+ * Renders the list of templates inside the dropdown menu, filtering if query is provided.
+ *
+ * @param {object} [ctx]
+ * @param {string} [filterQuery='']
+ */
+export function renderTemplateDropdownList(ctx, filterQuery = '') {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    const itemsContainer = document.getElementById('npc-template-dropdown-items')
+    const emptyNotice = document.getElementById('npc-template-dropdown-empty')
+
+    if (!itemsContainer) return
+
+    const templates = getAvailableTemplates(effectiveCtx)
+    const appliedTemplates = state.getAppliedTemplates()
+    const appliedIds = new Set(appliedTemplates.map(a => a.id))
+
+    const query = (filterQuery || '').trim().toLowerCase()
+    const filtered = query
+        ? templates.filter(tpl => {
+              const name = (
+                  typeof tpl.getName === 'function' ? tpl.getName() : tpl.name || ''
+              ).toLowerCase()
+              const summary = (
+                  typeof tpl.getSummary === 'function'
+                      ? tpl.getSummary()
+                      : tpl.description?.summary || ''
+              ).toLowerCase()
+              return name.includes(query) || summary.includes(query)
+          })
+        : templates
+
+    if (filtered.length === 0) {
+        itemsContainer.innerHTML = ''
+        if (emptyNotice) {
+            emptyNotice.classList.remove('hidden')
+            emptyNotice.textContent =
+                templates.length === 0
+                    ? t('npc.no_templates_in_project', 'Brak dostępnych szablonów w projekcie.')
+                    : t('left_panel.no_characters_in_section', 'Brak pasujących szablonów.')
+        }
+        return
+    }
+
+    if (emptyNotice) emptyNotice.classList.add('hidden')
+
+    itemsContainer.innerHTML = filtered
+        .map(tpl => {
+            const id = typeof tpl.getId === 'function' ? tpl.getId() : tpl.id
+            const isApplied = appliedIds.has(id)
+            return renderTemplateDropdownItemHtml(tpl, isApplied)
+        })
+        .join('')
+
+    // Attach click listeners to dropdown items
+    itemsContainer.querySelectorAll('.template-dropdown-item').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
+            e.stopPropagation()
+            const tplId = btn.dataset.templateId
+            if (tplId) {
+                applyTemplate(tplId, effectiveCtx)
+                closeTemplateDropdown()
+            }
+        })
+    })
+}
+
+/**
+ * Opens the template dropdown menu and focuses the search input.
+ *
+ * @param {object} [ctx]
+ */
+export function openTemplateDropdown(ctx) {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    const menu = document.getElementById('npc-template-dropdown-menu')
+    const btn = document.getElementById('btn-template-dropdown')
+    const arrow = document.getElementById('npc-template-dropdown-arrow')
+    const searchInput = document.getElementById('npc-template-dropdown-search')
+
+    if (!menu) return
+
+    menu.classList.remove('hidden')
+    if (btn) btn.setAttribute('aria-expanded', 'true')
+    if (arrow) arrow.style.transform = 'rotate(180deg)'
+
+    if (searchInput) {
+        searchInput.value = ''
+        setTimeout(() => {
+            if (typeof searchInput.focus === 'function') searchInput.focus()
+        }, 50)
+    }
+
+    renderTemplateDropdownList(effectiveCtx)
+}
+
+/**
+ * Closes the template dropdown menu and resets arrow rotation.
+ */
+export function closeTemplateDropdown() {
+    const menu = document.getElementById('npc-template-dropdown-menu')
+    const btn = document.getElementById('btn-template-dropdown')
+    const arrow = document.getElementById('npc-template-dropdown-arrow')
+
+    if (!menu) return
+
+    menu.classList.add('hidden')
+    if (btn) btn.setAttribute('aria-expanded', 'false')
+    if (arrow) arrow.style.transform = ''
+}
+
+/**
+ * Toggles template dropdown menu open/closed state.
+ *
+ * @param {object} [ctx]
+ */
+export function toggleTemplateDropdown(ctx) {
+    if (isTemplateDropdownOpen()) {
+        closeTemplateDropdown()
+    } else {
+        openTemplateDropdown(ctx)
+    }
+}
+
+/**
+ * Initializes listeners for the template dropdown button and search input.
+ *
+ * @param {object} [ctx]
+ */
+export function initTemplateDropdownController(ctx) {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    const btnDropdown = document.getElementById('btn-template-dropdown')
+    const searchInput = document.getElementById('npc-template-dropdown-search')
+
+    if (btnDropdown) {
+        btnDropdown.addEventListener('click', e => {
+            e.preventDefault()
+            e.stopPropagation()
+            toggleTemplateDropdown(effectiveCtx)
+        })
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', e => {
+            renderTemplateDropdownList(effectiveCtx, e.target.value)
+        })
+        searchInput.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                e.stopPropagation()
+                closeTemplateDropdown()
+            }
+        })
+    }
+}
+
+/**
+ * Applies a template to the current modal state (character or template).
+ * Resolves template by ID or instance, merges data with collision deduplication,
+ * updates form inputs and all trait sections, and provides user feedback.
+ *
+ * @param {string | object} templateIdOrInstance
+ * @param {object} [ctx]
+ * @returns {object|null} Merge report or null if failed
+ */
+export function applyTemplate(templateIdOrInstance, ctx) {
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    let template = null
+
+    if (templateIdOrInstance && typeof templateIdOrInstance === 'object') {
+        template = templateIdOrInstance
+    } else {
+        const tpls = getAvailableTemplates(effectiveCtx)
+        template = tpls.find(
+            tObj =>
+                (typeof tObj.getId === 'function' ? tObj.getId() : tObj.id) ===
+                    templateIdOrInstance ||
+                (typeof tObj.getName === 'function' ? tObj.getName() : tObj.name) ===
+                    templateIdOrInstance
+        )
+    }
+
+    if (!template) {
+        console.warn('[applyTemplate] Template not found:', templateIdOrInstance)
+        return null
+    }
+
+    const tplId = template.id || (typeof template.getId === 'function' ? template.getId() : '')
+    const tplName =
+        template.name || (typeof template.getName === 'function' ? template.getName() : 'Szablon')
+
+    // Check if already applied
+    const applied = state.getAppliedTemplates()
+    if (tplId && applied.some(a => a.id === tplId)) {
+        if (typeof toast?.info === 'function') {
+            let alreadyMsg = t('npc.template_already_applied', { name: tplName })
+            if (alreadyMsg.includes('{name}')) {
+                alreadyMsg = alreadyMsg.replace(/\{name\}/g, tplName)
+            }
+            if (alreadyMsg.includes('{{name}}')) {
+                alreadyMsg = alreadyMsg.replace(/\{\{name\}\}/g, tplName)
+            }
+            toast.info(alreadyMsg)
+        }
+        return null
+    }
+
+    // Perform merge with collision deduplication
+    const report = mergeTemplateIntoModalState(template)
+
+    // Re-render all sections
+    renderCustomAttributes()
+    renderNpcStats()
+    renderNpcSkills()
+    renderNpcVitals()
+    renderNpcTags()
+    renderAppliedTemplates()
+    updateSkillStatDropdowns()
+    updateVitalFormulasPreview()
+    updateTraitsCounterUI(effectiveCtx)
+
+    // Apply avatar if changed by merger
+    const currentAvatarId = state.getCurrentAvatarId()
+    if (report.appliedAvatar && currentAvatarId) {
+        updateSelectedAvatarPreview(currentAvatarId)
+    }
+
+    // Apply summary if input field is empty
+    const summaryInput = document.getElementById('npc-summary-input')
+    if (summaryInput && !summaryInput.value.trim() && report.appliedSummary) {
+        const tplSummary =
+            typeof template.getSummary === 'function'
+                ? template.getSummary()
+                : template.description?.summary || ''
+        summaryInput.value = tplSummary
+    }
+
+    // Apply description if textarea is empty
+    const descTextarea = document.getElementById('npc-description-textarea')
+    if (descTextarea && !descTextarea.value.trim() && report.appliedDescription) {
+        const tplDesc =
+            typeof template.getDescription === 'function' && template.getDescription()?.getText
+                ? template.getDescription().getText()
+                : template.description?.text || ''
+        descTextarea.value = tplDesc
+    }
+
+    // Show feedback toast
+    if (typeof toast?.success === 'function') {
+        let msg = t('npc.template_applied_toast', { name: tplName })
+        if (msg.includes('{name}')) {
+            msg = msg.replace(/\{name\}/g, tplName)
+        }
+        if (msg.includes('{{name}}')) {
+            msg = msg.replace(/\{\{name\}\}/g, tplName)
+        }
+        if (report.totalSkipped > 0) {
+            msg += ` (${report.totalAdded} dodanych, ${report.totalSkipped} pominiętych duplikatów)`
+        }
+        toast.success(msg)
+    }
+
+    return report
 }

@@ -49,8 +49,15 @@
         "default_name": "Nowa postać"
     },
     "npc": {
-        "modal_title": "Tworzenie postaci NPC",
-        "modal_subtitle": "Zdefiniuj nową postać niezależną w projekcie",
+        "modal_title": "Karta Postaci NPC",
+        "modal_subtitle": "Tworzenie i personalizacja bohatera niezależnego",
+        "template_modal_title": "Karta Szablonu NPC",
+        "template_modal_subtitle": "Tworzenie i personalizacja archetypu bohatera niezależnego",
+        "template_badge": "Szablon",
+        "template_name_label": "Nazwa szablonu",
+        "template_name_placeholder": "np. Strażnik miejski, Bandyta leśny, Kultysta...",
+        "template_summary_placeholder": "Krótkie streszczenie archetypu (np. przeznaczenie szablonu, typowe zachowanie)...",
+        "drag_template_title": "Przeciągnij, aby przesunąć kartę szablonu",
         "name_label": "Nazwa postaci",
         "name_placeholder": "np. Strażnik miejski, Mistrz Elion...",
         "summary_label": "Streszczenie",
@@ -150,7 +157,7 @@
         "vital_direct_value_placeholder": "Wartość / kość (np. 100, 2d10)",
         "vital_formula_placeholder": "Wzór (np. Siła * 4 + 10)",
         "vital_formula_hint": "Możesz używać nazw cech zdefiniowanych wyżej oraz operatorów +, -, *, /, % i nawiasów ()",
-        "vital_formula_missing_stat": "Brakująca cecha: {stat}",
+        "vital_formula_missing_stat": "Brakująca cecha: {{stat}}",
         "vital_formula_syntax_error": "Błąd wzoru",
         "empty_vitals": "Brak zdefiniowanych parametrów. Skorzystaj z szybkich sugestii powyżej lub dodaj własny parametr.",
         "vital_presets": {
@@ -170,10 +177,14 @@
         "empty_tags": "Brak przypisanych tagów. Kliknij „Dodaj tag” lub wybierz z sugestii powyżej.",
         "remove_tag": "Usuń tag",
         "btn_create": "Utwórz postać",
+        "btn_create_template": "Utwórz szablon",
         "btn_cancel": "Anuluj",
         "validation_name_required": "Nazwa postaci jest wymagana",
+        "validation_template_name_required": "Nazwa szablonu jest wymagana",
         "created_success_title": "Postać utworzona",
-        "created_success_msg": "Pomyślnie utworzono postać {name}",
+        "created_success_msg": "Pomyślnie utworzono postać {{name}}",
+        "template_created_success_title": "Szablon utworzony",
+        "template_created_success_msg": "Pomyślnie utworzono szablon {{name}}",
         "no_existing_tags": "Brak istniejących tagów",
         "tag_already_assigned": "Już przypisany",
         "add_tag_name": "Dodaj tag {{name}}",
@@ -185,7 +196,26 @@
             "merchant": "Kupiec",
             "guide": "Przewodnik",
             "boss": "Boss"
-        }
+        },
+        "applied_templates_title": "Szablony i Archetypy",
+        "apply_template_btn": "Zastosuj szablon",
+        "apply_template_title": "Wybierz i dodaj szablon",
+        "search_template_placeholder": "Szukaj szablonu...",
+        "no_templates_in_project": "Brak szablonów w projekcie.",
+        "create_first_template": "+ Utwórz pierwszy szablon",
+        "template_applied_toast": "Zastosowano szablon \"{{name}}\"",
+        "template_already_applied": "Szablon \"{{name}}\" został już wcześniej nałożony",
+        "template_removed": "Odłączono szablon \"{{name}}\"",
+        "btn_save_changes": "Zapisz zmiany",
+        "modal_edit_title": "Edycja Postaci NPC",
+        "modal_edit_subtitle": "Modyfikacja i personalizacja bohatera niezależnego",
+        "template_modal_edit_title": "Edycja Szablonu NPC",
+        "template_modal_edit_subtitle": "Modyfikacja i personalizacja archetypu bohatera niezależnego",
+        "updated_success_title": "Postać zaktualizowana",
+        "updated_success_msg": "Pomyślnie zaktualizowano postać {{name}}",
+        "template_updated_success_title": "Szablon zaktualizowany",
+        "template_updated_success_msg": "Pomyślnie zaktualizowano szablon {{name}}",
+        "edit_badge": "Modyfikacja"
     },
     "trait": {
         "default_name": "Nowa cecha"
@@ -315,6 +345,12 @@
         "paragraphs": "Paragrafy",
         "scenes": "Sceny",
         "characters": "Postacie i Szablony",
+        "add_character": "Postać",
+        "add_template": "Szablon",
+        "characters_section": "Postacie",
+        "templates_section": "Szablony",
+        "no_characters_in_section": "Brak postaci w projekcie",
+        "no_templates_in_section": "Brak szablonów w projekcie",
         "locations": "Lokacje",
         "traits": "Cechy i Atrybuty",
         "main_character": "Postać Główna (Gracz)",
@@ -368,7 +404,6 @@
         "drag_item_hint": "Przeciągnij, aby przypisać element",
         "scene_name_placeholder": "Nazwa sceny (lub zostaw puste)",
 
-        "add_character": "Dodaj postać",
         "add_location": "Dodaj lokację",
         "add_trait": "Dodaj cechę",
         "add_tag": "Dodaj tag",
@@ -389,7 +424,8 @@
         "add_tag": "Dodaj tag",
         "add_trait": "Dodaj cechę",
         "rename_prompt": "Wprowadź nową nazwę:",
-        "confirm_delete": "Czy na pewno chcesz usunąć: \"{{name}}\"?"
+        "confirm_delete": "Czy na pewno chcesz usunąć: \"{{name}}\"?",
+        "create_character_from_template": "Utwórz postać z tego szablonu"
     },
     "settings": {
         "title": "Ustawienia Edytora",
@@ -596,6 +632,7 @@
         "type_skill": "Umiejętność",
         "type_feature": "Przymiot specjalny",
         "type_character": "Postać NPC",
+        "type_template": "Szablon postaci",
         "choices": "Przeskoki / Wybory",
         "combat": "Mechanika walki",
         "no_choices": "Brak zdefiniowanych przeskoków",
@@ -622,6 +659,14 @@
         "paragraph_exits": "Wyjścia / Przeskoki z paragrafu",
         "add_exit": "+ Dodaj wyjście",
         "no_exits": "Brak zdefiniowanych wyjść z tego paragrafu",
-        "edit_connection": "Edytuj przeskok"
+        "edit_connection": "Edytuj przeskok",
+        "edit_character": "Edytuj postać",
+        "edit_template": "Edytuj szablon",
+        "readonly_badge": "Tylko do odczytu",
+        "no_summary": "Brak streszczenia",
+        "narrative_description": "Opis narracyjny",
+        "no_description": "Brak opisu narracyjnego",
+        "no_traits": "Brak zdefiniowanych cech",
+        "create_character_from_template": "Stwórz postać z tego szablonu"
     }
 }

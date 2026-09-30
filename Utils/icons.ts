@@ -13,6 +13,7 @@ export type IconName =
     | 'choice'
     | 'connection'
     | 'character'
+    | 'template'
     | 'location'
     | 'trait'
     | 'stat'
@@ -78,6 +79,10 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     character: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4" stroke-width="1.8"></circle>',
+    },
+    template: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><line x1="3" y1="9" x2="21" y2="9" stroke-width="1.8"></line><line x1="9" y1="21" x2="9" y2="9" stroke-width="1.8"></line>',
     },
     location: {
         viewBox: '0 0 24 24',

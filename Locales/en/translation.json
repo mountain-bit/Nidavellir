@@ -49,8 +49,15 @@
         "default_name": "New character"
     },
     "npc": {
-        "modal_title": "Create NPC Character",
-        "modal_subtitle": "Define a new non-player character in the project",
+        "modal_title": "NPC Character Folio",
+        "modal_subtitle": "Creation and customization of a non-player character",
+        "template_modal_title": "NPC Template Folio",
+        "template_modal_subtitle": "Creation and customization of a non-player character archetype",
+        "template_badge": "Template",
+        "template_name_label": "Template Name",
+        "template_name_placeholder": "e.g. City Guard, Forest Bandit, Cultist...",
+        "template_summary_placeholder": "Short summary of the archetype (e.g. purpose, typical behavior)...",
+        "drag_template_title": "Drag to move template sheet",
         "name_label": "Character Name",
         "name_placeholder": "e.g. City Guard, Archmage Elion...",
         "summary_label": "Summary",
@@ -150,7 +157,7 @@
         "vital_direct_value_placeholder": "Value or dice (e.g. 100, 2d10)",
         "vital_formula_placeholder": "Formula (e.g. Strength * 4 + 10)",
         "vital_formula_hint": "You can use stat names defined above and +, -, *, /, % operators with () parentheses",
-        "vital_formula_missing_stat": "Missing stat: {stat}",
+        "vital_formula_missing_stat": "Missing stat: {{stat}}",
         "vital_formula_syntax_error": "Formula error",
         "empty_vitals": "No vitals defined. Use quick suggestions above or add a custom vital.",
         "vital_presets": {
@@ -170,10 +177,14 @@
         "empty_tags": "No tags assigned. Click 'Add tag' or pick from suggestions above.",
         "remove_tag": "Remove tag",
         "btn_create": "Create character",
+        "btn_create_template": "Create template",
         "btn_cancel": "Cancel",
         "validation_name_required": "Character name is required",
+        "validation_template_name_required": "Template name is required",
         "created_success_title": "Character created",
-        "created_success_msg": "Successfully created character {name}",
+        "created_success_msg": "Successfully created character {{name}}",
+        "template_created_success_title": "Template created",
+        "template_created_success_msg": "Successfully created template {{name}}",
         "no_existing_tags": "No existing tags",
         "tag_already_assigned": "Already assigned",
         "add_tag_name": "Add tag {{name}}",
@@ -185,7 +196,26 @@
             "merchant": "Merchant",
             "guide": "Guide",
             "boss": "Boss"
-        }
+        },
+        "applied_templates_title": "Templates & Archetypes",
+        "apply_template_btn": "Apply template",
+        "apply_template_title": "Select and apply a template",
+        "search_template_placeholder": "Search templates...",
+        "no_templates_in_project": "No templates in project.",
+        "create_first_template": "+ Create first template",
+        "template_applied_toast": "Applied template \"{{name}}\"",
+        "template_already_applied": "Template \"{{name}}\" has already been applied",
+        "template_removed": "Detached template \"{{name}}\"",
+        "btn_save_changes": "Save changes",
+        "modal_edit_title": "Edit NPC Character",
+        "modal_edit_subtitle": "Modify and customize non-player character",
+        "template_modal_edit_title": "Edit NPC Template",
+        "template_modal_edit_subtitle": "Modify and customize non-player character archetype",
+        "updated_success_title": "Character updated",
+        "updated_success_msg": "Successfully updated character {{name}}",
+        "template_updated_success_title": "Template updated",
+        "template_updated_success_msg": "Successfully updated template {{name}}",
+        "edit_badge": "Edit"
     },
     "trait": {
         "default_name": "New trait"
@@ -315,6 +345,12 @@
         "paragraphs": "Paragraphs",
         "scenes": "Scenes",
         "characters": "Characters & Templates",
+        "add_character": "Character",
+        "add_template": "Template",
+        "characters_section": "Characters",
+        "templates_section": "Templates",
+        "no_characters_in_section": "No characters in project",
+        "no_templates_in_section": "No templates in project",
         "locations": "Locations",
         "traits": "Traits & Attributes",
         "main_character": "Main Character (Player)",
@@ -368,7 +404,6 @@
         "drag_item_hint": "Drag to assign element",
         "scene_name_placeholder": "Scene name (or leave empty)",
 
-        "add_character": "Add character",
         "add_location": "Add location",
         "add_trait": "Add trait",
         "add_tag": "Add tag",
@@ -389,7 +424,8 @@
         "add_tag": "Add tag",
         "add_trait": "Add trait",
         "rename_prompt": "Enter new name:",
-        "confirm_delete": "Are you sure you want to delete: \"{{name}}\"?"
+        "confirm_delete": "Are you sure you want to delete: \"{{name}}\"?",
+        "create_character_from_template": "Create character from this template"
     },
     "settings": {
         "title": "Editor Settings",
@@ -596,6 +632,7 @@
         "type_skill": "Skill",
         "type_feature": "Special Feature",
         "type_character": "NPC Character",
+        "type_template": "NPC Template",
         "choices": "Choices / Exits",
         "combat": "Combat encounter",
         "no_choices": "No choices configured",
@@ -622,6 +659,14 @@
         "paragraph_exits": "Outgoing Jumps / Exits",
         "add_exit": "+ Add exit",
         "no_exits": "No outgoing jumps configured for this paragraph",
-        "edit_connection": "Edit jump"
+        "edit_connection": "Edit jump",
+        "edit_character": "Edit character",
+        "edit_template": "Edit template",
+        "readonly_badge": "Read only",
+        "no_summary": "No summary",
+        "narrative_description": "Narrative description",
+        "no_description": "No narrative description",
+        "no_traits": "No traits defined",
+        "create_character_from_template": "Create character from this template"
     }
 }

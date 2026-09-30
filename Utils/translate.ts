@@ -49,8 +49,18 @@ export async function initTranslationsWithLocale(locale: SupportedLanguage): Pro
 
 export function t(key: TranslationKey, options?: Record<string, unknown>): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const result = i18next.t(key as any, options as any)
-    return (result !== undefined ? result : String(key)) as string
+    let result = (i18next.t(key as any, options as any) ?? String(key)) as string
+    if (result && options && typeof options === 'object') {
+        for (const [k, v] of Object.entries(options)) {
+            if (result.includes(`{${k}}`)) {
+                result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))
+            }
+            if (result.includes(`{{${k}}}`)) {
+                result = result.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v))
+            }
+        }
+    }
+    return result
 }
 
 export function getLanguage(): SupportedLanguage {

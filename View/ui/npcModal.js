@@ -14,6 +14,8 @@ import {
     addNpcStat,
     addNpcTag,
     addNpcVital,
+    applyTemplate,
+    closeTemplateDropdown,
     confirmCustomAttribute,
     confirmNpcSkill,
     confirmNpcStat,
@@ -22,25 +24,42 @@ import {
     editNpcSkill,
     editNpcStat,
     editNpcVital,
+    getAvailableTemplates,
     initAvatarGrid,
     initNpcTagsController,
+    initTemplateDropdownController,
+    isTemplateDropdownOpen,
+    openTemplateDropdown,
+    removeAppliedTemplate,
     removeCustomAttribute,
     removeNpcSkill,
     removeNpcStat,
     removeNpcTag,
     removeNpcVital,
+    renderAppliedTemplates,
     renderCustomAttributes,
     renderDynamicSuggestions,
     renderNpcSkills,
     renderNpcStats,
     renderNpcTags,
     renderNpcVitals,
+    renderTemplateDropdownList,
+    syncActiveModalInputs,
+    toggleTemplateDropdown,
     updateSelectedAvatarPreview,
     updateSkillStatDropdowns,
     updateVitalFormulasPreview,
 } from './npcModal/npcSectionControllers.js'
 import * as state from './npcModal/npcState.js'
+import { saveNpcTemplate as saveNpcTemplateHelper } from './npcModal/npcTemplateSaver.js'
 import { getTraitsCounts, updateTraitsCounterUI } from './npcModal/npcTraitsCounter.js'
+import {
+    extractTemplateAttributes,
+    extractTemplateSkills,
+    extractTemplateStats,
+    extractTemplateTags,
+    extractTemplateVitals,
+} from './npcModal/templateMerger.js'
 
 // Re-export pure domain & section helpers for 100% public API compatibility
 export {
@@ -49,6 +68,8 @@ export {
     addNpcStat,
     addNpcTag,
     addNpcVital,
+    applyTemplate,
+    closeTemplateDropdown,
     confirmCustomAttribute,
     confirmNpcSkill,
     confirmNpcStat,
@@ -58,25 +79,36 @@ export {
     editNpcStat,
     editNpcVital,
     evaluateFormula,
+    getAvailableTemplates,
     getTraitsCounts,
     initNpcTagsController,
+    initTemplateDropdownController,
+    isTemplateDropdownOpen,
+    openTemplateDropdown,
     parseStatValueAsNumber,
+    removeAppliedTemplate,
     removeCustomAttribute,
     removeNpcSkill,
     removeNpcStat,
     removeNpcTag,
     removeNpcVital,
+    renderAppliedTemplates,
     renderCustomAttributes,
     renderDynamicSuggestions,
     renderNpcSkills,
     renderNpcStats,
     renderNpcTags,
     renderNpcVitals,
+    renderTemplateDropdownList,
+    toggleTemplateDropdown,
     updateSelectedAvatarPreview,
     updateSkillStatDropdowns,
     updateTraitsCounterUI,
     updateVitalFormulasPreview,
 }
+
+export const getModalMode = state.getModalMode
+export const setModalMode = state.setModalMode
 
 // Re-export state getters and setters
 export const getCustomAttributes = state.getCustomAttributes
@@ -135,6 +167,16 @@ export const setNpcTags = tags => {
 export const clearNpcTags = () => {
     state.clearNpcTags()
     renderNpcTags()
+}
+
+export const getAppliedTemplates = state.getAppliedTemplates
+export const setAppliedTemplates = templates => {
+    state.setAppliedTemplates(templates)
+    renderAppliedTemplates()
+}
+export const clearAppliedTemplates = () => {
+    state.clearAppliedTemplates()
+    renderAppliedTemplates()
 }
 
 /**
@@ -229,11 +271,301 @@ export function isDescriptionDrawerOpen() {
 }
 
 /**
- * Opens the NPC creation floating window.
+ * Updates the modal UI elements (titles, badges, buttons, placeholders) based on mode and edit status.
+ *
+ * @param {'character' | 'template'} mode
  */
-export function openNpcModal() {
+export function updateModalModeUI(mode = 'character') {
+    state.setModalMode(mode)
+    const isTemplate = mode === 'template'
+    const isEditing = state.isEditingMode()
+
+    // Header title and badge
+    const headerTitle = document.getElementById('npc-create-modal-title')
+    if (headerTitle) {
+        const titleSpan = headerTitle.querySelector('span:first-child')
+        const badgeSpan = headerTitle.querySelector('span:last-child')
+
+        if (titleSpan) {
+            if (isEditing) {
+                titleSpan.textContent = isTemplate
+                    ? typeof t === 'function'
+                        ? t('npc.template_modal_edit_title')
+                        : 'Edycja Szablonu NPC'
+                    : typeof t === 'function'
+                      ? t('npc.modal_edit_title')
+                      : 'Edycja Postaci NPC'
+            } else {
+                titleSpan.textContent = isTemplate
+                    ? typeof t === 'function'
+                        ? t('npc.template_modal_title')
+                        : 'Karta Szablonu NPC'
+                    : typeof t === 'function'
+                      ? t('npc.modal_title')
+                      : 'Karta Postaci NPC'
+            }
+        }
+        if (badgeSpan) {
+            if (isEditing) {
+                badgeSpan.textContent =
+                    typeof t === 'function' ? t('npc.edit_badge') : 'Modyfikacja'
+                badgeSpan.className =
+                    'text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono font-normal'
+            } else {
+                badgeSpan.textContent = isTemplate
+                    ? typeof t === 'function'
+                        ? t('npc.template_badge')
+                        : 'Szablon'
+                    : typeof t === 'function'
+                      ? t('npc.character_folio_badge')
+                      : 'Folio'
+                if (isTemplate) {
+                    badgeSpan.className =
+                        'text-[9px] px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono font-normal'
+                } else {
+                    badgeSpan.className =
+                        'text-[9px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-normal'
+                }
+            }
+        }
+    }
+
+    // Subtitle
+    const subtitle = document.querySelector('#npc-create-modal-header p')
+    if (subtitle) {
+        if (isEditing) {
+            subtitle.textContent = isTemplate
+                ? typeof t === 'function'
+                    ? t('npc.template_modal_edit_subtitle')
+                    : 'Modyfikacja i personalizacja archetypu bohatera niezależnego'
+                : typeof t === 'function'
+                  ? t('npc.modal_edit_subtitle')
+                  : 'Modyfikacja i personalizacja bohatera niezależnego'
+        } else {
+            subtitle.textContent = isTemplate
+                ? typeof t === 'function'
+                    ? t('npc.template_modal_subtitle')
+                    : 'Tworzenie i personalizacja archetypu bohatera niezależnego'
+                : typeof t === 'function'
+                  ? t('npc.modal_subtitle')
+                  : 'Tworzenie i personalizacja bohatera niezależnego'
+        }
+    }
+
+    // Header icon box styling
+    const headerIconBox = document.querySelector('#npc-create-modal-header .rounded-lg')
+    if (headerIconBox) {
+        if (isTemplate) {
+            headerIconBox.className =
+                'w-7 h-7 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0 shadow-sm'
+        } else {
+            headerIconBox.className =
+                'w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 shadow-sm'
+        }
+    }
+
+    // Header title attribute for drag hint
+    const header = document.getElementById('npc-create-modal-header')
+    if (header) {
+        header.title = isTemplate
+            ? typeof t === 'function'
+                ? t('npc.drag_template_title')
+                : 'Przeciągnij, aby przesunąć kartę szablonu'
+            : typeof t === 'function'
+              ? t('npc.drag_title')
+              : 'Przeciągnij, aby przesunąć kartę postaci'
+    }
+
+    // Name input placeholder & label
+    const nameInput = document.getElementById('npc-name-input')
+    if (nameInput) {
+        nameInput.placeholder = isTemplate
+            ? typeof t === 'function'
+                ? t('npc.template_name_placeholder')
+                : 'np. Strażnik miejski, Bandyta leśny, Kultysta...'
+            : typeof t === 'function'
+              ? t('npc.name_placeholder')
+              : 'np. Strażnik miejski, Mistrz Elion...'
+    }
+
+    const nameLabel = document.querySelector('label[for="npc-name-input"]')
+    if (nameLabel) {
+        nameLabel.textContent = isTemplate
+            ? typeof t === 'function'
+                ? t('npc.template_name_label')
+                : 'Nazwa szablonu'
+            : typeof t === 'function'
+              ? t('npc.name_label')
+              : 'Nazwa postaci'
+    }
+
+    // Summary input placeholder
+    const summaryInput = document.getElementById('npc-summary-input')
+    if (summaryInput) {
+        summaryInput.placeholder = isTemplate
+            ? typeof t === 'function'
+                ? t('npc.template_summary_placeholder')
+                : 'Krótkie streszczenie archetypu (np. przeznaczenie szablonu, typowe zachowanie)...'
+            : typeof t === 'function'
+              ? t('npc.summary_placeholder')
+              : 'Krótkie streszczenie (np. kim jest postać, jej cel lub rola w fabule)...'
+    }
+
+    // Save button label & styling
+    const saveBtn = document.getElementById('btn-save-npc-modal')
+    if (saveBtn) {
+        const span = saveBtn.querySelector('span')
+        if (span) {
+            if (isEditing) {
+                span.textContent =
+                    typeof t === 'function' ? t('npc.btn_save_changes') : 'Zapisz zmiany'
+            } else {
+                span.textContent = isTemplate
+                    ? typeof t === 'function'
+                        ? t('npc.btn_create_template')
+                        : 'Zapisz szablon'
+                    : typeof t === 'function'
+                      ? t('npc.btn_create')
+                      : 'Zapisz postać'
+            }
+        }
+        if (isTemplate) {
+            saveBtn.className =
+                'flex items-center gap-1.5 px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-purple-900/30 hover:shadow-purple-600/30 active:scale-[0.98]'
+        } else {
+            saveBtn.className =
+                'flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-blue-900/30 hover:shadow-blue-600/30 active:scale-[0.98]'
+        }
+    }
+}
+
+/**
+ * Opens the NPC creation floating window in character or template mode, or for editing existing entity.
+ *
+ * @param {object} [options]
+ * @param {'character' | 'template'} [options.mode='character']
+ * @param {any} [options.applyTemplate]
+ * @param {any} [options.editEntity] Entity to modify
+ * @param {any} [options.editingEntity] Alias for editEntity
+ * @param {boolean} [options.preserveState=false]
+ */
+export function openNpcModal(options = {}) {
     const modal = state.getActiveModal() || document.getElementById('npc-create-modal')
     if (!modal) return
+
+    const editEntity = options?.editEntity || options?.editingEntity
+
+    if (editEntity) {
+        const inferredMode =
+            options?.mode ||
+            (editEntity.constructor?.name === 'NPC_Template' || editEntity.type === 'template'
+                ? 'template'
+                : 'character')
+
+        state.resetState()
+        state.setEditingEntity(editEntity)
+        state.setModalMode(inferredMode)
+
+        const avatarId =
+            (typeof editEntity.getAvatar === 'function'
+                ? editEntity.getAvatar()
+                : editEntity.avatar) || 'warrior'
+        state.setCurrentAvatarId(avatarId)
+        updateSelectedAvatarPreview(avatarId)
+
+        const name =
+            (typeof editEntity.getName === 'function' ? editEntity.getName() : editEntity.name) ||
+            ''
+        setNpcName(name)
+
+        const desc =
+            typeof editEntity.getDescription === 'function'
+                ? editEntity.getDescription()
+                : editEntity.description
+        const summary =
+            (typeof editEntity.getSummary === 'function'
+                ? editEntity.getSummary()
+                : desc && typeof desc.getSummary === 'function'
+                  ? desc.getSummary()
+                  : desc?.summary) || ''
+        setNpcSummary(summary)
+
+        const descText =
+            (desc && typeof desc.getText === 'function' ? desc.getText() : desc?.text) || ''
+        setNpcDescription(descText)
+
+        // Stats
+        const extractedStats = extractTemplateStats(editEntity)
+        state.setNpcStats(
+            extractedStats.map((s, i) => ({
+                id: `stat_edit_${i}`,
+                name: s.name,
+                value: s.value,
+                isEditing: false,
+            }))
+        )
+        renderNpcStats()
+
+        // Vitals
+        const extractedVitals = extractTemplateVitals(editEntity)
+        state.setNpcVitals(
+            extractedVitals.map((v, i) => ({
+                id: `vital_edit_${i}`,
+                name: v.name,
+                mode: v.mode,
+                value: v.value,
+                formula: v.formula,
+                isEditing: false,
+            }))
+        )
+        renderNpcVitals()
+
+        // Skills
+        const extractedSkills = extractTemplateSkills(editEntity)
+        state.setNpcSkills(
+            extractedSkills.map((sk, i) => ({
+                id: `skill_edit_${i}`,
+                name: sk.name,
+                mode: sk.mode,
+                value: sk.value,
+                statName: sk.statName,
+                modifier: sk.modifier,
+                isEditing: false,
+            }))
+        )
+        renderNpcSkills()
+
+        // Custom attributes & features
+        const extractedAttrs = extractTemplateAttributes(editEntity)
+        state.setCustomAttributes(
+            extractedAttrs.map((a, i) => ({
+                id: `attr_edit_${i}`,
+                name: a.name,
+                value: a.value,
+                isEditing: false,
+            }))
+        )
+        renderCustomAttributes()
+
+        // Tags
+        const extractedTags = extractTemplateTags(editEntity)
+        state.setNpcTags(extractedTags)
+        renderNpcTags()
+
+        state.clearAppliedTemplates()
+        renderAppliedTemplates()
+        closeTemplateDropdown()
+        toggleDescriptionDrawer(false)
+        updateTraitsCounterUI(state.getActiveCtx())
+        updateModalModeUI(inferredMode)
+    } else {
+        if (!options?.preserveState) {
+            state.setEditingEntity(null)
+            resetNpcModalForm()
+        }
+        const mode = options?.mode || 'character'
+        updateModalModeUI(mode)
+    }
 
     modal.classList.remove('hidden')
 
@@ -247,6 +579,11 @@ export function openNpcModal() {
 
     renderDynamicSuggestions(state.getActiveCtx())
     renderNpcTags()
+    renderAppliedTemplates()
+
+    if (options?.applyTemplate) {
+        applyTemplate(options.applyTemplate, state.getActiveCtx())
+    }
 
     if (!state.getHasBeenPositioned()) {
         const modalWidth = modal.offsetWidth || 860
@@ -270,7 +607,16 @@ export function openNpcModal() {
 }
 
 /**
- * Closes the NPC creation floating window.
+ * Opens the NPC template creation floating window.
+ *
+ * @param {object} [options]
+ */
+export function openNpcTemplateModal(options = {}) {
+    return openNpcModal({ ...options, mode: 'template' })
+}
+
+/**
+ * Closes the NPC creation floating window and resets all fields to clean state.
  */
 export function closeNpcModal() {
     const modal = state.getActiveModal() || document.getElementById('npc-create-modal')
@@ -281,7 +627,15 @@ export function closeNpcModal() {
         popover.classList.add('hidden')
     }
 
+    const tagPopover = document.getElementById('npc-tag-picker-popover')
+    if (tagPopover) {
+        tagPopover.classList.add('hidden')
+    }
+
+    closeTemplateDropdown()
+
     modal.classList.add('hidden')
+    resetNpcModalForm()
 }
 
 /**
@@ -354,7 +708,9 @@ export function setNpcSummary(summary) {
  * Resets modal form fields and internal state to clean initial state.
  */
 export function resetNpcModalForm() {
+    const currentMode = state.getModalMode()
     state.resetState()
+    state.setModalMode(currentMode)
     updateSelectedAvatarPreview('warrior')
     setNpcName('')
     setNpcSummary('')
@@ -364,6 +720,11 @@ export function resetNpcModalForm() {
     renderNpcSkills()
     renderNpcVitals()
     renderNpcTags()
+    renderAppliedTemplates()
+    closeTemplateDropdown()
+    toggleDescriptionDrawer(false)
+    updateTraitsCounterUI(state.getActiveCtx())
+    updateModalModeUI(currentMode)
 
     const errorBox = document.getElementById('npc-create-error-message')
     if (errorBox) errorBox.classList.add('hidden')
@@ -387,7 +748,25 @@ export function resetNpcModalForm() {
  * @returns {object|null} Created character object or null if validation failed
  */
 export function saveNpcCharacter(ctx) {
+    syncActiveModalInputs()
     return saveNpcCharacterHelper(ctx, {
+        getName: getNpcName,
+        getSummary: getNpcSummary,
+        getDescription: getNpcDescription,
+        closeModal: closeNpcModal,
+        resetForm: resetNpcModalForm,
+    })
+}
+
+/**
+ * Validates and saves the NPC template, adding it to project data and refreshing the UI.
+ *
+ * @param {object} [ctx] Application UI context
+ * @returns {object|null} Created template object or null if validation failed
+ */
+export function saveNpcTemplate(ctx) {
+    syncActiveModalInputs()
+    return saveNpcTemplateHelper(ctx, {
         getName: getNpcName,
         getSummary: getNpcSummary,
         getDescription: getNpcDescription,
@@ -412,6 +791,7 @@ export function setupNpcModal(ctx) {
 
     const header = document.getElementById('npc-create-modal-header')
     const btnAddCharacter = document.getElementById('btn-add-character')
+    const btnAddTemplate = document.getElementById('btn-add-template')
     const btnCloseModal = document.getElementById('btn-close-npc-modal')
     const btnToggleDesc = document.getElementById('btn-toggle-npc-description')
 
@@ -437,12 +817,21 @@ export function setupNpcModal(ctx) {
         })
     }
 
-    // Open when clicking "Dodaj" in left drawer
+    // Open when clicking "Postać" in left drawer
     if (btnAddCharacter) {
         btnAddCharacter.addEventListener('click', e => {
             e.preventDefault()
             e.stopPropagation()
-            openNpcModal()
+            openNpcModal({ mode: 'character' })
+        })
+    }
+
+    // Open when clicking "Szablon" in left drawer
+    if (btnAddTemplate) {
+        btnAddTemplate.addEventListener('click', e => {
+            e.preventDefault()
+            e.stopPropagation()
+            openNpcTemplateModal()
         })
     }
 
@@ -450,7 +839,16 @@ export function setupNpcModal(ctx) {
     document.querySelectorAll('[data-action="open-npc-modal"]').forEach(btn => {
         btn.addEventListener('click', e => {
             e.preventDefault()
-            openNpcModal()
+            const mode = btn.dataset.mode === 'template' ? 'template' : 'character'
+            openNpcModal({ mode })
+        })
+    })
+
+    // Open when clicking any trigger with data-action="open-npc-template-modal"
+    document.querySelectorAll('[data-action="open-npc-template-modal"]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
+            openNpcTemplateModal()
         })
     })
 
@@ -485,17 +883,31 @@ export function setupNpcModal(ctx) {
                 tagPopover.classList.add('hidden')
             }
         }
+        const templateMenu = document.getElementById('npc-template-dropdown-menu')
+        const templateDropdownBtn = document.getElementById('btn-template-dropdown')
+        if (templateMenu && !templateMenu.classList.contains('hidden')) {
+            if (
+                !templateMenu.contains(e.target) &&
+                (!templateDropdownBtn || !templateDropdownBtn.contains(e.target))
+            ) {
+                closeTemplateDropdown()
+            }
+        }
     }
     state.setGlobalOutsideClickHandler(outsideClickHandler)
     document.addEventListener('click', outsideClickHandler)
 
-    // Safely attach single Escape key listener (first closes popover if open, then modal)
+    // Safely attach single Escape key listener (first closes dropdown/popovers if open, then modal)
     const prevKeydownHandler = state.getGlobalKeydownHandler()
     if (prevKeydownHandler) {
         document.removeEventListener('keydown', prevKeydownHandler)
     }
     const keydownHandler = e => {
         if (e.key === 'Escape') {
+            if (isTemplateDropdownOpen()) {
+                closeTemplateDropdown()
+                return
+            }
             const popover = document.getElementById('npc-avatar-picker-popover')
             if (popover && !popover.classList.contains('hidden')) {
                 popover.classList.add('hidden')
@@ -516,6 +928,10 @@ export function setupNpcModal(ctx) {
 
     // Populate dynamic suggestions
     renderDynamicSuggestions(ctx)
+
+    // Initialize template dropdown controller & applied chips
+    initTemplateDropdownController(ctx)
+    renderAppliedTemplates()
 
     // Custom attributes setup
     const btnAddAttr = document.getElementById('btn-add-custom-attribute')
@@ -583,16 +999,24 @@ export function setupNpcModal(ctx) {
 
     const btnSave = document.getElementById('btn-save-npc-modal')
     const form = document.getElementById('npc-create-modal-form')
+    const executeSave = () => {
+        syncActiveModalInputs()
+        if (state.getModalMode() === 'template') {
+            saveNpcTemplate(ctx)
+        } else {
+            saveNpcCharacter(ctx)
+        }
+    }
     if (btnSave) {
         btnSave.addEventListener('click', e => {
             e.preventDefault()
-            saveNpcCharacter(ctx)
+            executeSave()
         })
     }
     if (form) {
         form.addEventListener('submit', e => {
             e.preventDefault()
-            saveNpcCharacter(ctx)
+            executeSave()
         })
     }
 
@@ -646,6 +1070,11 @@ export function setupNpcModal(ctx) {
         parseStatValueAsNumber,
         updateVitalFormulasPreview,
         saveNpcCharacter,
+        saveNpcTemplate,
+        openNpcTemplateModal,
+        updateModalModeUI,
+        getModalMode: state.getModalMode,
+        setModalMode: state.setModalMode,
         getNpcDescription,
         setNpcDescription,
         isDescriptionDrawerOpen,
@@ -653,6 +1082,17 @@ export function setupNpcModal(ctx) {
         resetNpcModalForm,
         getTraitsCounts,
         updateTraitsCounterUI,
+        applyTemplate,
+        removeAppliedTemplate,
+        renderAppliedTemplates,
+        getAppliedTemplates,
+        setAppliedTemplates,
+        clearAppliedTemplates,
+        openTemplateDropdown,
+        closeTemplateDropdown,
+        toggleTemplateDropdown,
+        isTemplateDropdownOpen,
+        getAvailableTemplates,
     }
 
     if (ctx) {
