@@ -1245,13 +1245,145 @@
                         </div>
                     </div>
 
+                    <!-- Editor Subheader: File Name, Stats & Save Status -->
                     <div
-                        class="flex justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d]"
+                        class="flex items-center justify-between border-b border-[#27272a] px-4 py-1.5 text-xs text-[#a1a1aa] bg-[#1a1a1d] shrink-0"
                     >
-                        <span id="active-file-label">Wprowadzenie.md</span>
+                        <div class="flex items-center gap-2">
+                            <span id="active-file-label" class="font-medium text-zinc-200">Wprowadzenie.md</span>
+                            <span id="save-status" class="text-[11px] text-zinc-400"></span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="editor-stats" class="text-[11px] text-zinc-500">0 słów · 0 znaków</span>
+                        </div>
                     </div>
+
+                    <!-- Editor Visual Formatting Toolbar -->
+                    <div
+                        id="editor-toolbar"
+                        class="flex items-center justify-between flex-wrap gap-1 px-3 py-1.5 bg-[#1f1f22] border-b border-[#27272a] text-xs text-zinc-300 shrink-0"
+                    >
+                        <div class="flex items-center gap-0.5">
+                            <button
+                                type="button"
+                                id="btn-editor-bold"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                                title="Pogrubienie (Ctrl+B)"
+                            >
+                                <span class="font-bold text-xs px-1">B</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-editor-italic"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                                title="Kursywa (Ctrl+I)"
+                            >
+                                <span class="italic text-xs px-1">I</span>
+                            </button>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <button
+                                type="button"
+                                id="btn-editor-h1"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-bold text-xs"
+                                title="Nagłówek 1 (# )"
+                            >
+                                H1
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-editor-h2"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-bold text-xs"
+                                title="Nagłówek 2 (## )"
+                            >
+                                H2
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-editor-h3"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-bold text-xs"
+                                title="Nagłówek 3 (### )"
+                            >
+                                H3
+                            </button>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <button
+                                type="button"
+                                id="btn-editor-bullet-list"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs"
+                                title="Lista punktowana (- )"
+                            >
+                                • Lista
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-editor-ordered-list"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs"
+                                title="Lista numerowana (1. )"
+                            >
+                                1. Lista
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-editor-quote"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs italic"
+                                title="Cytat (> )"
+                            >
+                                “ Cytat
+                            </button>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <div class="relative inline-block text-left" id="editor-entity-picker-wrapper">
+                                <button
+                                    type="button"
+                                    id="btn-insert-entity-dropdown"
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded bg-[#27272a] hover:bg-blue-600/20 hover:text-blue-300 border border-[#3f3f46] text-xs transition-colors cursor-pointer"
+                                    title="Wstaw słowo kluczowe powiązane z projektem (@)"
+                                >
+                                    <span class="text-blue-400 font-bold">@</span>
+                                    <span>Wstaw słowo kluczowe</span>
+                                </button>
+                                <div
+                                    id="editor-entity-dropdown-menu"
+                                    class="hidden absolute left-0 mt-1 w-52 rounded-md bg-[#1f1f22] border border-[#2d2d32] shadow-2xl z-50 py-1 text-xs"
+                                >
+                                    <button
+                                        type="button"
+                                        data-entity-type="location"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-300 cursor-pointer"
+                                    >
+                                        <span>📍</span>
+                                        <span>Lokacja...</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-entity-type="character"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-amber-300 cursor-pointer"
+                                    >
+                                        <span>👤</span>
+                                        <span>Postać (NPC)...</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-entity-type="tag"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-purple-300 cursor-pointer"
+                                    >
+                                        <span>🏷️</span>
+                                        <span>Cecha / Tag...</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-[11px] text-zinc-500 italic hidden sm:flex items-center gap-1">
+                            <span>Wpisz <kbd class="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-mono text-[10px] text-zinc-300">@</kbd> aby dodać lokację lub postać</span>
+                        </div>
+                    </div>
+
+                    <!-- Editor Visual Mount Container -->
+                    <div
+                        id="rich-editor-mount"
+                        class="flex-1 min-h-0 overflow-y-auto bg-[#18181b] custom-scrollbar focus:outline-none"
+                    ></div>
                     <textarea
-                        class="flex-1 min-h-0 resize-none border-0 bg-[#18181b] p-6 font-mono text-sm leading-relaxed text-[#e4e4e7] focus:outline-none"
+                        class="hidden"
                         id="file-editor"
                         spellcheck="false"
                         aria-label="Zawartość pliku"

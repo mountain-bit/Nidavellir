@@ -1,3 +1,4 @@
+import { EntitySyncService, MarkdownEditor } from '../../dist/Modules/Editor/index.js'
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
@@ -149,6 +150,175 @@ export function updateRightSidebarUI(
     }
 }
 
+let mainEditorInstance = null
+let toolbarInitialized = false
+
+function updateEditorStats(editor) {
+    const statsEl = document.getElementById('editor-stats')
+    if (!statsEl || !editor) return
+    const words = editor.getWordCount()
+    const chars = editor.getCharacterCount()
+    statsEl.textContent = `${words} słów · ${chars} znaków`
+}
+
+function syncEntitiesWithActiveObject(ctx, entities) {
+    const selectedItem = ctx.vm && ctx.vm.getSelectedItem ? ctx.vm.getSelectedItem() : null
+    if (!selectedItem || !selectedItem.entity) return
+
+    const entityObj = selectedItem.entity
+    let changed = false
+
+    if (
+        typeof entityObj.addLocation === 'function' &&
+        typeof entityObj.addCharacter === 'function'
+    ) {
+        const syncRes = EntitySyncService.syncWithParagraph(entityObj, entities, ctx.projectData)
+        if (syncRes.changed) {
+            changed = true
+            if (syncRes.addedLocations.length > 0) {
+                toast.info(
+                    `Powiązano lokację: ${syncRes.addedLocations.join(', ')}`,
+                    'Automatyczne powiązanie'
+                )
+            }
+            if (syncRes.addedCharacters.length > 0) {
+                toast.info(
+                    `Powiązano postać: ${syncRes.addedCharacters.join(', ')}`,
+                    'Automatyczne powiązanie'
+                )
+            }
+            if (syncRes.addedTags.length > 0) {
+                toast.info(
+                    `Powiązano tag: ${syncRes.addedTags.join(', ')}`,
+                    'Automatyczne powiązanie'
+                )
+            }
+        }
+    } else if (typeof entityObj.addTag === 'function') {
+        const syncRes = EntitySyncService.syncWithNPC(entityObj, entities, ctx.projectData)
+        if (syncRes.changed) {
+            changed = true
+            if (syncRes.addedTags.length > 0) {
+                toast.info(
+                    `Dodano cechę: ${syncRes.addedTags.join(', ')}`,
+                    'Automatyczne powiązanie'
+                )
+            }
+        }
+    }
+
+    if (changed && typeof ctx.renderDetailsPanel === 'function') {
+        ctx.renderDetailsPanel(ctx)
+    }
+}
+
+function setupToolbarButtons(editor) {
+    if (toolbarInitialized || !editor) return
+    toolbarInitialized = true
+
+    const bindClick = (id, fn) => {
+        const btn = document.getElementById(id)
+        if (btn) {
+            btn.addEventListener('click', e => {
+                e.preventDefault()
+                fn()
+            })
+        }
+    }
+
+    bindClick('btn-editor-bold', () => editor.toggleBold())
+    bindClick('btn-editor-italic', () => editor.toggleItalic())
+    bindClick('btn-editor-h1', () => editor.toggleHeading(1))
+    bindClick('btn-editor-h2', () => editor.toggleHeading(2))
+    bindClick('btn-editor-h3', () => editor.toggleHeading(3))
+    bindClick('btn-editor-bullet-list', () => editor.toggleBulletList())
+    bindClick('btn-editor-ordered-list', () => editor.toggleOrderedList())
+    bindClick('btn-editor-quote', () => editor.toggleBlockquote())
+
+    const dropdownBtn = document.getElementById('btn-insert-entity-dropdown')
+    const dropdownMenu = document.getElementById('editor-entity-dropdown-menu')
+
+    if (dropdownBtn && dropdownMenu) {
+        dropdownBtn.addEventListener('click', e => {
+            e.stopPropagation()
+            dropdownMenu.classList.toggle('hidden')
+        })
+
+        document.addEventListener('click', () => {
+            dropdownMenu.classList.add('hidden')
+        })
+
+        dropdownMenu.querySelectorAll('[data-entity-type]').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation()
+                dropdownMenu.classList.add('hidden')
+                editor.focus()
+                const rawEditor = editor.getRawEditor()
+                if (rawEditor) {
+                    rawEditor.chain().focus().insertContent('@').run()
+                }
+            })
+        })
+    }
+}
+
+export function getOrCreateMainEditor(ctx) {
+    if (mainEditorInstance) return mainEditorInstance
+
+    const mount = document.getElementById('rich-editor-mount')
+    if (!mount) return null
+
+    mainEditorInstance = new MarkdownEditor({
+        element: mount,
+        initialContent: '',
+        getProjectEntities: () => {
+            const entities = []
+            const locations = ctx.projectData?.locations || ctx.projectLocations || []
+            locations.forEach(loc => {
+                const id = loc.getId ? loc.getId() : loc.id
+                const name = loc.getName ? loc.getName() : loc.name
+                if (id && name) entities.push({ id, name, type: 'location' })
+            })
+            const characters = ctx.projectData?.characters || ctx.projectCharacters || []
+            characters.forEach(char => {
+                const id = char.getId ? char.getId() : char.id
+                const name = char.getName ? char.getName() : char.name
+                if (id && name) entities.push({ id, name, type: 'character' })
+            })
+            const tags = ctx.projectData?.tags || ctx.projectTags || []
+            tags.forEach(tag => {
+                const id = tag.getId ? tag.getId() : tag.id
+                const name = tag.getName ? tag.getName() : tag.name
+                if (name) entities.push({ id: id || name, name, type: 'tag' })
+            })
+            return entities
+        },
+        onUpdate: (markdown, entities) => {
+            const active = ctx.vm.getActiveFile()
+            if (active) {
+                ctx.files[active] = markdown
+                const fileEditor = document.getElementById('file-editor')
+                if (fileEditor) fileEditor.value = markdown
+
+                const saveStatus = document.getElementById('save-status')
+                if (saveStatus) {
+                    saveStatus.textContent = `• ${t('editor.unsaved_changes')}`
+                    saveStatus.className = 'text-[11px] text-amber-400 font-medium'
+                }
+
+                updateEditorStats(mainEditorInstance)
+                syncEntitiesWithActiveObject(ctx, entities)
+            }
+        },
+        onEntityClick: entity => {
+            toast.info(`${entity.name} (${entity.type})`, 'Słowo kluczowe')
+        },
+    })
+
+    setupToolbarButtons(mainEditorInstance)
+    return mainEditorInstance
+}
+
 /**
  * Updates central workspace mode (Graph vs Markdown) and editor content.
  *
@@ -199,8 +369,20 @@ export function updateMainWorkspaceUI(ctx) {
     if (activeLabel) {
         activeLabel.textContent = active || t('editor.no_open_file')
     }
+    const content = active ? ctx.files[active] || '' : ''
     if (fileEditor) {
-        fileEditor.value = active ? ctx.files[active] || '' : ''
+        fileEditor.value = content
+    }
+
+    const editor = getOrCreateMainEditor(ctx)
+    if (editor) {
+        editor.setMarkdown(content)
+        updateEditorStats(editor)
+    }
+
+    const saveStatus = document.getElementById('save-status')
+    if (saveStatus) {
+        saveStatus.textContent = ''
     }
 
     renderEditorTabs(ctx)
@@ -297,10 +479,22 @@ export function saveActiveFile(ctx) {
     const active = ctx.vm.getActiveFile()
     if (!active) return
 
-    const fileEditor = document.getElementById('file-editor')
-    const saveStatus = document.getElementById('save-status')
-    const content = fileEditor ? fileEditor.value : ''
+    const editor = getOrCreateMainEditor(ctx)
+    const content =
+        editor && typeof editor.getMarkdown === 'function'
+            ? editor.getMarkdown()
+            : document.getElementById('file-editor')?.value || ''
+
     ctx.files[active] = content
+
+    const fileEditor = document.getElementById('file-editor')
+    if (fileEditor) fileEditor.value = content
+
+    const saveStatus = document.getElementById('save-status')
+    if (saveStatus) {
+        saveStatus.textContent = 'Zapisywanie...'
+        saveStatus.className = 'text-[11px] text-zinc-400'
+    }
 
     const currentPath = window.currentProjectPath || ''
     if (window.electronAPI && window.electronAPI.saveMarkdownFile && currentPath) {
@@ -308,7 +502,15 @@ export function saveActiveFile(ctx) {
             .saveMarkdownFile(currentPath, active, content)
             .then(res => {
                 if (res && res.success) {
-                    if (saveStatus) saveStatus.textContent = ''
+                    if (saveStatus) {
+                        saveStatus.textContent = '• Zapisano'
+                        saveStatus.className = 'text-[11px] text-emerald-400 font-medium'
+                        setTimeout(() => {
+                            if (saveStatus.textContent === '• Zapisano') {
+                                saveStatus.textContent = ''
+                            }
+                        }, 2500)
+                    }
                     if (res.recreated || res.warning === 'recreated') {
                         toast.warning(t('toast.file_recreated_warning'), t('toast.warning_title'))
                     } else {
@@ -323,7 +525,15 @@ export function saveActiveFile(ctx) {
                 toast.error(t('toast.save_error', { error: err.message }), t('toast.error_title'))
             })
     } else {
-        if (saveStatus) saveStatus.textContent = ''
+        if (saveStatus) {
+            saveStatus.textContent = '• Zapisano (pamięć)'
+            saveStatus.className = 'text-[11px] text-emerald-400 font-medium'
+            setTimeout(() => {
+                if (saveStatus.textContent.includes('Zapisano')) {
+                    saveStatus.textContent = ''
+                }
+            }, 2500)
+        }
         toast.success(t('toast.save_success'), t('toast.success_title'))
     }
 }
