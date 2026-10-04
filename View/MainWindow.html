@@ -89,7 +89,10 @@
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
                             <button class="ribbon-btn" type="button" data-action="run-game">
-                                <app-icon name="arrow-right" class="w-4 h-4 text-emerald-400"></app-icon>
+                                <app-icon
+                                    name="arrow-right"
+                                    class="w-4 h-4 text-emerald-400"
+                                ></app-icon>
                                 <span data-i18n="ribbon.buttons.run_game">Testuj grę</span>
                             </button>
                             <button class="ribbon-btn" type="button" data-action="export-game">
@@ -381,7 +384,10 @@
                                         title="Filtruj"
                                         data-i18n-title="left_panel.filter_tile_title"
                                     >
-                                        <app-icon name="filter" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                                        <app-icon
+                                            name="filter"
+                                            class="w-3.5 h-3.5 text-blue-400"
+                                        ></app-icon>
                                         <span data-i18n="left_panel.filter_tile_title"
                                             >Filtruj</span
                                         >
@@ -723,15 +729,28 @@
                                     data-i18n="left_panel.characters"
                                     >Postacie i Szablony</span
                                 >
-                                <button
-                                    id="btn-add-character"
-                                    type="button"
-                                    class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
-                                    data-i18n-title="left_panel.add_character"
-                                    title="Dodaj postać"
-                                >
-                                    <span>+</span>
-                                </button>
+                                <div class="flex items-center gap-1.5">
+                                    <button
+                                        id="btn-add-character"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
+                                        data-i18n-title="left_panel.add_character"
+                                        title="Dodaj postać"
+                                    >
+                                        <span>+</span>
+                                        <span data-i18n="left_panel.add_character">Postać</span>
+                                    </button>
+                                    <button
+                                        id="btn-add-template"
+                                        type="button"
+                                        class="px-2 py-0.5 rounded bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
+                                        data-i18n-title="left_panel.add_template"
+                                        title="Dodaj szablon"
+                                    >
+                                        <span>+</span>
+                                        <span data-i18n="left_panel.add_template">Szablon</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="px-1 py-1 space-y-1 mb-2">
                                 <input
@@ -741,36 +760,6 @@
                                     data-i18n-placeholder="left_panel.search_characters_placeholder"
                                     class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 />
-                                <div
-                                    id="character-create-form"
-                                    class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
-                                >
-                                    <input
-                                        type="text"
-                                        id="character-create-name"
-                                        placeholder="Nazwa postaci (lub zostaw puste)"
-                                        data-i18n-placeholder="left_panel.character_name_placeholder"
-                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
-                                    />
-                                    <div class="flex justify-end gap-1">
-                                        <button
-                                            id="character-create-cancel"
-                                            type="button"
-                                            class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
-                                            data-i18n="buttons.cancel"
-                                        >
-                                            Anuluj
-                                        </button>
-                                        <button
-                                            id="character-create-submit"
-                                            type="button"
-                                            class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
-                                            data-i18n="buttons.add"
-                                        >
-                                            Dodaj
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
                             <div class="p-2 text-xs text-[#a1a1aa]" id="characters-list-container">
                                 <p
@@ -872,26 +861,45 @@
                                 <input
                                     type="text"
                                     id="trait-search-input"
-                                    placeholder="Szukaj cech..."
+                                    placeholder="Szukaj cech, parametrów, umiejętności..."
                                     data-i18n-placeholder="left_panel.search_traits_placeholder"
                                     class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                 />
                                 <div
                                     id="trait-create-form"
-                                    class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                                    class="hidden p-2.5 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-2 shadow-md"
                                 >
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[10px] uppercase font-bold text-[#a1a1aa]" data-i18n="left_panel.item_type_label">Typ elementu</label>
+                                        <select
+                                            id="trait-create-type"
+                                            class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500"
+                                        >
+                                            <option value="stat" selected data-i18n="left_panel.type_stat">Cecha (Statystyka)</option>
+                                            <option value="parameter" data-i18n="left_panel.type_parameter">Parametr życiowy</option>
+                                            <option value="skill" data-i18n="left_panel.type_skill">Umiejętność</option>
+                                            <option value="feature" data-i18n="left_panel.type_feature">Przymiot specjalny</option>
+                                        </select>
+                                    </div>
                                     <input
                                         type="text"
                                         id="trait-create-name"
                                         placeholder="Nazwa cechy (lub zostaw puste)"
                                         data-i18n-placeholder="left_panel.trait_name_placeholder"
-                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                                     />
-                                    <div class="flex justify-end gap-1">
+                                    <input
+                                        type="text"
+                                        id="trait-create-value"
+                                        placeholder="Wartość / wzór (opcjonalnie)"
+                                        data-i18n-placeholder="left_panel.trait_value_placeholder"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                    />
+                                    <div class="flex justify-end gap-1 pt-0.5">
                                         <button
                                             id="trait-create-cancel"
                                             type="button"
-                                            class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                            class="px-2 py-1 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
                                             data-i18n="buttons.cancel"
                                         >
                                             Anuluj
@@ -899,7 +907,7 @@
                                         <button
                                             id="trait-create-submit"
                                             type="button"
-                                            class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                            class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-medium cursor-pointer shadow-sm"
                                             data-i18n="buttons.add"
                                         >
                                             Dodaj
@@ -907,8 +915,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-2 text-xs text-[#a1a1aa]" id="traits-list-container">
-                                <p class="italic text-gray-500" data-i18n="left_panel.no_traits">
+                            <div class="p-1 text-xs text-[#a1a1aa] space-y-3" id="traits-list-container">
+                                <p class="italic text-gray-500 text-center py-2" data-i18n="left_panel.no_traits">
                                     Brak zdefiniowanych cech w projekcie
                                 </p>
                             </div>
@@ -1328,8 +1336,23 @@
                 type="button"
                 class="w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer"
             >
-                <app-icon name="edit" class="w-3.5 h-3.5 text-gray-400 group-hover:text-white shrink-0"></app-icon>
+                <app-icon
+                    name="edit"
+                    class="w-3.5 h-3.5 text-gray-400 group-hover:text-white shrink-0"
+                ></app-icon>
                 <span data-i18n="context_menu.edit_title">Edytuj nazwę</span>
+            </button>
+            <!-- Utwórz postać z tego szablonu (dla typu template) -->
+            <button
+                id="ctx-create-character-from-template"
+                type="button"
+                class="hidden w-full px-3 py-1.5 text-left hover:bg-purple-600 flex items-center gap-2 cursor-pointer text-purple-200 hover:text-white"
+            >
+                <app-icon
+                    name="character"
+                    class="w-3.5 h-3.5 text-purple-400 group-hover:text-white shrink-0"
+                ></app-icon>
+                <span data-i18n="context_menu.create_character_from_template">Utwórz postać z tego szablonu</span>
             </button>
             <!-- Expandable: Dodaj tag -->
             <div id="ctx-add-tag-group" class="hidden">
@@ -1344,8 +1367,8 @@
                     </span>
                     <span
                         id="ctx-add-tag-chevron"
-                        class="text-[10px] text-gray-400 transition-transform duration-150"
-                        >▸</span
+                        class="text-gray-400 inline-flex items-center"
+                        ><app-icon name="chevron-right" class="w-3 h-3"></app-icon></span
                     >
                 </button>
                 <div
@@ -1363,13 +1386,16 @@
                     class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
                 >
                     <span class="flex items-center gap-2">
-                        <app-icon name="trait" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                        <app-icon
+                            name="trait"
+                            class="w-3.5 h-3.5 text-blue-400 shrink-0"
+                        ></app-icon>
                         <span data-i18n="context_menu.add_trait">Dodaj cechę</span>
                     </span>
                     <span
                         id="ctx-add-trait-chevron"
-                        class="text-[10px] text-gray-400 transition-transform duration-150"
-                        >▸</span
+                        class="text-gray-400 inline-flex items-center"
+                        ><app-icon name="chevron-right" class="w-3 h-3"></app-icon></span
                     >
                 </button>
                 <div
@@ -1461,6 +1487,634 @@
                     id="tag-custom-color-input"
                     class="w-full h-6 rounded bg-transparent border-0 cursor-pointer"
                 />
+            </div>
+        </div>
+
+        <!-- Floating Draggable NPC Window (Character Folio / Karta Postaci) -->
+        <div
+            id="npc-create-modal"
+            class="hidden fixed z-40 bg-[#18181b] border border-[#333338] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-left ring-1 ring-white/5 w-[860px] min-w-[700px] min-h-[540px] max-w-[96vw] max-h-[92vh]"
+            role="dialog"
+            aria-labelledby="npc-create-modal-title"
+        >
+            <!-- Draggable Window Title Bar / Folio Header -->
+            <div
+                id="npc-create-modal-header"
+                class="flex items-center justify-between px-5 py-3 border-b border-[#333338] bg-[#202023] cursor-move select-none shrink-0"
+                title="Przeciągnij, aby przesunąć kartę postaci"
+                data-i18n-title="npc.drag_title"
+            >
+                <div class="flex items-center gap-3 pointer-events-none">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 shadow-sm"
+                    >
+                        <app-icon name="character" class="w-4 h-4"></app-icon>
+                    </div>
+                    <div>
+                        <h2
+                            id="npc-create-modal-title"
+                            class="text-xs font-bold text-zinc-100 tracking-wide leading-tight flex items-center gap-1.5"
+                            data-i18n="npc.modal_title"
+                        >
+                            <span>Karta Postaci NPC</span>
+                            <span
+                                class="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-normal"
+                                data-i18n="npc.character_folio_badge"
+                                >Folio</span
+                            >
+                        </h2>
+                        <p
+                            class="text-[10px] text-zinc-400 m-0 leading-tight"
+                            data-i18n="npc.modal_subtitle"
+                        >
+                            Tworzenie i personalizacja bohatera niezależnego
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button
+                        id="btn-close-npc-modal"
+                        type="button"
+                        class="text-zinc-400 hover:text-zinc-100 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                        data-i18n-title="buttons.close"
+                        aria-label="Zamknij"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Window Main Content Row (Character Sheet Column + Side Drawer) -->
+            <div id="npc-window-content-row" class="flex flex-1 min-h-0 relative">
+                <!-- Main Character Sheet Column (flexible, expands with window resizing) -->
+                <div
+                    id="npc-form-column"
+                    class="flex-1 min-w-0 w-full flex flex-col bg-[#18181b]"
+                >
+                    <div
+                        id="npc-create-modal-body"
+                        class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-4 max-h-[82vh]"
+                    >
+                        <form
+                            id="npc-create-modal-form"
+                            class="flex flex-col gap-4"
+                            onsubmit="return false"
+                        >
+                            <!-- Top Block: Vertical Portrait on Left, Name & Attributes on Right -->
+                            <div class="relative flex flex-col sm:flex-row gap-5 items-start pb-4 border-b border-zinc-800">
+                                <!-- Vertical Rectangular Portrait Frame -->
+                                <div class="relative shrink-0 flex flex-col items-center">
+                                    <button
+                                        id="btn-npc-avatar-trigger"
+                                        type="button"
+                                        class="w-32 sm:w-36 h-48 sm:h-52 rounded-xl border border-blue-500/30 hover:border-blue-400 bg-gradient-to-b from-[#202026] via-[#1a1a1f] to-[#16161a] p-3 flex flex-col items-center justify-between text-blue-300 hover:scale-[1.02] transition-all cursor-pointer shadow-lg shadow-black/50 group shrink-0 relative overflow-hidden"
+                                        title="Wybierz klasę / awatar"
+                                        data-i18n-title="npc.avatar_title"
+                                    >
+                                        <!-- Heraldic header / top frame embellishment -->
+                                        <div class="w-full flex items-center justify-between text-[9px] text-blue-400/70 font-mono uppercase tracking-wider border-b border-blue-500/20 pb-1">
+                                            <span data-i18n="npc.portrait">Portret</span>
+                                            <app-icon name="feature" class="w-2.5 h-2.5 text-blue-400 shrink-0"></app-icon>
+                                        </div>
+
+                                        <!-- Centered Avatar SVG preview -->
+                                        <div
+                                            id="npc-selected-avatar-preview"
+                                            class="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center p-2 rounded-xl bg-black/40 border border-blue-500/10 shadow-inner transition-transform group-hover:scale-105"
+                                        ></div>
+
+                                        <!-- Bottom label / Edit badge -->
+                                        <div class="w-full pt-1 border-t border-blue-500/20 flex items-center justify-center gap-1 text-[10px] text-blue-300 font-medium group-hover:text-blue-200">
+                                            <app-icon name="edit" class="w-2.5 h-2.5 text-blue-300 shrink-0"></app-icon>
+                                            <span data-i18n="npc.charakter_change">Zmień awatar</span>
+                                        </div>
+                                    </button>
+
+                                    <!-- Avatar Picker Popover Grid -->
+                                    <div
+                                        id="npc-avatar-picker-popover"
+                                        class="hidden absolute top-full left-0 mt-2 w-72 bg-[#1c1c20] border border-blue-500/30 rounded-xl p-3 shadow-2xl flex flex-col gap-2.5 z-30"
+                                    >
+                                        <div class="flex items-center justify-between border-b border-zinc-800 pb-1.5">
+                                            <span class="text-[11px] font-semibold text-blue-200 uppercase tracking-wider" data-i18n="npc.avatar_title">
+                                                Wybierz klasę / awatar
+                                            </span>
+                                            <span class="text-[10px] text-zinc-500" data-i18n="npc.select_portrait">Wybierz portret</span>
+                                        </div>
+                                        <div id="npc-avatar-grid" class="grid grid-cols-5 gap-2"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: Character Name & Identity Attributes -->
+                                <div class="flex-1 min-w-0 w-full flex flex-col gap-3">
+                                    <!-- Character Name Hero Field -->
+                                    <div class="flex flex-col gap-1">
+                                        <div class="flex items-center justify-between">
+                                            <label
+                                                for="npc-name-input"
+                                                class="text-[11px] font-semibold uppercase tracking-wider text-blue-300/90 flex items-center gap-1"
+                                            >
+                                                <span data-i18n="npc.name_label">Imię i tytuł postaci</span>
+                                                <span class="text-rose-400">*</span>
+                                            </label>
+                                            <span class="text-[10px] text-zinc-500 font-serif italic" data-i18n="npc.independent_hero">Bohater Niezależny</span>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            id="npc-name-input"
+                                            placeholder="np. Mistrz Elion, Strażnik Aldor..."
+                                            data-i18n-placeholder="npc.name_placeholder"
+                                            class="w-full bg-zinc-900/60 hover:bg-zinc-900 focus:bg-zinc-950 border-b-2 border-zinc-700 focus:border-blue-500 rounded-t px-3 py-2 text-sm sm:text-base font-bold text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all tracking-wide"
+                                            autocomplete="off"
+                                        />
+                                    </div>
+
+                                    <!-- Applied Templates Section (Dropdown & Badges) -->
+                                    <div
+                                        id="npc-applied-templates-section"
+                                        class="flex flex-col gap-2 pt-1 pb-1"
+                                    >
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-1.5">
+                                                <app-icon name="character" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                                <h4
+                                                    class="text-xs font-bold text-zinc-200 tracking-wide flex items-center gap-1.5"
+                                                >
+                                                    <span id="npc-applied-templates-title" data-i18n="npc.applied_templates_title">Zastosowane szablony</span>
+                                                    <span id="npc-applied-templates-count" class="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">0</span>
+                                                </h4>
+                                            </div>
+
+                                            <!-- Rozwijany przycisk (Dropdown Button) -->
+                                            <div class="relative inline-block text-left" id="npc-template-dropdown-container">
+                                                <button
+                                                    id="btn-template-dropdown"
+                                                    type="button"
+                                                    aria-haspopup="true"
+                                                    aria-expanded="false"
+                                                    class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-100 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm group"
+                                                    title="Wybierz i zastosuj szablon do postaci"
+                                                    data-i18n-title="npc.apply_template_title"
+                                                >
+                                                    <span class="font-bold text-blue-400 group-hover:text-blue-300 leading-none">+</span>
+                                                    <span data-i18n="npc.apply_template_btn">Zastosuj szablon</span>
+                                                    <span id="npc-template-dropdown-arrow" class="text-[9px] text-zinc-400 transition-transform duration-200">▼</span>
+                                                </button>
+
+                                                <!-- Dropdown Menu / List -->
+                                                <div
+                                                    id="npc-template-dropdown-menu"
+                                                    class="hidden absolute right-0 mt-1.5 w-72 max-w-[90vw] bg-zinc-900 border border-zinc-700/80 rounded-lg shadow-2xl z-50 overflow-hidden flex flex-col backdrop-blur-md"
+                                                >
+                                                    <div class="p-2 border-b border-zinc-800 bg-zinc-950/60">
+                                                        <input
+                                                            type="text"
+                                                            id="npc-template-dropdown-search"
+                                                            placeholder="Szukaj szablonu..."
+                                                            data-i18n-placeholder="npc.search_template_placeholder"
+                                                            class="w-full bg-zinc-900 border border-zinc-700/60 rounded px-2 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+                                                        />
+                                                    </div>
+                                                    <div id="npc-template-dropdown-items" class="max-h-60 overflow-y-auto custom-scrollbar flex flex-col p-1 gap-1">
+                                                        <!-- Rendered dynamically -->
+                                                    </div>
+                                                    <div id="npc-template-dropdown-empty" class="hidden p-4 text-center text-xs text-zinc-500 italic" data-i18n="npc.no_templates_in_project">
+                                                        Brak dostępnych szablonów w projekcie.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chip list of currently applied templates -->
+                                        <div id="npc-applied-templates-list" class="flex flex-wrap items-center gap-1.5 min-h-[22px]">
+                                            <!-- Chips dynamically rendered here -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Custom Attributes / Tożsamość Section (Directly under name) -->
+                                    <div
+                                        id="npc-custom-attributes-section"
+                                        class="flex flex-col gap-2 pt-1"
+                                    >
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-1.5">
+                                                <app-icon name="stat" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                                <h4
+                                                    class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                    data-i18n="npc.custom_attributes_title"
+                                                >
+                                                    Tożsamość i Atrybuty
+                                                </h4>
+                                            </div>
+                                            <button
+                                                id="btn-add-custom-attribute"
+                                                type="button"
+                                                class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-200 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                            >
+                                                <span class="font-bold leading-none">+</span>
+                                                <span data-i18n="npc.add_attribute">Dodaj pole</span>
+                                            </button>
+                                        </div>
+
+                                        <!-- Quick Suggestion Pills (Horizontal Scrollable) -->
+                                        <div id="npc-suggested-attributes-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                            <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                            <div id="npc-suggested-attributes" class="flex items-center gap-1 flex-nowrap shrink-0"></div>
+                                        </div>
+
+                                        <!-- Dynamic Attributes List -->
+                                        <div id="npc-custom-attributes-list" class="flex flex-col gap-1 max-h-36 overflow-y-auto custom-scrollbar"></div>
+
+                                        <!-- Empty State -->
+                                        <div
+                                            id="npc-custom-attributes-empty"
+                                            class="rounded-lg border border-dashed border-zinc-800 p-2 text-center text-[10px] text-zinc-500 italic"
+                                            data-i18n="npc.empty_attributes"
+                                        >
+                                            Brak atrybutów. Kliknij sugestię powyżej lub dodaj własne pole.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Middle Section: Summary / Story Biogram (Full Width) -->
+                            <div class="flex flex-col gap-1.5 pb-4 border-b border-zinc-800">
+                                <div class="flex items-center justify-between">
+                                    <label
+                                        for="npc-summary-input"
+                                        class="text-[11px] font-semibold text-zinc-200 flex items-center gap-1.5"
+                                        data-i18n="npc.summary_label"
+                                    >
+                                        <app-icon name="feature" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                        <span>Rys fabularny / Biogram</span>
+                                    </label>
+                                    <span
+                                        class="text-[10px] text-zinc-500 italic"
+                                        data-i18n="npc.summary_hint"
+                                    >
+                                        Krótka notatka o roli w scenariuszu
+                                    </span>
+                                </div>
+                                <textarea
+                                    id="npc-summary-input"
+                                    rows="2"
+                                    placeholder="Krótki biogram (np. stary zielarz z bagien, skrywa sekret o zaginionym talizmanie)..."
+                                    data-i18n-placeholder="npc.summary_placeholder"
+                                    class="w-full bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-zinc-700 focus:border-blue-500/60 rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none transition-colors resize-none leading-relaxed italic custom-scrollbar"
+                                ></textarea>
+                            </div>
+
+                            <!-- Tags Section (Tagi postaci) -->
+                            <div id="npc-tags-section" class="flex flex-col gap-2 pb-4 border-b border-zinc-800 relative">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <app-icon name="tag" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                        <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.tags_title">
+                                            Tagi postaci
+                                        </h4>
+                                    </div>
+                                    <div class="relative">
+                                        <button
+                                            id="btn-add-npc-tag"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-200 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="npc.add_tag">Dodaj tag</span>
+                                        </button>
+                                        <!-- Tag Picker Popover -->
+                                        <div
+                                            id="npc-tag-picker-popover"
+                                            class="hidden absolute right-0 top-full mt-2 w-72 bg-[#1c1c20] border border-blue-500/30 rounded-xl p-3 shadow-2xl flex flex-col gap-2.5 z-30"
+                                        >
+                                            <div class="flex items-center justify-between border-b border-zinc-800 pb-1.5">
+                                                <span class="text-[11px] font-semibold text-blue-200 uppercase tracking-wider" data-i18n="npc.select_tag">
+                                                    Przypisz lub stwórz tag
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                id="npc-tag-search-input"
+                                                placeholder="Wpisz lub wyszukaj tag..."
+                                                data-i18n-placeholder="npc.search_tag_placeholder"
+                                                class="w-full bg-zinc-950/70 border border-zinc-700 focus:border-blue-500 rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                                            />
+                                            <div id="npc-available-tags-list" class="flex flex-wrap gap-1 max-h-36 overflow-y-auto custom-scrollbar p-1"></div>
+                                            <div id="npc-create-tag-action" class="hidden pt-2 border-t border-zinc-800 flex items-center justify-between gap-2">
+                                                <span class="text-[11px] text-zinc-300 truncate font-medium" id="npc-new-tag-preview-name">Nowy tag</span>
+                                                <button
+                                                    type="button"
+                                                    id="btn-create-new-npc-tag"
+                                                    class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-semibold cursor-pointer shrink-0 transition-colors shadow-sm"
+                                                >
+                                                    + Utwórz i dodaj
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Horizontal scrollable suggested tags -->
+                                <div id="npc-suggested-tags-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-0.5 scroll-smooth max-w-full">
+                                    <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                    <div id="npc-suggested-tags" class="flex items-center gap-1 flex-nowrap shrink-0"></div>
+                                </div>
+
+                                <!-- Selected tags list -->
+                                <div id="npc-tags-list" class="flex flex-wrap items-center gap-1.5 min-h-[22px]"></div>
+
+                                <!-- Empty State -->
+                                <div id="npc-tags-empty" class="text-[10px] text-zinc-500 italic" data-i18n="npc.empty_tags">
+                                    Brak przypisanych tagów. Kliknij „Dodaj tag” lub wybierz z sugestii powyżej.
+                                </div>
+                            </div>
+
+                            <!-- Bottom Section: Full-Width Character Mechanics (Continuous Sheet, No Tiles) -->
+                            <div class="flex flex-col gap-4">
+                                <!-- Stats Section (Cechy Bazowe) - Full Width -->
+                                <div id="npc-stats-section" class="flex flex-col gap-2.5 pb-4 border-b border-zinc-800">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon name="stat" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                            <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.stats_title">
+                                                Cechy Bazowe
+                                            </h4>
+                                        </div>
+                                        <button
+                                            id="btn-add-npc-stat"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-200 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="npc.add_stat">Dodaj cechę</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Preset Chips (Horizontal scrollable) -->
+                                    <div id="npc-suggested-stats-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                        <div id="npc-suggested-stats" class="flex items-center gap-1 flex-nowrap shrink-0"></div>
+                                    </div>
+
+                                    <!-- Dynamic Stats List -->
+                                    <div id="npc-stats-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+
+                                    <!-- Empty State -->
+                                    <div id="npc-stats-empty" class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic" data-i18n="npc.empty_stats">
+                                        Brak zdefiniowanych cech. Wybierz sugestię lub dodaj własną.
+                                    </div>
+                                </div>
+
+                                <!-- Vitals Section (Parametry Życiowe) - Full Width -->
+                                <div id="npc-vitals-section" class="flex flex-col gap-2.5 pb-4 border-b border-zinc-800">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon name="parameter" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                            <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.vitals_title">
+                                                Parametry Życiowe
+                                            </h4>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            id="btn-add-npc-vital"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-200 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="npc.add_vital">Dodaj parametr</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Presets for Vitals (Horizontal scrollable) -->
+                                    <div id="npc-suggested-vitals-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                        <div id="npc-suggested-vitals" class="flex items-center gap-1 flex-nowrap shrink-0"></div>
+                                    </div>
+
+                                    <!-- Dynamic Vitals List -->
+                                    <div id="npc-vitals-list" class="flex flex-col gap-2"></div>
+
+                                    <!-- Empty State -->
+                                    <div id="npc-vitals-empty" class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic" data-i18n="npc.empty_vitals">
+                                        Brak parametrów. Dodaj Punkty Życia, Manę lub wzór dynamiczny.
+                                    </div>
+                                </div>
+
+                                <!-- Skills Section (Zdolności i Umiejętności) - Full Width -->
+                                <div id="npc-skills-section" class="flex flex-col gap-2.5 pb-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon name="skill" class="w-3.5 h-3.5 text-blue-400 shrink-0"></app-icon>
+                                            <h4 class="text-xs font-bold text-zinc-200 tracking-wide" data-i18n="npc.skills_title">
+                                                Zdolności i Umiejętności
+                                            </h4>
+                                        </div>
+                                        <button
+                                            id="btn-add-npc-skill"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-blue-300 hover:text-blue-200 border border-blue-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="npc.add_skill">Dodaj umiejętność</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Preset Chips (Horizontal scrollable) -->
+                                    <div id="npc-suggested-skills-container" class="flex items-center gap-1 overflow-x-auto custom-scrollbar flex-nowrap py-1 scroll-smooth max-w-full">
+                                        <span class="text-[10px] text-zinc-500 font-medium mr-0.5 shrink-0" data-i18n="npc.suggestions_label">Sugestie:</span>
+                                        <div id="npc-suggested-skills" class="flex items-center gap-1 flex-nowrap shrink-0"></div>
+                                    </div>
+
+                                    <!-- Dynamic Skills List -->
+                                    <div id="npc-skills-list" class="flex flex-col gap-2"></div>
+
+                                    <!-- Empty State -->
+                                    <div id="npc-skills-empty" class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic" data-i18n="npc.empty_skills">
+                                        Brak umiejętności. Wybierz z listy lub dodaj nową zdolność.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Error Alert (hidden by default) -->
+                            <div
+                                id="npc-create-error-message"
+                                class="hidden px-3.5 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="shrink-0 text-rose-400"
+                                >
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span
+                                    id="npc-create-error-text"
+                                    data-i18n="npc.validation_name_required"
+                                >
+                                    Nazwa postaci jest wymagana
+                                </span>
+                            </div>
+
+                            <!-- Modal Actions Footer -->
+                            <div
+                                id="npc-create-modal-footer"
+                                class="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800"
+                            >
+                                <button
+                                    type="button"
+                                    id="btn-cancel-npc-modal"
+                                    class="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 hover:text-white font-medium transition-all cursor-pointer border border-zinc-700/50"
+                                    data-i18n="npc.btn_cancel"
+                                >
+                                    Anuluj
+                                </button>
+                                <button
+                                    type="submit"
+                                    id="btn-save-npc-modal"
+                                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-blue-900/30 hover:shadow-blue-600/30 active:scale-[0.98]"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                                        ></path>
+                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                        <polyline points="7 3 7 8 15 8"></polyline>
+                                    </svg>
+                                    <span data-i18n="npc.btn_create">Zapisz postać</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Vertical Strip with Arrow Toggle Button for Right Side Panel -->
+                <div class="shrink-0 flex items-stretch border-l border-zinc-800 bg-[#151518]">
+                    <button
+                        id="btn-toggle-npc-description"
+                        type="button"
+                        class="w-7 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-blue-300 hover:bg-zinc-800/60 transition-colors cursor-pointer group py-3"
+                        title="Rozwiń panel opisu narracyjnego"
+                        data-i18n-title="npc.description_drawer_toggle"
+                    >
+                        <span
+                            id="npc-desc-toggle-arrow"
+                            class="text-xs font-bold transition-transform group-hover:scale-125 text-blue-400"
+                            >›</span
+                        >
+                        <span
+                            class="text-[9px] font-bold uppercase tracking-widest opacity-70 group-hover:opacity-100 select-none text-zinc-300"
+                            style="writing-mode: vertical-rl; text-orientation: mixed"
+                            data-i18n="npc.chronicle"
+                        >
+                            Kronika
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Expandable Right Side Panel (Narrative Description Drawer) -->
+                <div
+                    id="npc-description-drawer"
+                    class="hidden w-[380px] bg-[#161619] border-l border-zinc-800 flex flex-col shrink-0 overflow-hidden"
+                >
+                    <!-- Drawer Header -->
+                    <div
+                        class="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-[#1a1a1e] shrink-0"
+                    >
+                        <div class="flex items-center gap-2">
+                            <app-icon name="markdown" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                            <h3
+                                class="text-xs font-bold text-zinc-100 tracking-wide"
+                                data-i18n="npc.description_title"
+                            >
+                                Dziennik i Notatki (Markdown)
+                            </h3>
+                        </div>
+                        <span
+                            class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-medium border border-blue-500/20"
+                        >
+                            Markdown
+                        </span>
+                    </div>
+
+                    <!-- Drawer Content / Editor Slot -->
+                    <div
+                        id="npc-description-editor-slot"
+                        class="p-4 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
+                    >
+                        <!-- Info notice about shared editor -->
+                        <div
+                            class="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2"
+                        >
+                            <app-icon
+                                name="edit"
+                                class="w-3.5 h-3.5 text-blue-400 shrink-0"
+                            ></app-icon>
+                            <span data-i18n="npc.description_slot_info"
+                                >Współdzielony edytor Markdown zostanie podłączony w tym
+                                miejscu</span
+                            >
+                        </div>
+
+                        <!-- Editable Raw Description Textarea ready for author notes / narrative -->
+                        <textarea
+                            id="npc-description-textarea"
+                            rows="12"
+                            placeholder="Wpisz szczegółowy opis postaci, wygląd zewnętrzny, dialogi lub fabularny wstęp..."
+                            data-i18n-placeholder="npc.description_placeholder"
+                            class="w-full flex-1 min-h-[220px] bg-[#121215] border border-zinc-800 focus:border-blue-500/60 rounded-lg p-3 text-xs text-zinc-100 font-mono placeholder-zinc-600 focus:outline-none resize-none leading-relaxed custom-scrollbar"
+                            spellcheck="false"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resize Handle in Bottom Right Corner -->
+            <div
+                id="npc-modal-resizer"
+                class="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 select-none z-50 text-zinc-600 hover:text-blue-400 group"
+                title="Zmień rozmiar okna"
+                data-i18n-title="npc.resize_title"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="currentColor" class="opacity-40 group-hover:opacity-100 transition-opacity">
+                    <circle cx="8.5" cy="8.5" r="1"></circle>
+                    <circle cx="8.5" cy="5" r="1"></circle>
+                    <circle cx="5" cy="5" r="1"></circle>
+                    <circle cx="8.5" cy="1.5" r="1"></circle>
+                    <circle cx="5" cy="1.5" r="1"></circle>
+                    <circle cx="1.5" cy="8.5" r="1"></circle>
+                </svg>
             </div>
         </div>
 

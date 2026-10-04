@@ -42,12 +42,26 @@ export function createMockProjectData(vm) {
         vm.createCharacter('Kupiec Jan'),
     ]
 
+    const projectTemplates = [
+        vm.createTemplate('Archetyp Strażnika'),
+        vm.createTemplate('Bandyta leśny (szablon)'),
+    ]
+
     const projectLocations = [
         vm.createLocation('Karczma Pod Różą'),
         vm.createLocation('Mroczny Las'),
     ]
 
     const projectStats = [vm.createStat('Siła'), vm.createStat('Zręczność')]
+    const projectSkills = [
+        vm.createSkill('Walka wręcz', 'Skill', 'direct', '+3'),
+        vm.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2'),
+    ]
+    const projectParameters = [
+        vm.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
+        vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
+    ]
+    const projectFeatures = [vm.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
 
     const projectParagraphs = [
         new Paragraph(
@@ -136,8 +150,12 @@ export function createMockProjectData(vm) {
         files: { ...mockFiles },
         projectTags,
         projectCharacters,
+        projectTemplates,
         projectLocations,
         projectStats,
+        projectSkills,
+        projectParameters,
+        projectFeatures,
         projectParagraphs,
         projectScenes,
     }
@@ -161,6 +179,9 @@ export const USE_MOCK = true
  *   projectCharacters: Array<any>,
  *   projectLocations: Array<any>,
  *   projectStats: Array<any>,
+ *   projectSkills: Array<any>,
+ *   projectParameters: Array<any>,
+ *   projectFeatures: Array<any>,
  *   projectParagraphs: Array<any>,
  *   projectScenes: Array<any>
  * }}
@@ -171,8 +192,12 @@ export function extractProjectData(project, files = {}) {
             files: {},
             projectTags: [],
             projectCharacters: [],
+            projectTemplates: [],
             projectLocations: [],
             projectStats: [],
+            projectSkills: [],
+            projectParameters: [],
+            projectFeatures: [],
             projectParagraphs: [],
             projectScenes: [],
         }
@@ -189,15 +214,25 @@ export function extractProjectData(project, files = {}) {
               ? project.getTagList()
               : []
     const characters = typeof project.getCharacters === 'function' ? project.getCharacters() : []
+    const templates = typeof project.getTemplates === 'function' ? project.getTemplates() : []
     const locations = typeof project.getLocations === 'function' ? project.getLocations() : []
     const stats = typeof project.getGlobalStats === 'function' ? project.getGlobalStats() : []
+    const skills = typeof project.getGlobalSkills === 'function' ? project.getGlobalSkills() : []
+    const parameters =
+        typeof project.getGlobalParameters === 'function' ? project.getGlobalParameters() : []
+    const features =
+        typeof project.getGlobalFeatures === 'function' ? project.getGlobalFeatures() : []
 
     return {
         files: files || {},
         projectTags: tags,
         projectCharacters: characters,
+        projectTemplates: templates,
         projectLocations: locations,
         projectStats: stats,
+        projectSkills: skills,
+        projectParameters: parameters,
+        projectFeatures: features,
         projectParagraphs: paragraphs,
         projectScenes: scenes,
     }
@@ -216,6 +251,9 @@ export function extractProjectData(project, files = {}) {
  *   projectCharacters: Array<any>,
  *   projectLocations: Array<any>,
  *   projectStats: Array<any>,
+ *   projectSkills: Array<any>,
+ *   projectParameters: Array<any>,
+ *   projectFeatures: Array<any>,
  *   projectParagraphs: Array<any>,
  *   projectScenes: Array<any>
  * }>}
@@ -230,8 +268,12 @@ export async function loadRealProjectData(vm, options = {}) {
         files: options.files || {},
         projectTags: [],
         projectCharacters: [],
+        projectTemplates: [],
         projectLocations: [],
         projectStats: [],
+        projectSkills: [],
+        projectParameters: [],
+        projectFeatures: [],
         projectParagraphs: [],
         projectScenes: [],
     }

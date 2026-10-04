@@ -36,8 +36,8 @@ export function openContextMenu(x, y, target) {
         ctxAddTraitList.classList.add('hidden')
         ctxAddTraitList.innerHTML = ''
     }
-    if (ctxAddTagChevron) ctxAddTagChevron.textContent = '▸'
-    if (ctxAddTraitChevron) ctxAddTraitChevron.textContent = '▸'
+    if (ctxAddTagChevron) ctxAddTagChevron.innerHTML = getIconSvg('chevron-right', 'w-3 h-3')
+    if (ctxAddTraitChevron) ctxAddTraitChevron.innerHTML = getIconSvg('chevron-right', 'w-3 h-3')
 
     if (ctxAddTagGroup) {
         if (target.type === 'character' || target.type === 'location') {
@@ -52,6 +52,15 @@ export function openContextMenu(x, y, target) {
             ctxAddTraitGroup.classList.remove('hidden')
         } else {
             ctxAddTraitGroup.classList.add('hidden')
+        }
+    }
+
+    const ctxCreateFromTemplate = document.getElementById('ctx-create-character-from-template')
+    if (ctxCreateFromTemplate) {
+        if (target.type === 'template') {
+            ctxCreateFromTemplate.classList.remove('hidden')
+        } else {
+            ctxCreateFromTemplate.classList.add('hidden')
         }
     }
 
@@ -182,16 +191,6 @@ export function setupSectionControlsAndContextMenu(ctx) {
             getDefaultName: () => t('scene.default_name'),
         },
         {
-            type: 'character',
-            btnId: 'btn-add-character',
-            formId: 'character-create-form',
-            inputId: 'character-create-name',
-            submitId: 'character-create-submit',
-            cancelId: 'character-create-cancel',
-            searchId: 'character-search-input',
-            getDefaultName: () => t('character.default_name'),
-        },
-        {
             type: 'location',
             btnId: 'btn-add-location',
             formId: 'location-create-form',
@@ -230,6 +229,9 @@ export function setupSectionControlsAndContextMenu(ctx) {
 
         if (cancel && form) {
             cancel.addEventListener('click', () => {
+                input.value = ''
+                const valInput = form.querySelector('#trait-create-value')
+                if (valInput) valInput.value = ''
                 form.classList.add('hidden')
             })
         }
@@ -252,21 +254,68 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     ctx.projectScenes.push(createdItem)
                     ctx.renderScenesList()
                     if (ctx.populateFilterSelects) ctx.populateFilterSelects()
-                } else if (sec.type === 'character') {
-                    createdItem = ctx.vm.createCharacter(name, defaultName)
-                    category = ENTITY_CATEGORIES.NPC
-                    ctx.projectCharacters.push(createdItem)
-                    ctx.renderCharactersList()
-                    if (ctx.populateFilterSelects) ctx.populateFilterSelects()
                 } else if (sec.type === 'location') {
                     createdItem = ctx.vm.createLocation(name, defaultName)
                     category = ENTITY_CATEGORIES.LOCATIONS
                     ctx.projectLocations.push(createdItem)
                     ctx.renderLocationsList()
                 } else if (sec.type === 'trait') {
-                    createdItem = ctx.vm.createStat(name, defaultName)
+                    const typeSelect = document.getElementById('trait-create-type')
+                    const selectedType = typeSelect ? typeSelect.value : 'stat'
+                    const valInput = document.getElementById('trait-create-value')
+                    const customVal = valInput ? valInput.value.trim() : ''
+
                     category = ENTITY_CATEGORIES.RULES
-                    ctx.projectStats.push(createdItem)
+
+                    if (selectedType === 'parameter') {
+                        const isFormula =
+                            customVal.includes('+') ||
+                            customVal.includes('-') ||
+                            customVal.includes('*') ||
+                            customVal.includes('/')
+                        createdItem = ctx.vm.createParameter(
+                            name,
+                            defaultName,
+                            isFormula ? 'formula' : 'direct',
+                            isFormula ? '' : customVal || 10,
+                            isFormula ? customVal : ''
+                        )
+                        if (!Array.isArray(ctx.projectParameters)) ctx.projectParameters = []
+                        ctx.projectParameters.push(createdItem)
+                        if (ctx.vm.project?.addGlobalParameter) {
+                            ctx.vm.project.addGlobalParameter(createdItem)
+                        }
+                    } else if (selectedType === 'skill') {
+                        createdItem = ctx.vm.createSkill(
+                            name,
+                            defaultName,
+                            'direct',
+                            customVal || '+1'
+                        )
+                        if (!Array.isArray(ctx.projectSkills)) ctx.projectSkills = []
+                        ctx.projectSkills.push(createdItem)
+                        if (ctx.vm.project?.addGlobalSkill) {
+                            ctx.vm.project.addGlobalSkill(createdItem)
+                        }
+                    } else if (selectedType === 'feature') {
+                        createdItem = ctx.vm.createFeature(name, defaultName)
+                        if (customVal && createdItem.getDescription) {
+                            createdItem.getDescription().setText(customVal)
+                        }
+                        if (!Array.isArray(ctx.projectFeatures)) ctx.projectFeatures = []
+                        ctx.projectFeatures.push(createdItem)
+                        if (ctx.vm.project?.addGlobalFeature) {
+                            ctx.vm.project.addGlobalFeature(createdItem)
+                        }
+                    } else {
+                        createdItem = ctx.vm.createStat(name, defaultName)
+                        if (customVal) createdItem.setValue(customVal)
+                        ctx.projectStats.push(createdItem)
+                        if (ctx.vm.project?.addStat) {
+                            ctx.vm.project.addStat(createdItem)
+                        }
+                    }
+                    if (valInput) valInput.value = ''
                     ctx.renderTraitsList()
                 }
 
@@ -320,7 +369,24 @@ export function setupSectionControlsAndContextMenu(ctx) {
             submit.addEventListener('click', handleAdd)
             input.addEventListener('keydown', e => {
                 if (e.key === 'Enter') handleAdd()
+                if (e.key === 'Escape') {
+                    input.value = ''
+                    const valInput = form.querySelector('#trait-create-value')
+                    if (valInput) valInput.value = ''
+                    form.classList.add('hidden')
+                }
             })
+            const valInput = form.querySelector('#trait-create-value')
+            if (valInput) {
+                valInput.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') handleAdd()
+                    if (e.key === 'Escape') {
+                        input.value = ''
+                        valInput.value = ''
+                        form.classList.add('hidden')
+                    }
+                })
+            }
         }
 
         if (searchInput) {
@@ -340,11 +406,32 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     ctx.renderLocationsList()
                 } else if (sec.type === 'trait') {
                     ctx.vm.setStatSearchQuery(val)
+                    if (typeof ctx.vm.setParameterSearchQuery === 'function') {
+                        ctx.vm.setParameterSearchQuery(val)
+                    }
+                    if (typeof ctx.vm.setSkillSearchQuery === 'function') {
+                        ctx.vm.setSkillSearchQuery(val)
+                    }
+                    if (typeof ctx.vm.setFeatureSearchQuery === 'function') {
+                        ctx.vm.setFeatureSearchQuery(val)
+                    }
                     ctx.renderTraitsList()
                 }
             })
         }
     })
+
+    const ctxCreateFromTemplate = document.getElementById('ctx-create-character-from-template')
+    if (ctxCreateFromTemplate) {
+        ctxCreateFromTemplate.addEventListener('click', () => {
+            if (!activeContextMenuTarget || activeContextMenuTarget.type !== 'template') return
+            const tpl = activeContextMenuTarget.item
+            if (typeof ctx.openNpcModal === 'function') {
+                ctx.openNpcModal({ mode: 'character', applyTemplate: tpl })
+            }
+            if (ctxMenu) ctxMenu.classList.add('hidden')
+        })
+    }
 
     if (ctxEditTitle) {
         ctxEditTitle.addEventListener('click', () => {
@@ -379,12 +466,33 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     const idx = ctx.projectCharacters.findIndex(c => c.getId() === id)
                     if (idx !== -1) ctx.projectCharacters.splice(idx, 1)
                     if (ctx.populateFilterSelects) ctx.populateFilterSelects()
+                } else if (activeContextMenuTarget.type === 'template') {
+                    const tpls = ctx.projectTemplates || []
+                    const idx = tpls.findIndex(
+                        t => (typeof t.getId === 'function' ? t.getId() : t.id) === id
+                    )
+                    if (idx !== -1) tpls.splice(idx, 1)
+                    if (ctx.vm?.project && typeof ctx.vm.project.removeTemplate === 'function') {
+                        ctx.vm.project.removeTemplate(id)
+                    }
                 } else if (activeContextMenuTarget.type === 'location') {
                     const idx = ctx.projectLocations.findIndex(l => l.getId() === id)
                     if (idx !== -1) ctx.projectLocations.splice(idx, 1)
-                } else if (activeContextMenuTarget.type === 'trait') {
+                } else if (
+                    activeContextMenuTarget.type === 'trait' ||
+                    activeContextMenuTarget.type === 'stat'
+                ) {
                     const idx = ctx.projectStats.findIndex(tr => tr.getId() === id)
                     if (idx !== -1) ctx.projectStats.splice(idx, 1)
+                } else if (activeContextMenuTarget.type === 'parameter') {
+                    const idx = (ctx.projectParameters || []).findIndex(p => p.getId() === id)
+                    if (idx !== -1) ctx.projectParameters.splice(idx, 1)
+                } else if (activeContextMenuTarget.type === 'skill') {
+                    const idx = (ctx.projectSkills || []).findIndex(sk => sk.getId() === id)
+                    if (idx !== -1) ctx.projectSkills.splice(idx, 1)
+                } else if (activeContextMenuTarget.type === 'feature') {
+                    const idx = (ctx.projectFeatures || []).findIndex(f => f.getId() === id)
+                    if (idx !== -1) ctx.projectFeatures.splice(idx, 1)
                 }
                 ctx.refreshActiveSection(activeContextMenuTarget.type)
             }
@@ -399,7 +507,9 @@ export function setupSectionControlsAndContextMenu(ctx) {
             const isHidden = ctxAddTagList.classList.contains('hidden')
             ctxAddTagList.classList.toggle('hidden')
             if (ctxAddTagChevron) {
-                ctxAddTagChevron.textContent = isHidden ? '▾' : '▸'
+                ctxAddTagChevron.innerHTML = isHidden
+                    ? getIconSvg('chevron-down', 'w-3 h-3')
+                    : getIconSvg('chevron-right', 'w-3 h-3')
             }
             if (isHidden) {
                 ctxAddTagList.innerHTML =
@@ -440,7 +550,9 @@ export function setupSectionControlsAndContextMenu(ctx) {
             const isHidden = ctxAddTraitList.classList.contains('hidden')
             ctxAddTraitList.classList.toggle('hidden')
             if (ctxAddTraitChevron) {
-                ctxAddTraitChevron.textContent = isHidden ? '▾' : '▸'
+                ctxAddTraitChevron.innerHTML = isHidden
+                    ? getIconSvg('chevron-down', 'w-3 h-3')
+                    : getIconSvg('chevron-right', 'w-3 h-3')
             }
             if (isHidden) {
                 ctxAddTraitList.innerHTML =

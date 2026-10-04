@@ -795,5 +795,134 @@ describe('MainWindowViewModel', () => {
             vm.setZoomSensitivity(2.5)
             expect(vm.getZoomSensitivity()).toBe(1.0)
         })
+
+        it('tworzy umiejętności (createSkill), parametry (createParameter) i cechy specjalne (createFeature)', () => {
+            const skill = vm.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2')
+            expect(skill.getName()).toBe('Skradanie')
+            expect(skill.getMode()).toBe('stat_mod')
+            expect(skill.getStatName()).toBe('Zręczność')
+            expect(skill.getModifier()).toBe('+2')
+
+            const param = vm.createParameter(
+                'Punkty Życia',
+                'Param',
+                'formula',
+                '',
+                'Siła * 4 + 10',
+                50
+            )
+            expect(param.getName()).toBe('Punkty Życia')
+            expect(param.getMode()).toBe('formula')
+            expect(param.getFormula()).toBe('Siła * 4 + 10')
+            expect(param.getCalculatedValue()).toBe(50)
+
+            const feature = vm.createFeature('Widzenie w ciemności')
+            expect(feature.getName()).toBe('Widzenie w ciemności')
+        })
+
+        it('wyszukuje i filtruje umiejętności, parametry oraz cechy specjalne', () => {
+            const sk1 = vm.createSkill('Walka mieczem')
+            const sk2 = vm.createSkill('Strzelanie z łuku')
+            vm.setSkillSearchQuery('miecz')
+            expect(vm.searchAndFilterSkills([sk1, sk2])).toEqual([sk1])
+
+            const p1 = vm.createParameter('Punkty Życia')
+            const p2 = vm.createParameter('Mana')
+            vm.setParameterSearchQuery('mana')
+            expect(vm.searchAndFilterParameters([p1, p2])).toEqual([p2])
+
+            const f1 = vm.createFeature('Odporność na ogień')
+            const f2 = vm.createFeature('Zwinne palce')
+            vm.setFeatureSearchQuery('ogień')
+            expect(vm.searchAndFilterFeatures([f1, f2])).toEqual([f1])
+        })
+
+        it('generuje dynamiczne sugestie TYLKO dla elementów istniejących w Cechy i atrybuty', () => {
+            const char = vm.createCharacter('Wojownik')
+            char.addStat(vm.createStat('Percepcja'))
+            char.addSkill(vm.createSkill('Kradzież'))
+            char.addParameter(vm.createParameter('Wytrzymałość'))
+            char.addFeature(vm.createFeature('Blizna'))
+            char.addTag(vm.createTag('Wojownik'))
+
+            // Cechy / Stats: TYLKO istniejące w przekazanej tablicy projektu
+            const suggestedStats = vm.getSuggestedStats([vm.createStat('Szczęście')], [char])
+            expect(suggestedStats).not.toContain('Siła') // brak domyślnych
+            expect(suggestedStats).not.toContain('Zręczność')
+            expect(suggestedStats).toEqual(['Szczęście'])
+
+            // Pusta lista cech zwraca pustą tablicę sugestii
+            expect(vm.getSuggestedStats([])).toEqual([])
+
+            // Parametry: TYLKO z listy projektu
+            const suggestedParams = vm.getSuggestedParameters(
+                [vm.createParameter('Wytrzymałość')],
+                [char]
+            )
+            expect(suggestedParams).not.toContain('Punkty Życia (HP)')
+            expect(suggestedParams).toEqual(['Wytrzymałość'])
+            expect(vm.getSuggestedParameters([])).toEqual([])
+
+            // Umiejętności: TYLKO z listy projektu
+            const suggestedSkills = vm.getSuggestedSkills([vm.createSkill('Alchemia')], [char])
+            expect(suggestedSkills).not.toContain('Walka wręcz')
+            expect(suggestedSkills).toEqual(['Alchemia'])
+            expect(vm.getSuggestedSkills([])).toEqual([])
+
+            // Przymioty specjalne / Atrybuty: TYLKO z listy projektu
+            const suggestedFeatures = vm.getSuggestedFeatures(
+                [vm.createFeature('Noktowizja')],
+                [char]
+            )
+            expect(suggestedFeatures).not.toContain('Rasa')
+            expect(suggestedFeatures).toEqual(['Noktowizja'])
+            expect(vm.getSuggestedFeatures([])).toEqual([])
+
+            // Tagi z projektu i postaci
+            const suggestedTags = vm.getSuggestedTags([vm.createTag('Bohater')], [char])
+            expect(suggestedTags).toContain('Bohater')
+            expect(suggestedTags).toContain('Wojownik')
+
+            // Dynamiczne zliczanie cech, atrybutów, parametrów i umiejętności
+            const counts = vm.getProjectTraitsCounts(
+                [vm.createStat('S1'), vm.createStat('S2')],
+                [vm.createParameter('P1')],
+                [vm.createSkill('Sk1'), vm.createSkill('Sk2'), vm.createSkill('Sk3')],
+                [vm.createFeature('F1')]
+            )
+            expect(counts).toEqual({
+                stats: 2,
+                parameters: 1,
+                skills: 3,
+                features: 1,
+                total: 7,
+            })
+        })
+
+        it('pozwala dodawać i usuwać umiejętności, parametry oraz cechy z zaznaczonej encji', () => {
+            const char = vm.createCharacter('Bohater')
+            vm.selectElement(char, 'character')
+
+            const skill = vm.createSkill('Fechtunek')
+            vm.addSkillToSelected(skill)
+            expect(char.getSkills()).toContain(skill)
+
+            vm.removeSkillFromSelected(skill.getId())
+            expect(char.getSkills()).not.toContain(skill)
+
+            const param = vm.createParameter('Energia')
+            vm.addParameterToSelected(param)
+            expect(char.getParameters()).toContain(param)
+
+            vm.removeParameterFromSelected(param.getId())
+            expect(char.getParameters()).not.toContain(param)
+
+            const feat = vm.createFeature('Szybki refleks')
+            vm.addFeatureToSelected(feat)
+            expect(char.getFeatures()).toContain(feat)
+
+            vm.removeFeatureFromSelected(feat.getId())
+            expect(char.getFeatures()).not.toContain(feat)
+        })
     })
 })

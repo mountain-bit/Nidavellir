@@ -63,6 +63,29 @@ describe('translate — interpolacja i18next', () => {
             t('nieistniejacy.klucz', { name: 'Jan', count: 3 })
         ).not.toThrow()
     })
+
+    it('t() poprawnie interpoluje zmienne {{name}} w template_applied_toast', () => {
+        expect(t('npc.template_applied_toast', { name: 'Wojownik' })).toBe(
+            'Zastosowano szablon "Wojownik"'
+        )
+    })
+
+    it('t() poprawnie interpoluje zmienne {{name}} w template_already_applied', () => {
+        expect(t('npc.template_already_applied', { name: 'Mag' })).toBe(
+            'Szablon "Mag" został już wcześniej nałożony'
+        )
+    })
+
+    it('t() poprawnie interpoluje zmienne {{stat}} w vital_formula_missing_stat', () => {
+        expect(t('npc.vital_formula_missing_stat', { stat: 'Siła' })).toBe('Brakująca cecha: Siła')
+    })
+
+    it('t() poprawnie zastępuje jednouchwytowe {name} gdyby wystąpiły w fallbacku', () => {
+        // @ts-expect-error -- intentional key with single brace format
+        expect(t('Testowy {name} i {count}', { name: 'Łucznik', count: 5 })).toBe(
+            'Testowy Łucznik i 5'
+        )
+    })
 })
 
 describe('translate — setLanguage', () => {

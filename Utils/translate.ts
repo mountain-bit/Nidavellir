@@ -23,6 +23,14 @@ const resources = {
     de: { translation: de as unknown as Translations },
 }
 
+// Synchronously initialize i18next with default 'pl' locale so t() works immediately
+i18next.init({
+    lng: 'pl',
+    fallbackLng: 'en',
+    resources,
+    interpolation: { escapeValue: false },
+})
+
 let initialized = false
 
 export async function initTranslations(): Promise<void> {
@@ -30,33 +38,29 @@ export async function initTranslations(): Promise<void> {
 
     const locale = (await window.electronAPI?.getLocale?.()) || 'en'
 
-    await i18next.init({
-        lng: locale,
-        fallbackLng: 'en',
-        resources,
-        interpolation: { escapeValue: true },
-    })
-
+    await i18next.changeLanguage(locale)
     initialized = true
 }
 
 export async function initTranslationsWithLocale(locale: SupportedLanguage): Promise<void> {
-    if (i18next.isInitialized) {
-        await i18next.changeLanguage(locale)
-        return
-    }
-    await i18next.init({
-        lng: locale,
-        fallbackLng: 'en',
-        resources,
-        interpolation: { escapeValue: true },
-    })
+    await i18next.changeLanguage(locale)
     initialized = true
 }
 
 export function t(key: TranslationKey, options?: Record<string, unknown>): string {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return i18next.t(key as any, options as any) as string
+    let result = (i18next.t(key as any, options as any) ?? String(key)) as string
+    if (result && options && typeof options === 'object') {
+        for (const [k, v] of Object.entries(options)) {
+            if (result.includes(`{${k}}`)) {
+                result = result.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v))
+            }
+            if (result.includes(`{{${k}}}`)) {
+                result = result.replace(new RegExp(`\\{\\{${k}\\}\\}`, 'g'), String(v))
+            }
+        }
+    }
+    return result
 }
 
 export function getLanguage(): SupportedLanguage {
@@ -88,7 +92,7 @@ export function applyTranslations(): void {
     })
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder')
-        if (key && el instanceof HTMLInputElement) {
+        if (key && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             el.placeholder = i18next.t(key as any) as string
         }

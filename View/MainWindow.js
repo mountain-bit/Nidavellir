@@ -31,6 +31,7 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
+import { renderDynamicSuggestions, setupNpcModal, updateTraitsCounterUI } from './ui/npcModal.js'
 import {
     renderEditorTabs,
     saveActiveFile,
@@ -80,11 +81,23 @@ const appContext = {
     get projectCharacters() {
         return projectData.projectCharacters
     },
+    get projectTemplates() {
+        return projectData.projectTemplates || []
+    },
     get projectLocations() {
         return projectData.projectLocations
     },
     get projectStats() {
         return projectData.projectStats
+    },
+    get projectSkills() {
+        return projectData.projectSkills || []
+    },
+    get projectParameters() {
+        return projectData.projectParameters || []
+    },
+    get projectFeatures() {
+        return projectData.projectFeatures || []
     },
     get projectParagraphs() {
         return projectData.projectParagraphs
@@ -106,6 +119,8 @@ const appContext = {
     renderCharactersList: () => renderCharactersList(appContext),
     renderLocationsList: () => renderLocationsList(appContext),
     renderTraitsList: () => renderTraitsList(appContext),
+    renderDynamicSuggestions: () => renderDynamicSuggestions(appContext),
+    updateTraitsCounterUI: () => updateTraitsCounterUI(appContext),
     renderConnectionsList: () => renderConnectionsList(appContext),
     renderFilterTags: () => renderFilterTags(appContext),
     populateFilterSelects: () => populateFilterSelects(appContext),
@@ -226,7 +241,17 @@ function refreshActiveSection(type) {
         renderParagraphsList(appContext)
         renderScenesList(appContext)
     }
-    if (type === 'trait') renderTraitsList(appContext)
+    if (
+        type === 'trait' ||
+        type === 'stat' ||
+        type === 'parameter' ||
+        type === 'skill' ||
+        type === 'feature'
+    ) {
+        renderTraitsList(appContext)
+        renderDynamicSuggestions(appContext)
+        updateTraitsCounterUI(appContext)
+    }
     if (type === 'paragraph') {
         renderParagraphsList(appContext)
         renderConnectionsList(appContext)
@@ -614,6 +639,7 @@ async function initApp() {
 
         setupParagraphSearchAndFilters(appContext)
         setupSectionControlsAndContextMenu(appContext)
+        setupNpcModal(appContext)
         setupResizers(leftDrawer, rightSidebar, vm)
 
         // Initial drawer lists & filters rendering

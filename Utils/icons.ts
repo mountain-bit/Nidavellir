@@ -5,15 +5,21 @@
  * the UI, Graph visualization, context menus, and toolbars.
  */
 
+export const PARAGRAPH_SYMBOL = '§'
+
 export type IconName =
     | 'paragraph'
     | 'scene'
     | 'choice'
     | 'connection'
     | 'character'
+    | 'template'
     | 'location'
     | 'trait'
     | 'stat'
+    | 'parameter'
+    | 'skill'
+    | 'feature'
     | 'tag'
     | 'item'
     | 'class'
@@ -26,6 +32,8 @@ export type IconName =
     | 'arrow-left'
     | 'arrow-up'
     | 'arrow-down'
+    | 'chevron-right'
+    | 'chevron-down'
     | 'plus'
     | 'trash'
     | 'edit'
@@ -72,6 +80,10 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path><circle cx="12" cy="7" r="4" stroke-width="1.8"></circle>',
     },
+    template: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><line x1="3" y1="9" x2="21" y2="9" stroke-width="1.8"></line><line x1="9" y1="21" x2="9" y2="9" stroke-width="1.8"></line>',
+    },
     location: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>',
@@ -83,6 +95,18 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     stat: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"></path>',
+    },
+    parameter: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"></path>',
+    },
+    skill: {
+        viewBox: '0 0 24 24',
+        path: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polygon>',
+    },
+    feature: {
+        viewBox: '0 0 24 24',
+        path: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polygon>',
     },
     tag: {
         viewBox: '0 0 24 24',
@@ -129,6 +153,14 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>',
     },
     'arrow-down': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>',
+    },
+    'chevron-right': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>',
+    },
+    'chevron-down': {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>',
     },
