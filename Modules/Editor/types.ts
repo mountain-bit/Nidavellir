@@ -15,11 +15,61 @@ export interface IDocumentEntities {
     traits: { id?: string; name: string }[]
 }
 
+export interface ICustomTextStyle {
+    id: string
+    name: string
+    color?: string
+    backgroundColor?: string
+    italic?: boolean
+    bold?: boolean
+    underline?: boolean
+    border?: boolean
+    fontFamily?: string
+    docxStyleName?: string
+}
+
+export interface IActiveFormatting {
+    bold?: boolean
+    italic?: boolean
+    underline?: boolean
+    strike?: boolean
+    paragraph?: boolean
+    h1?: boolean
+    h2?: boolean
+    h3?: boolean
+    h4?: boolean
+    h5?: boolean
+    bulletList?: boolean
+    orderedList?: boolean
+    blockquote?: boolean
+    dialog?: boolean
+    customStyle?: boolean
+    activeCustomStyleId?: string | null
+    [key: string]: unknown
+}
+
 export interface IMarkdownEditorOptions {
     element: HTMLElement
     initialContent?: string
     placeholder?: string
     getProjectEntities?: () => IEntityMentionItem[]
+    getCustomStyles?: () => ICustomTextStyle[]
     onUpdate?: (markdown: string, entities: IDocumentEntities) => void
     onEntityClick?: (entity: IEntityMentionItem) => void
+    onSelectionUpdate?: (activeStates: IActiveFormatting) => void
+}
+
+export interface IFontCatalogItem {
+    id: string
+    family: string
+    category: string
+    subsets?: string[]
+    supportsPolish?: boolean
+    tags?: string[]
+}
+
+export interface IFetchFontsResult {
+    fonts: IFontCatalogItem[]
+    isOnline: boolean
+    error?: string
 }

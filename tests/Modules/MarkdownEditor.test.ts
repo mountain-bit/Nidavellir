@@ -99,7 +99,7 @@ describe('MarkdownEditor', () => {
         const editor = new MarkdownEditor({
             element: container,
             initialContent: 'Ala ma kota i psa.',
-            getProjectEntities: () => mockEntities,
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
         })
 
         expect(editor.getWordCount()).toBe(5)
@@ -111,7 +111,7 @@ describe('MarkdownEditor', () => {
         const editor = new MarkdownEditor({
             element: container,
             initialContent: '',
-            getProjectEntities: () => mockEntities,
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
         })
 
         editor.setMarkdown('## Nagłówek testowy\n\nJakaś treść.')
@@ -125,7 +125,7 @@ describe('MarkdownEditor', () => {
         const editor = new MarkdownEditor({
             element: container,
             initialContent: 'Spotykasz kogoś.',
-            getProjectEntities: () => mockEntities,
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
         })
 
         editor.insertEntity(mockEntities[0])
@@ -135,6 +135,68 @@ describe('MarkdownEditor', () => {
 
         const extracted = editor.getExtractedEntities()
         expect(extracted.locations.some(l => l.name === 'Pod Rozbrykanym Kucykiem')).toBe(true)
+
+        editor.destroy()
+    })
+
+    it('formats headings up to level 5, paragraphs, and active formatting states', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Tytuł rozdziału',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        editor.toggleHeading(5)
+        expect(editor.isActive('heading', { level: 5 })).toBe(true)
+        expect(editor.getActiveFormatting().h5).toBe(true)
+
+        editor.setParagraph()
+        expect(editor.isActive('paragraph')).toBe(true)
+        expect(editor.getActiveFormatting().paragraph).toBe(true)
+        expect(editor.getActiveFormatting().h5).toBe(false)
+
+        editor.destroy()
+    })
+
+    it('toggles dialog block with dialog styling', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Witaj wędrowcze w naszej gospodzie!',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        editor.toggleDialog()
+        expect(editor.isActive('dialog')).toBe(true)
+        expect(editor.getActiveFormatting().dialog).toBe(true)
+
+        const md = editor.getMarkdown()
+        expect(md).toContain('gamebook-dialog')
+
+        editor.destroy()
+    })
+
+    it('supports underline and strike formatting', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Ważne słowo',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        // Select all text
+        const raw = editor.getRawEditor()
+        raw?.commands.selectAll()
+
+        editor.toggleUnderline()
+        expect(editor.isActive('underline')).toBe(true)
+        expect(editor.getActiveFormatting().underline).toBe(true)
+
+        editor.toggleStrike()
+        expect(editor.isActive('strike')).toBe(true)
+        expect(editor.getActiveFormatting().strike).toBe(true)
+
+        const md = editor.getMarkdown()
+        expect(md).toContain('<u>')
+        expect(md).toContain('~~')
 
         editor.destroy()
     })

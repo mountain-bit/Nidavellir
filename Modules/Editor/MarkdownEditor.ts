@@ -2,9 +2,34 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
 
+import { CustomStylesService } from './CustomStylesService'
 import { EntitySyncService } from './EntitySyncService'
+import { CustomStyleMark } from './extensions/CustomStyleMark'
+import { CustomUnderline } from './extensions/CustomUnderline'
+import { DialogBlock } from './extensions/DialogBlock'
 import { createEntitySuggestionConfig, EntityMention } from './extensions/EntityMention'
-import { IDocumentEntities, IEntityMentionItem, IMarkdownEditorOptions } from './types'
+import {
+    IActiveFormatting,
+    IDocumentEntities,
+    IEntityMentionItem,
+    IMarkdownEditorOptions,
+} from './types'
+
+interface IMarkdownStorage {
+    markdown?: {
+        getMarkdown?: () => string
+    }
+}
+
+interface IEditorChainedCommands {
+    toggleUnderline: () => { run: () => boolean }
+    toggleCustomStyle: (styleId: string) => { run: () => boolean }
+    unsetCustomStyle: () => { run: () => boolean }
+}
+
+interface IEditorCommands {
+    toggleDialog?: () => boolean
+}
 
 export class MarkdownEditor {
     private editor: Editor | null = null
@@ -19,18 +44,26 @@ export class MarkdownEditor {
     }
 
     private initEditor(): void {
-        const getEntities = this.options.getProjectEntities || (() => [])
+        const getEntities = this.options.getProjectEntities || ((): IEntityMentionItem[] => [])
+        const customStyles = this.options.getCustomStyles
+            ? this.options.getCustomStyles()
+            : CustomStylesService.getStyles()
+        CustomStylesService.injectStyleSheet(customStyles)
 
         this.editor = new Editor({
             element: this.container,
             extensions: [
                 StarterKit.configure({
                     heading: {
-                        levels: [1, 2, 3, 4],
+                        levels: [1, 2, 3, 4, 5],
                     },
+                    underline: false,
                 }),
+                CustomUnderline,
+                CustomStyleMark,
+                DialogBlock,
                 Markdown.configure({
-                    html: false,
+                    html: true,
                     tightLists: true,
                     bulletListMarker: '-',
                     breaks: true,
@@ -45,7 +78,7 @@ export class MarkdownEditor {
                     class: 'gamebook-prose prose prose-invert max-w-none focus:outline-none min-h-[200px] text-sm leading-relaxed text-[#e4e4e7] p-6 font-sans',
                     spellcheck: 'false',
                 },
-                handleClick: (_view, _pos, event) => {
+                handleClick: (_view, _pos, event): boolean => {
                     const target = event.target as HTMLElement
                     const badge = target.closest('.entity-mention-badge') as HTMLElement
                     if (badge && this.options.onEntityClick) {
@@ -60,7 +93,7 @@ export class MarkdownEditor {
                     return false
                 },
             },
-            onUpdate: ({ editor }) => {
+            onUpdate: ({ editor }): void => {
                 if (this.isUpdatingInternally) return
 
                 const markdown = this.getMarkdown()
@@ -70,12 +103,22 @@ export class MarkdownEditor {
                     this.options.onUpdate(markdown, entities)
                 }
             },
+            onSelectionUpdate: (): void => {
+                if (this.options.onSelectionUpdate) {
+                    this.options.onSelectionUpdate(this.getActiveFormatting())
+                }
+            },
+            onTransaction: (): void => {
+                if (this.options.onSelectionUpdate) {
+                    this.options.onSelectionUpdate(this.getActiveFormatting())
+                }
+            },
         })
     }
 
     public getMarkdown(): string {
         if (!this.editor) return ''
-        const storage = (this.editor.storage as any).markdown
+        const storage = (this.editor.storage as IMarkdownStorage).markdown
         if (storage && typeof storage.getMarkdown === 'function') {
             return storage.getMarkdown()
         }
@@ -117,6 +160,10 @@ export class MarkdownEditor {
     }
 
     // Formatting Toolbar Helpers
+    public setParagraph(): boolean {
+        return this.editor?.chain().focus().setParagraph().run() ?? false
+    }
+
     public toggleBold(): boolean {
         return this.editor?.chain().focus().toggleBold().run() ?? false
     }
@@ -125,7 +172,19 @@ export class MarkdownEditor {
         return this.editor?.chain().focus().toggleItalic().run() ?? false
     }
 
-    public toggleHeading(level: 1 | 2 | 3 | 4): boolean {
+    public toggleUnderline(): boolean {
+        return (
+            (this.editor?.chain().focus() as unknown as IEditorChainedCommands)
+                .toggleUnderline()
+                .run() ?? false
+        )
+    }
+
+    public toggleStrike(): boolean {
+        return this.editor?.chain().focus().toggleStrike().run() ?? false
+    }
+
+    public toggleHeading(level: 1 | 2 | 3 | 4 | 5): boolean {
         return this.editor?.chain().focus().toggleHeading({ level }).run() ?? false
     }
 
@@ -141,6 +200,32 @@ export class MarkdownEditor {
         return this.editor?.chain().focus().toggleBlockquote().run() ?? false
     }
 
+    public toggleDialog(): boolean {
+        return (this.editor?.commands as unknown as IEditorCommands).toggleDialog?.() ?? false
+    }
+
+    public toggleCustomStyle(styleId: string): boolean {
+        return (
+            (this.editor?.chain().focus() as unknown as IEditorChainedCommands)
+                ?.toggleCustomStyle(styleId)
+                .run() ?? false
+        )
+    }
+
+    public unsetCustomStyle(): boolean {
+        return (
+            (this.editor?.chain().focus() as unknown as IEditorChainedCommands)
+                ?.unsetCustomStyle()
+                .run() ?? false
+        )
+    }
+
+    public getActiveCustomStyle(): string | null {
+        if (!this.editor) return null
+        const attrs = this.editor.getAttributes('customStyle')
+        return attrs?.styleId || null
+    }
+
     public undo(): boolean {
         return this.editor?.chain().focus().undo().run() ?? false
     }
@@ -149,8 +234,30 @@ export class MarkdownEditor {
         return this.editor?.chain().focus().redo().run() ?? false
     }
 
-    public isActive(name: string, attrs?: Record<string, any>): boolean {
+    public isActive(name: string, attrs?: Record<string, unknown>): boolean {
         return this.editor?.isActive(name, attrs) ?? false
+    }
+
+    public getActiveFormatting(): IActiveFormatting {
+        if (!this.editor) return {}
+        return {
+            bold: this.editor.isActive('bold'),
+            italic: this.editor.isActive('italic'),
+            underline: this.editor.isActive('underline'),
+            strike: this.editor.isActive('strike'),
+            paragraph: this.editor.isActive('paragraph'),
+            h1: this.editor.isActive('heading', { level: 1 }),
+            h2: this.editor.isActive('heading', { level: 2 }),
+            h3: this.editor.isActive('heading', { level: 3 }),
+            h4: this.editor.isActive('heading', { level: 4 }),
+            h5: this.editor.isActive('heading', { level: 5 }),
+            bulletList: this.editor.isActive('bulletList'),
+            orderedList: this.editor.isActive('orderedList'),
+            blockquote: this.editor.isActive('blockquote'),
+            dialog: this.editor.isActive('dialog'),
+            customStyle: this.editor.isActive('customStyle'),
+            activeCustomStyleId: this.getActiveCustomStyle(),
+        }
     }
 
     public focus(): void {
