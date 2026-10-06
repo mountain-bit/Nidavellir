@@ -1,7 +1,21 @@
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
+import {
+    getOrCreateMainEditor,
+    setEditorActiveState,
+    setupFontBrowserUI,
+    updateEditorStats,
+    updateToolbarActiveStates,
+} from './editor/index.js'
 import { escapeHtml } from './htmlTemplates.js'
+
+export {
+    getOrCreateMainEditor,
+    setEditorActiveState,
+    setupFontBrowserUI,
+    updateToolbarActiveStates,
+}
 
 /**
  * Sets up drag-to-resize splitters for left drawer and right sidebar.
@@ -196,11 +210,29 @@ export function updateMainWorkspaceUI(ctx) {
     }
 
     const active = ctx.vm.getActiveFile()
+    const hasActiveFile = Boolean(active)
+
     if (activeLabel) {
         activeLabel.textContent = active || t('editor.no_open_file')
     }
+    const content = hasActiveFile ? ctx.files[active] || '' : ''
     if (fileEditor) {
-        fileEditor.value = active ? ctx.files[active] || '' : ''
+        fileEditor.value = content
+    }
+
+    const editor = getOrCreateMainEditor(ctx)
+    if (editor) {
+        if (hasActiveFile) {
+            editor.setMarkdown(content)
+            updateEditorStats(editor)
+        }
+    }
+
+    setEditorActiveState(hasActiveFile, editor)
+
+    const saveStatus = document.getElementById('save-status')
+    if (saveStatus) {
+        saveStatus.textContent = ''
     }
 
     renderEditorTabs(ctx)
@@ -297,10 +329,22 @@ export function saveActiveFile(ctx) {
     const active = ctx.vm.getActiveFile()
     if (!active) return
 
-    const fileEditor = document.getElementById('file-editor')
-    const saveStatus = document.getElementById('save-status')
-    const content = fileEditor ? fileEditor.value : ''
+    const editor = getOrCreateMainEditor(ctx)
+    const content =
+        editor && typeof editor.getMarkdown === 'function'
+            ? editor.getMarkdown()
+            : document.getElementById('file-editor')?.value || ''
+
     ctx.files[active] = content
+
+    const fileEditor = document.getElementById('file-editor')
+    if (fileEditor) fileEditor.value = content
+
+    const saveStatus = document.getElementById('save-status')
+    if (saveStatus) {
+        saveStatus.textContent = 'Zapisywanie...'
+        saveStatus.className = 'text-[11px] text-zinc-400'
+    }
 
     const currentPath = window.currentProjectPath || ''
     if (window.electronAPI && window.electronAPI.saveMarkdownFile && currentPath) {
@@ -308,7 +352,15 @@ export function saveActiveFile(ctx) {
             .saveMarkdownFile(currentPath, active, content)
             .then(res => {
                 if (res && res.success) {
-                    if (saveStatus) saveStatus.textContent = ''
+                    if (saveStatus) {
+                        saveStatus.textContent = '• Zapisano'
+                        saveStatus.className = 'text-[11px] text-emerald-400 font-medium'
+                        setTimeout(() => {
+                            if (saveStatus.textContent === '• Zapisano') {
+                                saveStatus.textContent = ''
+                            }
+                        }, 2500)
+                    }
                     if (res.recreated || res.warning === 'recreated') {
                         toast.warning(t('toast.file_recreated_warning'), t('toast.warning_title'))
                     } else {
@@ -323,7 +375,15 @@ export function saveActiveFile(ctx) {
                 toast.error(t('toast.save_error', { error: err.message }), t('toast.error_title'))
             })
     } else {
-        if (saveStatus) saveStatus.textContent = ''
+        if (saveStatus) {
+            saveStatus.textContent = '• Zapisano (pamięć)'
+            saveStatus.className = 'text-[11px] text-emerald-400 font-medium'
+            setTimeout(() => {
+                if (saveStatus.textContent.includes('Zapisano')) {
+                    saveStatus.textContent = ''
+                }
+            }, 2500)
+        }
         toast.success(t('toast.save_success'), t('toast.success_title'))
     }
 }

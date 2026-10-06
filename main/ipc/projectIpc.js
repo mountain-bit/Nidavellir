@@ -33,6 +33,11 @@ function registerProjectIpc() {
 
         return await ProjectService.openProject(targetPath)
     })
+
+    ipcMain.handle('save-project', async (_event, payload) => {
+        const { projectPath, projectData } = payload || {}
+        return await ProjectService.saveProject(projectPath, projectData)
+    })
 }
 
 module.exports = { registerProjectIpc }

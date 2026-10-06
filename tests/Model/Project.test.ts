@@ -40,4 +40,23 @@ describe('Project', () => {
     it('getScene powinno zwracać undefined dla nieistniejącej sceny', () => {
         expect(project.getScene('non-existent')).toBeUndefined()
     })
+
+    it('manages customStyles and customFonts with serialization roundtrip', () => {
+        const styles = [{ id: 'style_1', name: 'Myśli', color: '#c084fc', italic: true }]
+        const fonts = [{ name: 'Cinzel', isCustom: true, googleFont: true }]
+
+        project.setCustomStyles(styles)
+        project.setCustomFonts(fonts)
+
+        expect(project.getCustomStyles()).toEqual(styles)
+        expect(project.getCustomFonts()).toEqual(fonts)
+
+        const json = project.toJSON()
+        expect(json.editor?.customStyles).toEqual(styles)
+        expect(json.editor?.customFonts).toEqual(fonts)
+
+        const reconstructed = Project.fromJSON(json)
+        expect(reconstructed.getCustomStyles()).toEqual(styles)
+        expect(reconstructed.getCustomFonts()).toEqual(fonts)
+    })
 })

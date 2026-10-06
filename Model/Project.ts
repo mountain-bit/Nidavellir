@@ -1,3 +1,5 @@
+import { IFontDefinition } from '../Modules/Editor/CustomFontsService'
+import { ICustomTextStyle } from '../Modules/Editor/types'
 import type { EntitiesData, ProjectData } from '../types/ipc'
 import { CharacterClass } from './CharacterClass'
 import { Description } from './Description'
@@ -33,6 +35,9 @@ export class Project {
     private globalSkills: Skill[] = []
     private globalFeatures: Feature[] = []
     private globalParameters: Parameter[] = []
+
+    private customStyles: ICustomTextStyle[] = []
+    private customFonts: Array<string | IFontDefinition> = []
 
     constructor(
         id: string = '',
@@ -353,10 +358,20 @@ export class Project {
         }
     }
 
-    public removeTag(tagIdOrName: string): void {
-        this.tagList = this.tagList.filter(
-            t => t.getId() !== tagIdOrName && t.getName() !== tagIdOrName
-        )
+    public getCustomStyles(): ICustomTextStyle[] {
+        return this.customStyles
+    }
+
+    public setCustomStyles(styles: ICustomTextStyle[]): void {
+        this.customStyles = styles || []
+    }
+
+    public getCustomFonts(): Array<string | IFontDefinition> {
+        return this.customFonts
+    }
+
+    public setCustomFonts(fonts: Array<string | IFontDefinition>): void {
+        this.customFonts = fonts || []
     }
 
     public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Project {
@@ -393,7 +408,7 @@ export class Project {
         const author = projectData.author ?? ''
         const version = projectData.version ?? '1.0.0'
 
-        return new Project(
+        const project = new Project(
             projectData.id ?? '',
             name,
             author,
@@ -411,6 +426,19 @@ export class Project {
             globalParameters,
             templates
         )
+
+        const editorData = projectData.editor || {}
+        const customStyles = (projectData.customStyles ||
+            editorData.customStyles ||
+            []) as ICustomTextStyle[]
+        const customFonts = (projectData.customFonts || editorData.customFonts || []) as Array<
+            string | IFontDefinition
+        >
+
+        project.setCustomStyles(customStyles)
+        project.setCustomFonts(customFonts)
+
+        return project
     }
 
     public toJSON(): ProjectData {
@@ -421,6 +449,12 @@ export class Project {
             version: this.version,
             descriptionPaths: [],
             dataPaths: [],
+            editor: {
+                customStyles: this.customStyles,
+                customFonts: this.customFonts,
+            },
+            customStyles: this.customStyles,
+            customFonts: this.customFonts,
         }
     }
 }

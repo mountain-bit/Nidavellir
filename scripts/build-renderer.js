@@ -24,6 +24,7 @@ const config = {
         'Utils/pathSanitizer': path.join(__dirname, '..', 'Utils', 'pathSanitizer.ts'),
         'Utils/icons': path.join(__dirname, '..', 'Utils', 'icons.ts'),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
+        'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
     },
     bundle: true,
     outdir: path.join(__dirname, '..', 'dist'),

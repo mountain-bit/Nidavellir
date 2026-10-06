@@ -181,6 +181,31 @@ describe('Main Process Services & File System Operations', () => {
             expect(result.error).toBeDefined()
             expect(result.error!.length).toBeGreaterThan(0)
         })
+
+        it('zapisuje i aktualizuje manifest projektu (project.json) w tym style edytora', async () => {
+            await ProjectService.createProject({
+                name: 'Projekt Ze Stylami',
+                projectPath: tempDir,
+            })
+
+            const saveResult = await ProjectService.saveProject(tempDir, {
+                author: 'Nowy Autor',
+                editor: {
+                    customStyles: [{ id: 'style_custom', name: 'Mój styl', color: '#f59e0b' }],
+                    customFonts: [{ name: 'MedievalSharp' }],
+                },
+            })
+
+            expect(saveResult.success).toBe(true)
+
+            const openResult = await ProjectService.openProject(tempDir)
+            expect(openResult.success).toBe(true)
+            expect(openResult.project.author).toBe('Nowy Autor')
+            expect(openResult.project.editor).toBeDefined()
+            expect(openResult.project.editor.customStyles[0].name).toBe('Mój styl')
+            expect(openResult.project.customStyles[0].id).toBe('style_custom')
+            expect(openResult.project.customFonts[0].name).toBe('MedievalSharp')
+        })
     })
 
     describe('EntityService', () => {

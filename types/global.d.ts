@@ -29,6 +29,10 @@ declare global {
                 projectPath: string
             }) => Promise<{ success: boolean; path?: string; error?: string }>
             openProject: (path?: string) => Promise<OpenProjectResult>
+            saveProject: (
+                projectPath: string,
+                projectData: Record<string, unknown>
+            ) => Promise<{ success: boolean; path?: string; error?: string }>
             createEntity: (options: CreateEntityOptions) => Promise<CreateEntityResult>
             saveEntity: (
                 projectPath: string,

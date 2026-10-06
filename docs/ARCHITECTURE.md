@@ -372,6 +372,6 @@ pnpm format
 ## 9. Documentation Index
 
 - Detailed technical guide for the Electron Main Process, IPC routers, and services:  
-  👉 [Main Process Architecture (MAIN_PROCESS_ARCHITECTURE.md)](MAIN_PROCESS_ARCHITECTURE.md)
+  - [Main Process Architecture (MAIN_PROCESS_ARCHITECTURE.md)](MAIN_PROCESS_ARCHITECTURE.md)
 - In-depth guide for the UI architecture, MVVM layer, and Cytoscape graph subsystem:  
-  👉 [Frontend Architecture (FRONTEND_ARCHITECTURE.md)](FRONTEND_ARCHITECTURE.md)
+  - [Frontend Architecture (FRONTEND_ARCHITECTURE.md)](FRONTEND_ARCHITECTURE.md)
