@@ -394,3 +394,78 @@ declare module '*/View/ui/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
 }
+
+declare module '*/View/ui/editor/editorToolbar.js' {
+    export const TOOLBAR_BUTTON_STATE_MAP: Array<{ id: string; key: string }>
+    export function updateToolbarActiveStates(
+        activeStates: Record<string, unknown>,
+        ctx: unknown
+    ): void
+    export function setupToolbarButtons(editor: unknown, ctx: unknown): void
+}
+
+declare module '*/View/ui/editor/customStylesMenu.js' {
+    export function setupCustomStylesUI(
+        editor: unknown,
+        ctx: unknown,
+        onSelectionUpdate?: (activeStates: Record<string, unknown>, ctx: unknown) => void
+    ): { renderList: () => void; openModal: (style?: unknown) => void }
+}
+
+declare module '*/View/ui/editor/customStyleModal.js' {
+    export function setupCustomStyleModal(
+        ctx: unknown,
+        options?: { onStyleSaved?: () => void; onStyleDeleted?: () => void }
+    ): { openModal: (styleToEdit?: unknown) => void; closeModal: () => void }
+}
+
+declare module '*/View/ui/editor/fontBrowserModal.js' {
+    export function setupFontBrowserUI(
+        ctx: unknown,
+        options?: { onFontSelected?: (fontName: string) => void }
+    ): { open: () => void; close: () => void } | null
+}
+
+declare module '*/View/ui/editor/entityLinkModal.js' {
+    export function extractAvailableProjectEntities(
+        projectData?: unknown
+    ): Array<{ id: string; name: string; type: string; description?: string }>
+    export function positionPopover(targetRectOrPoint?: unknown): void
+    export function openEntityLinkModal(
+        editor: unknown,
+        ctx: unknown,
+        options?: {
+            initialLabel?: string
+            initialEntityId?: string
+            initialType?: string
+            badgePos?: number | null
+            targetRect?: unknown
+            point?: { x: number; y: number }
+        }
+    ): void
+    export function closeEntityLinkModal(): void
+}
+
+declare module '*/View/ui/editor/mainEditor.js' {
+    export function getMainEditorInstance(): unknown
+    export function updateEditorStats(editor: unknown): void
+    export function syncEntitiesWithActiveObject(ctx: unknown, entities: unknown[]): void
+    export function openEditorContextMenu(x: number, y: number, data: unknown): void
+    export function hideEditorContextMenu(): void
+    export function setupEditorContextMenu(editor: unknown, ctx: unknown): void
+    export function setEditorActiveState(isActive: boolean, editor?: unknown): void
+    export function getOrCreateMainEditor(
+        ctx: unknown,
+        container?: HTMLElement,
+        options?: Record<string, unknown>
+    ): unknown
+}
+
+declare module '*/View/ui/editor/index.js' {
+    export * from '*/View/ui/editor/customStyleModal.js'
+    export * from '*/View/ui/editor/customStylesMenu.js'
+    export * from '*/View/ui/editor/editorToolbar.js'
+    export * from '*/View/ui/editor/entityLinkModal.js'
+    export * from '*/View/ui/editor/fontBrowserModal.js'
+    export * from '*/View/ui/editor/mainEditor.js'
+}

@@ -1,5 +1,7 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 
+import { isSafeStyleId } from '../styleSanitizer'
+
 export interface ICustomStyleOptions {
     HTMLAttributes: Record<string, unknown>
 }
@@ -28,14 +30,16 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
         return {
             styleId: {
                 default: null,
-                parseHTML: (element: HTMLElement): string | null =>
-                    element.getAttribute('data-custom-style') ||
-                    (element.className.match(/gamebook-custom-style-([a-zA-Z0-9_-]+)/) || [])[1] ||
-                    null,
+                parseHTML: (element: HTMLElement): string | null => {
+                    const candidate =
+                        element.getAttribute('data-custom-style') ||
+                        (element.className.match(/gamebook-custom-style-([a-zA-Z0-9_-]+)/) || [])[1]
+                    return isSafeStyleId(candidate) ? candidate : null
+                },
                 renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
-                    if (!attributes.styleId) return {}
+                    if (!isSafeStyleId(attributes.styleId)) return {}
                     return {
-                        'data-custom-style': String(attributes.styleId),
+                        'data-custom-style': attributes.styleId,
                     }
                 },
             },
@@ -54,7 +58,8 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
     },
 
     renderHTML({ HTMLAttributes }) {
-        const styleId = HTMLAttributes['data-custom-style'] || 'default'
+        const rawId = HTMLAttributes['data-custom-style']
+        const styleId = isSafeStyleId(rawId) ? rawId : 'default'
         return [
             'span',
             mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
@@ -93,7 +98,10 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
             markdown: {
                 serialize: {
                     open(_state: unknown, mark: { attrs: { styleId?: string } }): string {
-                        return `<span data-custom-style="${mark.attrs.styleId || ''}">`
+                        const styleId = isSafeStyleId(mark.attrs.styleId)
+                            ? mark.attrs.styleId
+                            : 'default'
+                        return `<span data-custom-style="${styleId}">`
                     },
                     close: '</span>',
                 },

@@ -53,6 +53,12 @@ export type IconName =
     | 'import'
     | 'lock'
     | 'unlock'
+    | 'sparkles'
+    | 'font'
+    | 'globe'
+    | 'eraser'
+    | 'alert-triangle'
+    | 'link'
 
 export interface IIconConfig {
     viewBox?: string
@@ -239,6 +245,30 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     unlock: {
         viewBox: '0 0 24 24',
         path: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke-width="1.8"></rect><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 11V7a5 5 0 019.9-1"></path>',
+    },
+    sparkles: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.286L13 21l-2.286-6.857L5 12l5.714-2.286L13 3z"></path>',
+    },
+    font: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20h3l2-6h6l2 6h3M14 10l-2-6-2 6M9 14h6"></path>',
+    },
+    globe: {
+        viewBox: '0 0 24 24',
+        path: '<circle cx="12" cy="12" r="10" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"></path>',
+    },
+    eraser: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 14l-7 7m0 0l-9-9 9-9 9 9-9 9zM6 15l3 3"></path>',
+    },
+    'alert-triangle': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01"></path>',
+    },
+    link: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>',
     },
 }
 

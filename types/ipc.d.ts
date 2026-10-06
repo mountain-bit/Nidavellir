@@ -1,3 +1,8 @@
+export interface IProjectEditorData {
+    customStyles?: unknown[]
+    customFonts?: unknown[]
+}
+
 export interface IProjectData {
     id: string
     name?: string
@@ -5,6 +10,9 @@ export interface IProjectData {
     version?: string
     descriptionPaths?: string[]
     dataPaths?: string[]
+    editor?: IProjectEditorData
+    customStyles?: unknown[]
+    customFonts?: unknown[]
 }
 export type ProjectData = IProjectData
 

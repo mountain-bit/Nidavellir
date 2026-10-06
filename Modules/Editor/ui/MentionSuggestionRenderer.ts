@@ -1,3 +1,4 @@
+import { getIconSvg } from '../../../Utils/icons'
 import { IEntityMentionItem } from '../types'
 
 export interface ISuggestionProps {
@@ -118,7 +119,7 @@ export class MentionSuggestionRenderer {
                     isSelected ? 'bg-blue-600/25 text-white' : 'hover:bg-zinc-800 text-zinc-300'
                 }" data-suggestion-index="${index}">
                     <div class="flex items-center gap-2 min-w-0">
-                        <span class="text-sm shrink-0">${icon}</span>
+                        <span class="shrink-0 flex items-center">${icon}</span>
                         <span class="truncate font-medium">${this.escapeHtml(item.name)}</span>
                     </div>
                     <span class="text-[9px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded border shrink-0 ${badgeClass}">
@@ -181,32 +182,32 @@ export class MentionSuggestionRenderer {
         switch (type) {
             case 'location':
                 return {
-                    icon: '📍',
+                    icon: getIconSvg('location', 'w-3.5 h-3.5 text-blue-400 shrink-0'),
                     typeLabel: 'Lokacja',
                     badgeClass: 'bg-blue-500/10 text-blue-300 border-blue-500/30',
                 }
             case 'character':
                 return {
-                    icon: '👤',
+                    icon: getIconSvg('character', 'w-3.5 h-3.5 text-amber-400 shrink-0'),
                     typeLabel: 'Postać',
                     badgeClass: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
                 }
             case 'trait':
             case 'tag':
                 return {
-                    icon: '🏷️',
+                    icon: getIconSvg('tag', 'w-3.5 h-3.5 text-purple-400 shrink-0'),
                     typeLabel: 'Cecha',
                     badgeClass: 'bg-purple-500/10 text-purple-300 border-purple-500/30',
                 }
             case 'item':
                 return {
-                    icon: '🎒',
+                    icon: getIconSvg('item', 'w-3.5 h-3.5 text-emerald-400 shrink-0'),
                     typeLabel: 'Przedmiot',
                     badgeClass: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
                 }
             default:
                 return {
-                    icon: '🔗',
+                    icon: getIconSvg('connection', 'w-3.5 h-3.5 text-zinc-400 shrink-0'),
                     typeLabel: 'Encja',
                     badgeClass: 'bg-zinc-700/30 text-zinc-300 border-zinc-600/30',
                 }

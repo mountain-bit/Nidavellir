@@ -200,4 +200,77 @@ describe('MarkdownEditor', () => {
 
         editor.destroy()
     })
+
+    it('links entity with custom alias and syncs canonical character (e.g. Jasiek -> Jan Kowalski)', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const janKowalski: IEntityMentionItem = {
+            id: 'char_jan_kowalski',
+            name: 'Jan Kowalski',
+            type: 'character',
+        }
+
+        // Insert mention with alias "Jasiek"
+        editor.insertEntity(janKowalski, 'Jasiek')
+        const md = editor.getMarkdown()
+
+        expect(md).toContain('[Jasiek](entity://character/char_jan_kowalski)')
+
+        // Verify syncWithParagraph recognizes canonical character Jan Kowalski
+        const paragraph = new Paragraph('p_2', 'Spotkanie')
+        const projectData = {
+            characters: [new NPC('char_jan_kowalski', 'Jan Kowalski')],
+        }
+
+        const extracted = editor.getExtractedEntities()
+        expect(extracted.characters[0].id).toBe('char_jan_kowalski')
+        expect(extracted.characters[0].name).toBe('Jasiek')
+
+        const syncResult = EntitySyncService.syncWithParagraph(paragraph, extracted, projectData)
+        expect(syncResult.changed).toBe(true)
+        expect(syncResult.addedCharacters).toContain('Jan Kowalski')
+        expect(paragraph.hasCharacter('char_jan_kowalski')).toBe(true)
+
+        editor.destroy()
+    })
+
+    it('unlinks an entity mention back to plain text', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '[Jasiek](entity://character/char_jan_kowalski)',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        // Mention is at position 1
+        const unlinked = editor.unlinkEntityMention(1, 'Jasiek')
+        expect(unlinked).toBe(true)
+
+        const md = editor.getMarkdown()
+        expect(md).not.toContain('entity://')
+        expect(md).toContain('Jasiek')
+
+        editor.destroy()
+    })
+
+    it('manages editable state correctly via constructor and setEditable', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Hello world',
+            editable: false,
+        })
+
+        expect(editor.isEditable()).toBe(false)
+
+        editor.setEditable(true)
+        expect(editor.isEditable()).toBe(true)
+
+        editor.setEditable(false)
+        expect(editor.isEditable()).toBe(false)
+
+        editor.destroy()
+    })
 })

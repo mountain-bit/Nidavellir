@@ -3,7 +3,7 @@ import Mention, { MentionOptions } from '@tiptap/extension-mention'
 import { SuggestionOptions } from '@tiptap/suggestion'
 
 import { IEntityMentionItem } from '../types'
-import { MentionSuggestionRenderer } from '../ui/MentionSuggestionRenderer'
+import { ISuggestionProps, MentionSuggestionRenderer } from '../ui/MentionSuggestionRenderer'
 
 export interface IEntityMentionOptions extends Omit<MentionOptions, 'suggestion'> {
     getEntities?: () => IEntityMentionItem[]
@@ -17,38 +17,44 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
         return {
             id: {
                 default: null,
-                parseHTML: element =>
+                parseHTML: (element: HTMLElement): string | null =>
                     element.getAttribute('data-id') || element.getAttribute('data-entity-id'),
-                renderHTML: attributes => {
+                renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
                     if (!attributes.id) return {}
                     return {
-                        'data-id': attributes.id,
-                        'data-entity-id': attributes.id,
+                        'data-id': String(attributes.id),
+                        'data-entity-id': String(attributes.id),
                     }
                 },
             },
             label: {
                 default: null,
-                parseHTML: element =>
-                    element.getAttribute('data-label') ||
-                    element.textContent?.replace(/^(?:📍|👤|🏷️|🎒|🔗)\s*/u, '').trim(),
-                renderHTML: attributes => {
+                parseHTML: (element: HTMLElement): string | null => {
+                    const textSpan = element.querySelector('.entity-badge-text')
+                    return (
+                        element.getAttribute('data-label') ||
+                        textSpan?.textContent?.trim() ||
+                        element.textContent?.trim() ||
+                        null
+                    )
+                },
+                renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
                     if (!attributes.label) return {}
                     return {
-                        'data-label': attributes.label,
+                        'data-label': String(attributes.label),
                     }
                 },
             },
             type: {
                 default: 'location',
-                parseHTML: element =>
+                parseHTML: (element: HTMLElement): string =>
                     element.getAttribute('data-type') ||
                     element.getAttribute('data-entity-type') ||
                     'location',
-                renderHTML: attributes => {
+                renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
                     return {
-                        'data-type': attributes.type || 'location',
-                        'data-entity-type': attributes.type || 'location',
+                        'data-type': String(attributes.type || 'location'),
+                        'data-entity-type': String(attributes.type || 'location'),
                     }
                 },
             },
@@ -65,15 +71,15 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
             },
             {
                 tag: 'a[href^="entity://"]',
-                getAttrs: dom => {
-                    const el = dom as HTMLElement
-                    const href = el.getAttribute('href') || ''
+                getAttrs: (dom: HTMLElement | string): false | Record<string, unknown> => {
+                    if (typeof dom === 'string') return false
+                    const href = dom.getAttribute('href') || ''
                     const match = href.match(/^entity:\/\/([^/]+)\/(.+)$/)
                     if (match) {
                         return {
                             type: match[1],
                             id: match[2],
-                            label: el.textContent?.trim() || match[2],
+                            label: dom.textContent?.trim() || match[2],
                         }
                     }
                     return false
@@ -83,41 +89,55 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
     },
 
     renderHTML({ node, HTMLAttributes }) {
-        const type = node.attrs.type || 'location'
-        let icon = '📍'
-        let badgeColorClass =
-            'entity-badge-location bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25'
+        const type = String(node.attrs.type || 'location').toLowerCase()
+        const label = String(node.attrs.label || node.attrs.id || '')
+        const id = String(node.attrs.id || '')
+
+        let typeName = 'Lokacja'
 
         if (type === 'character') {
-            icon = '👤'
-            badgeColorClass =
-                'entity-badge-character bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25'
+            typeName = 'Postać (NPC)'
         } else if (type === 'trait' || type === 'tag') {
-            icon = '🏷️'
-            badgeColorClass =
-                'entity-badge-trait bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25'
+            typeName = 'Cecha / Tag'
         } else if (type === 'item') {
-            icon = '🎒'
-            badgeColorClass =
-                'entity-badge-item bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
+            typeName = 'Przedmiot'
         }
+
+        const tooltip =
+            id && id !== label
+                ? `${typeName}: ${id} (w tekście jako: „${label}”)`
+                : `${typeName}: ${label}`
 
         return [
             'span',
             mergeAttributes(
                 {
-                    class: `entity-mention-badge inline-flex items-center gap-1 px-1.5 py-0.5 mx-0.5 rounded text-xs font-medium border select-all cursor-pointer transition-colors align-baseline ${badgeColorClass}`,
+                    class: `entity-mention-badge entity-badge-${type}`,
+                    'data-type': type,
+                    'data-id': id,
+                    'data-label': label,
+                    title: tooltip,
                 },
                 HTMLAttributes
             ),
-            `${icon} ${node.attrs.label || node.attrs.id}`,
+            [
+                'span',
+                {
+                    class: `entity-badge-icon entity-badge-icon-${type}`,
+                    'aria-hidden': 'true',
+                },
+            ],
+            ['span', { class: 'entity-badge-text' }, label],
         ]
     },
 
     addStorage() {
         return {
             markdown: {
-                serialize(state: any, node: any) {
+                serialize(
+                    state: { write: (text: string) => void },
+                    node: { attrs: { label?: string; id?: string; type?: string } }
+                ): void {
                     const label = node.attrs.label || node.attrs.id || 'encja'
                     const type = node.attrs.type || 'location'
                     const id = node.attrs.id || ''
@@ -131,12 +151,14 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
     },
 })
 
-export function createEntitySuggestionConfig(getEntities: () => IEntityMentionItem[]) {
+export function createEntitySuggestionConfig(
+    getEntities: () => IEntityMentionItem[]
+): Omit<SuggestionOptions<IEntityMentionItem>, 'editor'> {
     let renderer: MentionSuggestionRenderer | null = null
 
     return {
         char: '@',
-        items: ({ query }: { query: string }) => {
+        items: ({ query }: { query: string }): IEntityMentionItem[] => {
             const list = getEntities() || []
             if (!query) {
                 return list.slice(0, 7)
@@ -144,27 +166,27 @@ export function createEntitySuggestionConfig(getEntities: () => IEntityMentionIt
             const cleanQuery = query.toLowerCase()
             return list.filter(item => item.name.toLowerCase().includes(cleanQuery)).slice(0, 7)
         },
-        render: () => {
+        render: (): Record<string, (props: never) => void | boolean> => {
             return {
-                onStart: (props: any) => {
+                onStart: (props: ISuggestionProps): void => {
                     renderer = new MentionSuggestionRenderer()
                     renderer.onStart(props)
                 },
-                onUpdate: (props: any) => {
+                onUpdate: (props: ISuggestionProps): void => {
                     renderer?.onUpdate(props)
                 },
-                onKeyDown: (props: any) => {
+                onKeyDown: (props: { event: KeyboardEvent }): boolean => {
                     if (props.event.key === 'Escape') {
                         renderer?.destroy()
                         return true
                     }
                     return renderer?.onKeyDown(props) || false
                 },
-                onExit: () => {
+                onExit: (): void => {
                     renderer?.destroy()
                     renderer = null
                 },
-            }
+            } as Record<string, (props: never) => void | boolean>
         },
     }
 }

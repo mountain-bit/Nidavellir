@@ -52,6 +52,7 @@ export class MarkdownEditor {
 
         this.editor = new Editor({
             element: this.container,
+            editable: this.options.editable !== undefined ? this.options.editable : true,
             extensions: [
                 StarterKit.configure({
                     heading: {
@@ -78,16 +79,33 @@ export class MarkdownEditor {
                     class: 'gamebook-prose prose prose-invert max-w-none focus:outline-none min-h-[200px] text-sm leading-relaxed text-[#e4e4e7] p-6 font-sans',
                     spellcheck: 'false',
                 },
-                handleClick: (_view, _pos, event): boolean => {
-                    const target = event.target as HTMLElement
-                    const badge = target.closest('.entity-mention-badge') as HTMLElement
+                handleClick: (_view, pos, event): boolean => {
+                    const mouseEvent = event as MouseEvent
+                    const target = mouseEvent.target as HTMLElement
+                    const badge = target?.closest?.('.entity-mention-badge') as HTMLElement
                     if (badge && this.options.onEntityClick) {
                         const id = badge.getAttribute('data-entity-id') || ''
                         const type = (badge.getAttribute('data-entity-type') ||
                             'location') as IEntityMentionItem['type']
                         const label =
                             badge.getAttribute('data-label') || badge.textContent?.trim() || id
-                        this.options.onEntityClick({ id, name: label, type })
+                        const rect =
+                            typeof badge.getBoundingClientRect === 'function'
+                                ? badge.getBoundingClientRect()
+                                : undefined
+                        const clientPoint =
+                            mouseEvent.clientX !== undefined
+                                ? { x: mouseEvent.clientX, y: mouseEvent.clientY }
+                                : undefined
+                        this.options.onEntityClick({
+                            id,
+                            name: label,
+                            type,
+                            label,
+                            pos,
+                            rect,
+                            clientPoint,
+                        })
                         return true
                     }
                     return false
@@ -104,11 +122,6 @@ export class MarkdownEditor {
                 }
             },
             onSelectionUpdate: (): void => {
-                if (this.options.onSelectionUpdate) {
-                    this.options.onSelectionUpdate(this.getActiveFormatting())
-                }
-            },
-            onTransaction: (): void => {
                 if (this.options.onSelectionUpdate) {
                     this.options.onSelectionUpdate(this.getActiveFormatting())
                 }
@@ -142,8 +155,20 @@ export class MarkdownEditor {
         return EntitySyncService.extractReferencedEntities(this.editor)
     }
 
-    public insertEntity(item: IEntityMentionItem): void {
+    public getProjectEntities(): IEntityMentionItem[] {
+        return this.options.getProjectEntities ? this.options.getProjectEntities() : []
+    }
+
+    public getSelectedText(): string {
+        if (!this.editor) return ''
+        const { from, to } = this.editor.state.selection
+        if (from === to) return ''
+        return this.editor.state.doc.textBetween(from, to, ' ')
+    }
+
+    public insertEntity(item: IEntityMentionItem, customLabel?: string): void {
         if (!this.editor) return
+        const label = customLabel?.trim() || item.name
         this.editor
             .chain()
             .focus()
@@ -151,12 +176,89 @@ export class MarkdownEditor {
                 type: 'mention',
                 attrs: {
                     id: item.id,
-                    label: item.name,
+                    label,
                     type: item.type,
                 },
             })
             .insertContent(' ')
             .run()
+    }
+
+    public linkSelectionToEntity(item: IEntityMentionItem, customLabel?: string): boolean {
+        if (!this.editor) return false
+        const label = customLabel?.trim() || this.getSelectedText().trim() || item.name
+        return (
+            this.editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: 'mention',
+                    attrs: {
+                        id: item.id,
+                        label,
+                        type: item.type,
+                    },
+                })
+                .run() ?? false
+        )
+    }
+
+    public updateEntityMention(
+        pos: number,
+        item: { id: string; name: string; type: string },
+        newLabel: string
+    ): boolean {
+        if (!this.editor) return false
+        const targetPos = this.findMentionPos(pos)
+        if (targetPos === null) return false
+        return (
+            this.editor
+                .chain()
+                .focus()
+                .setNodeSelection(targetPos)
+                .insertContent({
+                    type: 'mention',
+                    attrs: {
+                        id: item.id,
+                        label: newLabel?.trim() || item.name,
+                        type: item.type,
+                    },
+                })
+                .run() ?? false
+        )
+    }
+
+    public unlinkEntityMention(pos: number, fallbackText?: string): boolean {
+        if (!this.editor) return false
+        const targetPos = this.findMentionPos(pos)
+        if (targetPos === null) return false
+        const node = this.editor.state.doc.nodeAt(targetPos)
+        const text = fallbackText ?? node?.attrs?.label ?? node?.attrs?.id ?? ''
+        return (
+            this.editor.chain().focus().setNodeSelection(targetPos).insertContent(text).run() ??
+            false
+        )
+    }
+
+    private findMentionPos(pos: number): number | null {
+        if (!this.editor) return null
+        const doc = this.editor.state.doc
+        if (pos >= 0 && pos < doc.content.size) {
+            const node = doc.nodeAt(pos)
+            if (node && node.type.name === 'mention') return pos
+        }
+        if (pos > 0) {
+            const prevNode = doc.nodeAt(pos - 1)
+            if (prevNode && prevNode.type.name === 'mention') return pos - 1
+        }
+        const $pos = doc.resolve(Math.min(pos, doc.content.size))
+        if ($pos.nodeAfter && $pos.nodeAfter.type.name === 'mention') {
+            return $pos.pos
+        }
+        if ($pos.nodeBefore && $pos.nodeBefore.type.name === 'mention') {
+            return $pos.pos - $pos.nodeBefore.nodeSize
+        }
+        return null
     }
 
     // Formatting Toolbar Helpers
@@ -201,6 +303,7 @@ export class MarkdownEditor {
     }
 
     public toggleDialog(): boolean {
+        this.editor?.commands.focus()
         return (this.editor?.commands as unknown as IEditorCommands).toggleDialog?.() ?? false
     }
 
@@ -278,6 +381,14 @@ export class MarkdownEditor {
 
     public getRawEditor(): Editor | null {
         return this.editor
+    }
+
+    public setEditable(editable: boolean): void {
+        this.editor?.setEditable(editable)
+    }
+
+    public isEditable(): boolean {
+        return this.editor?.isEditable ?? false
     }
 
     public destroy(): void {

@@ -2,20 +2,55 @@ import { Location } from '../../Model/Location'
 import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { IDocumentEntities } from './types'
+import { IDocumentEntities, IProjectEntityCandidate, ISyncProjectData } from './types'
+
+interface ITipTapDocNode {
+    type?: { name?: string }
+    attrs?: { id?: string; label?: string; type?: string; [key: string]: unknown }
+}
+
+interface ITipTapSource {
+    state?: {
+        doc?: {
+            descendants: (callback: (node: ITipTapDocNode) => void) => void
+        }
+    }
+}
+
+function matchesEntity(candidate: unknown, targetId: string, targetName: string): boolean {
+    const e = candidate as
+        | {
+              id?: string
+              name?: string
+              getId?: () => string
+              getName?: () => string
+          }
+        | null
+        | undefined
+    if (!e) return false
+    const id = typeof e.getId === 'function' ? e.getId() : e.id
+    const name = typeof e.getName === 'function' ? e.getName() : e.name
+    return id === targetId || name === targetName
+}
 
 export class EntitySyncService {
     /**
      * Extracts all unique referenced entities from a Tiptap editor instance or raw markdown text.
      */
-    public static extractReferencedEntities(source: any): IDocumentEntities {
+    public static extractReferencedEntities(source: unknown): IDocumentEntities {
         const locationsMap = new Map<string, string>()
         const charactersMap = new Map<string, string>()
         const tagsMap = new Map<string, string>()
         const traitsMap = new Map<string, string>()
 
-        if (source && source.state && source.state.doc) {
-            source.state.doc.descendants((node: any) => {
+        const tipTap = source as ITipTapSource | null
+        if (
+            tipTap &&
+            tipTap.state &&
+            tipTap.state.doc &&
+            typeof tipTap.state.doc.descendants === 'function'
+        ) {
+            tipTap.state.doc.descendants((node: ITipTapDocNode) => {
                 if (node.type && node.type.name === 'mention' && node.attrs) {
                     const id = String(node.attrs.id || '').trim()
                     const label = String(node.attrs.label || id).trim()
@@ -62,7 +97,7 @@ export class EntitySyncService {
     public static syncWithParagraph(
         paragraph: Paragraph,
         entities: IDocumentEntities,
-        projectData?: { locations?: any[]; characters?: any[]; tags?: any[] }
+        projectData?: ISyncProjectData
     ): {
         changed: boolean
         addedLocations: string[]
@@ -79,12 +114,8 @@ export class EntitySyncService {
             if (!paragraph.hasLocation(loc.id) && !paragraph.hasLocation(loc.name)) {
                 let locationInstance: Location | null = null
                 if (projectData && Array.isArray(projectData.locations)) {
-                    const found = projectData.locations.find(
-                        (l: any) =>
-                            (l.getId && l.getId() === loc.id) ||
-                            l.id === loc.id ||
-                            (l.getName && l.getName() === loc.name) ||
-                            l.name === loc.name
+                    const found = projectData.locations.find(l =>
+                        matchesEntity(l, loc.id, loc.name)
                     )
                     if (found) {
                         locationInstance =
@@ -96,7 +127,11 @@ export class EntitySyncService {
                 }
 
                 paragraph.addLocation(locationInstance)
-                addedLocations.push(loc.name)
+                addedLocations.push(
+                    typeof locationInstance.getName === 'function'
+                        ? locationInstance.getName()
+                        : loc.name
+                )
                 changed = true
             }
         }
@@ -106,12 +141,8 @@ export class EntitySyncService {
             if (!paragraph.hasCharacter(char.id) && !paragraph.hasCharacter(char.name)) {
                 let characterInstance: NPC | null = null
                 if (projectData && Array.isArray(projectData.characters)) {
-                    const found = projectData.characters.find(
-                        (c: any) =>
-                            (c.getId && c.getId() === char.id) ||
-                            c.id === char.id ||
-                            (c.getName && c.getName() === char.name) ||
-                            c.name === char.name
+                    const found = projectData.characters.find(c =>
+                        matchesEntity(c, char.id, char.name)
                     )
                     if (found) {
                         characterInstance = found instanceof NPC ? found : NPC.fromJSON(found)
@@ -122,7 +153,11 @@ export class EntitySyncService {
                 }
 
                 paragraph.addCharacter(characterInstance)
-                addedCharacters.push(char.name)
+                addedCharacters.push(
+                    typeof characterInstance.getName === 'function'
+                        ? characterInstance.getName()
+                        : char.name
+                )
                 changed = true
             }
         }
@@ -132,12 +167,8 @@ export class EntitySyncService {
             if (!paragraph.hasTag(tag.id || tag.name) && !paragraph.hasTag(tag.name)) {
                 let tagInstance: Tag | null = null
                 if (projectData && Array.isArray(projectData.tags)) {
-                    const found = projectData.tags.find(
-                        (t: any) =>
-                            (t.getId && t.getId() === tag.id) ||
-                            t.id === tag.id ||
-                            (t.getName && t.getName() === tag.name) ||
-                            t.name === tag.name
+                    const found = projectData.tags.find(t =>
+                        matchesEntity(t, tag.id || tag.name, tag.name)
                     )
                     if (found) {
                         tagInstance = found instanceof Tag ? found : Tag.fromJSON(found)
@@ -148,7 +179,9 @@ export class EntitySyncService {
                 }
 
                 paragraph.addTag(tagInstance)
-                addedTags.push(tag.name)
+                addedTags.push(
+                    typeof tagInstance.getName === 'function' ? tagInstance.getName() : tag.name
+                )
                 changed = true
             }
         }
@@ -162,7 +195,7 @@ export class EntitySyncService {
     public static syncWithNPC(
         npc: NPC,
         entities: IDocumentEntities,
-        projectData?: { tags?: any[] }
+        projectData?: { tags?: (Tag | IProjectEntityCandidate)[] }
     ): { changed: boolean; addedTags: string[] } {
         let changed = false
         const addedTags: string[] = []
@@ -172,12 +205,8 @@ export class EntitySyncService {
             if (!npc.hasTag(tag.id || tag.name) && !npc.hasTag(tag.name)) {
                 let tagInstance: Tag | null = null
                 if (projectData && Array.isArray(projectData.tags)) {
-                    const found = projectData.tags.find(
-                        (t: any) =>
-                            (t.getId && t.getId() === tag.id) ||
-                            t.id === tag.id ||
-                            (t.getName && t.getName() === tag.name) ||
-                            t.name === tag.name
+                    const found = projectData.tags.find(t =>
+                        matchesEntity(t, tag.id || tag.name, tag.name)
                     )
                     if (found) {
                         tagInstance = found instanceof Tag ? found : Tag.fromJSON(found)
@@ -188,7 +217,9 @@ export class EntitySyncService {
                 }
 
                 npc.addTag(tagInstance)
-                addedTags.push(tag.name)
+                addedTags.push(
+                    typeof tagInstance.getName === 'function' ? tagInstance.getName() : tag.name
+                )
                 changed = true
             }
         }

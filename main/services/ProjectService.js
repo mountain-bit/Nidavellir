@@ -4,6 +4,7 @@ const {
     resolveProjectDir,
     isPathInsideBase,
     validateProjectData,
+    atomicWriteJsonSync,
 } = require('../../Utils/fsSecurity')
 const { t } = require('../../Utils/i18n')
 const RecentProjectsService = require('./RecentProjectsService')
@@ -208,6 +209,15 @@ class ProjectService {
             const projectName = projectData.name || path.basename(projectDir)
             RecentProjectsService.saveRecentProject(resolvedProjectFile, projectName)
 
+            if (projectData.editor) {
+                if (!projectData.customStyles && Array.isArray(projectData.editor.customStyles)) {
+                    projectData.customStyles = projectData.editor.customStyles
+                }
+                if (!projectData.customFonts && Array.isArray(projectData.editor.customFonts)) {
+                    projectData.customFonts = projectData.editor.customFonts
+                }
+            }
+
             return {
                 success: true,
                 path: resolvedProjectFile,
@@ -219,6 +229,69 @@ class ProjectService {
             return {
                 success: false,
                 error: 'An unexpected error occurred while opening the project.',
+            }
+        }
+    }
+
+    /**
+     * Updates and saves project manifest (project.json).
+     *
+     * @param {string} projectPath - Path to project folder or project.json
+     * @param {Object} projectData - Project metadata to persist
+     * @returns {Promise<{ success: boolean, path?: string, error?: string }>}
+     */
+    static async saveProject(projectPath, projectData) {
+        if (!projectPath) {
+            return { success: false, error: 'No project path specified.' }
+        }
+
+        const projectDir = resolveProjectDir(projectPath)
+        if (!projectDir) {
+            return { success: false, error: 'Project folder not found.' }
+        }
+
+        const projectFile = path.join(projectDir, 'project.json')
+
+        try {
+            let existingData = {}
+            if (fs.existsSync(projectFile)) {
+                try {
+                    existingData = JSON.parse(fs.readFileSync(projectFile, 'utf8'))
+                } catch {
+                    existingData = {}
+                }
+            }
+
+            const incoming = projectData || {}
+            const updatedData = {
+                ...existingData,
+                ...incoming,
+                id: incoming.id || existingData.id || 'project',
+                name: incoming.name || existingData.name || path.basename(projectDir),
+                author: incoming.author ?? existingData.author ?? '',
+                version: incoming.version ?? existingData.version ?? '1.0.0',
+                descriptionPaths: incoming.descriptionPaths ?? existingData.descriptionPaths ?? [],
+                dataPaths: incoming.dataPaths ?? existingData.dataPaths ?? [],
+            }
+
+            if (incoming.editor) {
+                updatedData.editor = incoming.editor
+            } else if (incoming.customStyles || incoming.customFonts) {
+                updatedData.editor = {
+                    customStyles: incoming.customStyles || [],
+                    customFonts: incoming.customFonts || [],
+                }
+            }
+
+            atomicWriteJsonSync(projectFile, updatedData)
+            RecentProjectsService.saveRecentProject(projectFile, updatedData.name)
+
+            return { success: true, path: projectFile }
+        } catch (err) {
+            console.error('Error saving project manifest:', err)
+            return {
+                success: false,
+                error: err.message || 'An error occurred while saving project.json.',
             }
         }
     }

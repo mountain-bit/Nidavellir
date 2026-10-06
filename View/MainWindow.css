@@ -909,10 +909,115 @@ scene-node.is-drag-target,
 }
 
 .entity-mention-badge {
-    user-select: all;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.5rem;
+    margin: 0 0.2rem;
+    border-radius: 0.375rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    text-decoration: none !important;
     vertical-align: baseline;
     cursor: pointer;
-    font-weight: 500;
+    user-select: all;
     letter-spacing: 0.01em;
+    transition: all 0.15s ease-in-out;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.entity-mention-badge:hover {
+    filter: brightness(1.2);
+    transform: translateY(-0.5px);
+}
+
+.entity-badge-icon {
+    display: inline-block;
+    width: 0.8125rem;
+    height: 0.8125rem;
+    flex-shrink: 0;
+    vertical-align: middle;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    background-color: currentColor;
+}
+
+.entity-badge-icon-location {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E");
+}
+
+.entity-badge-icon-character,
+.entity-badge-icon-npc {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E");
+}
+
+.entity-badge-icon-tag,
+.entity-badge-icon-trait {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z'/%3E%3Ccircle cx='7.5' cy='7.5' r='.5' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z'/%3E%3Ccircle cx='7.5' cy='7.5' r='.5' fill='black'/%3E%3C/svg%3E");
+}
+
+.entity-badge-icon-item {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7.5 4.27 9 5.15'/%3E%3Cpath d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3Cpath d='M12 22V12'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m7.5 4.27 9 5.15'/%3E%3Cpath d='M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z'/%3E%3Cpath d='m3.3 7 8.7 5 8.7-5'/%3E%3Cpath d='M12 22V12'/%3E%3C/svg%3E");
+}
+
+/* Location Badge: vibrant blue */
+.entity-badge-location {
+    background-color: rgba(37, 99, 235, 0.2) !important;
+    color: #60a5fa !important;
+    border: 1px solid rgba(96, 165, 250, 0.45) !important;
+}
+.entity-badge-location:hover {
+    background-color: rgba(37, 99, 235, 0.35) !important;
+    border-color: rgba(96, 165, 250, 0.7) !important;
+}
+
+/* Character Badge: warm amber/gold */
+.entity-badge-character {
+    background-color: rgba(217, 119, 6, 0.2) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(251, 191, 36, 0.45) !important;
+}
+.entity-badge-character:hover {
+    background-color: rgba(217, 119, 6, 0.35) !important;
+    border-color: rgba(251, 191, 36, 0.7) !important;
+}
+
+/* Trait / Tag Badge: rich purple/violet */
+.entity-badge-trait,
+.entity-badge-tag {
+    background-color: rgba(147, 51, 234, 0.2) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(192, 132, 252, 0.45) !important;
+}
+.entity-badge-trait:hover,
+.entity-badge-tag:hover {
+    background-color: rgba(147, 51, 234, 0.35) !important;
+    border-color: rgba(192, 132, 252, 0.7) !important;
+}
+
+/* Item Badge: emerald green */
+.entity-badge-item {
+    background-color: rgba(5, 150, 105, 0.2) !important;
+    color: #34d399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.45) !important;
+}
+.entity-badge-item:hover {
+    background-color: rgba(5, 150, 105, 0.35) !important;
+    border-color: rgba(52, 211, 153, 0.7) !important;
+}
+
+.editor-btn[aria-pressed="true"] {
+    background-color: rgba(37, 99, 235, 0.3) !important;
+    color: #93c5fd !important;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
 }
 

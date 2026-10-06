@@ -1,3 +1,7 @@
+import type { Location } from '../../Model/Location'
+import type { NPC } from '../../Model/NPC'
+import type { Tag } from '../../Model/Tag'
+
 export type EntityType = 'location' | 'character' | 'trait' | 'tag' | 'item'
 
 export interface IEntityMentionItem {
@@ -6,6 +10,10 @@ export interface IEntityMentionItem {
     type: EntityType
     icon?: string
     description?: string
+    label?: string
+    pos?: number
+    rect?: DOMRect
+    clientPoint?: { x: number; y: number }
 }
 
 export interface IDocumentEntities {
@@ -13,6 +21,20 @@ export interface IDocumentEntities {
     characters: { id: string; name: string }[]
     tags: { id?: string; name: string }[]
     traits: { id?: string; name: string }[]
+}
+
+export type IProjectEntityCandidate = {
+    id?: string
+    name?: string
+    getId?: () => string
+    getName?: () => string
+    [key: string]: unknown
+}
+
+export interface ISyncProjectData {
+    locations?: (Location | IProjectEntityCandidate)[]
+    characters?: (NPC | IProjectEntityCandidate)[]
+    tags?: (Tag | IProjectEntityCandidate)[]
 }
 
 export interface ICustomTextStyle {
@@ -52,6 +74,7 @@ export interface IMarkdownEditorOptions {
     element: HTMLElement
     initialContent?: string
     placeholder?: string
+    editable?: boolean
     getProjectEntities?: () => IEntityMentionItem[]
     getCustomStyles?: () => ICustomTextStyle[]
     onUpdate?: (markdown: string, entities: IDocumentEntities) => void

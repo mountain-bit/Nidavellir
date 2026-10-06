@@ -73,6 +73,36 @@ describe('CustomStylesService', () => {
         expect(css).toContain('font-weight: 700;')
         expect(css).toContain('ui-serif')
     })
+
+    it('rejects unsafe style id when saving or building CSS', () => {
+        const unsafeStyle: ICustomTextStyle = {
+            id: 'bad" onclick="alert(1)"',
+            name: 'XSS Style',
+            color: 'red; } body { display:none }',
+        }
+
+        const projectData: IProjectStylesData = { customStyles: [] }
+        expect(() => CustomStylesService.saveStyle(projectData, unsafeStyle)).toThrow()
+
+        const css = CustomStylesService.buildCssRule(unsafeStyle)
+        expect(css).toBe('')
+    })
+
+    it('sanitizes malicious colors and font families', () => {
+        const style: ICustomTextStyle = {
+            id: 'safe_id',
+            name: 'Tampered Style',
+            color: 'blue; } * { color: red !important; }',
+            backgroundColor: 'url("https://evil.com")',
+            fontFamily: 'Arial"; } body { background: black }',
+        }
+
+        const css = CustomStylesService.buildCssRule(style)
+        expect(css).toContain('.gamebook-custom-style-safe_id')
+        expect(css).not.toContain('evil.com')
+        expect(css).not.toContain('* { color: red')
+        expect(css).not.toContain('background: black')
+    })
 })
 
 describe('MarkdownEditor - Custom Styles Integration', () => {
@@ -136,6 +166,19 @@ describe('MarkdownEditor - Custom Styles Integration', () => {
         const md = editor.getMarkdown()
         expect(md).toContain('style_hint')
 
+        editor.destroy()
+    })
+
+    it('ignores unsafe styleId in parsed markdown HTML span', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '',
+        })
+
+        editor.setMarkdown(
+            'Tekst z <span data-custom-style="bad\\" onclick=\\"alert(1)\\">złośliwym stylem</span>.'
+        )
+        expect(editor.isActive('customStyle')).toBe(false)
         editor.destroy()
     })
 })

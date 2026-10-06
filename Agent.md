@@ -122,6 +122,15 @@ All UI icons are defined as inline SVG strings in `Utils/icons.ts` with typed `I
 
 Programmatic toast notifications with four severity levels: `success`, `warning`, `error`, `info`. Toast uses Tailwind classes and auto-creates a DOM container. Use `toast({ message, type, title?, duration? })`.
 
+### 3.9. Rich Markdown Editor Subsystem (`Modules/Editor/` & `View/ui/editor/`)
+
+The application features a TipTap-powered Rich WYSIWYG Markdown Editor that seamlessly synchronizes with standard Markdown files and Gamebook Engine project metadata:
+- **`MarkdownEditor.ts`**: Core TipTap wrapper handling word/char stats, entity autocomplete via `@`, typography formatting, dialog blocks, and custom styled spans.
+- **`CustomStylesService.ts` & `styleSanitizer.ts`**: Pure services managing project-specific text styling rules (thoughts, spells, whisper) with CSS injection and validation against CSS injection/XSS.
+- **`CustomFontsService.ts`, `fontCatalog.ts`, `fontStacks.ts`**: Manages curated fantasy Google Fonts and offline fallback catalogs, dynamic `<link>` injection, and CSS font-stack fallbacks.
+- **`EntitySyncService.ts`**: Scans document AST or markdown syntax `[Name](entity://type/id)` to auto-sync mentioned locations, characters, and tags with the active scene/paragraph/NPC.
+- **UI Modularization (`View/ui/editor/`)**: Decomposed into focused ES modules: `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, and `mainEditor.js`. All UI elements utilize centralized SVG icons (`Utils/icons.ts`) and full multilingual localization (`Locales/{pl,en,de}/translation.json`).
+
 ---
 
 ## 4. Directory Structure
@@ -183,15 +192,27 @@ SilnikGierParagrafowych/
 │   └── ProjectManager.ts          # Singleton — active project in renderer
 │
 ├── Modules/                       # Feature modules (TypeScript)
-│   └── Graph/                     # Story graph subsystem (Cytoscape.js + Web Components)
-│       ├── StoryGraph.ts
-│       ├── ParagraphNode.ts/html
-│       ├── SceneNode.ts/html
-│       ├── ParagraphNodeTemplate.ts
-│       ├── SceneNodeTemplate.ts
-│       ├── StoryGraphStyles.ts
-│       ├── types.ts
-│       └── index.ts
+│   ├── Graph/                     # Story graph subsystem (Cytoscape.js + Web Components)
+│   │   ├── StoryGraph.ts
+│   │   ├── ParagraphNode.ts/html
+│   │   ├── SceneNode.ts/html
+│   │   ├── ParagraphNodeTemplate.ts
+│   │   ├── SceneNodeTemplate.ts
+│   │   ├── StoryGraphStyles.ts
+│   │   ├── types.ts
+│   │   └── index.ts
+│   └── Editor/                    # Rich Markdown Editor subsystem (TipTap + i18n + Fonts)
+│       ├── MarkdownEditor.ts      # Core TipTap Markdown Editor implementation
+│       ├── CustomStylesService.ts # Custom text style management & stylesheet injection
+│       ├── CustomFontsService.ts  # Google Fonts loader, cache, offline fallback
+│       ├── EntitySyncService.ts   # Document mention scanning & scene/NPC auto-sync
+│       ├── styleSanitizer.ts      # CSS & XSS injection sanitizer
+│       ├── fontCatalog.ts         # Curated & offline font datasets
+│       ├── fontStacks.ts          # System serif/mono/sans font stack fallbacks
+│       ├── constants.ts           # Editor URLs, timeouts, defaults
+│       ├── types.ts               # Interfaces for formatting, styles, fonts, entities
+│       ├── extensions/            # TipTap custom extensions (CustomStyleMark, DialogBlock, etc.)
+│       └── ui/                    # Editor UI components (MentionSuggestionRenderer)
 │
 ├── View/                          # HTML views & JS controllers
 │   ├── StartWindow.html           # Start screen
@@ -207,7 +228,14 @@ SilnikGierParagrafowych/
 │       ├── contextMenu.js         # Context menus & color picker
 │       ├── filterPopover.js       # Paragraph search & filters
 │       ├── htmlTemplates.js       # HTML template builders
-│       ├── workspace.js           # Workspace layout & tabs
+│       ├── workspace.js           # Workspace layout, resizers, tabs, graph view
+│       ├── editor/                # Rich text editor UI modules
+│       │   ├── editorToolbar.js   # Toolbar click bindings & active states
+│       │   ├── customStylesMenu.js # Custom styles dropdown menu
+│       │   ├── customStyleModal.js # Style creation / edit modal with live preview
+│       │   ├── fontBrowserModal.js # Google Fonts online/offline browser modal
+│       │   ├── mainEditor.js      # Main editor instance & auto-sync trigger
+│       │   └── index.js           # Editor UI aggregator
 │       ├── npcAvatars.js          # NPC avatar definitions
 │       ├── npcModal.js            # NPC modal orchestrator
 │       └── npcModal/              # NPC modal sub-modules
@@ -360,10 +388,10 @@ For ViewModels that need testability, accept `IdGenerator` as a constructor depe
 All View UI module functions that need shared state **must** accept `ctx` (the `appContext` object) as parameter:
 
 ```javascript
-// ✅ Correct
+// Correct
 export function renderCharactersList(ctx) { ... }
 
-// ❌ Wrong — accessing globals
+// Wrong — accessing globals
 export function renderCharactersList() {
     const vm = window.vm  // NO!
 }
@@ -566,7 +594,7 @@ pnpm run test:coverage   # With V8 coverage report
 
 ## 11. Checklists — What to Do When...
 
-### ✅ Adding a New Domain Model
+### Adding a New Domain Model
 
 1. Create `Model/YourEntity.ts` following the pattern in §5.4.
 2. Add `fromJSON()` with legacy Polish key support.
@@ -576,7 +604,7 @@ pnpm run test:coverage   # With V8 coverage report
 6. Add unit tests in `tests/Model/YourEntity.test.ts`.
 7. Export from ViewModel if used in the View layer.
 
-### ✅ Adding a New View Controller Module
+### Adding a New View Controller Module
 
 1. Create `View/ui/yourModule.js` as ES module.
 2. Export functions that accept `ctx` as first parameter.
@@ -584,13 +612,13 @@ pnpm run test:coverage   # With V8 coverage report
 4. Import and wire in `MainWindow.js`, adding to `appContext` if needed.
 5. Add tests in `tests/View/YourModule.test.ts`.
 
-### ✅ Adding a New TypeScript Module for Renderer
+### Adding a New TypeScript Module for Renderer
 
 1. Create the module in `Modules/`, `Utils/`, or `Services/`.
 2. Add entry point in `scripts/build-renderer.js`.
 3. Import in View JS from `../dist/YourModule.js`.
 
-### ✅ Adding a New IPC Channel
+### Adding a New IPC Channel
 
 1. Add handler in `main/ipc/` or extend existing file.
 2. Register in `main/ipc/index.js`.
@@ -599,13 +627,13 @@ pnpm run test:coverage   # With V8 coverage report
 5. Update `types/global.d.ts` `electronAPI` interface.
 6. Add IPC handler tests in `tests/IPC/`.
 
-### ✅ Adding a New SVG Icon
+### Adding a New SVG Icon
 
 1. Add to `Utils/icons.ts` — define the SVG string in the `ICONS` map.
 2. Add the icon name to the `IconName` union type.
 3. Reference via `icon('your-icon-name')` in TypeScript or import in JS.
 
-### ✅ Adding a New Translation Key
+### Adding a New Translation Key
 
 1. Add the key + English text to `Locales/en/translation.json`.
 2. Add Polish translation to `Locales/pl/translation.json`.
