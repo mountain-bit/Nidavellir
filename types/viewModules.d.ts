@@ -469,3 +469,23 @@ declare module '*/View/ui/editor/index.js' {
     export * from '*/View/ui/editor/fontBrowserModal.js'
     export * from '*/View/ui/editor/mainEditor.js'
 }
+
+declare module '*/View/ui/npcAvatars.js' {
+    export interface IFantasyAvatar {
+        id: string
+        nameKey?: string
+        name?: string
+        category?: string
+        color?: string
+        bgColor?: string
+        borderColor?: string
+        svg: string
+        isCustom?: boolean
+        src?: string
+    }
+
+    export const FANTASY_AVATARS: IFantasyAvatar[]
+    export function getAvatarName(avatar: IFantasyAvatar): string
+    export function getAvatarById(id: string): IFantasyAvatar
+    export function isCustomAvatarPath(avatarId: string): boolean
+}

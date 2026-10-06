@@ -69,6 +69,7 @@
         "charakter_change": "Avatar ändern",
         "avatar_title": "Klassenavatar wählen",
         "select_portrait": "Porträt wählen",
+        "upload_custom_avatar": "Eigenes Bild hochladen",
         "portrait": "Porträt",
         "select_stat_default": "-- Eigenschaft wählen --",
         "remove_stat": "Eigenschaft entfernen",
@@ -257,6 +258,9 @@
             "quote": "Zitat (> )",
             "dialog": "Dialogzeile (Einzug & Gedankenstrich — )",
             "dialog_label": "Dialog",
+            "image": "Bild von Festplatte einfügen",
+            "image_label": "Bild",
+            "image_error": "Fehler beim Einfügen des Bildes",
             "styles_dropdown_title": "Textstil auswählen oder erstellen",
             "styles_label": "Textstile",
             "custom_style": "Eigener Stil",
@@ -652,6 +656,7 @@
         "unknown_op": "Unbekannter Operator"
     },
     "avatars": {
+        "custom": "Eigenes Porträt",
         "warrior": "Krieger",
         "mage": "Magier",
         "rogue": "Schurke",
@@ -796,5 +801,17 @@
         "no_description": "Keine Erzählbeschreibung",
         "no_traits": "Keine definierten Merkmale",
         "create_character_from_template": "Charakter aus dieser Vorlage erstellen"
+    },
+    "asset": {
+        "error": {
+            "title": "Bildfehler",
+            "no_project": "Kein Projekt ausgewählt oder aktives Projekt gefunden",
+            "file_not_found": "Quelldatei existiert nicht",
+            "unsupported_format": "Nicht unterstütztes Dateiformat. Erlaubte Formate: {{formats}}",
+            "file_too_large": "Dateigröße überschreitet das maximale Limit von {{maxMb}} MB",
+            "forbidden_path": "Zielpfad liegt außerhalb des Projektverzeichnisses",
+            "import_failed": "Fehler beim Importieren der Bilddatei",
+            "list_failed": "Fehler beim Abrufen der Liste der Projektbilder"
+        }
     }
 }

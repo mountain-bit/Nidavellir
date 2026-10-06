@@ -96,6 +96,26 @@ export function initAvatarGrid() {
         })
     }
 
+    const uploadBtn = document.getElementById('btn-npc-upload-custom-avatar')
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', async e => {
+            e.stopPropagation()
+            if (window.electronAPI && typeof window.electronAPI.importImage === 'function') {
+                try {
+                    const res = await window.electronAPI.importImage(null, 'npc')
+                    if (res && res.success && res.relativePath) {
+                        updateSelectedAvatarPreview(res.relativePath)
+                        if (popover) {
+                            popover.classList.add('hidden')
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error importing custom avatar:', err)
+                }
+            }
+        })
+    }
+
     // Set initial preview
     updateSelectedAvatarPreview(state.getCurrentAvatarId())
 }

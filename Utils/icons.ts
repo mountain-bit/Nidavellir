@@ -59,6 +59,8 @@ export type IconName =
     | 'eraser'
     | 'alert-triangle'
     | 'link'
+    | 'image'
+    | 'upload'
 
 export interface IIconConfig {
     viewBox?: string
@@ -269,6 +271,14 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     link: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>',
+    },
+    image: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline>',
+    },
+    upload: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>',
     },
 }
 

@@ -69,6 +69,7 @@
         "charakter_change": "Change avatar",
         "avatar_title": "Choose class / avatar",
         "select_portrait": "Select portrait",
+        "upload_custom_avatar": "Upload custom image",
         "portrait": "Portrait",
         "select_stat_default": "-- Select stat --",
         "remove_stat": "Remove stat",
@@ -257,6 +258,9 @@
             "quote": "Quote (> )",
             "dialog": "Dialogue line (indentation & dialogue dash — )",
             "dialog_label": "Dialogue",
+            "image": "Insert image from disk",
+            "image_label": "Image",
+            "image_error": "Error inserting image",
             "styles_dropdown_title": "Select or create custom text style",
             "styles_label": "Text styles",
             "custom_style": "Custom style",
@@ -653,6 +657,7 @@
         "unknown_op": "Unknown operator"
     },
     "avatars": {
+        "custom": "Custom portrait",
         "warrior": "Warrior",
         "mage": "Mage",
         "rogue": "Rogue",
@@ -797,5 +802,17 @@
         "no_description": "No narrative description",
         "no_traits": "No traits defined",
         "create_character_from_template": "Create character from this template"
+    },
+    "asset": {
+        "error": {
+            "title": "Image Error",
+            "no_project": "No project selected or active project found",
+            "file_not_found": "Source file does not exist",
+            "unsupported_format": "Unsupported file format. Allowed formats: {{formats}}",
+            "file_too_large": "File size exceeds the maximum limit of {{maxMb}} MB",
+            "forbidden_path": "Target path is outside the project directory",
+            "import_failed": "An error occurred while importing the image file",
+            "list_failed": "An error occurred while retrieving the project images list"
+        }
     }
 }

@@ -161,6 +161,10 @@ export const FANTASY_AVATARS = [
     },
 ]
 
+import { isCustomAvatarPath, toAssetUrl } from '../../dist/Utils/assetUtils.js'
+
+export { isCustomAvatarPath }
+
 /**
  * Returns the translated display name for an avatar.
  *
@@ -172,5 +176,20 @@ export function getAvatarName(avatar) {
 }
 
 export function getAvatarById(id) {
+    if (isCustomAvatarPath(id)) {
+        const assetUrl = toAssetUrl(id)
+        return {
+            id,
+            nameKey: 'avatars.custom',
+            name: t('avatars.custom') || 'Własny portret',
+            category: 'custom',
+            color: '#94a3b8',
+            bgColor: 'rgba(39, 39, 42, 0.4)',
+            borderColor: 'rgba(63, 63, 70, 0.8)',
+            isCustom: true,
+            src: id,
+            svg: `<img src="${assetUrl}" alt="Avatar" class="w-full h-full object-cover rounded-lg" />`,
+        }
+    }
     return FANTASY_AVATARS.find(a => a.id === id) || FANTASY_AVATARS[0]
 }

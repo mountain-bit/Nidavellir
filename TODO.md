@@ -48,3 +48,24 @@ This document serves as a comprehensive registry of planned features, enhancemen
   - [x] Pure SVG icon integration via `<app-icon>` web component and `Utils/icons.ts` (0 emojis)
   - [x] Empty state & inactive handling: editor toolbar and mount are hidden/disabled with a clean empty state prompt and 1-click graph switch when no file is open
 
+---
+
+## 8.3. Media & Asset Manager (Graphics & Illustrations)
+- [x] **Secure Project Asset Storage & Electron Protocol**
+  - [x] Automatic `Assets/Images/` scaffolding within project directory in `ProjectService.js`
+  - [x] Privileged `asset://` custom protocol handler with path traversal security (`isPathInsideBase`) in `main/services/AssetProtocolService.js`
+  - [x] `AssetService.js` and IPC handlers (`asset-import-image`, `asset-list-images`) with native file dialog integration
+  - [x] Context bridge exposed API in `preload.js` (`window.electronAPI.importImage`, `listImages`)
+  - [x] Utility helpers in `Utils/assetUtils.ts` (`toAssetUrl`, `toRelativeAssetPath`, `isCustomAvatarPath`)
+- [x] **Markdown Text Illustrations Subsystem**
+  - [x] TipTap `CustomImage` Node extension (`Modules/Editor/extensions/CustomImage.ts`) with block image styling
+  - [x] Portable relative path serialization (`![alt](Assets/Images/photo.png)`) and live rendering (`asset://project/...`)
+  - [x] Toolbar button (`#btn-editor-image`) with centralized SVG icon (`image`) in `View/ui/editor/editorToolbar.js`
+- [x] **Custom NPC Avatar & Portrait Subsystem**
+  - [x] Backward-compatible model representation supporting both SVG preset IDs and relative image paths
+  - [x] Hybrid portrait renderer in `View/ui/npcAvatars.js` (`getAvatarById`) generating responsive `<img>` for file paths and `<svg>` for archetypes
+  - [x] NPC modal upload button (`#btn-npc-upload-custom-avatar`) in avatar picker popover (`npcSectionControllers.js`)
+  - [x] Seamless propagation to details panel, drawer lists, and character sheets
+- [x] **Full Multilingual Localization (PL, EN, DE)**
+  - [x] Localized toolbar tooltips, buttons, error toasts, and avatar labels in `Locales/*/translation.json`
+

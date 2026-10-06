@@ -23,6 +23,7 @@ const config = {
         'Utils/toast': path.join(__dirname, '..', 'Utils', 'toast.ts'),
         'Utils/pathSanitizer': path.join(__dirname, '..', 'Utils', 'pathSanitizer.ts'),
         'Utils/icons': path.join(__dirname, '..', 'Utils', 'icons.ts'),
+        'Utils/assetUtils': path.join(__dirname, '..', 'Utils', 'assetUtils.ts'),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
         'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
     },

@@ -20,4 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     closeApp: () => ipcRenderer.invoke('close-app'),
     loadMainWindow: () => ipcRenderer.invoke('load-main-window'),
     getSystemUsername: () => ipcRenderer.invoke('get-system-username'),
+    importImage: (projectPath, prefix) =>
+        ipcRenderer.invoke('asset-import-image', { projectPath, prefix }),
+    listImages: projectPath => ipcRenderer.invoke('asset-list-images', { projectPath }),
 })

@@ -69,6 +69,7 @@
         "charakter_change": "Zmień awatar",
         "avatar_title": "Wybierz klasę / awatar",
         "select_portrait": "Wybierz portret",
+        "upload_custom_avatar": "Wgraj własną grafikę",
         "portrait": "Portret",
         "select_stat_default": "-- Wybierz cechę --",
         "remove_stat": "Usuń cechę",
@@ -257,6 +258,9 @@
             "quote": "Cytat (> )",
             "dialog": "Kwestia dialogowa (wcięcie i pauza dialogowa — )",
             "dialog_label": "Dialog",
+            "image": "Wstaw grafikę z dysku",
+            "image_label": "Grafika",
+            "image_error": "Błąd dodawania grafiki",
             "styles_dropdown_title": "Wybierz lub utwórz własny styl tekstu",
             "styles_label": "Style tekstu",
             "custom_style": "Własny styl",
@@ -653,6 +657,7 @@
         "unknown_op": "Nieznany operator"
     },
     "avatars": {
+        "custom": "Własny portret",
         "warrior": "Wojownik",
         "mage": "Mag",
         "rogue": "Łotrzyk",
@@ -797,5 +802,17 @@
         "no_description": "Brak opisu narracyjnego",
         "no_traits": "Brak zdefiniowanych cech",
         "create_character_from_template": "Stwórz postać z tego szablonu"
+    },
+    "asset": {
+        "error": {
+            "title": "Błąd grafiki",
+            "no_project": "Nie wybrano projektu ani nie znaleziono aktywnego projektu",
+            "file_not_found": "Plik źródłowy nie istnieje",
+            "unsupported_format": "Nieobsługiwany format pliku. Dozwolone formaty: {{formats}}",
+            "file_too_large": "Rozmiar pliku przekracza maksymalny limit {{maxMb}} MB",
+            "forbidden_path": "Ścieżka docelowa znajduje się poza katalogiem projektu",
+            "import_failed": "Wystąpił błąd podczas importowania pliku graficznego",
+            "list_failed": "Wystąpił błąd podczas pobierania listy grafik projektu"
+        }
     }
 }

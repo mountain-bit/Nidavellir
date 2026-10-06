@@ -7,6 +7,7 @@ const {
     atomicWriteJsonSync,
 } = require('../../Utils/fsSecurity')
 const { t } = require('../../Utils/i18n')
+const { ASSETS_IMAGES_DIR } = require('../../Utils/assetConstants')
 const RecentProjectsService = require('./RecentProjectsService')
 
 const DEFAULT_PROJECT_FOLDERS = [
@@ -20,7 +21,38 @@ const DEFAULT_PROJECT_FOLDERS = [
     'PlayerCharacter',
 ]
 
+let currentProjectDir = null
+
+/**
+ * Ensures the project's image assets directory exists (non-entity folder, no meta.json).
+ *
+ * @param {string} projectDir
+ */
+function ensureAssetsDirectory(projectDir) {
+    const imagesDir = path.join(projectDir, ...ASSETS_IMAGES_DIR.split('/'))
+    if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true })
+    }
+}
+
 class ProjectService {
+    /**
+     * Returns the currently active project directory path.
+     *
+     * @returns {string|null}
+     */
+    static getCurrentProjectDir() {
+        return currentProjectDir
+    }
+
+    /**
+     * Sets the currently active project directory path.
+     *
+     * @param {string|null} dir
+     */
+    static setCurrentProjectDir(dir) {
+        currentProjectDir = dir ? resolveProjectDir(dir) : null
+    }
     /**
      * Creates a new gamebook project directory structure with default folders and metadata.
      *
@@ -69,8 +101,11 @@ class ProjectService {
                 dataPaths: dataPaths,
             }
 
+            ensureAssetsDirectory(projectPath)
+
             fs.writeFileSync(projectFile, JSON.stringify(projectData, null, 2))
             RecentProjectsService.saveRecentProject(projectFile, projectData.name)
+            this.setCurrentProjectDir(projectPath)
 
             return { success: true, path: projectFile }
         } catch (err) {
@@ -218,6 +253,9 @@ class ProjectService {
                 }
             }
 
+            ensureAssetsDirectory(projectDir)
+            this.setCurrentProjectDir(projectDir)
+
             return {
                 success: true,
                 path: resolvedProjectFile,
@@ -285,6 +323,7 @@ class ProjectService {
 
             atomicWriteJsonSync(projectFile, updatedData)
             RecentProjectsService.saveRecentProject(projectFile, updatedData.name)
+            this.setCurrentProjectDir(projectDir)
 
             return { success: true, path: projectFile }
         } catch (err) {

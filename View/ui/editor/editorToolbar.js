@@ -1,5 +1,6 @@
 import { CustomStylesService } from '../../../dist/Modules/Editor/index.js'
 import { t } from '../../../dist/Utils/translate.js'
+import { pickProjectImage } from '../assetPicker.js'
 import { setupCustomStylesUI } from './customStylesMenu.js'
 import { openEntityLinkModal } from './entityLinkModal.js'
 
@@ -114,6 +115,12 @@ export function setupToolbarButtons(editor, ctx) {
     bindClick('btn-editor-ordered-list', () => editor.toggleOrderedList())
     bindClick('btn-editor-quote', () => editor.toggleBlockquote())
     bindClick('btn-editor-dialog', () => editor.toggleDialog())
+    bindClick('btn-editor-image', async () => {
+        const image = await pickProjectImage(ctx, 'img')
+        if (image) {
+            editor.setImage({ src: image.relativePath, alt: image.fileName })
+        }
+    })
 
     setupCustomStylesUI(editor, ctx, updateToolbarActiveStates)
 
