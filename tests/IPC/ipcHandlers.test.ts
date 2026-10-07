@@ -229,7 +229,14 @@ describe('Main Process Services & File System Operations', () => {
 
             const saved = JSON.parse(fs.readFileSync(result.entityPath!, 'utf8'))
             expect(saved.name).toBe('Kupiec Jan')
-            expect(saved.description.textPath).toBe('./NPC/kupiec_jan/text.md')
+            expect(saved.description.filePath).toBe(
+                './NPC/kupiec_jan/Description_NPC_Kupiec_Jan.md'
+            )
+            expect(saved.description.textPath).toBe(
+                './NPC/kupiec_jan/Description_NPC_Kupiec_Jan.md'
+            )
+            expect(saved.description.authorNotes).toBeUndefined()
+            expect(saved.description.authorNotesPath).toBeUndefined()
 
             const meta = JSON.parse(fs.readFileSync(path.join(tempDir, 'NPC', 'meta.json'), 'utf8'))
             expect(meta.elements).toContain('./kupiec_jan/element.json')

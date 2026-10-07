@@ -15,7 +15,9 @@ import { Skill } from '../Model/Skill'
 import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
+import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
+import { formatDescriptionFileName } from '../Utils/pathSanitizer'
 import { t } from '../Utils/translate'
 
 export {
@@ -158,6 +160,7 @@ export class MainWindowViewModel {
     private activeMainView: MainViewMode = 'graph'
     private activeFile: string | null = null
     private openFiles: string[] = []
+    private fileDisplayNames: Map<string, string> = new Map()
 
     // Panel Resizing Widths
     private leftDrawerWidth: number = 260
@@ -561,7 +564,7 @@ export class MainWindowViewModel {
         }
     }
 
-    public openOrCreateDescriptionFile(fileType: 'text' | 'author'): {
+    public openOrCreateDescriptionFile(_fileType?: 'text' | string): {
         fileName: string
         content: string
     } {
@@ -575,20 +578,26 @@ export class MainWindowViewModel {
             : entity.getDescription
               ? entity.getDescription()
               : new Description()
-        const safeName = this.selectedItem.name.replace(/[^a-zA-Z0-9_-]/g, '_')
-        const fileName = `${safeName}_${fileType === 'text' ? 'text' : 'author'}.md`
 
-        let content = ''
-        if (fileType === 'text') {
-            if (!desc.getText()) {
-                desc.setText(`# ${this.selectedItem.name}\n\nNarrative text for players.`)
-            }
-            content = desc.getText()
-        } else {
-            if (!desc.getAuthorNotes()) {
-                desc.setAuthorNotes(`# Author Notes: ${this.selectedItem.name}\n\nNotes and ideas.`)
-            }
-            content = desc.getAuthorNotes()
+        let fileName = ''
+        const existingPath = desc.getFilePath()
+        if (existingPath) {
+            const parts = existingPath.replace(/\\/g, '/').split('/')
+            fileName = parts[parts.length - 1]
+        }
+        if (!fileName) {
+            const type = this.selectedItem.type || 'element'
+            fileName = formatDescriptionFileName(type, this.selectedItem.name)
+            desc.setFilePath(fileName)
+        }
+
+        if (!desc.getText()) {
+            desc.setText(`# ${this.selectedItem.name}\n\nNarrative text for players.`)
+        }
+        const content = desc.getText()
+
+        if (this.selectedItem?.name) {
+            this.fileDisplayNames.set(fileName, this.selectedItem.name)
         }
 
         this.setActiveFile(fileName)
@@ -627,6 +636,93 @@ export class MainWindowViewModel {
             this.activeFile =
                 this.openFiles.length > 0 ? this.openFiles[this.openFiles.length - 1] : null
         }
+    }
+
+    public setFileDisplayName(file: string, displayName: string): void {
+        this.fileDisplayNames.set(file, displayName)
+    }
+
+    public getFileDisplayName(file: string | null): string {
+        if (!file) return ''
+        if (this.fileDisplayNames.has(file)) {
+            return this.fileDisplayNames.get(file)!
+        }
+
+        const base = file.replace(/\\/g, '/').split('/').pop() || file
+        if (this.fileDisplayNames.has(base)) {
+            return this.fileDisplayNames.get(base)!
+        }
+
+        const baseWithoutExt = base.replace(/\.md$/i, '')
+        if (this.fileDisplayNames.has(baseWithoutExt)) {
+            return this.fileDisplayNames.get(baseWithoutExt)!
+        }
+
+        const project = ProjectManager.getInstance().getProject()
+        if (project) {
+            const allEntities: {
+                getName?: () => string
+                getTitle?: () => string
+                getContent?: () => Description
+                getDescription?: () => Description
+            }[] = [
+                ...project.getScenes().flatMap(s => s.getParagraphs()),
+                ...project.getCharacters(),
+                ...project.getLocations(),
+                ...project.getItems(),
+                ...project.getScenes(),
+                ...project.getTemplates(),
+                ...(project.getPlayerCharacter ? [project.getPlayerCharacter()] : []),
+            ]
+
+            for (const ent of allEntities) {
+                const desc = ent.getContent
+                    ? ent.getContent()
+                    : ent.getDescription
+                      ? ent.getDescription()
+                      : null
+                const filePath = desc?.getFilePath()
+                if (filePath) {
+                    const norm = filePath.replace(/\\/g, '/')
+                    const normBase = norm.split('/').pop() || norm
+                    const normBaseNoExt = normBase.replace(/\.md$/i, '')
+                    if (
+                        norm === file ||
+                        norm.endsWith('/' + file) ||
+                        normBase === base ||
+                        normBaseNoExt === baseWithoutExt
+                    ) {
+                        const name = ent.getName
+                            ? ent.getName()
+                            : ent.getTitle
+                              ? ent.getTitle()
+                              : ''
+                        if (name) {
+                            this.fileDisplayNames.set(file, name)
+                            return name
+                        }
+                    }
+                }
+            }
+        }
+
+        const match = /^Description_[^_]+_(.+)$/i.exec(baseWithoutExt)
+        if (match && match[1]) {
+            const parsedName = match[1].replace(/_/g, ' ')
+            this.fileDisplayNames.set(file, parsedName)
+            return parsedName
+        }
+
+        const legacyMatch = /^(.+)_(?:text|author)$/i.exec(baseWithoutExt)
+        if (legacyMatch && legacyMatch[1]) {
+            const parsedName = legacyMatch[1].replace(/_/g, ' ')
+            this.fileDisplayNames.set(file, parsedName)
+            return parsedName
+        }
+
+        const fallback = baseWithoutExt.replace(/_/g, ' ')
+        this.fileDisplayNames.set(file, fallback)
+        return fallback
     }
 
     // Paragraph Search & Filter Getters / Setters

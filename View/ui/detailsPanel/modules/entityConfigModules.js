@@ -485,7 +485,7 @@ export function renderSummaryModule(container, entity, ctx) {
 }
 
 /**
- * Renders description narrative files buttons (Player text, Author notes).
+ * Renders description narrative file button.
  *
  * @param {HTMLElement} container
  * @param {object} entity
@@ -497,19 +497,12 @@ export function renderFilesModule(container, entity, ctx) {
     const filesMod = createSection(
         'border-b border-[#333338] p-3 space-y-2',
         `
-        <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.description_files')}</div>
+        <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.description_file')}</div>
         <div class="flex flex-col gap-1.5">
             <button id="btn-open-player-text" type="button" class="w-full px-2.5 py-1.5 bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] rounded text-xs text-white text-left flex items-center justify-between cursor-pointer">
                 <span class="flex items-center gap-2">
                     <span class="text-blue-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
-                    <span>${t('details.open_player_text')}</span>
-                </span>
-                <span class="text-blue-400 shrink-0">${getIconSvg('arrow-right', 'w-3.5 h-3.5')}</span>
-            </button>
-            <button id="btn-open-author-notes" type="button" class="w-full px-2.5 py-1.5 bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] rounded text-xs text-white text-left flex items-center justify-between cursor-pointer">
-                <span class="flex items-center gap-2">
-                    <span class="text-amber-400 shrink-0">${getIconSvg('markdown', 'w-3.5 h-3.5')}</span>
-                    <span>${t('details.open_author_notes')}</span>
+                    <span>${t('details.open_description_file')}</span>
                 </span>
                 <span class="text-blue-400 shrink-0">${getIconSvg('arrow-right', 'w-3.5 h-3.5')}</span>
             </button>
@@ -518,20 +511,11 @@ export function renderFilesModule(container, entity, ctx) {
     )
 
     filesMod.querySelector('#btn-open-player-text').addEventListener('click', () => {
-        const { fileName, content } = ctx.vm.openOrCreateDescriptionFile('text')
+        const { fileName, content } = ctx.vm.openOrCreateDescriptionFile()
         if (fileName) {
             ctx.files[fileName] = content
             ctx.updateMainWorkspaceUI()
-            toast.success(`${t('details.open_player_text')}: ${t('details.file_created')}`)
-        }
-    })
-
-    filesMod.querySelector('#btn-open-author-notes').addEventListener('click', () => {
-        const { fileName, content } = ctx.vm.openOrCreateDescriptionFile('author')
-        if (fileName) {
-            ctx.files[fileName] = content
-            ctx.updateMainWorkspaceUI()
-            toast.success(`${t('details.open_author_notes')}: ${t('details.file_created')}`)
+            toast.success(`${t('details.open_description_file')}: ${t('details.file_created')}`)
         }
     })
 

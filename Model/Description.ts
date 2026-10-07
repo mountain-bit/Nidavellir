@@ -1,30 +1,19 @@
 export interface IDescriptionJSON {
     text?: string
     summary?: string
-    authorNotes?: string
+    filePath?: string
     textPath?: string
-    authorNotesPath?: string
 }
 
 export class Description {
     private text: string = ''
     private summary: string = ''
-    private authorNotes: string = ''
-    private textPath: string = ''
-    private authorNotesPath: string = ''
+    private filePath: string = ''
 
-    constructor(
-        text: string = '',
-        summary: string = '',
-        authorNotes: string = '',
-        textPath: string = '',
-        authorNotesPath: string = ''
-    ) {
+    constructor(text: string = '', summary: string = '', filePath: string = '') {
         this.text = text
         this.summary = summary
-        this.authorNotes = authorNotes
-        this.textPath = textPath
-        this.authorNotesPath = authorNotesPath
+        this.filePath = filePath
     }
 
     public getText(): string {
@@ -43,28 +32,22 @@ export class Description {
         this.summary = summary
     }
 
-    public getAuthorNotes(): string {
-        return this.authorNotes
+    public getFilePath(): string {
+        return this.filePath
     }
 
-    public setAuthorNotes(authorNotes: string): void {
-        this.authorNotes = authorNotes
+    public setFilePath(filePath: string): void {
+        this.filePath = filePath
     }
 
+    /** Backwards-compatible alias for filePath */
     public getTextPath(): string {
-        return this.textPath
+        return this.filePath
     }
 
+    /** Backwards-compatible alias for filePath */
     public setTextPath(textPath: string): void {
-        this.textPath = textPath
-    }
-
-    public getAuthorNotesPath(): string {
-        return this.authorNotesPath
-    }
-
-    public setAuthorNotesPath(authorNotesPath: string): void {
-        this.authorNotesPath = authorNotesPath
+        this.filePath = textPath
     }
 
     public static fromJSON(json: IDescriptionJSON | null | undefined): Description {
@@ -73,20 +56,21 @@ export class Description {
         }
         const text = typeof json.text === 'string' ? json.text : ''
         const summary = typeof json.summary === 'string' ? json.summary : ''
-        const authorNotes = typeof json.authorNotes === 'string' ? json.authorNotes : ''
-        const textPath = typeof json.textPath === 'string' ? json.textPath : ''
-        const authorNotesPath = typeof json.authorNotesPath === 'string' ? json.authorNotesPath : ''
+        const filePath =
+            typeof json.filePath === 'string'
+                ? json.filePath
+                : typeof json.textPath === 'string'
+                  ? json.textPath
+                  : ''
 
-        return new Description(text, summary, authorNotes, textPath, authorNotesPath)
+        return new Description(text, summary, filePath)
     }
 
     public toJSON(): IDescriptionJSON {
         return {
             text: this.text,
             summary: this.summary,
-            authorNotes: this.authorNotes,
-            textPath: this.textPath,
-            authorNotesPath: this.authorNotesPath,
+            filePath: this.filePath,
         }
     }
 }

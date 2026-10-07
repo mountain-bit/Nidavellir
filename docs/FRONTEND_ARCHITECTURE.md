@@ -137,9 +137,7 @@ classDiagram
     class Description {
         +string text
         +string summary
-        +string authorNotes
-        +string textPath
-        +string authorNotesPath
+        +string filePath
     }
 
     Project "1" *-- "many" Scene

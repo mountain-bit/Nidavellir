@@ -41,7 +41,7 @@ describe('Project.fromJSON()', () => {
                 {
                     id: 'forest',
                     name: 'Forest',
-                    description: { text: 'Deep forest', summary: '', authorNotes: '' },
+                    description: { text: 'Deep forest', summary: '' },
                     tags: ['outside'],
                 },
             ],
@@ -62,7 +62,7 @@ describe('Project.fromJSON()', () => {
                 {
                     id: 'guard',
                     name: 'Guard',
-                    description: { text: '', summary: '', authorNotes: '' },
+                    description: { text: '', summary: '' },
                     traits: [],
                     skills: [],
                     qualities: [],
@@ -83,7 +83,7 @@ describe('Project.fromJSON()', () => {
                 {
                     id: 'sword',
                     name: 'Sword',
-                    description: { text: 'Steel sword', summary: '', authorNotes: '' },
+                    description: { text: 'Steel sword', summary: '' },
                 },
             ],
         }
@@ -102,7 +102,7 @@ describe('Project.fromJSON()', () => {
                     id: 'warrior',
                     name: 'Warrior',
                     level: 1,
-                    description: { text: '', summary: '', authorNotes: '' },
+                    description: { text: '', summary: '' },
                     traits: [],
                     skills: [],
                     qualities: [],
@@ -155,7 +155,6 @@ describe('Project.fromJSON()', () => {
                     description: {
                         text: 'Cold crypt',
                         summary: 'Location',
-                        authorNotes: 'Author note',
                     },
                     tags: ['underground', 'dark'],
                 },
@@ -166,7 +165,6 @@ describe('Project.fromJSON()', () => {
         expect(location).toBeInstanceOf(Location)
         expect(location?.getDescription().getText()).toBe('Cold crypt')
         expect(location?.getDescription().getSummary()).toBe('Location')
-        expect(location?.getDescription().getAuthorNotes()).toBe('Author note')
         expect(location?.getTags().map(t => t.getId())).toEqual(['underground', 'dark'])
     })
 })

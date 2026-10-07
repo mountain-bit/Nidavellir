@@ -81,4 +81,9 @@ This document serves as a comprehensive registry of planned features, enhancemen
   - [x] Resolved "No project selected" error on image button click via automatic fallback in `ProjectService.getCurrentProjectDir()` (recent project / default workspace directory) and Ribbon "Otwórz projekt" (`data-action="open-project"`) integration.
   - [x] Fixed NPC avatar upload button in NPC modal (`#btn-npc-upload-custom-avatar`) and added custom avatar upload button in the NPC details panel (`#btn-details-upload-avatar`).
   - [x] Implemented Drag & Drop image file handling (`asset-import-file`, `webUtils.getPathForFile`, base64 fallback) for the markdown editor (TipTap & raw) and NPC portraits with glowing visual drop zones.
+- [x] **Unified Description System & Standardized File Naming**
+  - [x] Streamlined `Description` model to a single narrative Markdown file (`filePath`) and summary (`summary`), completely removing author notes (`authorNotes`, `authorNotesPath`, `author.md`).
+  - [x] Standardized file naming convention `Description_<Category>_<EntityName>.md` (e.g. `Description_NPC_Jan.md`, `Description_Paragraph_Intro.md`) in `pathSanitizer` and `EntityService.js`.
+  - [x] Updated UI Details Panel (`renderFilesModule`) to a single clean description button, removing author notes button and listeners.
+  - [x] Updated i18n locales (PL, EN, DE), schemas, architectural documentation, and full test suite.
 

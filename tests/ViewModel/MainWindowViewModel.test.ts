@@ -108,6 +108,23 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveFile()).toBeNull()
     })
 
+    it('zwraca czytelną nazwę obiektu zamiast pełnej nazwy pliku opisu', () => {
+        expect(vm.getFileDisplayName(null)).toBe('')
+        expect(vm.getFileDisplayName('Description_NPC_Jan.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Description_NPC_Jan')).toBe('Jan')
+        expect(vm.getFileDisplayName('C:/Projekt/Descriptions/Description_NPC_Jan.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Description_Item_Zardzewialy_Miecz.md')).toBe(
+            'Zardzewialy Miecz'
+        )
+        expect(vm.getFileDisplayName('Description_Location_Mroczny_Las.md')).toBe('Mroczny Las')
+        expect(vm.getFileDisplayName('Jan_text.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Jan_author.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Wprowadzenie.md')).toBe('Wprowadzenie')
+
+        vm.setFileDisplayName('custom_file.md', 'Mój Specjalny Obiekt')
+        expect(vm.getFileDisplayName('custom_file.md')).toBe('Mój Specjalny Obiekt')
+    })
+
     it('zmienia główny widok na graf historii i z powrotem', () => {
         expect(vm.getActiveMainView()).toBe('graph')
 
@@ -495,19 +512,22 @@ describe('MainWindowViewModel', () => {
             expect(p.getContent().getSummary()).toBe('Krótkie streszczenie wątku')
         })
 
-        it('przygotowuje i otwiera pliki narracyjne text.md oraz author.md', () => {
+        it('przygotowuje i otwiera ustandaryzowany plik narracyjny Description_Paragraph_Intro.md i zwraca czytelną nazwę', () => {
             const p = vm.createParagraph('Intro')
             vm.selectElement(p, 'paragraph')
 
-            const textFile = vm.openOrCreateDescriptionFile('text')
-            expect(textFile.fileName).toBe('Intro_text.md')
-            expect(textFile.content).toContain('Narrative text')
-            expect(vm.getActiveFile()).toBe('Intro_text.md')
+            const descFile = vm.openOrCreateDescriptionFile()
+            expect(descFile.fileName).toBe('Description_Paragraph_Intro.md')
+            expect(descFile.content).toContain('Narrative text')
+            expect(vm.getActiveFile()).toBe('Description_Paragraph_Intro.md')
+            expect(vm.getFileDisplayName(descFile.fileName)).toBe('Intro')
+        })
 
-            const authorFile = vm.openOrCreateDescriptionFile('author')
-            expect(authorFile.fileName).toBe('Intro_author.md')
-            expect(authorFile.content).toContain('Author Notes')
-            expect(vm.getActiveFile()).toBe('Intro_author.md')
+        it('zwraca czytelną nazwę obiektu zamiast technicznej nazwy pliku', () => {
+            expect(vm.getFileDisplayName('Description_NPC_Jan.md')).toBe('Jan')
+            expect(vm.getFileDisplayName('Description_Location_Mroczny_Las.md')).toBe('Mroczny Las')
+            expect(vm.getFileDisplayName('Intro_text.md')).toBe('Intro')
+            expect(vm.getFileDisplayName(null)).toBe('')
         })
     })
 

@@ -213,7 +213,16 @@ export function updateMainWorkspaceUI(ctx) {
     const hasActiveFile = Boolean(active)
 
     if (activeLabel) {
-        activeLabel.textContent = active || t('editor.no_open_file')
+        const displayName =
+            typeof ctx.vm?.getFileDisplayName === 'function'
+                ? ctx.vm.getFileDisplayName(active)
+                : active
+        activeLabel.textContent = displayName || t('editor.no_open_file')
+        if (active) {
+            activeLabel.title = active
+        } else {
+            activeLabel.removeAttribute('title')
+        }
     }
     const content = hasActiveFile ? ctx.files[active] || '' : ''
     if (fileEditor) {
@@ -258,12 +267,17 @@ export function renderEditorTabs(ctx) {
                 ? 'bg-[#18181b] text-white border-t-2 border-t-blue-500'
                 : 'bg-[#27272a] text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white'
 
+            const displayName =
+                typeof ctx.vm?.getFileDisplayName === 'function'
+                    ? ctx.vm.getFileDisplayName(file)
+                    : file
+
             return `
             <div class="flex items-center gap-1.5 px-3 py-1 text-xs rounded-t cursor-pointer border-r border-[#333338] ${activeClasses}"
-                data-tab-file="${escapeHtml(file)}">
+                data-tab-file="${escapeHtml(file)}" title="${escapeHtml(file)}">
                 <span class="flex items-center gap-1.5">
                     <span class="text-blue-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
-                    <span>${escapeHtml(file)}</span>
+                    <span>${escapeHtml(displayName)}</span>
                 </span>
                 <button class="close-tab-btn hover:text-red-400 p-0.5 rounded inline-flex items-center" data-close-file="${escapeHtml(file)}" title="${escapeHtml(closeFileTitle)}">${getIconSvg('close', 'w-3 h-3')}</button>
             </div>

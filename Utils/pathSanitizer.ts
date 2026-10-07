@@ -108,3 +108,39 @@ export function generateUniqueSlug(
 
     return candidate
 }
+
+export const CATEGORY_SINGULAR_MAP: Record<string, string> = {
+    paragraphs: 'Paragraph',
+    paragraph: 'Paragraph',
+    npc: 'NPC',
+    characters: 'NPC',
+    character: 'NPC',
+    locations: 'Location',
+    location: 'Location',
+    items: 'Item',
+    item: 'Item',
+    templates: 'Template',
+    template: 'Template',
+    playercharacter: 'PlayerCharacter',
+    characterclasses: 'CharacterClass',
+    characterclass: 'CharacterClass',
+    rules: 'Rule',
+    rule: 'Rule',
+}
+
+/**
+ * Formats standardized description markdown file name:
+ * Description_<Category>_<EntityName>.md (e.g. Description_NPC_Jan.md).
+ */
+export function formatDescriptionFileName(category: string, entityName: string): string {
+    const normalizedKey = (category || '').trim().toLowerCase()
+    const cat =
+        CATEGORY_SINGULAR_MAP[normalizedKey] ||
+        (category ? category.charAt(0).toUpperCase() + category.slice(1) : 'Entity')
+    const rawClean = sanitizeFileName(entityName, 'element')
+    const cleanName = removeDiacritics(rawClean)
+        .replace(/[\s-]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
+    return `Description_${cat}_${cleanName || 'element'}.md`
+}
