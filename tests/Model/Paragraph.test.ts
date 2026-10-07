@@ -285,7 +285,10 @@ describe('Paragraph Model', () => {
         p.addLocation(loc2)
         p.addCharacter(npc)
 
-        const json = p.toJSON() as any
+        const json = p.toJSON() as {
+            locations: Array<{ id: string }>
+            characters: Array<{ id: string }>
+        }
         expect(json.locations).toBeDefined()
         expect(json.locations).toHaveLength(2)
         expect(json.locations[0].id).toBe('loc_castle')
@@ -293,12 +296,83 @@ describe('Paragraph Model', () => {
         expect(json.characters).toHaveLength(1)
         expect(json.characters[0].id).toBe('npc_king')
 
-        const restored = Paragraph.fromJSON(json)
+        const restored = Paragraph.fromJSON(json as unknown as Record<string, unknown>)
         expect(restored.getLocations()).toHaveLength(2)
         expect(restored.getLocations()[0].getId()).toBe('loc_castle')
         expect(restored.getLocations()[1].getId()).toBe('loc_dungeon')
         expect(restored.getCharacters()).toHaveLength(1)
         expect(restored.getCharacters()[0].getId()).toBe('npc_king')
         expect(restored.getCharacters()[0].getName()).toBe('King Arthur')
+    })
+
+    it('manages isStart flag and serializes it correctly', () => {
+        const p = new Paragraph('p_start', 'Start Paragraph')
+        expect(p.getIsStart()).toBe(false)
+
+        p.setIsStart(true)
+        expect(p.getIsStart()).toBe(true)
+
+        const json = p.toJSON() as { isStart?: boolean }
+        expect(json.isStart).toBe(true)
+
+        const restored = Paragraph.fromJSON(json as unknown as Record<string, unknown>)
+        expect(restored.getIsStart()).toBe(true)
+
+        p.setIsStart(false)
+        expect(p.getIsStart()).toBe(false)
+        expect((p.toJSON() as { isStart?: boolean }).isStart).toBe(false)
+    })
+
+    it('enforces that START paragraph has no tags, locations, characters or descriptions', () => {
+        const p = new Paragraph('p_start', 'START')
+        const tag = new Tag('t1', 'Epic', '#ff0000')
+        const char = new NPC('c1', 'Hero')
+        const loc = new Location('l1', 'Castle')
+
+        p.addTag(tag)
+        p.addCharacter(char)
+        p.addLocation(loc)
+        p.getContent().setSummary('Old summary')
+        p.getContent().setText('Old text')
+        expect(p.getTags()).toHaveLength(1)
+        expect(p.getCharacters()).toHaveLength(1)
+        expect(p.getLocations()).toHaveLength(1)
+
+        // Setting isStart = true strips them all
+        p.setIsStart(true)
+        expect(p.getTags()).toEqual([])
+        expect(p.getCharacters()).toEqual([])
+        expect(p.getLocations()).toEqual([])
+        expect(p.getContent().getSummary()).toBe('')
+        expect(p.getContent().getText()).toBe('')
+
+        // Attempting to add tags, characters or locations to START node is ignored
+        p.addTag(tag)
+        p.addCharacter(char)
+        p.addLocation(loc)
+        expect(p.getTags()).toEqual([])
+        expect(p.getCharacters()).toEqual([])
+        expect(p.getLocations()).toEqual([])
+        expect(p.hasTag('t1')).toBe(false)
+        expect(p.hasCharacter('c1')).toBe(false)
+        expect(p.hasLocation('l1')).toBe(false)
+
+        // Deserializing JSON with isStart: true purges tags, characters, locations and descriptions
+        const rawJsonWithData = {
+            id: 'start',
+            title: 'START',
+            isStart: true,
+            tags: [{ id: 't2', name: 'Magic' }],
+            characters: [{ id: 'c2', name: 'Mage' }],
+            locations: [{ id: 'l2', name: 'Tower' }],
+            content: { summary: 'Should be cleared', text: 'Should be cleared' },
+        }
+        const restored = Paragraph.fromJSON(rawJsonWithData as unknown as Record<string, unknown>)
+        expect(restored.getIsStart()).toBe(true)
+        expect(restored.getTags()).toEqual([])
+        expect(restored.getCharacters()).toEqual([])
+        expect(restored.getLocations()).toEqual([])
+        expect(restored.getContent().getSummary()).toBe('')
+        expect(restored.getContent().getText()).toBe('')
     })
 })

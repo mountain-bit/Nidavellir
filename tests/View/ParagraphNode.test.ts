@@ -138,6 +138,94 @@ describe('ParagraphNode Web Component', () => {
         node.remove()
     })
 
+    it('should render START node as a technical entry point without summary or tags', async () => {
+        const node = document.createElement('paragraph-node') as ParagraphNode
+        document.body.appendChild(node)
+
+        const startP = new Paragraph('start-id', 'START')
+        startP.setIsStart(true)
+        node.paragraph = startP
+
+        expect(node.classList.contains('is-start-node')).toBe(true)
+        expect(node.style.getPropertyValue('--node-theme-color')).toBe('#10b981')
+        expect(node.style.getPropertyValue('--node-header-text-color')).toBe('#ffffff')
+
+        const titleEl = node.querySelector('.paragraph-node-title')
+        expect(titleEl?.textContent).toBe('▶ START')
+
+        // Title remains fixed ▶ START even if title is changed
+        startP.setTitle('Początek drogi')
+        node.render()
+        expect(titleEl?.textContent).toBe('▶ START')
+
+        // Tags and summary containers are hidden for START node
+        const tagsContainer = node.querySelector('.paragraph-node-tags')
+        expect(tagsContainer?.classList.contains('hidden')).toBe(true)
+
+        const summaryContainer = node.querySelector('.paragraph-node-summary')
+        expect(summaryContainer?.classList.contains('hidden')).toBe(true)
+
+        // Technical instruction card is rendered
+        const instructionEl = node.querySelector('.start-node-instruction')
+        expect(instructionEl).not.toBeNull()
+        expect(node.querySelector('.start-node-badge')?.textContent).toContain(
+            t('graph.start_node_entry_point')
+        )
+        expect(node.querySelector('.start-node-hint')?.textContent).toContain(
+            t('graph.start_node_technical_hint')
+        )
+
+        // START node cannot be expanded
+        expect(node.isExpanded).toBe(false)
+        node.toggleExpand()
+        expect(node.isExpanded).toBe(false)
+
+        node.remove()
+    })
+
+    it('should block drag & drop and double click details on START node', async () => {
+        const node = document.createElement('paragraph-node') as ParagraphNode
+        document.body.appendChild(node)
+
+        const startP = new Paragraph('start-id', 'START')
+        startP.setIsStart(true)
+        node.paragraph = startP
+
+        let detailsOpened = false
+        node.addEventListener('node-open-details', () => {
+            detailsOpened = true
+        })
+
+        let nodeSelected = false
+        node.addEventListener('node-select', () => {
+            nodeSelected = true
+        })
+
+        const headerEl = node.querySelector('.paragraph-node-header')
+
+        // Double click should select node, not open markdown details
+        headerEl?.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }))
+        expect(detailsOpened).toBe(false)
+        expect(nodeSelected).toBe(true)
+
+        // Single click should also select node
+        nodeSelected = false
+        headerEl?.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+        expect(nodeSelected).toBe(true)
+
+        // Dragover should reject drops with dropEffect = 'none'
+        const fakeDt = {
+            dropEffect: 'copy',
+            types: ['application/x-tag-id'],
+        } as unknown as DataTransfer
+        const dragEvent = new Event('dragover', { bubbles: true, cancelable: true })
+        Object.defineProperty(dragEvent, 'dataTransfer', { value: fakeDt })
+        node.dispatchEvent(dragEvent)
+        expect(fakeDt.dropEffect).toBe('none')
+
+        node.remove()
+    })
+
     it('should open, submit and dispatch node-add-paragraph event', () => {
         const node = document.createElement('paragraph-node') as ParagraphNode
         document.body.appendChild(node)
@@ -419,6 +507,44 @@ describe('StoryGraph focusOnElement', () => {
             // Test fit
             storyGraph.fit(50)
             expect(mockCy.fit).toHaveBeenCalledWith(undefined, 50)
+
+            storyGraph.destroy()
+            canvasContainer.remove()
+            nodesLayer.remove()
+        })
+
+        it('should automatically prepend START node to paragraphs if missing when rendering', () => {
+            const canvasContainer = document.createElement('div')
+            const nodesLayer = document.createElement('div')
+            document.body.appendChild(canvasContainer)
+            document.body.appendChild(nodesLayer)
+
+            const p1 = new Paragraph('p-normal', 'Normal Paragraph')
+            const paragraphs = [p1]
+            expect(paragraphs.some(p => p.getIsStart())).toBe(false)
+
+            const storyGraph = new StoryGraph({
+                canvasContainer,
+                nodesLayer,
+                lineStyle: 'curved',
+                getParagraphs: () => paragraphs,
+                getScenes: () => [],
+                onSelectParagraph: () => {},
+                onSelectChoice: () => {},
+                onCreateParagraph: (title: string) => new Paragraph('new-p', title),
+                onToast: () => {},
+                t: (k: string) => k,
+            })
+
+            storyGraph.render(true)
+
+            expect(paragraphs.some(p => p.getIsStart())).toBe(true)
+            const startNode = paragraphs.find(p => p.getIsStart())
+            expect(startNode?.getId()).toBe('start')
+            expect(startNode?.getTitle()).toBe('START')
+
+            const startEl = nodesLayer.querySelector('.is-start-node')
+            expect(startEl).not.toBeNull()
 
             storyGraph.destroy()
             canvasContainer.remove()

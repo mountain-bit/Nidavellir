@@ -842,6 +842,55 @@ export class MainWindowViewModel {
     }
 
     // Creation Factory Methods
+    public createStartParagraph(position: { x: number; y: number } = { x: 80, y: 180 }): Paragraph {
+        const p = new Paragraph('start', 'START')
+        p.setIsStart(true)
+        p.setPosition(position)
+        return p
+    }
+
+    public ensureStartParagraph(paragraphs: Paragraph[]): Paragraph {
+        if (!Array.isArray(paragraphs)) {
+            return this.createStartParagraph()
+        }
+
+        const existingStartIndex = paragraphs.findIndex(
+            p =>
+                p &&
+                ((typeof p.getIsStart === 'function' && p.getIsStart()) ||
+                    (typeof p.getId === 'function' && p.getId() === 'start') ||
+                    (p as unknown as { isStart?: boolean }).isStart === true ||
+                    (p as unknown as { id?: string }).id === 'start')
+        )
+
+        if (existingStartIndex !== -1) {
+            const startNode = paragraphs[existingStartIndex]
+            if (typeof startNode.setIsStart === 'function') {
+                startNode.setIsStart(true)
+            }
+            if (typeof startNode.getTitle === 'function' && !startNode.getTitle()) {
+                startNode.setTitle('START')
+            }
+            // Ensure uniqueness: exactly one START node per graph
+            paragraphs.forEach((p, idx) => {
+                if (idx !== existingStartIndex && p) {
+                    if (typeof p.setIsStart === 'function' && p.getIsStart()) {
+                        p.setIsStart(false)
+                    }
+                }
+            })
+            return startNode
+        }
+
+        const newStart = this.createStartParagraph()
+        paragraphs.unshift(newStart)
+        return newStart
+    }
+
+    public getStartParagraph(paragraphs: Paragraph[]): Paragraph | undefined {
+        return paragraphs.find(p => p && (p.getIsStart() || p.getId() === 'start'))
+    }
+
     public createParagraph(titleInput?: string, defaultTitle: string = 'New paragraph'): Paragraph {
         const title = (titleInput ?? '').trim() || defaultTitle
         const id = this.idGenerator('paragraph')
@@ -1028,6 +1077,49 @@ export class MainWindowViewModel {
             this.closeHistoryItem(choiceId)
         }
         return removed
+    }
+
+    public deleteParagraph(
+        paragraphId: string,
+        paragraphs: Paragraph[],
+        scenes?: Scene[]
+    ): boolean {
+        const index = paragraphs.findIndex(p => p && p.getId() === paragraphId)
+        if (index === -1) return false
+        const target = paragraphs[index]
+        if (target.getIsStart && target.getIsStart()) {
+            // Special START node CANNOT be deleted
+            return false
+        }
+        paragraphs.splice(index, 1)
+
+        // Remove choices pointing to this paragraph
+        paragraphs.forEach(sourceP => {
+            if (sourceP && sourceP.getChoices) {
+                const remaining = sourceP
+                    .getChoices()
+                    .filter(c => c && c.getToParagraphId() !== paragraphId)
+                sourceP.setChoices(remaining)
+            }
+        })
+
+        // Remove from scenes
+        if (scenes && Array.isArray(scenes)) {
+            scenes.forEach(s => {
+                if (s && typeof s.removeParagraph === 'function') {
+                    s.removeParagraph(paragraphId)
+                }
+            })
+        }
+
+        if (this.selectedItem?.id === paragraphId && this.selectedItem.type === 'paragraph') {
+            this.closeHistoryItem(paragraphId)
+        }
+
+        // Safeguard: Ensure START node is present in the remaining paragraphs
+        this.ensureStartParagraph(paragraphs)
+
+        return true
     }
 
     public reverseChoice(choice: Choice, paragraphs: Paragraph[]): boolean {

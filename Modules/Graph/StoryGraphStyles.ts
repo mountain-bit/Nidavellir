@@ -15,6 +15,8 @@ export const GRAPH_THEME = {
         edgeLabel: '#e4e4e7',
         edgeLabelBg: '#18181b',
         nodeBg: '#18181b',
+        startNode: '#10b981',
+        startNodeBorder: '#059669',
     },
     dimensions: {
         nodeWidth: 220,

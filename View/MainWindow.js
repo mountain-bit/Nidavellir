@@ -69,6 +69,7 @@ const saveStatus = document.getElementById('save-status')
 
 // Active project data state (defaults to mock data; easily switchable to real data via loadProjectData)
 let projectData = loadProjectData(vm)
+vm.ensureStartParagraph(projectData.projectParagraphs)
 
 let storyGraphInstance = null
 
@@ -116,6 +117,10 @@ const appContext = {
         return projectData.projectFeatures || []
     },
     get projectParagraphs() {
+        if (!Array.isArray(projectData.projectParagraphs)) {
+            projectData.projectParagraphs = []
+        }
+        vm.ensureStartParagraph(projectData.projectParagraphs)
         return projectData.projectParagraphs
     },
     get projectScenes() {
@@ -295,6 +300,8 @@ function showGraph(forceRebuild = false) {
     const canvasContainer = document.getElementById('story-graph')
     const nodesLayer = document.getElementById('graph-nodes-layer')
     if (!canvasContainer || !nodesLayer) return
+
+    vm.ensureStartParagraph(projectData.projectParagraphs)
 
     if (!storyGraphInstance) {
         storyGraphInstance = new StoryGraph({
@@ -632,6 +639,7 @@ function applyLoadedProject(projectInstance, projectPath) {
     if (!projectInstance) return
 
     const realData = extractProjectData(projectInstance, {})
+    vm.ensureStartParagraph(realData.projectParagraphs)
     projectData = realData
     appContext.projectPath = projectPath || ''
     window.currentProjectPath = projectPath || ''
@@ -731,6 +739,43 @@ document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
         saveActiveFile(appContext)
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        const activeEl = document.activeElement
+        const isInput =
+            activeEl &&
+            (activeEl.tagName === 'INPUT' ||
+                activeEl.tagName === 'TEXTAREA' ||
+                activeEl.isContentEditable)
+        if (isInput) return
+
+        const sel = vm.getSelectedItem()
+        if (sel && sel.type === 'paragraph' && sel.entity) {
+            if (sel.entity.getIsStart && sel.entity.getIsStart()) {
+                toast.warning(
+                    t('graph.start_node_cannot_be_deleted') ||
+                        'Węzeł START nie może zostać usunięty'
+                )
+                return
+            }
+            const confirmDel = confirm(
+                t('context_menu.confirm_delete', {
+                    name: sel.entity.getTitle() || sel.entity.getId(),
+                })
+            )
+            if (confirmDel) {
+                const deleted = vm.deleteParagraph(
+                    sel.entity.getId(),
+                    projectData.projectParagraphs,
+                    projectData.projectScenes
+                )
+                if (deleted) {
+                    vm.clearSelection()
+                    refreshActiveSection('paragraph')
+                    if (storyGraphInstance) storyGraphInstance.render(true)
+                    toast.success(t('toast.paragraph_deleted') || 'Paragraf został usunięty')
+                }
+            }
+        }
     }
 })
 
@@ -763,6 +808,7 @@ async function initApp() {
                                 openRes.path || cur
                             )
                             projectData = extractProjectData(projectInstance, {})
+                            vm.ensureStartParagraph(projectData.projectParagraphs)
                             updateProjectNameUI(projectInstance.getName() || openRes.project.name)
                         }
                     }
@@ -773,6 +819,7 @@ async function initApp() {
         } else if (ProjectManager.getInstance().getProject()) {
             const existingProj = ProjectManager.getInstance().getProject()
             projectData = extractProjectData(existingProj, {})
+            vm.ensureStartParagraph(projectData.projectParagraphs)
             updateProjectNameUI(existingProj.getName())
         }
 

@@ -12,6 +12,10 @@ export function renderParagraphsList(ctx) {
     const container = document.getElementById('paragraphs-list-container')
     if (!container) return
 
+    if (ctx && ctx.vm && Array.isArray(ctx.projectParagraphs)) {
+        ctx.vm.ensureStartParagraph(ctx.projectParagraphs)
+    }
+
     const filtered = ctx.vm.searchAndFilterParagraphs(ctx.projectParagraphs)
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_paragraphs">${t('left_panel.no_paragraphs')}</p>`
@@ -38,15 +42,31 @@ export function renderParagraphsList(ctx) {
                 )
                 .join(' ')
 
+            const isStart = Boolean(p.getIsStart && p.getIsStart())
+            const startBadge = isStart
+                ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 uppercase tracking-wide shrink-0">START</span>`
+                : ''
+            const iconSvg = isStart
+                ? `<span class="text-emerald-400 shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>`
+                : `<span class="text-emerald-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>`
+            const titleDisplay = isStart ? 'START' : `§ ${escapeHtml(p.getTitle() || p.getId())}`
+
             return `
-            <div class="drawer-item group p-1.5 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1 cursor-pointer transition-colors" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
+            <div class="drawer-item group p-1.5 rounded ${isStart ? 'bg-[#18181b] border border-emerald-500/60 shadow-[0_0_8px_rgba(16,185,129,0.2)]' : 'bg-[#18181b] border border-[#27272a]'} hover:border-blue-500/50 mb-1 cursor-pointer transition-colors" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
                 <div class="flex items-center justify-between">
                     <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
-                        <span class="text-emerald-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
-                        <span>§ ${escapeHtml(p.getTitle() || p.getId())}</span>
+                        ${iconSvg}
+                        <span>${titleDisplay}</span>
                     </span>
+                    ${startBadge}
                 </div>
-                ${locBadge || charsBadges || tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1">${locBadge} ${charsBadges} ${tagsBadges}</div>` : ''}
+                ${
+                    isStart
+                        ? `<div class="text-[10px] text-emerald-400/80 mt-1 font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span><span>${t('graph.start_node_entry_point') || 'Punkt startowy opowieści'}</span></div>`
+                        : locBadge || charsBadges || tagsBadges
+                          ? `<div class="flex flex-wrap gap-1 mt-1">${locBadge} ${charsBadges} ${tagsBadges}</div>`
+                          : ''
+                }
             </div>
         `
         })
@@ -54,6 +74,7 @@ export function renderParagraphsList(ctx) {
 
     attachItemSelectionListeners(container, 'paragraph', ctx.projectParagraphs, ctx)
     attachDrawerDropListeners(container, 'paragraph', ctx.projectParagraphs, ctx)
+    attachContextMenuListeners(container, 'paragraph', ctx.projectParagraphs, ctx)
 }
 
 /**
@@ -653,6 +674,12 @@ export function renderConnectionsList(ctx) {
 export function attachDrawerDropListeners(container, targetType, targetArray, ctx) {
     container.querySelectorAll(`.drawer-item[data-item-type="${targetType}"]`).forEach(el => {
         el.addEventListener('dragover', e => {
+            const id = el.dataset.itemId
+            const target = targetArray.find(x => x.getId() === id)
+            if (target && target.getIsStart && target.getIsStart()) {
+                if (e.dataTransfer) e.dataTransfer.dropEffect = 'none'
+                return
+            }
             if (
                 e.dataTransfer &&
                 (e.dataTransfer.types.includes('application/x-entity-type') ||
@@ -674,6 +701,7 @@ export function attachDrawerDropListeners(container, targetType, targetArray, ct
             const id = el.dataset.itemId
             const target = targetArray.find(x => x.getId() === id)
             if (!target || !e.dataTransfer) return
+            if (target.getIsStart && target.getIsStart()) return
 
             let entityType = e.dataTransfer.getData('application/x-entity-type')
             let entityId = e.dataTransfer.getData('application/x-entity-id')

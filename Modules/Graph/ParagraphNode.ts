@@ -77,6 +77,9 @@ export class ParagraphNode extends HTMLElement {
     }
 
     public toggleExpand(): void {
+        if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
+            return
+        }
         this.isExpanded = !this.isExpanded
     }
 
@@ -121,6 +124,16 @@ export class ParagraphNode extends HTMLElement {
             ) {
                 return
             }
+            if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
+                this.dispatchEvent(
+                    new CustomEvent('node-select', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { paragraph: this._paragraph },
+                    })
+                )
+                return
+            }
             this.toggleExpand()
         }
 
@@ -134,6 +147,16 @@ export class ParagraphNode extends HTMLElement {
             }
             e.preventDefault()
             e.stopPropagation()
+            if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
+                this.dispatchEvent(
+                    new CustomEvent('node-select', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { paragraph: this._paragraph },
+                    })
+                )
+                return
+            }
             this.dispatchEvent(
                 new CustomEvent('node-open-details', {
                     bubbles: true,
@@ -195,6 +218,12 @@ export class ParagraphNode extends HTMLElement {
         })
 
         const onDragOver = (e: DragEvent): void => {
+            if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
+                if (e.dataTransfer) {
+                    e.dataTransfer.dropEffect = 'none'
+                }
+                return
+            }
             if (e.dataTransfer) {
                 e.preventDefault()
                 e.stopPropagation()
@@ -211,9 +240,12 @@ export class ParagraphNode extends HTMLElement {
         }
 
         const onDrop = (e: DragEvent): void => {
+            this.classList.remove('is-drag-target')
+            if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
+                return
+            }
             e.preventDefault()
             e.stopPropagation()
-            this.classList.remove('is-drag-target')
             if (!this._paragraph) return
             const dt = e.dataTransfer
             if (!dt) return
@@ -334,11 +366,70 @@ export class ParagraphNode extends HTMLElement {
         const summaryText = content && content.getSummary ? content.getSummary() : ''
         const textFallback = content && content.getText ? content.getText().slice(0, 100) : ''
 
+        const isStart = Boolean(p.getIsStart && p.getIsStart())
+
         // 1. Dynamic CSS variables — no hardcoded inline background/colors
+        if (isStart) {
+            this.classList.add('is-start-node')
+            this.classList.remove('is-expanded')
+            this._isExpanded = false
+            this.style.setProperty('--node-theme-color', GRAPH_THEME.colors.startNode || '#10b981')
+            this.style.setProperty('--node-header-text-color', '#ffffff')
+
+            this._elements.title.textContent = '▶ START'
+            this._elements.title.title = `START - ${t('graph.start_node_entry_point') || 'Punkt startowy opowieści'}`
+            this._elements.socketBtn.title =
+                t('graph.start_node_socket_title') ||
+                'Gniazdo początkowe (przeciągnij do pierwszego paragrafu)'
+            this._elements.socketBtn.setAttribute('aria-label', 'START socket')
+
+            // START node has NO tags, NO locations, NO characters, NO summary, NO description
+            this._elements.tagsContainer.replaceChildren()
+            this._elements.tagsContainer.classList.add('hidden')
+            this._elements.separator.classList.add('hidden')
+            this._elements.summaryContainer.replaceChildren()
+            this._elements.summaryContainer.classList.add('hidden')
+
+            // Render technical instruction block in body
+            let instructionEl = this._elements.body.querySelector(
+                '.start-node-instruction'
+            ) as HTMLElement | null
+            if (!instructionEl) {
+                instructionEl = document.createElement('div')
+                instructionEl.className = 'start-node-instruction'
+                this._elements.body.appendChild(instructionEl)
+            }
+            instructionEl.innerHTML = `
+                <div class="start-node-badge">
+                    <span class="start-node-dot"></span>
+                    <span>${t('graph.start_node_entry_point') || 'PUNKT STARTOWY'}</span>
+                </div>
+                <div class="start-node-hint">
+                    ${t('graph.start_node_technical_hint') || 'Tu rozpoczyna się historia. Przeciągnij połączenie z prawego gniazda lub użyj (+), aby utworzyć pierwszy paragraf.'}
+                </div>
+            `
+
+            this._elements.addBtn.title = t('graph.node.add_btn_title')
+            this._elements.addBtn.setAttribute('aria-label', t('graph.node.add_btn_aria_label'))
+            this._elements.addInput.placeholder = t('graph.node.add_input_placeholder')
+            this._elements.addSubmitBtn.title = t('graph.node.add_submit_title')
+
+            if (this._isAddFormOpen) {
+                this._elements.addContainer.classList.add('is-open')
+            } else {
+                this._elements.addContainer.classList.remove('is-open')
+            }
+            return
+        }
+
+        this.classList.remove('is-start-node')
+        const oldInstruction = this._elements.body.querySelector('.start-node-instruction')
+        if (oldInstruction) oldInstruction.remove()
+        this._elements.tagsContainer.classList.remove('hidden')
+
         this.style.setProperty('--node-theme-color', themeColor)
         this.style.setProperty('--node-header-text-color', headerTextColor)
 
-        // 2. Header and title
         const displayTitle = title || defaultTitle
         this._elements.title.textContent = `§ ${displayTitle}`
         this._elements.title.title = displayTitle

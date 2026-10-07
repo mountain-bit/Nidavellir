@@ -19,6 +19,7 @@ export class Paragraph {
     private hasCombat: boolean = false
     private combat: Combat = new Combat('', '')
     private position: { x: number; y: number } | null = null
+    private isStart: boolean = false
 
     constructor(
         id: string = '',
@@ -92,14 +93,19 @@ export class Paragraph {
     }
 
     public getTags(): Tag[] {
-        return this.tags
+        return this.isStart ? [] : this.tags
     }
 
     public setTags(tags: Tag[]): void {
+        if (this.isStart) {
+            this.tags = []
+            return
+        }
         this.tags = tags
     }
 
     public addTag(tag: Tag): void {
+        if (this.isStart) return
         if (!this.tags.some(t => t.getId() === tag.getId())) {
             this.tags.push(tag)
         }
@@ -110,18 +116,26 @@ export class Paragraph {
     }
 
     public hasTag(tagIdOrName: string): boolean {
-        return this.tags.some(t => t.getId() === tagIdOrName || t.getName() === tagIdOrName)
+        return (
+            !this.isStart &&
+            this.tags.some(t => t.getId() === tagIdOrName || t.getName() === tagIdOrName)
+        )
     }
 
     public getCharacters(): NPC[] {
-        return this.characters
+        return this.isStart ? [] : this.characters
     }
 
     public setCharacters(characters: NPC[]): void {
+        if (this.isStart) {
+            this.characters = []
+            return
+        }
         this.characters = characters
     }
 
     public addCharacter(character: NPC): void {
+        if (this.isStart) return
         if (!this.characters.some(c => c.getId() === character.getId())) {
             this.characters.push(character)
         }
@@ -134,22 +148,32 @@ export class Paragraph {
     }
 
     public getCharacter(idOrName: string): NPC | undefined {
-        return this.characters.find(c => c.getId() === idOrName || c.getName() === idOrName)
+        return this.isStart
+            ? undefined
+            : this.characters.find(c => c.getId() === idOrName || c.getName() === idOrName)
     }
 
     public hasCharacter(idOrName: string): boolean {
-        return this.characters.some(c => c.getId() === idOrName || c.getName() === idOrName)
+        return (
+            !this.isStart &&
+            this.characters.some(c => c.getId() === idOrName || c.getName() === idOrName)
+        )
     }
 
     public getLocations(): Location[] {
-        return this.locations
+        return this.isStart ? [] : this.locations
     }
 
     public setLocations(locations: Location[]): void {
+        if (this.isStart) {
+            this.locations = []
+            return
+        }
         this.locations = locations
     }
 
     public addLocation(location: Location): void {
+        if (this.isStart) return
         if (!this.locations.some(l => l.getId() === location.getId())) {
             this.locations.push(location)
         }
@@ -162,7 +186,10 @@ export class Paragraph {
     }
 
     public hasLocation(idOrName: string): boolean {
-        return this.locations.some(l => l.getId() === idOrName || l.getName() === idOrName)
+        return (
+            !this.isStart &&
+            this.locations.some(l => l.getId() === idOrName || l.getName() === idOrName)
+        )
     }
 
     public getLocation(): Location | null {
@@ -252,6 +279,24 @@ export class Paragraph {
         this.position = pos
     }
 
+    public getIsStart(): boolean {
+        return this.isStart
+    }
+
+    public setIsStart(isStart: boolean): void {
+        this.isStart = Boolean(isStart)
+        if (this.isStart) {
+            this.tags = []
+            this.characters = []
+            this.locations = []
+            if (this.content) {
+                if (typeof this.content.setSummary === 'function') this.content.setSummary('')
+                if (typeof this.content.setText === 'function') this.content.setText('')
+                if (typeof this.content.setFilePath === 'function') this.content.setFilePath('')
+            }
+        }
+    }
+
     public static fromJSON(json: Record<string, unknown> | null | undefined): Paragraph {
         if (!json) return new Paragraph('')
         const rawTags = Array.isArray(json.tags) ? json.tags : []
@@ -302,6 +347,22 @@ export class Paragraph {
         if (typeof json.number === 'number') p.number = json.number
         if (typeof json.randomizedNumber === 'number') p.randomizedNumber = json.randomizedNumber
         if (typeof json.isNumberLocked === 'boolean') p.isNumberLocked = json.isNumberLocked
+        if (typeof json.isStart === 'boolean') {
+            p.isStart = json.isStart
+        } else if (p.id === 'start' || p.id === 'START') {
+            p.isStart = true
+        }
+
+        if (p.isStart) {
+            p.tags = []
+            p.characters = []
+            p.locations = []
+            if (p.content) {
+                if (typeof p.content.setSummary === 'function') p.content.setSummary('')
+                if (typeof p.content.setText === 'function') p.content.setText('')
+                if (typeof p.content.setFilePath === 'function') p.content.setFilePath('')
+            }
+        }
 
         if (json.position && typeof json.position === 'object') {
             const pos = json.position as Record<string, unknown>
@@ -329,6 +390,7 @@ export class Paragraph {
             randomizedNumber: this.randomizedNumber,
             isNumberLocked: this.isNumberLocked,
             position: this.position,
+            isStart: this.isStart,
         }
     }
 }

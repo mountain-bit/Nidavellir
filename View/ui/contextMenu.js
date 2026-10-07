@@ -64,6 +64,31 @@ export function openContextMenu(x, y, target) {
         }
     }
 
+    const ctxEditTitle = document.getElementById('ctx-edit-title')
+    if (ctxEditTitle) {
+        if (target.type === 'paragraph' && target.item?.getIsStart && target.item.getIsStart()) {
+            ctxEditTitle.classList.add('opacity-40', 'cursor-not-allowed')
+            ctxEditTitle.title =
+                t('graph.start_node_cannot_be_renamed') ||
+                'Nazwa węzła START nie może być zmieniana'
+        } else {
+            ctxEditTitle.classList.remove('opacity-40', 'cursor-not-allowed')
+            ctxEditTitle.removeAttribute('title')
+        }
+    }
+
+    const ctxDelete = document.getElementById('ctx-delete')
+    if (ctxDelete) {
+        if (target.type === 'paragraph' && target.item?.getIsStart && target.item.getIsStart()) {
+            ctxDelete.classList.add('opacity-40', 'cursor-not-allowed')
+            ctxDelete.title =
+                t('graph.start_node_cannot_be_deleted') || 'Węzeł START nie może zostać usunięty'
+        } else {
+            ctxDelete.classList.remove('opacity-40', 'cursor-not-allowed')
+            ctxDelete.removeAttribute('title')
+        }
+    }
+
     if (ctxMenu) {
         ctxMenu.style.left = `${x}px`
         ctxMenu.style.top = `${y}px`
@@ -436,6 +461,21 @@ export function setupSectionControlsAndContextMenu(ctx) {
     if (ctxEditTitle) {
         ctxEditTitle.addEventListener('click', () => {
             if (!activeContextMenuTarget) return
+
+            // START node CANNOT be renamed
+            if (
+                activeContextMenuTarget.type === 'paragraph' &&
+                activeContextMenuTarget.item?.getIsStart &&
+                activeContextMenuTarget.item.getIsStart()
+            ) {
+                toast.warning(
+                    t('graph.start_node_cannot_be_renamed') ||
+                        'Nazwa węzła START nie może być zmieniana'
+                )
+                if (ctxMenu) ctxMenu.classList.add('hidden')
+                return
+            }
+
             const newName = prompt(t('context_menu.rename_prompt'), activeContextMenuTarget.name)
             if (newName !== null && newName.trim() !== '') {
                 activeContextMenuTarget.item.setName(newName.trim())
@@ -448,6 +488,21 @@ export function setupSectionControlsAndContextMenu(ctx) {
     if (ctxDelete) {
         ctxDelete.addEventListener('click', () => {
             if (!activeContextMenuTarget) return
+
+            // START node CANNOT be deleted
+            if (
+                activeContextMenuTarget.type === 'paragraph' &&
+                activeContextMenuTarget.item?.getIsStart &&
+                activeContextMenuTarget.item.getIsStart()
+            ) {
+                toast.warning(
+                    t('graph.start_node_cannot_be_deleted') ||
+                        'Węzeł START nie może zostać usunięty'
+                )
+                if (ctxMenu) ctxMenu.classList.add('hidden')
+                return
+            }
+
             const confirmDel = confirm(
                 t('context_menu.confirm_delete', { name: activeContextMenuTarget.name })
             )
@@ -457,6 +512,16 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     const idx = ctx.projectTags.findIndex(tObj => tObj.getId() === id)
                     if (idx !== -1) ctx.projectTags.splice(idx, 1)
                     if (ctx.renderFilterTags) ctx.renderFilterTags()
+                } else if (activeContextMenuTarget.type === 'paragraph') {
+                    const deleted = ctx.vm.deleteParagraph(
+                        id,
+                        ctx.projectParagraphs,
+                        ctx.projectScenes
+                    )
+                    if (deleted) {
+                        toast.success(t('toast.paragraph_deleted') || 'Paragraf został usunięty')
+                        if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
+                    }
                 } else if (activeContextMenuTarget.type === 'scene') {
                     const idx = ctx.projectScenes.findIndex(s => s.getId() === id)
                     if (idx !== -1) ctx.projectScenes.splice(idx, 1)

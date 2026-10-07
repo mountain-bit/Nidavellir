@@ -67,6 +67,8 @@ export type IconName =
     | 'flip-h'
     | 'flip-v'
     | 'sliders'
+    | 'play'
+    | 'flag'
 
 export interface IIconConfig {
     viewBox?: string
@@ -309,6 +311,14 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     sliders: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6"></path>',
+    },
+    play: {
+        viewBox: '0 0 24 24',
+        path: '<polygon points="5 3 19 12 5 21 5 3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="currentColor"></polygon>',
+    },
+    flag: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zm0 0v7"></path>',
     },
 }
 

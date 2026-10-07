@@ -345,6 +345,84 @@ paragraph-node,
         0 8px 24px rgba(0, 0, 0, 0.7);
 }
 
+/* Special START Node on Story Graph */
+.paragraph-node.is-start-node {
+    border-color: #10b981 !important;
+    box-shadow:
+        0 4px 16px rgba(16, 185, 129, 0.35),
+        0 0 0 1px rgba(16, 185, 129, 0.3);
+}
+
+.paragraph-node.is-start-node:hover {
+    box-shadow:
+        0 6px 24px rgba(16, 185, 129, 0.5),
+        0 0 16px rgba(16, 185, 129, 0.45);
+}
+
+.paragraph-node.is-start-node.is-selected {
+    box-shadow:
+        0 0 0 2px #ffffff,
+        0 8px 28px rgba(16, 185, 129, 0.7);
+}
+
+.paragraph-node.is-start-node .paragraph-node-header {
+    background: linear-gradient(135deg, #047857 0%, #10b981 100%) !important;
+    color: #ffffff !important;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+}
+
+.paragraph-node.is-start-node .paragraph-node-body {
+    cursor: default;
+    background-color: #121215;
+    padding: 8px 10px;
+}
+
+.paragraph-node.is-start-node .paragraph-node-socket {
+    background-color: rgba(16, 185, 129, 0.3);
+    border-color: #a7f3d0;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.paragraph-node.is-start-node .paragraph-node-socket:hover {
+    background-color: #34d399;
+    box-shadow: 0 0 10px rgba(52, 211, 153, 0.9);
+}
+
+.start-node-instruction {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    user-select: none;
+}
+
+.start-node-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #34d399;
+    text-transform: uppercase;
+}
+
+.start-node-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #10b981;
+    box-shadow: 0 0 6px #10b981;
+    display: inline-block;
+}
+
+.start-node-hint {
+    font-size: 10px;
+    line-height: 1.35;
+    color: #a1a1aa;
+    font-family: inherit;
+}
+
 /* Header with identical background to border */
 .paragraph-node-header {
     display: flex;

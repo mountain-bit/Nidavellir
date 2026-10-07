@@ -41,14 +41,21 @@ describe('mockData and projectData provider', () => {
             expect(data.projectCharacters).toHaveLength(2)
             expect(data.projectLocations).toHaveLength(2)
             expect(data.projectStats).toHaveLength(2)
-            expect(data.projectParagraphs).toHaveLength(3)
+            expect(data.projectParagraphs).toHaveLength(4)
             expect(data.projectScenes).toHaveLength(2)
             expect(data.projectTemplates).toBeDefined()
         })
 
-        it('should configure mock paragraphs with positions, choices, and conditions', () => {
+        it('should configure mock paragraphs with positions, choices, and conditions including START node', () => {
             const data = createMockProjectData(vm)
-            const [p1, p2, p3] = data.projectParagraphs
+            const [startNode, p1, p2, p3] = data.projectParagraphs
+
+            expect(startNode.getId()).toBe('start')
+            expect(startNode.getTitle()).toBe('START')
+            expect(startNode.getIsStart()).toBe(true)
+            expect(startNode.getPosition()).toEqual({ x: 40, y: 180 })
+            expect(startNode.getChoices()).toHaveLength(1)
+            expect(startNode.getChoices()[0].getToParagraphId()).toBe('p1')
 
             expect(p1.getId()).toBe('p1')
             expect(p1.getTitle()).toBe('Prolog: Przebudzenie')
@@ -87,7 +94,7 @@ describe('mockData and projectData provider', () => {
 
         it('should return mock data when useMock: true is explicitly passed', () => {
             const data = loadProjectData(vm, { useMock: true })
-            expect(data.projectParagraphs).toHaveLength(3)
+            expect(data.projectParagraphs).toHaveLength(4)
         })
 
         it('should return real project data when useMock: false is passed', () => {
