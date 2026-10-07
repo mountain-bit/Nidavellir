@@ -28,8 +28,23 @@ function registerAppIpc() {
         return process.env.USERNAME || process.env.USER || ''
     })
 
-    ipcMain.handle('close-app', () => {
-        app.quit()
+    ipcMain.handle('close-app', event => {
+        const win = event?.sender ? BrowserWindow.fromWebContents(event.sender) : null
+        if (win && !win.isDestroyed()) {
+            win.close()
+        } else {
+            app.quit()
+        }
+    })
+
+    ipcMain.handle('force-close-app', event => {
+        const win = event?.sender ? BrowserWindow.fromWebContents(event.sender) : null
+        if (win && !win.isDestroyed()) {
+            win.forceClose = true
+            win.close()
+        } else {
+            app.quit()
+        }
     })
 
     ipcMain.handle('load-main-window', event => {

@@ -856,5 +856,16 @@
         "dimensions_preview": "{{width}} × {{height}} px",
         "crop_hint": "Drag frame corners to crop the selected area",
         "success_saved": "Image saved successfully"
+    },
+    "unsaved_changes": {
+        "title": "Unsaved changes",
+        "subtitle": "Loss of unsaved data",
+        "default_message": "Are you sure you want to exit? You have unsaved changes that will be permanently lost.",
+        "npc_message": "Are you sure you want to exit the NPC panel? You have unsaved changes in the form that will be permanently lost.",
+        "app_message": "Are you sure you want to close the application? You have unsaved changes in the project that will be permanently lost.",
+        "project_message": "Are you sure you want to close the project? You have unsaved changes in the project that will be permanently lost.",
+        "btn_save": "Save",
+        "btn_dont_save": "Don't save",
+        "btn_cancel": "Cancel"
     }
 }

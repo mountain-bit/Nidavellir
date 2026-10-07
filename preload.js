@@ -18,6 +18,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveMarkdownFile: (projectPath, relativePath, content) =>
         ipcRenderer.invoke('save-markdown-file', { projectPath, relativePath, content }),
     closeApp: () => ipcRenderer.invoke('close-app'),
+    forceCloseApp: () => ipcRenderer.invoke('force-close-app'),
+    onAppCloseRequested: callback => {
+        const handler = () => callback()
+        ipcRenderer.on('app-close-requested', handler)
+        return () => ipcRenderer.removeListener('app-close-requested', handler)
+    },
     loadMainWindow: () => ipcRenderer.invoke('load-main-window'),
     loadStartWindow: () => ipcRenderer.invoke('load-start-window'),
     getSystemUsername: () => ipcRenderer.invoke('get-system-username'),

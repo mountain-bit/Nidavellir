@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             http-equiv="Content-Security-Policy"
-            content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https://api.fontsource.org;"
+            content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: asset:; connect-src 'self' https://api.fontsource.org asset:; media-src 'self' data: asset:;"
         />
         <title>Silnik Gier Paragrafowych</title>
         <link rel="stylesheet" href="MainWindow.generated.css" />
@@ -3987,6 +3987,80 @@
                     >
                         Zastosuj
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unsaved Changes Confirmation Dialog -->
+        <div
+            id="unsaved-changes-modal"
+            class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="unsaved-changes-title"
+        >
+            <div
+                class="bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col scale-100 transition-transform"
+            >
+                <!-- Header -->
+                <div class="px-5 py-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900/90">
+                    <div class="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                        <app-icon name="alert-triangle" class="w-5 h-5 text-amber-400"></app-icon>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 id="unsaved-changes-title" class="text-sm font-semibold text-zinc-100" data-i18n="unsaved_changes.title">
+                            Niezapisane zmiany
+                        </h3>
+                        <p id="unsaved-changes-subtitle" class="text-[11px] text-zinc-400 mt-0.5" data-i18n="unsaved_changes.subtitle">
+                            Utrata wprowadzonych danych
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-unsaved-close"
+                        class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                        data-i18n-title="buttons.close"
+                    >
+                        <app-icon name="close" class="w-4 h-4"></app-icon>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 text-xs text-zinc-300 leading-relaxed bg-[#161619]/90">
+                    <p id="unsaved-changes-message" class="text-zinc-300">
+                        Czy na pewno chcesz wyjść? Masz niezapisane zmiany, które zostaną bezpowrotnie utracone.
+                    </p>
+                </div>
+
+                <!-- Footer with 3 buttons: Anuluj, Nie zapisuj, Zapisz -->
+                <div class="px-5 py-3.5 bg-zinc-950/80 border-t border-zinc-800 flex items-center justify-between gap-2">
+                    <button
+                        type="button"
+                        id="btn-unsaved-cancel"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800/80 hover:bg-zinc-700 transition-all cursor-pointer border border-zinc-700/60"
+                        data-i18n="unsaved_changes.btn_cancel"
+                    >
+                        Anuluj
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            id="btn-unsaved-dont-save"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-red-300 hover:text-white bg-red-950/40 hover:bg-red-800/80 border border-red-800/50 hover:border-red-700 transition-all cursor-pointer shadow-sm"
+                            data-i18n="unsaved_changes.btn_dont_save"
+                        >
+                            Nie zapisuj
+                        </button>
+                        <button
+                            type="button"
+                            id="btn-unsaved-save"
+                            class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all cursor-pointer shadow-md shadow-blue-900/30 hover:shadow-blue-600/30 active:scale-[0.98]"
+                            data-i18n="unsaved_changes.btn_save"
+                        >
+                            Zapisz
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -55,6 +55,13 @@ function createMainWindow() {
     mainWindow.maximize()
     mainWindow.loadFile('View/MainWindow.html')
 
+    mainWindow.on('close', e => {
+        if (!mainWindow.forceClose) {
+            e.preventDefault()
+            mainWindow.webContents.send('app-close-requested')
+        }
+    })
+
     return mainWindow
 }
 

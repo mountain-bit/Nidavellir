@@ -84,6 +84,11 @@ declare module '*/View/ui/npcModal.js' {
     export function getModalMode(): 'character' | 'template'
     export function setModalMode(mode: 'character' | 'template'): void
     export function closeNpcModal(): void
+    export function hasUnsavedNpcChanges(): boolean
+    export function requestCloseNpcModal(): Promise<boolean>
+    export function executeNpcModalSave(ctx?: unknown): object | null
+    export function getNpcSnapshot(): string
+    export function captureNpcInitialSnapshot(): void
     export function setupNpcModal(ctx?: unknown): Record<string, unknown>
     export function updateSelectedAvatarPreview(avatarId: string): void
     export function toggleDescriptionDrawer(forceState?: boolean): void
@@ -559,4 +564,44 @@ declare module '*/View/ui/assetPicker.js' {
             overlayElement?: HTMLElement | null
         }
     ): void
+}
+
+declare module '*/View/ui/confirmModal.js' {
+    export function markFileDirty(fileName: string): void
+    export function markFileClean(fileName: string): void
+    export function hasUnsavedFileChanges(): boolean
+    export function getUnsavedFiles(): string[]
+    export function clearDirtyFiles(): void
+    export function showUnsavedChangesModal(options?: {
+        title?: string
+        subtitle?: string
+        message?: string
+        saveLabel?: string
+        dontSaveLabel?: string
+        cancelLabel?: string
+    }): Promise<'save' | 'dont_save' | 'cancel'>
+    export function confirmApplicationClose(
+        target?: 'app' | 'project',
+        ctx?: unknown,
+        helpers?: {
+            hasUnsavedNpc?: () => boolean
+            saveNpc?: () => Promise<void> | void
+            saveFiles?: (ctx: unknown) => Promise<void> | void
+        }
+    ): Promise<boolean>
+}
+
+declare module '*/View/ui/workspace.js' {
+    export function renderEditorTabs(ctx?: unknown): void
+    export function saveActiveFile(ctx?: unknown): void
+    export function saveAllUnsavedFiles(ctx?: unknown): Promise<void>
+    export function setupResizers(leftDrawer?: unknown, rightSidebar?: unknown, vm?: unknown): void
+    export function updateMainWorkspaceUI(ctx?: unknown): void
+    export function updateRightSidebarUI(
+        vm?: unknown,
+        rightSidebar?: unknown,
+        toggleBtn?: unknown,
+        reopenBtn?: unknown
+    ): void
+    export function updateZoomToolbarUI(storyGraphInstance?: unknown, zoomLevel?: number): void
 }

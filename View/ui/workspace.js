@@ -1,6 +1,7 @@
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
+import { getUnsavedFiles, markFileClean } from './confirmModal.js'
 import {
     getOrCreateMainEditor,
     setEditorActiveState,
@@ -366,6 +367,7 @@ export function saveActiveFile(ctx) {
             .saveMarkdownFile(currentPath, active, content)
             .then(res => {
                 if (res && res.success) {
+                    markFileClean(active)
                     if (saveStatus) {
                         saveStatus.textContent = '• Zapisano'
                         saveStatus.className = 'text-[11px] text-emerald-400 font-medium'
@@ -389,6 +391,7 @@ export function saveActiveFile(ctx) {
                 toast.error(t('toast.save_error', { error: err.message }), t('toast.error_title'))
             })
     } else {
+        markFileClean(active)
         if (saveStatus) {
             saveStatus.textContent = '• Zapisano (pamięć)'
             saveStatus.className = 'text-[11px] text-emerald-400 font-medium'
@@ -399,5 +402,31 @@ export function saveActiveFile(ctx) {
             }, 2500)
         }
         toast.success(t('toast.save_success'), t('toast.success_title'))
+    }
+}
+
+/**
+ * Saves all tracked unsaved files to disk.
+ *
+ * @param {object} ctx Application UI Context
+ * @returns {Promise<void>}
+ */
+export async function saveAllUnsavedFiles(ctx) {
+    saveActiveFile(ctx)
+
+    const unsaved = getUnsavedFiles()
+    const currentPath = window.currentProjectPath || ''
+    if (window.electronAPI && window.electronAPI.saveMarkdownFile && currentPath) {
+        for (const file of unsaved) {
+            const content = ctx.files?.[file] || ''
+            try {
+                const res = await window.electronAPI.saveMarkdownFile(currentPath, file, content)
+                if (res && res.success) {
+                    markFileClean(file)
+                }
+            } catch (err) {
+                console.error('Error saving unsaved file:', file, err)
+            }
+        }
     }
 }

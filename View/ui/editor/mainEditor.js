@@ -6,6 +6,7 @@ import {
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { importDroppedImage, setupElementDropZone } from '../assetPicker.js'
+import { markFileDirty } from '../confirmModal.js'
 import { openImageEditor } from '../imageEditorModal.js'
 import { setupToolbarButtons, updateToolbarActiveStates } from './editorToolbar.js'
 import { extractAvailableProjectEntities, openEntityLinkModal } from './entityLinkModal.js'
@@ -307,6 +308,7 @@ export function getOrCreateMainEditor(ctx) {
         onUpdate: (markdown, entities) => {
             const active = ctx.vm.getActiveFile()
             if (active) {
+                markFileDirty(active)
                 ctx.files[active] = markdown
                 const fileEditor = document.getElementById('file-editor')
                 if (fileEditor) fileEditor.value = markdown

@@ -64,6 +64,7 @@ function registerAssetScheme() {
                     supportFetchAPI: true,
                     corsEnabled: true,
                     stream: true,
+                    bypassCSP: true,
                 },
             },
         ])

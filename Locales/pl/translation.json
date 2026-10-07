@@ -856,5 +856,16 @@
         "dimensions_preview": "{{width}} × {{height}} px",
         "crop_hint": "Przeciągaj narożniki ramki, aby wykadrować zaznaczony obszar",
         "success_saved": "Grafika została pomyślnie zapisana"
+    },
+    "unsaved_changes": {
+        "title": "Niezapisane zmiany",
+        "subtitle": "Utrata wprowadzonych danych",
+        "default_message": "Czy na pewno chcesz wyjść? Masz niezapisane zmiany, które zostaną bezpowrotnie utracone.",
+        "npc_message": "Czy na pewno chcesz wyjść z panelu NPC? Masz niezapisane zmiany w formularzu, które zostaną bezpowrotnie utracone.",
+        "app_message": "Czy na pewno chcesz zamknąć aplikację? Masz niezapisane zmiany w projekcie, które zostaną bezpowrotnie utracone.",
+        "project_message": "Czy na pewno chcesz zamknąć projekt? Masz niezapisane zmiany w projekcie, które zostaną bezpowrotnie utracone.",
+        "btn_save": "Zapisz",
+        "btn_dont_save": "Nie zapisuj",
+        "btn_cancel": "Anuluj"
     }
 }

@@ -20,6 +20,8 @@ declare global {
         currentProjectPath?: string
         electronAPI: {
             closeApp: () => void
+            forceCloseApp?: () => Promise<void>
+            onAppCloseRequested?: (callback: () => void) => () => void
             loadMainWindow: () => void
             loadStartWindow: () => void
             chooseFolder: () => Promise<{ canceled: boolean; path?: string }>

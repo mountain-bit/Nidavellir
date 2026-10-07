@@ -855,5 +855,16 @@
         "dimensions_preview": "{{width}} × {{height}} px",
         "crop_hint": "Ziehen Sie die Rahmenecken, um den Bereich zuzuschneiden",
         "success_saved": "Bild erfolgreich gespeichert"
+    },
+    "unsaved_changes": {
+        "title": "Ungespeicherte Änderungen",
+        "subtitle": "Verlust nicht gespeicherter Daten",
+        "default_message": "Möchten Sie wirklich beenden? Sie haben ungespeicherte Änderungen, die dauerhaft verloren gehen.",
+        "npc_message": "Möchten Sie das NSC-Fenster wirklich schließen? Sie haben ungespeicherte Änderungen, die verloren gehen.",
+        "app_message": "Möchten Sie die Anwendung wirklich schließen? Sie haben ungespeicherte Änderungen im Projekt, die verloren gehen.",
+        "project_message": "Möchten Sie das Projekt wirklich schließen? Sie haben ungespeicherte Änderungen im Projekt, die verloren gehen.",
+        "btn_save": "Speichern",
+        "btn_dont_save": "Nicht speichern",
+        "btn_cancel": "Abbrechen"
     }
 }

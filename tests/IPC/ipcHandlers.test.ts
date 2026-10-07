@@ -80,6 +80,15 @@ describe('Main Process Services & File System Operations', () => {
                 expect(isPathInsideBase(tempDir, '')).toBe(false)
                 expect(isPathInsideBase(null as unknown as string, tempDir)).toBe(false)
             })
+
+            it('prawidłowo radzi sobie z wielkością liter dysku na systemie Windows', () => {
+                if (process.platform === 'win32') {
+                    const subFile = path.join(tempDir, 'file.txt')
+                    const lowerDrive = tempDir.charAt(0).toLowerCase() + tempDir.slice(1)
+                    const upperDrive = subFile.charAt(0).toUpperCase() + subFile.slice(1)
+                    expect(isPathInsideBase(lowerDrive, upperDrive)).toBe(true)
+                }
+            })
         })
 
         describe('validateProjectData', () => {

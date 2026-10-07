@@ -9,6 +9,7 @@ import {
 } from '../dist/Utils/translate.js'
 import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
 import { extractProjectData, loadProjectData } from './projectData.js'
+import { confirmApplicationClose, markFileDirty } from './ui/confirmModal.js'
 import {
     handleColorSelection,
     openColorPicker,
@@ -31,10 +32,17 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
-import { renderDynamicSuggestions, setupNpcModal, updateTraitsCounterUI } from './ui/npcModal.js'
+import {
+    executeNpcModalSave,
+    hasUnsavedNpcChanges,
+    renderDynamicSuggestions,
+    setupNpcModal,
+    updateTraitsCounterUI,
+} from './ui/npcModal.js'
 import {
     renderEditorTabs,
     saveActiveFile,
+    saveAllUnsavedFiles,
     setupResizers,
     updateMainWorkspaceUI,
     updateRightSidebarUI,
@@ -682,12 +690,34 @@ document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
 })
 
 document.querySelectorAll('[data-action="close-project"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        if (window.electronAPI && typeof window.electronAPI.loadStartWindow === 'function') {
+    btn.addEventListener('click', async () => {
+        const canClose = await confirmApplicationClose('project', appContext, {
+            hasUnsavedNpc: hasUnsavedNpcChanges,
+            saveNpc: () => executeNpcModalSave(appContext),
+            saveFiles: ctx => saveAllUnsavedFiles(ctx),
+        })
+        if (
+            canClose &&
+            window.electronAPI &&
+            typeof window.electronAPI.loadStartWindow === 'function'
+        ) {
             window.electronAPI.loadStartWindow()
         }
     })
 })
+
+if (window.electronAPI && typeof window.electronAPI.onAppCloseRequested === 'function') {
+    window.electronAPI.onAppCloseRequested(async () => {
+        const canClose = await confirmApplicationClose('app', appContext, {
+            hasUnsavedNpc: hasUnsavedNpcChanges,
+            saveNpc: () => executeNpcModalSave(appContext),
+            saveFiles: ctx => saveAllUnsavedFiles(ctx),
+        })
+        if (canClose && typeof window.electronAPI.forceCloseApp === 'function') {
+            window.electronAPI.forceCloseApp()
+        }
+    })
+}
 
 // Prevent OS default file navigation on unhandled drag/drop in Electron
 window.addEventListener('dragover', e => {
@@ -708,6 +738,7 @@ if (fileEditor) {
     fileEditor.addEventListener('input', () => {
         const active = vm.getActiveFile()
         if (active) {
+            markFileDirty(active)
             projectData.files[active] = fileEditor.value
             if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
         }
