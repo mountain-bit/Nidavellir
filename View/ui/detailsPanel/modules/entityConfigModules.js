@@ -6,6 +6,7 @@ import {
     DEFAULT_TAG_COLOR,
     Paragraph,
 } from '../../../../dist/ViewModel/MainWindowViewModel.js'
+import { importDroppedImage, pickProjectImage, setupElementDropZone } from '../../assetPicker.js'
 import {
     escapeHtml,
     getTypeBadgeColor,
@@ -72,15 +73,22 @@ export function renderAvatarModule(container, entity, type, ctx, onRefreshDetail
             <span class="text-[10px] text-gray-400 capitalize">${escapeHtml(avatar.category || '')}</span>
         </div>
         <div class="flex items-center gap-3">
-            <div id="details-avatar-preview" class="w-10 h-10 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-md border" style="background-color: ${avatar.bgColor}; color: ${avatar.color}; border-color: ${avatar.borderColor}">
+            <div id="details-avatar-preview" class="w-10 h-10 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-md border cursor-pointer hover:border-blue-400 transition-all" style="background-color: ${avatar.bgColor}; color: ${avatar.color}; border-color: ${avatar.borderColor}" title="${t('npc.drop_avatar_here') || 'Upuść grafikę, aby zmienić portret'}">
                 ${avatar.svg}
             </div>
             <div class="flex-1 min-w-0">
                 <div class="text-xs font-semibold text-white truncate">${escapeHtml(avatar.name)}</div>
-                <button type="button" id="btn-details-toggle-avatar-grid" class="mt-1 text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1 font-medium transition-colors">
-                    <span>${t('details.change_avatar')}</span>
-                    ${getIconSvg('chevron-down', 'w-3 h-3')}
-                </button>
+                <div class="flex items-center gap-2 mt-1">
+                    <button type="button" id="btn-details-toggle-avatar-grid" class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1 font-medium transition-colors">
+                        <span>${t('details.change_avatar')}</span>
+                        ${getIconSvg('chevron-down', 'w-3 h-3')}
+                    </button>
+                    <span class="text-zinc-600 text-[10px]">·</span>
+                    <button type="button" id="btn-details-upload-avatar" class="text-[11px] text-blue-400 hover:text-blue-300 cursor-pointer flex items-center gap-1 font-medium transition-colors" title="${t('npc.upload_custom_avatar') || 'Wgraj własną grafikę'}">
+                        ${getIconSvg('upload', 'w-3 h-3')}
+                        <span>${t('npc.upload_avatar_short') || 'Wgraj'}</span>
+                    </button>
+                </div>
             </div>
         </div>
         <div id="details-avatar-grid" class="hidden grid grid-cols-4 gap-1.5 pt-2 border-t border-[#2d2d32]">
@@ -100,6 +108,8 @@ export function renderAvatarModule(container, entity, type, ctx, onRefreshDetail
 
     const toggleBtn = avatarMod.querySelector('#btn-details-toggle-avatar-grid')
     const grid = avatarMod.querySelector('#details-avatar-grid')
+    const uploadBtn = avatarMod.querySelector('#btn-details-upload-avatar')
+    const avatarPreviewEl = avatarMod.querySelector('#details-avatar-preview')
 
     if (toggleBtn && grid) {
         toggleBtn.addEventListener('click', () => {
@@ -115,6 +125,39 @@ export function renderAvatarModule(container, entity, type, ctx, onRefreshDetail
                     ctx.refreshActiveSection(type)
                 }
             })
+        })
+    }
+
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', async () => {
+            try {
+                const res = await pickProjectImage(ctx, 'npc')
+                if (res && res.relativePath && entity.setAvatar) {
+                    entity.setAvatar(res.relativePath)
+                    refreshDetails()
+                    ctx.refreshActiveSection(type)
+                    toast.success(t('npc.avatar_updated') || 'Portret został zaktualizowany')
+                }
+            } catch (err) {
+                console.error('Error importing custom avatar in details panel:', err)
+                toast.error(t('asset.error.import_failed'), t('asset.error.title'))
+            }
+        })
+    }
+
+    // Drag-and-drop image directly onto the details avatar preview frame
+    if (avatarPreviewEl) {
+        setupElementDropZone(avatarPreviewEl, {
+            highlightClass: 'ring-2 ring-blue-400 bg-blue-500/20 scale-105',
+            onFileDrop: async file => {
+                const imported = await importDroppedImage(file, ctx, 'npc')
+                if (imported && imported.relativePath && entity.setAvatar) {
+                    entity.setAvatar(imported.relativePath)
+                    refreshDetails()
+                    ctx.refreshActiveSection(type)
+                    toast.success(t('npc.avatar_updated') || 'Portret został zaktualizowany')
+                }
+            },
         })
     }
 

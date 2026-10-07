@@ -5,6 +5,8 @@ import {
 } from '../../../dist/Modules/Editor/index.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
+import { importDroppedImage, setupElementDropZone } from '../assetPicker.js'
+import { openImageEditor } from '../imageEditorModal.js'
 import { setupToolbarButtons, updateToolbarActiveStates } from './editorToolbar.js'
 import { extractAvailableProjectEntities, openEntityLinkModal } from './entityLinkModal.js'
 
@@ -334,6 +336,45 @@ export function getOrCreateMainEditor(ctx) {
     setupToolbarButtons(mainEditorInstance, ctx)
     setupEditorContextMenu(mainEditorInstance, ctx)
 
+    setupElementDropZone(mount, {
+        highlightClass: 'ring-2 ring-blue-500 bg-blue-500/10',
+        onFileDrop: async file => {
+            if (!ctx?.vm?.getActiveFile?.()) {
+                toast.warning(
+                    t('editor.no_open_file') || 'Otwórz najpierw plik, aby wstawić grafikę'
+                )
+                return
+            }
+            const imported = await importDroppedImage(file, ctx, 'img')
+            if (imported) {
+                mainEditorInstance.setImage({
+                    src: imported.relativePath,
+                    alt: imported.fileName,
+                })
+                toast.success(t('asset.image_inserted') || 'Grafika została wstawiona')
+            }
+        },
+    })
+
+    const fileEditor = document.getElementById('file-editor')
+    if (fileEditor) {
+        setupElementDropZone(fileEditor, {
+            highlightClass: 'ring-2 ring-blue-500 bg-blue-500/10',
+            onFileDrop: async file => {
+                const imported = await importDroppedImage(file, ctx, 'img')
+                if (imported) {
+                    const snippet = `\n\n![${imported.fileName}](${imported.relativePath})\n`
+                    fileEditor.value += snippet
+                    const active = ctx?.vm?.getActiveFile?.()
+                    if (active && ctx.files) {
+                        ctx.files[active] = fileEditor.value
+                    }
+                    toast.success(t('asset.image_inserted') || 'Grafika została wstawiona')
+                }
+            },
+        })
+    }
+
     const emptyStateGraphBtn = document.getElementById('btn-empty-state-open-graph')
     emptyStateGraphBtn?.addEventListener('click', () => {
         if (ctx?.vm?.setActiveMainView) {
@@ -383,6 +424,56 @@ export function getOrCreateMainEditor(ctx) {
                 selectedText,
             })
         }
+    })
+
+    mount.addEventListener('dblclick', e => {
+        if (!ctx?.vm?.getActiveFile?.()) return
+
+        const target = e.target
+        const img =
+            target?.closest?.('img.gamebook-image') ||
+            (target?.tagName === 'IMG' && target.closest?.('.gamebook-image-container')
+                ? target
+                : null)
+
+        if (!img) return
+
+        e.preventDefault()
+        e.stopPropagation()
+
+        const rawSrc = img.getAttribute('src') || ''
+        if (!rawSrc) return
+
+        let imgPos = null
+        try {
+            const rawEditor = mainEditorInstance.getRawEditor()
+            const view = rawEditor?.view
+            if (view && typeof view.posAtDOM === 'function') {
+                imgPos = view.posAtDOM(img, 0)
+            }
+        } catch {
+            imgPos = null
+        }
+
+        openImageEditor(ctx, {
+            src: rawSrc,
+            onSave: ({ relativePath, fileName }) => {
+                if (
+                    typeof imgPos === 'number' &&
+                    typeof mainEditorInstance.updateImage === 'function'
+                ) {
+                    const success = mainEditorInstance.updateImage(imgPos, {
+                        src: relativePath,
+                        alt: fileName || img.getAttribute('alt') || '',
+                    })
+                    if (success) return
+                }
+                mainEditorInstance.setImage({
+                    src: relativePath,
+                    alt: fileName || img.getAttribute('alt') || '',
+                })
+            },
+        })
     })
 
     return mainEditorInstance

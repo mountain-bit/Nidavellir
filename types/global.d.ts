@@ -54,8 +54,22 @@ declare global {
             getLocale: () => Promise<string>
             setLocale: (locale: string) => Promise<boolean>
             getSystemUsername: () => Promise<string>
+            getCurrentProject: () => Promise<string | null>
+            getPathForFile: (file: unknown) => string
             importImage: (
                 projectPath?: string | null,
+                prefix?: string
+            ) => Promise<{
+                success: boolean
+                canceled?: boolean
+                relativePath?: string
+                assetUrl?: string
+                fileName?: string
+                error?: string
+            }>
+            importImageFile: (
+                projectPath?: string | null,
+                filePath?: string,
                 prefix?: string
             ) => Promise<{
                 success: boolean
@@ -69,6 +83,20 @@ declare global {
                 success: boolean
                 assets?: Array<{ relativePath: string; fileName: string; assetUrl: string }>
                 error?: string
+            }>
+            saveEditedImage: (payload: {
+                projectPath?: string | null
+                dataUrl: string
+                originalRelativePath?: string
+                overwrite?: boolean
+                prefix?: string
+            }) => Promise<{
+                success: boolean
+                relativePath?: string
+                assetUrl?: string
+                fileName?: string
+                error?: string
+                errorCode?: string
             }>
         }
     }

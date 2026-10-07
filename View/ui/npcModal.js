@@ -804,7 +804,7 @@ export function setupNpcModal(ctx) {
     }
 
     // Initialize fantasy avatar picker grid & preview
-    initAvatarGrid()
+    initAvatarGrid(ctx)
 
     // Initialize character tags controller
     initNpcTagsController(ctx)

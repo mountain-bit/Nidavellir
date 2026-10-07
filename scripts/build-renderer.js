@@ -26,6 +26,13 @@ const config = {
         'Utils/assetUtils': path.join(__dirname, '..', 'Utils', 'assetUtils.ts'),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
         'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
+        'Modules/ImageEditor/index': path.join(
+            __dirname,
+            '..',
+            'Modules',
+            'ImageEditor',
+            'index.ts'
+        ),
     },
     bundle: true,
     outdir: path.join(__dirname, '..', 'dist'),

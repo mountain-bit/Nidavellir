@@ -25,6 +25,8 @@ const ASSET_ERRORS = Object.freeze({
     FORBIDDEN_PATH: 'FORBIDDEN_PATH',
     IMPORT_FAILED: 'IMPORT_FAILED',
     LIST_FAILED: 'LIST_FAILED',
+    SAVE_FAILED: 'SAVE_FAILED',
+    INVALID_DATA: 'INVALID_DATA',
 })
 
 const ERROR_I18N_KEYS = Object.freeze({
@@ -35,6 +37,8 @@ const ERROR_I18N_KEYS = Object.freeze({
     [ASSET_ERRORS.FORBIDDEN_PATH]: 'asset.error.forbidden_path',
     [ASSET_ERRORS.IMPORT_FAILED]: 'asset.error.import_failed',
     [ASSET_ERRORS.LIST_FAILED]: 'asset.error.list_failed',
+    [ASSET_ERRORS.SAVE_FAILED]: 'asset.error.save_failed',
+    [ASSET_ERRORS.INVALID_DATA]: 'asset.error.invalid_data',
 })
 
 /**
@@ -93,6 +97,22 @@ class AssetService {
         }
 
         return this.importFile(projectDir, filePaths[0], prefix)
+    }
+
+    /**
+     * Imports an image file into the target project from a given source path on disk.
+     *
+     * @param {string|null} [projectPath]
+     * @param {string} sourcePath
+     * @param {string} [prefix='img']
+     * @returns {Promise<{ success: boolean, canceled?: boolean, relativePath?: string, assetUrl?: string, fileName?: string, errorCode?: string, error?: string }>}
+     */
+    static async importFileFromSource(projectPath, sourcePath, prefix = 'img') {
+        const projectDir = resolveTargetProjectDir(projectPath)
+        if (!projectDir) {
+            return failure(ASSET_ERRORS.NO_PROJECT)
+        }
+        return this.importFile(projectDir, sourcePath, prefix)
     }
 
     /**
@@ -186,6 +206,100 @@ class AssetService {
         } catch (err) {
             console.error('Error listing assets:', err)
             return failure(ASSET_ERRORS.LIST_FAILED)
+        }
+    }
+
+    /**
+     * Saves edited image data (base64 data URL) into the project's images directory.
+     * Can overwrite the original or create a new copy with a unique slug.
+     *
+     * @param {Object} [payload]
+     * @param {string|null} [payload.projectPath]
+     * @param {string} payload.dataUrl Base64 data URL (e.g. data:image/png;base64,...)
+     * @param {string} [payload.originalRelativePath] Relative path of the original image
+     * @param {boolean} [payload.overwrite=false] Whether to overwrite the original file
+     * @param {string} [payload.prefix='edited'] Fallback prefix if no original relative path
+     * @returns {Promise<{ success: boolean, relativePath?: string, assetUrl?: string, fileName?: string, errorCode?: string, error?: string }>}
+     */
+    static async saveEditedImage(payload = {}) {
+        const {
+            projectPath,
+            dataUrl,
+            originalRelativePath,
+            overwrite = false,
+            prefix = 'edited',
+        } = payload || {}
+
+        const projectDir = resolveTargetProjectDir(projectPath)
+        if (!projectDir) {
+            return failure(ASSET_ERRORS.NO_PROJECT)
+        }
+
+        if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+            return failure(ASSET_ERRORS.INVALID_DATA)
+        }
+
+        try {
+            const matches = dataUrl.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/)
+            if (!matches) {
+                return failure(ASSET_ERRORS.INVALID_DATA)
+            }
+
+            const rawFormat = matches[1].toLowerCase()
+            const ext = rawFormat === 'jpeg' ? '.jpg' : `.${rawFormat}`
+            if (!isAllowedImageExtension(ext)) {
+                return failure(ASSET_ERRORS.UNSUPPORTED_FORMAT, {
+                    formats: IMAGE_EXTENSIONS.join(', '),
+                })
+            }
+
+            const buffer = Buffer.from(matches[2], 'base64')
+            if (buffer.length > MAX_IMAGE_SIZE_BYTES) {
+                return failure(ASSET_ERRORS.FILE_TOO_LARGE, {
+                    maxMb: Math.round(MAX_IMAGE_SIZE_BYTES / (1024 * 1024)),
+                })
+            }
+
+            const targetDir = path.join(projectDir, ...ASSETS_IMAGES_DIR.split('/'))
+            await fs.promises.mkdir(targetDir, { recursive: true })
+
+            let fileName
+            if (overwrite && originalRelativePath) {
+                const candidateName = path.basename(originalRelativePath)
+                const candidatePath = path.join(targetDir, candidateName)
+                if (!isPathInsideBase(projectDir, candidatePath)) {
+                    return failure(ASSET_ERRORS.FORBIDDEN_PATH)
+                }
+                fileName = candidateName
+            } else {
+                const baseName = originalRelativePath
+                    ? path.basename(originalRelativePath, path.extname(originalRelativePath))
+                    : 'image'
+                const safePrefix = slugifyEntityName(prefix, 'edited')
+                const baseSlug = slugifyEntityName(baseName, 'image').slice(0, 40)
+                const uniqueSlug = generateUniqueSlug(`${safePrefix}_${baseSlug}`, candidate =>
+                    fs.existsSync(path.join(targetDir, `${candidate}${ext}`))
+                )
+                fileName = `${uniqueSlug}${ext}`
+            }
+
+            const targetPath = path.join(targetDir, fileName)
+            if (!isPathInsideBase(projectDir, targetPath)) {
+                return failure(ASSET_ERRORS.FORBIDDEN_PATH)
+            }
+
+            await fs.promises.writeFile(targetPath, buffer)
+
+            const relativePath = buildRelativeImagePath(fileName)
+            return {
+                success: true,
+                fileName,
+                relativePath,
+                assetUrl: buildAssetUrl(relativePath),
+            }
+        } catch (err) {
+            console.error('Error saving edited image:', err)
+            return failure(ASSET_ERRORS.SAVE_FAILED)
         }
     }
 }

@@ -489,3 +489,53 @@ declare module '*/View/ui/npcAvatars.js' {
     export function getAvatarById(id: string): IFantasyAvatar
     export function isCustomAvatarPath(avatarId: string): boolean
 }
+
+declare module '*/View/ui/imageEditorModal.js' {
+    export function setupImageEditorModal(ctx: unknown): {
+        open: (options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }) => void
+        close: () => void
+    }
+    export function getImageEditorModal(ctx: unknown): {
+        open: (options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }) => void
+        close: () => void
+    }
+    export function openImageEditor(
+        ctx: unknown,
+        options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }
+    ): void
+}
+
+declare module '*/dist/Modules/ImageEditor/index.js' {
+    export * from '../Modules/ImageEditor/index'
+}
+
+declare module '*/View/ui/assetPicker.js' {
+    export function getActiveProjectPath(ctx?: unknown): string
+    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
+    export function pickProjectImage(
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function importDroppedImage(
+        file: unknown,
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function setupElementDropZone(
+        element: HTMLElement | null,
+        options?: {
+            highlightClass?: string
+            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
+            overlayElement?: HTMLElement | null
+        }
+    ): void
+}

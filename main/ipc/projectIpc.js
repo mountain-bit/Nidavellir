@@ -12,6 +12,10 @@ function registerProjectIpc() {
         return { canceled: false, path: filePaths[0] }
     })
 
+    ipcMain.handle('get-current-project', () => {
+        return ProjectService.getCurrentProjectDir()
+    })
+
     ipcMain.handle('create-project', async (_event, projectDetails) => {
         return await ProjectService.createProject(projectDetails)
     })

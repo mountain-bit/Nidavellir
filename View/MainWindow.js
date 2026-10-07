@@ -69,6 +69,14 @@ let storyGraphInstance = null
  */
 const appContext = {
     vm,
+    projectPath: '',
+    getProjectPath() {
+        return (
+            this.projectPath ||
+            (typeof window !== 'undefined' ? window.currentProjectPath : '') ||
+            ''
+        )
+    },
     get projectData() {
         return projectData
     },
@@ -602,6 +610,35 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
     btn.addEventListener('click', () => saveActiveFile(appContext))
 })
 
+document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (window.electronAPI && typeof window.electronAPI.openProject === 'function') {
+            try {
+                const res = await window.electronAPI.openProject()
+                if (res && res.success && res.path) {
+                    const projectDir = res.path.endsWith('project.json')
+                        ? res.path.replace(/[\\/]project\.json$/i, '')
+                        : res.path
+                    window.currentProjectPath = projectDir
+                    appContext.projectPath = projectDir
+                    toast.success(t('project.opened') || 'Projekt został pomyślnie otwarty')
+                }
+            } catch (err) {
+                console.error('Error opening project:', err)
+                toast.error(t('error.open_project_failed') || 'Nie udało się otworzyć projektu')
+            }
+        }
+    })
+})
+
+// Prevent OS default file navigation on unhandled drag/drop in Electron
+window.addEventListener('dragover', e => {
+    e.preventDefault()
+})
+window.addEventListener('drop', e => {
+    e.preventDefault()
+})
+
 document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
@@ -622,6 +659,18 @@ if (fileEditor) {
 // Initial Render & i18n setup
 async function initApp() {
     try {
+        if (window.electronAPI && typeof window.electronAPI.getCurrentProject === 'function') {
+            try {
+                const cur = await window.electronAPI.getCurrentProject()
+                if (cur) {
+                    window.currentProjectPath = cur
+                    appContext.projectPath = cur
+                }
+            } catch (err) {
+                console.warn('Could not query current project path on startup:', err)
+            }
+        }
+
         await initTranslations()
         applyTranslations()
 

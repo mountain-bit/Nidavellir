@@ -8,8 +8,17 @@ function registerAssetIpc() {
         return await AssetService.chooseAndImportImage(payload, parentWindow)
     })
 
+    ipcMain.handle('asset-import-file', async (_event, payload) => {
+        const { projectPath, filePath, prefix = 'img' } = payload || {}
+        return await AssetService.importFileFromSource(projectPath, filePath, prefix)
+    })
+
     ipcMain.handle('asset-list-images', async (_event, payload) => {
         return await AssetService.listProjectAssets(payload)
+    })
+
+    ipcMain.handle('asset-save-edited-image', async (_event, payload) => {
+        return await AssetService.saveEditedImage(payload)
     })
 }
 

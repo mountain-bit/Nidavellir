@@ -313,6 +313,21 @@ export class MarkdownEditor {
         return this.editor?.chain().focus().setImage(options).run() ?? false
     }
 
+    public updateImage(
+        pos: number,
+        options: { src: string; alt?: string; title?: string }
+    ): boolean {
+        if (!this.editor) return false
+        return (
+            this.editor
+                .chain()
+                .focus()
+                .setNodeSelection(pos)
+                .updateAttributes('image', options)
+                .run() ?? false
+        )
+    }
+
     public toggleCustomStyle(styleId: string): boolean {
         return (
             (this.editor?.chain().focus() as unknown as IEditorChainedCommands)

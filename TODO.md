@@ -66,6 +66,19 @@ This document serves as a comprehensive registry of planned features, enhancemen
   - [x] Hybrid portrait renderer in `View/ui/npcAvatars.js` (`getAvatarById`) generating responsive `<img>` for file paths and `<svg>` for archetypes
   - [x] NPC modal upload button (`#btn-npc-upload-custom-avatar`) in avatar picker popover (`npcSectionControllers.js`)
   - [x] Seamless propagation to details panel, drawer lists, and character sheets
+- [x] **In-App Image Editor & Double-Click Modal Subsystem (`View/ui/imageEditorModal.js`, `Modules/ImageEditor/`)**
+  - [x] Double-click trigger (`dblclick`) on markdown illustrations in TipTap and custom NPC avatars
+  - [x] Pure Canvas 2D image processing engine (`Modules/ImageEditor/ImageProcessor.ts`) with unit tests
+  - [x] Interactive Cropping tool with handles, Rule of Thirds grid, and aspect ratio presets (Free, 1:1, 16:9, 4:3, 3:2)
+  - [x] Precision Scaling with pixel inputs, aspect lock toggle, and quick scaling presets (100%, 75%, 50%, 25%, 800px, 400px)
+  - [x] Rotation (-90°, +90°) and mirroring (Flip Horizontal, Flip Vertical)
+  - [x] Real-time Color Adjustments: Brightness, Contrast, Saturation, Sepia (Parchment), Grayscale, and Hue rotation
+  - [x] Safe project persistence via `AssetService.saveEditedImage`: "Save as Copy" (non-destructive) and "Overwrite Original"
+  - [x] Full multilingual localization (PL, EN, DE) and custom SVG icons in `Utils/icons.ts`
 - [x] **Full Multilingual Localization (PL, EN, DE)**
   - [x] Localized toolbar tooltips, buttons, error toasts, and avatar labels in `Locales/*/translation.json`
+- [x] **Asset System Fixes & Drag-and-Drop Enhancement**
+  - [x] Resolved "No project selected" error on image button click via automatic fallback in `ProjectService.getCurrentProjectDir()` (recent project / default workspace directory) and Ribbon "Otwórz projekt" (`data-action="open-project"`) integration.
+  - [x] Fixed NPC avatar upload button in NPC modal (`#btn-npc-upload-custom-avatar`) and added custom avatar upload button in the NPC details panel (`#btn-details-upload-avatar`).
+  - [x] Implemented Drag & Drop image file handling (`asset-import-file`, `webUtils.getPathForFile`, base64 fallback) for the markdown editor (TipTap & raw) and NPC portraits with glowing visual drop zones.
 

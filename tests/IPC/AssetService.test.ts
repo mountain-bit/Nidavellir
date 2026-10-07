@@ -71,4 +71,74 @@ describe('AssetService', () => {
             expect.arrayContaining(['img1.png', 'img2.jpg'])
         )
     })
+
+    it('saves edited image as a new copy with unique slug', async () => {
+        const dummyDataUrl = 'data:image/png;base64,aGVsbG8gd29ybGQ='
+        const res = await AssetService.saveEditedImage({
+            projectPath: tempDir,
+            dataUrl: dummyDataUrl,
+            originalRelativePath: 'Assets/Images/hero.png',
+            overwrite: false,
+        })
+
+        expect(res.success).toBe(true)
+        expect(res.relativePath).toMatch(/^Assets\/Images\/edited_hero(?:_\d+)?\.png$/)
+        expect(res.assetUrl).toBe(`asset://project/${res.relativePath}`)
+
+        const savedPath = path.join(tempDir, res.relativePath)
+        expect(fs.existsSync(savedPath)).toBe(true)
+        expect(fs.readFileSync(savedPath, 'utf8')).toBe('hello world')
+    })
+
+    it('overwrites existing image file when overwrite is true', async () => {
+        const imagesDir = path.join(tempDir, 'Assets', 'Images')
+        fs.mkdirSync(imagesDir, { recursive: true })
+        const targetFile = path.join(imagesDir, 'existing.png')
+        fs.writeFileSync(targetFile, 'original content')
+
+        const dummyDataUrl = 'data:image/png;base64,bmV3IGNvbnRlbnQ='
+        const res = await AssetService.saveEditedImage({
+            projectPath: tempDir,
+            dataUrl: dummyDataUrl,
+            originalRelativePath: 'Assets/Images/existing.png',
+            overwrite: true,
+        })
+
+        expect(res.success).toBe(true)
+        expect(res.fileName).toBe('existing.png')
+        expect(res.relativePath).toBe('Assets/Images/existing.png')
+        expect(fs.readFileSync(targetFile, 'utf8')).toBe('new content')
+    })
+
+    it('rejects invalid or malformed dataUrl', async () => {
+        const res = await AssetService.saveEditedImage({
+            projectPath: tempDir,
+            dataUrl: 'not-a-valid-data-url',
+        })
+
+        expect(res.success).toBe(false)
+        expect(res.errorCode).toBe(AssetService.ASSET_ERRORS.INVALID_DATA)
+    })
+
+    it('imports file from source path via importFileFromSource', async () => {
+        const dummyImage = path.join(tempDir, 'dragged_photo.png')
+        fs.writeFileSync(dummyImage, 'dragged image binary content')
+
+        const result = await AssetService.importFileFromSource(tempDir, dummyImage, 'drag')
+
+        expect(result.success).toBe(true)
+        expect(result.relativePath).toMatch(/^Assets\/Images\/drag_dragged_photo(?:_\d+)?\.png$/)
+        expect(result.assetUrl).toBe(`asset://project/${result.relativePath}`)
+
+        const destination = path.join(tempDir, result.relativePath)
+        expect(fs.existsSync(destination)).toBe(true)
+        expect(fs.readFileSync(destination, 'utf8')).toBe('dragged image binary content')
+    })
+
+    it('getCurrentProjectDir provides a valid workspace directory when none was set', () => {
+        const current = ProjectService.getCurrentProjectDir()
+        expect(current).toBeTruthy()
+        expect(typeof current).toBe('string')
+        expect(fs.existsSync(current!)).toBe(true)
+    })
 })

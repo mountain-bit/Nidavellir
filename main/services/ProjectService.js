@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const os = require('os')
 const {
     resolveProjectDir,
     isPathInsideBase,
@@ -37,11 +38,79 @@ function ensureAssetsDirectory(projectDir) {
 
 class ProjectService {
     /**
+     * Resolves the default workspace directory in Electron userData or temp.
+     *
+     * @returns {string}
+     */
+    static getDefaultWorkspaceDir() {
+        let baseDir = null
+        try {
+            const electron = require('electron')
+            if (electron && electron.app && typeof electron.app.getPath === 'function') {
+                baseDir = electron.app.getPath('userData')
+            }
+        } catch {
+            baseDir = null
+        }
+        if (!baseDir) {
+            baseDir = path.join(os.tmpdir(), 'sgp-workspace')
+        }
+        return path.join(baseDir, 'DefaultProject')
+    }
+
+    /**
      * Returns the currently active project directory path.
+     * If no active project is set, attempts to restore the most recent valid project
+     * or ensures an initial default workspace directory.
      *
      * @returns {string|null}
      */
     static getCurrentProjectDir() {
+        if (currentProjectDir && fs.existsSync(currentProjectDir)) {
+            return currentProjectDir
+        }
+
+        // 1. Try to find the most recent valid project on disk
+        const recents = RecentProjectsService.getRecentProjects()
+        for (const recent of recents) {
+            if (recent && recent.path && fs.existsSync(recent.path)) {
+                try {
+                    const stat = fs.statSync(recent.path)
+                    const dir = stat.isDirectory() ? recent.path : path.dirname(recent.path)
+                    if (fs.existsSync(dir)) {
+                        this.setCurrentProjectDir(dir)
+                        return currentProjectDir
+                    }
+                } catch {
+                    // ignore invalid path and check next
+                }
+            }
+        }
+
+        // 2. Fall back to a default project workspace in userData
+        const defaultDir = this.getDefaultWorkspaceDir()
+        if (defaultDir) {
+            try {
+                if (!fs.existsSync(defaultDir)) {
+                    fs.mkdirSync(defaultDir, { recursive: true })
+                }
+                const projectFile = path.join(defaultDir, 'project.json')
+                if (!fs.existsSync(projectFile)) {
+                    const defaultProjectData = {
+                        name: 'Domyślny Projekt',
+                        descriptionPaths: [],
+                        dataPaths: [],
+                    }
+                    fs.writeFileSync(projectFile, JSON.stringify(defaultProjectData, null, 2))
+                }
+                ensureAssetsDirectory(defaultDir)
+                this.setCurrentProjectDir(defaultDir)
+                return currentProjectDir
+            } catch (err) {
+                console.error('Error initializing default project dir:', err)
+            }
+        }
+
         return currentProjectDir
     }
 
