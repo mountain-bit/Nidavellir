@@ -21,6 +21,7 @@ declare global {
         electronAPI: {
             closeApp: () => void
             loadMainWindow: () => void
+            loadStartWindow: () => void
             chooseFolder: () => Promise<{ canceled: boolean; path?: string }>
             createProject: (details: {
                 id: string

@@ -10,6 +10,7 @@ import { NPC } from '../Model/NPC'
 import { NPC_Template } from '../Model/NPC_Template'
 import { Paragraph } from '../Model/Paragraph'
 import { Parameter } from '../Model/Parameter'
+import { Project } from '../Model/Project'
 import { Scene } from '../Model/Scene'
 import { Skill } from '../Model/Skill'
 import { Stat } from '../Model/Stat'
@@ -35,6 +36,8 @@ export {
     NPC_Template,
     Paragraph,
     Parameter,
+    Project,
+    ProjectManager,
     Scene,
     Skill,
     Stat,

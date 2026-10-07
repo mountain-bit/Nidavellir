@@ -4,6 +4,9 @@ import os from 'os'
 import path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
+import { ProjectManager } from '../../Services/ProjectManager'
+import { extractProjectData } from '../../View/mockData.js'
+
 const require = createRequire(import.meta.url)
 
 const {
@@ -205,6 +208,58 @@ describe('Main Process Services & File System Operations', () => {
             expect(openResult.project.editor.customStyles[0].name).toBe('Mój styl')
             expect(openResult.project.customStyles[0].id).toBe('style_custom')
             expect(openResult.project.customFonts[0].name).toBe('MedievalSharp')
+        })
+
+        it('pełny cykl: createProject -> openProject -> ProjectManager.load -> extractProjectData', async () => {
+            const createResult = await ProjectService.createProject({
+                id: 'full_cycle_project',
+                name: 'Cykl Testowy',
+                author: 'Tester',
+                projectPath: tempDir,
+            })
+            expect(createResult.success).toBe(true)
+
+            // Open project from path
+            const openResult = await ProjectService.openProject(tempDir)
+            expect(openResult.success).toBe(true)
+            expect(openResult.project.id).toBe('full_cycle_project')
+            expect(openResult.project.name).toBe('Cykl Testowy')
+            expect(openResult.project.author).toBe('Tester')
+
+            // Load into ProjectManager
+            const projectInstance = ProjectManager.getInstance().load(
+                openResult.project,
+                openResult.entities,
+                openResult.path || tempDir
+            )
+            expect(projectInstance.getName()).toBe('Cykl Testowy')
+            expect(projectInstance.getAuthor()).toBe('Tester')
+
+            // Extract project data for MainWindow
+            const extracted = extractProjectData(projectInstance)
+            expect(extracted.projectCharacters).toHaveLength(0)
+            expect(extracted.projectScenes).toHaveLength(0)
+            expect(extracted.projectLocations).toHaveLength(0)
+
+            // Add an NPC and reload
+            await EntityService.createEntity({
+                projectPath: tempDir,
+                category: 'NPC',
+                entityData: { id: 'npc_hero', name: 'Bohater Cyklu' },
+            })
+
+            const reopened = await ProjectService.openProject(tempDir)
+            expect(reopened.success).toBe(true)
+            expect(reopened.entities.NPC).toHaveLength(1)
+
+            const reloadedInstance = ProjectManager.getInstance().load(
+                reopened.project,
+                reopened.entities,
+                tempDir
+            )
+            const reExtracted = extractProjectData(reloadedInstance)
+            expect(reExtracted.projectCharacters).toHaveLength(1)
+            expect(reExtracted.projectCharacters[0].getName()).toBe('Bohater Cyklu')
         })
     })
 

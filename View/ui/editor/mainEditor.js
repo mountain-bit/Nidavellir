@@ -192,8 +192,9 @@ export function setupEditorContextMenu(editor, ctx) {
     linkBtn?.addEventListener('click', () => {
         const data = activeEditorContextMenuData
         hideEditorContextMenu()
+        const targetEditor = data?.editor || editor
         if (data?.selectedText) {
-            openEntityLinkModal(editor, ctx, {
+            openEntityLinkModal(targetEditor, ctx, {
                 initialLabel: data.selectedText.trim(),
                 point: { x: data.x, y: data.y },
             })
@@ -203,13 +204,14 @@ export function setupEditorContextMenu(editor, ctx) {
     editBadgeBtn?.addEventListener('click', () => {
         const data = activeEditorContextMenuData
         hideEditorContextMenu()
+        const targetEditor = data?.editor || editor
         if (data?.badge) {
             const id = data.badge.getAttribute('data-entity-id') || ''
             const type = data.badge.getAttribute('data-entity-type') || 'location'
             const label =
                 data.badge.getAttribute('data-label') || data.badge.textContent?.trim() || id
             const rect = data.badge.getBoundingClientRect()
-            openEntityLinkModal(editor, ctx, {
+            openEntityLinkModal(targetEditor, ctx, {
                 initialLabel: label,
                 initialEntityId: id,
                 initialType: type,
@@ -222,10 +224,11 @@ export function setupEditorContextMenu(editor, ctx) {
     unlinkBadgeBtn?.addEventListener('click', () => {
         const data = activeEditorContextMenuData
         hideEditorContextMenu()
-        if (data?.badge && typeof editor.unlinkEntityMention === 'function') {
+        const targetEditor = data?.editor || editor
+        if (data?.badge && typeof targetEditor.unlinkEntityMention === 'function') {
             const label =
                 data.badge.getAttribute('data-label') || data.badge.textContent?.trim() || ''
-            editor.unlinkEntityMention(data.badgePos, label)
+            targetEditor.unlinkEntityMention(data.badgePos, label)
             toast.info(t('editor.entity_modal.toast_unlinked'), t('editor.sync_title'))
         }
     })

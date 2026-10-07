@@ -18,3 +18,9 @@ export {
     syncEntitiesWithActiveObject,
     updateEditorStats,
 } from './mainEditor.js'
+export {
+    destroyNpcEditor,
+    getNpcEditorInstance,
+    getOrCreateNpcEditor,
+    updateNpcEditorStats,
+} from './npcEditor.js'

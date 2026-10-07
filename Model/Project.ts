@@ -375,22 +375,26 @@ export class Project {
     }
 
     public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Project {
-        const locations = (entities.Locations ?? []).map(l => Location.fromJSON(l))
-        const characters = (entities.NPC ?? []).map(n => NPC.fromJSON(n))
-        const templates = (entities.Templates ?? []).map(t => NPC_Template.fromJSON(t))
-        const items = (entities.Items ?? []).map(p => Item.fromJSON(p))
-        const characterClasses = (entities.CharacterClasses ?? []).map(k =>
+        const locations = (entities.Locations ?? entities.Lokacje ?? []).map(l =>
+            Location.fromJSON(l)
+        )
+        const characters = (entities.NPC ?? entities.Postacie ?? []).map(n => NPC.fromJSON(n))
+        const templates = (entities.Templates ?? entities.Szablony ?? []).map(t =>
+            NPC_Template.fromJSON(t)
+        )
+        const items = (entities.Items ?? entities.Przedmioty ?? []).map(p => Item.fromJSON(p))
+        const characterClasses = (entities.CharacterClasses ?? entities.KlasyPostaci ?? []).map(k =>
             CharacterClass.fromJSON(k)
         )
 
-        const scenes = (entities.Paragraphs ?? []).map(s => Scene.fromJSON(s))
+        const scenes = (entities.Paragraphs ?? entities.Paragrafy ?? []).map(s => Scene.fromJSON(s))
 
-        const playerCharacterData = (entities.PlayerCharacter ?? [])[0]
+        const playerCharacterData = (entities.PlayerCharacter ?? entities.PostacGracza ?? [])[0]
         const playerCharacter = playerCharacterData
             ? PlayerCharacter.fromJSON(playerCharacterData)
             : new PlayerCharacter()
 
-        const rules = entities.Rules ?? []
+        const rules = entities.Rules ?? entities.Zasady ?? []
         const globalStats = rules
             .filter(z => z.type === 'stat' || z.type === 'trait' || z.typ === 'cecha')
             .map(z => Stat.fromJSON(z))

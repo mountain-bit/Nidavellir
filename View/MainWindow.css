@@ -840,6 +840,7 @@ scene-node.is-drag-target,
 
 /* Tiptap / Gamebook Rich Text Editor Styles */
 #rich-editor-mount .tiptap,
+#npc-rich-editor-mount .tiptap,
 .gamebook-prose .tiptap,
 .gamebook-prose.tiptap {
     outline: none;
@@ -847,7 +848,8 @@ scene-node.is-drag-target,
     font-family: inherit;
 }
 
-#rich-editor-mount h1 {
+#rich-editor-mount h1,
+#npc-rich-editor-mount h1 {
     font-size: 1.75rem;
     font-weight: 700;
     color: #f4f4f5;
@@ -857,7 +859,8 @@ scene-node.is-drag-target,
     padding-bottom: 0.35rem;
 }
 
-#rich-editor-mount h2 {
+#rich-editor-mount h2,
+#npc-rich-editor-mount h2 {
     font-size: 1.35rem;
     font-weight: 600;
     color: #e4e4e7;
@@ -865,7 +868,8 @@ scene-node.is-drag-target,
     margin-bottom: 0.5rem;
 }
 
-#rich-editor-mount h3 {
+#rich-editor-mount h3,
+#npc-rich-editor-mount h3 {
     font-size: 1.15rem;
     font-weight: 600;
     color: #d4d4d8;
@@ -873,28 +877,32 @@ scene-node.is-drag-target,
     margin-bottom: 0.45rem;
 }
 
-#rich-editor-mount p {
+#rich-editor-mount p,
+#npc-rich-editor-mount p {
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
     line-height: 1.75;
     color: #d4d4d8;
 }
 
-#rich-editor-mount ul {
+#rich-editor-mount ul,
+#npc-rich-editor-mount ul {
     list-style-type: disc;
     padding-left: 1.75rem;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-#rich-editor-mount ol {
+#rich-editor-mount ol,
+#npc-rich-editor-mount ol {
     list-style-type: decimal;
     padding-left: 1.75rem;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-#rich-editor-mount blockquote {
+#rich-editor-mount blockquote,
+#npc-rich-editor-mount blockquote {
     border-left: 3px solid #3b82f6;
     padding-left: 1rem;
     margin-left: 0;

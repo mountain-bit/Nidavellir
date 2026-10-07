@@ -399,16 +399,29 @@ declare module '*/View/ui/editor/editorToolbar.js' {
     export const TOOLBAR_BUTTON_STATE_MAP: Array<{ id: string; key: string }>
     export function updateToolbarActiveStates(
         activeStates: Record<string, unknown>,
-        ctx: unknown
+        ctx: unknown,
+        options?: { prefix?: string; buttonMap?: Array<{ id: string; key: string }> }
     ): void
-    export function setupToolbarButtons(editor: unknown, ctx: unknown): void
+    export function setupToolbarButtons(
+        editor: unknown,
+        ctx: unknown,
+        options?: { prefix?: string; toolbarEl?: HTMLElement | null }
+    ): void
 }
 
 declare module '*/View/ui/editor/customStylesMenu.js' {
     export function setupCustomStylesUI(
         editor: unknown,
         ctx: unknown,
-        onSelectionUpdate?: (activeStates: Record<string, unknown>, ctx: unknown) => void
+        onSelectionUpdate?: (activeStates: Record<string, unknown>, ctx: unknown) => void,
+        options?: {
+            prefix?: string
+            dropdownBtn?: HTMLElement | null
+            dropdownMenu?: HTMLElement | null
+            container?: HTMLElement | null
+            clearBtn?: HTMLElement | null
+            openModalBtn?: HTMLElement | null
+        }
     ): { renderList: () => void; openModal: (style?: unknown) => void }
 }
 
@@ -461,6 +474,13 @@ declare module '*/View/ui/editor/mainEditor.js' {
     ): unknown
 }
 
+declare module '*/View/ui/editor/npcEditor.js' {
+    export function getNpcEditorInstance(): unknown
+    export function updateNpcEditorStats(editor?: unknown): void
+    export function getOrCreateNpcEditor(ctx: unknown): unknown
+    export function destroyNpcEditor(): void
+}
+
 declare module '*/View/ui/editor/index.js' {
     export * from '*/View/ui/editor/customStyleModal.js'
     export * from '*/View/ui/editor/customStylesMenu.js'
@@ -468,6 +488,7 @@ declare module '*/View/ui/editor/index.js' {
     export * from '*/View/ui/editor/entityLinkModal.js'
     export * from '*/View/ui/editor/fontBrowserModal.js'
     export * from '*/View/ui/editor/mainEditor.js'
+    export * from '*/View/ui/editor/npcEditor.js'
 }
 
 declare module '*/View/ui/npcAvatars.js' {

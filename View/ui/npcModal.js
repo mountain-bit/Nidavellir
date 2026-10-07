@@ -5,6 +5,12 @@
  */
 
 import { applyTranslations, t } from '../../dist/Utils/translate.js'
+import {
+    destroyNpcEditor,
+    getNpcEditorInstance,
+    getOrCreateNpcEditor,
+    updateNpcEditorStats,
+} from './editor/npcEditor.js'
 import { evaluateFormula, parseStatValueAsNumber } from './npcModal/formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcModal/npcCharacterSaver.js'
 import { clampModalPosition, initDraggable, initResizable } from './npcModal/npcDraggable.js'
@@ -210,7 +216,7 @@ export function toggleDescriptionDrawer(forceState) {
         }
 
         if (modal) {
-            const drawerWidth = drawer.offsetWidth || 380
+            const drawerWidth = parseInt(drawer.style.width, 10) || drawer.offsetWidth || 380
             const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 860
             modal.dataset.widthBeforeDrawer = String(currentWidth)
 
@@ -236,6 +242,11 @@ export function toggleDescriptionDrawer(forceState) {
 
             clampModalPosition(modal)
         }
+
+        const editor = getNpcEditorInstance()
+        if (editor) {
+            updateNpcEditorStats(editor)
+        }
     } else {
         const wasOpen = !drawer.classList.contains('hidden')
         drawer.classList.add('hidden')
@@ -245,12 +256,12 @@ export function toggleDescriptionDrawer(forceState) {
         }
 
         if (modal && wasOpen) {
-            const drawerWidth = 380
+            const drawerWidth = parseInt(drawer.style.width, 10) || drawer.offsetWidth || 380
             if (modal.dataset.widthBeforeDrawer) {
                 modal.style.width = `${modal.dataset.widthBeforeDrawer}px`
                 delete modal.dataset.widthBeforeDrawer
             } else {
-                const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 1240
+                const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 1320
                 const newWidth = Math.max(500, currentWidth - drawerWidth)
                 modal.style.width = `${newWidth}px`
             }
@@ -634,6 +645,11 @@ export function closeNpcModal() {
 
     closeTemplateDropdown()
 
+    const stylesMenu = document.getElementById('npc-editor-custom-styles-dropdown-menu')
+    if (stylesMenu) stylesMenu.classList.add('hidden')
+    const entityMenu = document.getElementById('npc-editor-entity-dropdown-menu')
+    if (entityMenu) entityMenu.classList.add('hidden')
+
     modal.classList.add('hidden')
     resetNpcModalForm()
 }
@@ -666,6 +682,10 @@ export function setNpcName(name) {
  * @returns {string}
  */
 export function getNpcDescription() {
+    const editor = getNpcEditorInstance()
+    if (editor && typeof editor.getMarkdown === 'function') {
+        return editor.getMarkdown()
+    }
     const textarea = document.getElementById('npc-description-textarea')
     return textarea ? textarea.value : ''
 }
@@ -676,6 +696,11 @@ export function getNpcDescription() {
  * @param {string} text
  */
 export function setNpcDescription(text) {
+    const editor = getNpcEditorInstance()
+    if (editor && typeof editor.setMarkdown === 'function') {
+        editor.setMarkdown(text || '')
+        updateNpcEditorStats(editor)
+    }
     const textarea = document.getElementById('npc-description-textarea')
     if (textarea) {
         textarea.value = text || ''
@@ -809,6 +834,9 @@ export function setupNpcModal(ctx) {
     // Initialize character tags controller
     initNpcTagsController(ctx)
 
+    // Initialize NPC rich markdown editor
+    getOrCreateNpcEditor(ctx)
+
     // Initialize side drawer toggle
     if (btnToggleDesc) {
         btnToggleDesc.addEventListener('click', e => {
@@ -893,6 +921,20 @@ export function setupNpcModal(ctx) {
                 closeTemplateDropdown()
             }
         }
+        const stylesMenu = document.getElementById('npc-editor-custom-styles-dropdown-menu')
+        const stylesBtn = document.getElementById('npc-btn-editor-custom-styles-dropdown')
+        if (stylesMenu && !stylesMenu.classList.contains('hidden')) {
+            if (!stylesMenu.contains(e.target) && (!stylesBtn || !stylesBtn.contains(e.target))) {
+                stylesMenu.classList.add('hidden')
+            }
+        }
+        const entityMenu = document.getElementById('npc-editor-entity-dropdown-menu')
+        const entityBtn = document.getElementById('npc-btn-insert-entity-dropdown')
+        if (entityMenu && !entityMenu.classList.contains('hidden')) {
+            if (!entityMenu.contains(e.target) && (!entityBtn || !entityBtn.contains(e.target))) {
+                entityMenu.classList.add('hidden')
+            }
+        }
     }
     state.setGlobalOutsideClickHandler(outsideClickHandler)
     document.addEventListener('click', outsideClickHandler)
@@ -916,6 +958,16 @@ export function setupNpcModal(ctx) {
             const tagPopover = document.getElementById('npc-tag-picker-popover')
             if (tagPopover && !tagPopover.classList.contains('hidden')) {
                 tagPopover.classList.add('hidden')
+                return
+            }
+            const stylesMenu = document.getElementById('npc-editor-custom-styles-dropdown-menu')
+            if (stylesMenu && !stylesMenu.classList.contains('hidden')) {
+                stylesMenu.classList.add('hidden')
+                return
+            }
+            const entityMenu = document.getElementById('npc-editor-entity-dropdown-menu')
+            if (entityMenu && !entityMenu.classList.contains('hidden')) {
+                entityMenu.classList.add('hidden')
                 return
             }
             if (modal && !modal.classList.contains('hidden')) {
@@ -1093,6 +1145,10 @@ export function setupNpcModal(ctx) {
         toggleTemplateDropdown,
         isTemplateDropdownOpen,
         getAvailableTemplates,
+        getNpcEditorInstance,
+        getOrCreateNpcEditor,
+        updateNpcEditorStats,
+        destroyNpcEditor,
     }
 
     if (ctx) {

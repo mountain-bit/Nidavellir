@@ -8,6 +8,7 @@ import { isCustomAvatarPath } from '../../../dist/Utils/assetUtils.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { importDroppedImage, pickProjectImage, setupElementDropZone } from '../assetPicker.js'
+import { getNpcEditorInstance, updateNpcEditorStats } from '../editor/npcEditor.js'
 import { openImageEditor } from '../imageEditorModal.js'
 import { FANTASY_AVATARS, getAvatarById } from '../npcAvatars.js'
 import { evaluateFormula } from './formulaEvaluator.js'
@@ -1834,6 +1835,11 @@ export function applyTemplate(templateIdOrInstance, ctx) {
                 ? template.getDescription().getText()
                 : template.description?.text || ''
         descTextarea.value = tplDesc
+        const editor = getNpcEditorInstance()
+        if (editor && typeof editor.setMarkdown === 'function') {
+            editor.setMarkdown(tplDesc)
+            updateNpcEditorStats(editor)
+        }
     }
 
     // Show feedback toast

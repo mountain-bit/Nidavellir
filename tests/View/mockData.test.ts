@@ -78,11 +78,11 @@ describe('mockData and projectData provider', () => {
     })
 
     describe('loadProjectData', () => {
-        it('should default to mock data when USE_MOCK is true', () => {
-            expect(USE_MOCK).toBe(true)
+        it('should default to real project data when USE_MOCK is false', () => {
+            expect(USE_MOCK).toBe(false)
             const data = loadProjectData(vm)
-            expect(data.projectParagraphs).toHaveLength(3)
-            expect(data.files['Wprowadzenie.md']).toBeDefined()
+            expect(data.projectParagraphs).toHaveLength(0)
+            expect(data.files).toEqual({})
         })
 
         it('should return mock data when useMock: true is explicitly passed', () => {

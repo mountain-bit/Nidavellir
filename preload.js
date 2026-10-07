@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('save-markdown-file', { projectPath, relativePath, content }),
     closeApp: () => ipcRenderer.invoke('close-app'),
     loadMainWindow: () => ipcRenderer.invoke('load-main-window'),
+    loadStartWindow: () => ipcRenderer.invoke('load-start-window'),
     getSystemUsername: () => ipcRenderer.invoke('get-system-username'),
     getCurrentProject: () => ipcRenderer.invoke('get-current-project'),
     getPathForFile: file => {

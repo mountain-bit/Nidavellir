@@ -7,8 +7,8 @@ import {
     setLanguage,
     t,
 } from '../dist/Utils/translate.js'
-import { MainWindowViewModel } from '../dist/ViewModel/MainWindowViewModel.js'
-import { loadProjectData } from './projectData.js'
+import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
+import { extractProjectData, loadProjectData } from './projectData.js'
 import {
     handleColorSelection,
     openColorPicker,
@@ -610,23 +610,81 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
     btn.addEventListener('click', () => saveActiveFile(appContext))
 })
 
+function updateProjectNameUI(name) {
+    const titleEl = document.getElementById('project-name-display')
+    if (titleEl) {
+        titleEl.textContent = name || 'Projekt'
+    }
+    if (name) {
+        document.title = `${name} - Silnik Gier Paragrafowych`
+    }
+}
+
+function applyLoadedProject(projectInstance, projectPath) {
+    if (!projectInstance) return
+
+    const realData = extractProjectData(projectInstance, {})
+    projectData = realData
+    appContext.projectPath = projectPath || ''
+    window.currentProjectPath = projectPath || ''
+
+    updateProjectNameUI(projectInstance.getName())
+
+    if (typeof vm.clearSelection === 'function') {
+        vm.clearSelection()
+    }
+
+    renderParagraphsList(appContext)
+    renderScenesList(appContext)
+    renderConnectionsList(appContext)
+    renderCharactersList(appContext)
+    renderLocationsList(appContext)
+    renderTraitsList(appContext)
+    renderTagsList(appContext)
+    renderFilterTags(appContext)
+    populateFilterSelects(appContext)
+    renderHistoryBar(appContext)
+    renderDetailsPanel(appContext)
+    updateMainWorkspaceUI(appContext)
+
+    if (storyGraphInstance) {
+        storyGraphInstance.render(true)
+    }
+}
+
 document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
     btn.addEventListener('click', async () => {
         if (window.electronAPI && typeof window.electronAPI.openProject === 'function') {
             try {
                 const res = await window.electronAPI.openProject()
-                if (res && res.success && res.path) {
-                    const projectDir = res.path.endsWith('project.json')
-                        ? res.path.replace(/[\\/]project\.json$/i, '')
-                        : res.path
-                    window.currentProjectPath = projectDir
-                    appContext.projectPath = projectDir
+                if (res && res.success && res.project) {
+                    const projectDir = res.path
+                        ? res.path.endsWith('project.json')
+                            ? res.path.replace(/[\\/]project\.json$/i, '')
+                            : res.path
+                        : ''
+                    const projectInstance = ProjectManager.getInstance().load(
+                        res.project,
+                        res.entities || {},
+                        res.path || projectDir
+                    )
+                    applyLoadedProject(projectInstance, projectDir || res.path)
                     toast.success(t('project.opened') || 'Projekt został pomyślnie otwarty')
+                } else if (res && !res.success && res.error) {
+                    toast.error(res.error)
                 }
             } catch (err) {
                 console.error('Error opening project:', err)
                 toast.error(t('error.open_project_failed') || 'Nie udało się otworzyć projektu')
             }
+        }
+    })
+})
+
+document.querySelectorAll('[data-action="close-project"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (window.electronAPI && typeof window.electronAPI.loadStartWindow === 'function') {
+            window.electronAPI.loadStartWindow()
         }
     })
 })
@@ -665,10 +723,26 @@ async function initApp() {
                 if (cur) {
                     window.currentProjectPath = cur
                     appContext.projectPath = cur
+                    if (typeof window.electronAPI.openProject === 'function') {
+                        const openRes = await window.electronAPI.openProject(cur)
+                        if (openRes && openRes.success && openRes.project) {
+                            const projectInstance = ProjectManager.getInstance().load(
+                                openRes.project,
+                                openRes.entities || {},
+                                openRes.path || cur
+                            )
+                            projectData = extractProjectData(projectInstance, {})
+                            updateProjectNameUI(projectInstance.getName() || openRes.project.name)
+                        }
+                    }
                 }
             } catch (err) {
                 console.warn('Could not query current project path on startup:', err)
             }
+        } else if (ProjectManager.getInstance().getProject()) {
+            const existingProj = ProjectManager.getInstance().getProject()
+            projectData = extractProjectData(existingProj, {})
+            updateProjectNameUI(existingProj.getName())
         }
 
         await initTranslations()

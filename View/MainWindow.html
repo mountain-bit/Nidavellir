@@ -31,7 +31,7 @@
                     class="flex items-center gap-2 pr-3 py-1 font-medium border-r border-[#333338] text-xs shrink-0"
                 >
                     <span class="text-blue-500 font-bold text-sm">§ </span>
-                    <span class="text-[#a1a1aa] font-normal">Moja Gra</span>
+                    <span class="text-[#a1a1aa] font-normal" id="project-name-display">Moja Gra</span>
                 </div>
 
                 <!-- Ribbon Tabs -->
@@ -82,6 +82,10 @@
                             <button class="ribbon-btn" type="button" data-action="open-project">
                                 <app-icon name="open" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.open">Otwórz</span>
+                            </button>
+                            <button class="ribbon-btn" type="button" data-action="close-project" title="Zamknij projekt">
+                                <app-icon name="close" class="w-4 h-4"></app-icon>
+                                <span data-i18n="project.close">Zamknij</span>
                             </button>
                         </div>
                         <span class="ribbon-section-title" data-i18n="ribbon.groups.file"
@@ -2637,11 +2641,11 @@
                 <!-- Expandable Right Side Panel (Narrative Description Drawer) -->
                 <div
                     id="npc-description-drawer"
-                    class="hidden w-[380px] bg-[#161619] border-l border-zinc-800 flex flex-col shrink-0 overflow-hidden"
+                    class="hidden w-[460px] bg-[#161619] border-l border-zinc-800 flex flex-col shrink-0 overflow-hidden"
                 >
                     <!-- Drawer Header -->
                     <div
-                        class="flex items-center justify-between px-4 py-3 border-b border-zinc-800 bg-[#1a1a1e] shrink-0"
+                        class="flex items-center justify-between px-3.5 py-2.5 border-b border-zinc-800 bg-[#1a1a1e] shrink-0"
                     >
                         <div class="flex items-center gap-2">
                             <app-icon name="markdown" class="w-3.5 h-3.5 text-blue-400"></app-icon>
@@ -2652,31 +2656,283 @@
                                 Dziennik i Notatki (Markdown)
                             </h3>
                         </div>
-                        <span
-                            class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-medium border border-blue-500/20"
-                        >
-                            Markdown
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span id="npc-editor-stats" class="text-[11px] text-zinc-400 font-mono">0 słów · 0 znaków</span>
+                            <span
+                                class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-medium border border-blue-500/20"
+                            >
+                                Markdown
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Editor Visual Formatting Toolbar -->
+                    <div
+                        id="npc-editor-toolbar"
+                        class="flex items-center justify-between flex-wrap gap-1 px-3 py-1.5 bg-[#1f1f22] border-b border-[#27272a] text-xs text-zinc-300 shrink-0"
+                    >
+                        <div class="flex items-center gap-0.5 flex-wrap">
+                            <button
+                                type="button"
+                                id="npc-btn-editor-p"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-medium text-xs px-1.5"
+                                title="Zwykły akapit"
+                                data-i18n-title="editor.toolbar.paragraph"
+                            >
+                                P
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-h1"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-bold text-xs"
+                                title="Nagłówek 1 (# )"
+                                data-i18n-title="editor.toolbar.heading1"
+                            >
+                                H1
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-h2"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-bold text-xs"
+                                title="Nagłówek 2 (## )"
+                                data-i18n-title="editor.toolbar.heading2"
+                            >
+                                H2
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-h3"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-bold text-xs"
+                                title="Nagłówek 3 (### )"
+                                data-i18n-title="editor.toolbar.heading3"
+                            >
+                                H3
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-h4"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-semibold text-xs text-zinc-400 hover:text-white"
+                                title="Nagłówek 4 (#### )"
+                                data-i18n-title="editor.toolbar.heading4"
+                            >
+                                H4
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-h5"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer font-medium text-xs text-zinc-400 hover:text-white"
+                                title="Nagłówek 5 (##### )"
+                                data-i18n-title="editor.toolbar.heading5"
+                            >
+                                H5
+                            </button>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-bold"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                                title="Pogrubienie (Ctrl+B)"
+                                data-i18n-title="editor.toolbar.bold"
+                            >
+                                <span class="font-bold text-xs px-1">B</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-italic"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                                title="Kursywa (Ctrl+I)"
+                                data-i18n-title="editor.toolbar.italic"
+                            >
+                                <span class="italic text-xs px-1">I</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-underline"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                                title="Podkreślenie (Ctrl+U)"
+                                data-i18n-title="editor.toolbar.underline"
+                            >
+                                <span class="underline text-xs px-1">U</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-strike"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                                title="Przekreślenie (Ctrl+Shift+X)"
+                                data-i18n-title="editor.toolbar.strike"
+                            >
+                                <span class="line-through text-xs px-1">S</span>
+                            </button>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-bullet-list"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs"
+                                title="Lista punktowana (- )"
+                                data-i18n-title="editor.toolbar.bullet_list"
+                            >
+                                • <span data-i18n="editor.toolbar.list_label">Lista</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-ordered-list"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs"
+                                title="Lista numerowana (1. )"
+                                data-i18n-title="editor.toolbar.ordered_list"
+                            >
+                                1. <span data-i18n="editor.toolbar.list_label">Lista</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-quote"
+                                class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs italic"
+                                title="Cytat (> )"
+                                data-i18n-title="editor.toolbar.quote"
+                            >
+                                “ <span data-i18n="editor.toolbar.quote_label">Cytat</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-dialog"
+                                class="flex items-center gap-1 p-1.5 rounded hover:bg-[#2d2d32] hover:text-amber-300 transition-colors cursor-pointer text-xs font-serif"
+                                title="Kwestia dialogowa (wcięcie i pauza dialogowa — )"
+                                data-i18n-title="editor.toolbar.dialog"
+                            >
+                                <span class="text-amber-400 font-bold">—</span>
+                                <span data-i18n="editor.toolbar.dialog_label">Dialog</span>
+                            </button>
+                            <button
+                                type="button"
+                                id="npc-btn-editor-image"
+                                class="flex items-center gap-1 p-1.5 rounded hover:bg-[#2d2d32] hover:text-blue-300 transition-colors cursor-pointer text-xs"
+                                title="Wstaw grafikę z dysku"
+                                data-i18n-title="editor.toolbar.image"
+                            >
+                                <app-icon name="image" class="w-3.5 h-3.5 inline-block"></app-icon>
+                                <span data-i18n="editor.toolbar.image_label">Grafika</span>
+                            </button>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <!-- Custom Styles Dropdown -->
+                            <div
+                                class="relative inline-block text-left"
+                                id="npc-editor-custom-styles-wrapper"
+                            >
+                                <button
+                                    type="button"
+                                    id="npc-btn-editor-custom-styles-dropdown"
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded bg-[#27272a] hover:bg-[#323238] border border-[#3f3f46] text-xs transition-colors cursor-pointer text-zinc-200"
+                                    title="Wybierz lub utwórz własny styl tekstu"
+                                    data-i18n-title="editor.toolbar.styles_dropdown_title"
+                                >
+                                    <app-icon name="sparkles" class="w-3.5 h-3.5 text-amber-400 inline-block"></app-icon>
+                                    <span id="npc-label-active-custom-style" data-i18n="editor.toolbar.styles_label">Style tekstu</span>
+                                    <app-icon name="chevron-down" class="w-3 h-3 text-zinc-400 inline-block"></app-icon>
+                                </button>
+                                <div
+                                    id="npc-editor-custom-styles-dropdown-menu"
+                                    class="hidden absolute left-0 mt-1 w-64 rounded-md bg-[#1f1f22] border border-[#2d2d32] shadow-2xl z-50 py-1.5 text-xs divide-y divide-zinc-800/80"
+                                >
+                                    <div
+                                        id="npc-custom-styles-list-container"
+                                        class="py-1 max-h-60 overflow-y-auto"
+                                    >
+                                        <!-- Dynamic styles list -->
+                                    </div>
+                                    <div class="py-1">
+                                        <button
+                                            type="button"
+                                            id="npc-btn-clear-custom-style"
+                                            class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                                        >
+                                            <app-icon name="eraser" class="w-3.5 h-3.5 text-zinc-400 inline-block"></app-icon>
+                                            <span data-i18n="editor.toolbar.clear_style">Wyczyść styl z zaznaczenia</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            id="npc-btn-open-custom-style-modal"
+                                            class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 font-medium cursor-pointer"
+                                        >
+                                            <app-icon name="plus" class="w-3.5 h-3.5 text-blue-400 inline-block"></app-icon>
+                                            <span data-i18n="editor.toolbar.new_style">Nowy własny styl...</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                            <!-- Entity Mention Dropdown -->
+                            <div
+                                class="relative inline-block text-left"
+                                id="npc-editor-entity-picker-wrapper"
+                            >
+                                <button
+                                    type="button"
+                                    id="npc-btn-insert-entity-dropdown"
+                                    class="flex items-center gap-1.5 px-2 py-1 rounded bg-[#27272a] hover:bg-blue-600/20 hover:text-blue-300 border border-[#3f3f46] text-xs transition-colors cursor-pointer"
+                                    title="Wstaw słowo kluczowe powiązane z projektem (@)"
+                                    data-i18n-title="editor.toolbar.insert_entity_title"
+                                >
+                                    <span class="text-blue-400 font-bold">@</span>
+                                    <span data-i18n="editor.toolbar.insert_entity">Wstaw słowo kluczowe</span>
+                                </button>
+                                <div
+                                    id="npc-editor-entity-dropdown-menu"
+                                    class="hidden absolute left-0 mt-1 w-56 rounded-md bg-[#1f1f22] border border-[#2d2d32] shadow-2xl z-50 py-1 text-xs"
+                                >
+                                    <button
+                                        type="button"
+                                        id="npc-btn-open-entity-link-modal"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-400 font-medium cursor-pointer border-b border-zinc-800/80 mb-1"
+                                    >
+                                        <app-icon name="link" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                                        <span data-i18n="editor.toolbar.link_entity">Połącz ze słowem / aliasem...</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-entity-type="character"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-amber-300 cursor-pointer"
+                                    >
+                                        <app-icon name="character" class="w-3.5 h-3.5"></app-icon>
+                                        <span data-i18n="editor.toolbar.entity_character">Postać (NPC)...</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-entity-type="location"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-300 cursor-pointer"
+                                    >
+                                        <app-icon name="location" class="w-3.5 h-3.5"></app-icon>
+                                        <span data-i18n="editor.toolbar.entity_location">Lokacja...</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-entity-type="tag"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-purple-300 cursor-pointer"
+                                    >
+                                        <app-icon name="tag" class="w-3.5 h-3.5"></app-icon>
+                                        <span data-i18n="editor.toolbar.entity_tag">Cecha / Tag...</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-entity-type="item"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-emerald-300 cursor-pointer"
+                                    >
+                                        <app-icon name="item" class="w-3.5 h-3.5"></app-icon>
+                                        <span data-i18n="editor.toolbar.entity_item">Przedmiot...</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Drawer Content / Editor Slot -->
                     <div
                         id="npc-description-editor-slot"
-                        class="p-4 flex-1 flex flex-col gap-2 overflow-y-auto custom-scrollbar"
+                        class="p-3 flex-1 flex flex-col gap-2 min-h-0 overflow-hidden"
                     >
-                        <!-- Info notice about shared editor -->
+                        <!-- Rich Markdown Editor Mount Container -->
                         <div
-                            class="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2"
-                        >
-                            <app-icon
-                                name="edit"
-                                class="w-3.5 h-3.5 text-blue-400 shrink-0"
-                            ></app-icon>
-                            <span data-i18n="npc.description_slot_info"
-                                >Współdzielony edytor Markdown zostanie podłączony w tym
-                                miejscu</span
-                            >
-                        </div>
+                            id="npc-rich-editor-mount"
+                            class="flex-1 min-h-[220px] overflow-y-auto bg-[#18181b] border border-zinc-800 rounded-lg custom-scrollbar focus:outline-none"
+                        ></div>
 
                         <!-- Editable Raw Description Textarea ready for narrative description -->
                         <textarea
@@ -2684,7 +2940,7 @@
                             rows="12"
                             placeholder="Wpisz szczegółowy opis postaci, wygląd zewnętrzny, dialogi lub fabularny wstęp..."
                             data-i18n-placeholder="npc.description_placeholder"
-                            class="w-full flex-1 min-h-[220px] bg-[#121215] border border-zinc-800 focus:border-blue-500/60 rounded-lg p-3 text-xs text-zinc-100 font-mono placeholder-zinc-600 focus:outline-none resize-none leading-relaxed custom-scrollbar"
+                            class="hidden"
                             spellcheck="false"
                         ></textarea>
                     </div>

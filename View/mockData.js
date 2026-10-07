@@ -3,6 +3,7 @@ import {
     DEFAULT_SCENE_COLOR,
     Description,
     Paragraph,
+    ProjectManager,
     Scene,
     TextCondition,
 } from '../dist/ViewModel/MainWindowViewModel.js'
@@ -165,7 +166,7 @@ export function createMockProjectData(vm) {
  * Global default flag controlling whether MainWindow should initialize with mock data.
  * Set to false when ready to switch to live project data by default.
  */
-export const USE_MOCK = true
+export const USE_MOCK = false
 
 /**
  * Extracts entities and files from a domain Project model instance into the
@@ -263,6 +264,17 @@ export async function loadRealProjectData(vm, options = {}) {
         return extractProjectData(options.project, options.files)
     }
 
+    if (
+        typeof ProjectManager !== 'undefined' &&
+        ProjectManager &&
+        typeof ProjectManager.getInstance === 'function'
+    ) {
+        const curProj = ProjectManager.getInstance().getProject()
+        if (curProj) {
+            return extractProjectData(curProj, options.files)
+        }
+    }
+
     // Default empty scaffold when no real project is provided yet
     return {
         files: options.files || {},
@@ -303,5 +315,20 @@ export function loadProjectData(vm, options = {}) {
         return createMockProjectData(vm)
     }
 
-    return extractProjectData(options.project, options.files)
+    if (options.project) {
+        return extractProjectData(options.project, options.files)
+    }
+
+    if (
+        typeof ProjectManager !== 'undefined' &&
+        ProjectManager &&
+        typeof ProjectManager.getInstance === 'function'
+    ) {
+        const curProj = ProjectManager.getInstance().getProject()
+        if (curProj) {
+            return extractProjectData(curProj, options.files)
+        }
+    }
+
+    return extractProjectData(null, options.files)
 }

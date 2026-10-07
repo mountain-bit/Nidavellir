@@ -22,14 +22,32 @@ export const TOOLBAR_BUTTON_STATE_MAP = [
 ]
 
 /**
+ * Returns toolbar button mappings, optionally prefixed for scoped toolbars.
+ *
+ * @param {string} [prefix='']
+ * @returns {Array<{ id: string, key: string }>}
+ */
+export function getToolbarButtonMap(prefix = '') {
+    if (!prefix) return TOOLBAR_BUTTON_STATE_MAP
+    return TOOLBAR_BUTTON_STATE_MAP.map(item => ({
+        id: `${prefix}${item.id}`,
+        key: item.key,
+    }))
+}
+
+/**
  * Updates CSS active highlights for editor toolbar buttons based on selection state.
  *
  * @param {object} activeStates State map from TipTap activeFormatting
  * @param {object} ctx Application UI Context
+ * @param {object} [options] Optional options with prefix or buttonMap
  */
-export function updateToolbarActiveStates(activeStates, ctx) {
+export function updateToolbarActiveStates(activeStates, ctx, options = {}) {
     if (!activeStates) return
-    TOOLBAR_BUTTON_STATE_MAP.forEach(({ id, key }) => {
+    const prefix = options.prefix || ''
+    const buttonMap = options.buttonMap || getToolbarButtonMap(prefix)
+
+    buttonMap.forEach(({ id, key }) => {
         const btn = document.getElementById(id)
         if (!btn) return
         const isActive = Boolean(activeStates[key])
@@ -39,7 +57,7 @@ export function updateToolbarActiveStates(activeStates, ctx) {
             btn.classList.remove('text-zinc-300', 'text-zinc-400')
         } else {
             btn.classList.remove('bg-blue-600/30', 'text-blue-300', 'ring-1', 'ring-blue-500/50')
-            if (id === 'btn-editor-h4' || id === 'btn-editor-h5') {
+            if (id.endsWith('h4') || id.endsWith('h5')) {
                 btn.classList.add('text-zinc-400')
             } else {
                 btn.classList.add('text-zinc-300')
@@ -47,8 +65,13 @@ export function updateToolbarActiveStates(activeStates, ctx) {
         }
     })
 
-    const customStylesBtn = document.getElementById('btn-editor-custom-styles-dropdown')
-    const activeLabel = document.getElementById('label-active-custom-style')
+    const customStylesBtn =
+        document.getElementById(`${prefix}btn-editor-custom-styles-dropdown`) ||
+        (!prefix ? document.getElementById('btn-editor-custom-styles-dropdown') : null)
+    const activeLabel =
+        document.getElementById(`${prefix}label-active-custom-style`) ||
+        (!prefix ? document.getElementById('label-active-custom-style') : null)
+
     if (customStylesBtn && activeLabel) {
         if (activeStates.customStyle && activeStates.activeCustomStyleId) {
             const styles = CustomStylesService.getStyles(ctx?.projectData)
@@ -76,26 +99,45 @@ export function updateToolbarActiveStates(activeStates, ctx) {
     }
 }
 
-let toolbarInitialized = false
+let defaultToolbarInitialized = false
 
 /**
  * Sets up formatting button clicks and entity mention menu in the editor toolbar.
  *
  * @param {object} editor MarkdownEditor instance
  * @param {object} ctx Application UI Context
+ * @param {object} [options] Optional options with prefix (e.g. 'npc-')
  */
-export function setupToolbarButtons(editor, ctx) {
-    if (toolbarInitialized || !editor) return
-    toolbarInitialized = true
+export function setupToolbarButtons(editor, ctx, options = {}) {
+    if (!editor) return
+    const prefix = options.prefix || ''
+    const toolbarEl =
+        options.toolbarEl ||
+        document.getElementById(`${prefix}editor-toolbar`) ||
+        (!prefix ? document.getElementById('editor-toolbar') : null)
+
+    if (toolbarEl && toolbarEl.dataset.toolbarInitialized === 'true') {
+        return
+    }
+    if (toolbarEl) {
+        toolbarEl.dataset.toolbarInitialized = 'true'
+    } else if (!prefix && defaultToolbarInitialized) {
+        return
+    }
+    if (!prefix) {
+        defaultToolbarInitialized = true
+    }
 
     const bindClick = (id, fn) => {
-        const btn = document.getElementById(id)
+        const btn =
+            document.getElementById(`${prefix}${id}`) ||
+            (!prefix ? document.getElementById(id) : null)
         if (btn) {
             btn.addEventListener('click', e => {
                 e.preventDefault()
                 fn()
                 if (typeof editor.getActiveFormatting === 'function') {
-                    updateToolbarActiveStates(editor.getActiveFormatting(), ctx)
+                    updateToolbarActiveStates(editor.getActiveFormatting(), ctx, options)
                 }
             })
         }
@@ -122,11 +164,22 @@ export function setupToolbarButtons(editor, ctx) {
         }
     })
 
-    setupCustomStylesUI(editor, ctx, updateToolbarActiveStates)
+    setupCustomStylesUI(
+        editor,
+        ctx,
+        (states, context) => updateToolbarActiveStates(states, context, options),
+        options
+    )
 
-    const dropdownBtn = document.getElementById('btn-insert-entity-dropdown')
-    const dropdownMenu = document.getElementById('editor-entity-dropdown-menu')
-    const openLinkModalBtn = document.getElementById('btn-open-entity-link-modal')
+    const dropdownBtn =
+        document.getElementById(`${prefix}btn-insert-entity-dropdown`) ||
+        (!prefix ? document.getElementById('btn-insert-entity-dropdown') : null)
+    const dropdownMenu =
+        document.getElementById(`${prefix}editor-entity-dropdown-menu`) ||
+        (!prefix ? document.getElementById('editor-entity-dropdown-menu') : null)
+    const openLinkModalBtn =
+        document.getElementById(`${prefix}btn-open-entity-link-modal`) ||
+        (!prefix ? document.getElementById('btn-open-entity-link-modal') : null)
 
     if (dropdownBtn && dropdownMenu) {
         dropdownBtn.addEventListener('click', e => {
