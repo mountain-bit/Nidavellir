@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openProject: path => ipcRenderer.invoke('open-project', path),
     saveProject: (projectPath, projectData) =>
         ipcRenderer.invoke('save-project', { projectPath, projectData }),
+    saveFullProject: (projectPath, data) =>
+        ipcRenderer.invoke('save-full-project', { projectPath, data }),
     createEntity: options => ipcRenderer.invoke('create-entity', options),
     saveEntity: (projectPath, category, entityFolder, entityData) =>
         ipcRenderer.invoke('save-entity', { projectPath, category, entityFolder, entityData }),

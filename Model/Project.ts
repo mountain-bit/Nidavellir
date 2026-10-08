@@ -8,6 +8,7 @@ import { Item } from './Item'
 import { Location } from './Location'
 import { NPC } from './NPC'
 import { NPC_Template } from './NPC_Template'
+import { Paragraph } from './Paragraph'
 import { Parameter } from './Parameter'
 import { PlayerCharacter } from './PlayerCharacter'
 import { Scene } from './Scene'
@@ -23,6 +24,7 @@ export class Project {
     private description: Description = new Description()
 
     private scenes: Scene[] = []
+    private paragraphs: Paragraph[] = []
     private locations: Location[] = []
     private characters: NPC[] = []
     private templates: NPC_Template[] = []
@@ -55,7 +57,8 @@ export class Project {
         globalSkills: Skill[] = [],
         globalFeatures: Feature[] = [],
         globalParameters: Parameter[] = [],
-        templates: NPC_Template[] = []
+        templates: NPC_Template[] = [],
+        paragraphs: Paragraph[] = []
     ) {
         this.id = id
         this.name = name
@@ -63,6 +66,7 @@ export class Project {
         this.version = version
         this.description = description
         this.scenes = scenes
+        this.paragraphs = paragraphs
         this.locations = locations
         this.characters = characters
         this.items = items
@@ -141,6 +145,24 @@ export class Project {
 
     public hasScene(id: string): boolean {
         return this.scenes.some(s => s.getId() === id)
+    }
+
+    public getParagraphs(): Paragraph[] {
+        return this.paragraphs
+    }
+
+    public setParagraphs(paragraphs: Paragraph[]): void {
+        this.paragraphs = paragraphs
+    }
+
+    public addParagraph(paragraph: Paragraph): void {
+        if (!this.paragraphs.some(p => p.getId() === paragraph.getId())) {
+            this.paragraphs.push(paragraph)
+        }
+    }
+
+    public removeParagraph(id: string): void {
+        this.paragraphs = this.paragraphs.filter(p => p.getId() !== id)
     }
 
     public getLocations(): Location[] {
@@ -387,7 +409,46 @@ export class Project {
             CharacterClass.fromJSON(k)
         )
 
-        const scenes = (entities.Paragraphs ?? entities.Paragrafy ?? []).map(s => Scene.fromJSON(s))
+        const rawParagraphEntities = entities.Paragraphs ?? entities.Paragrafy ?? []
+        const parsedParagraphs: Paragraph[] = []
+        const parsedScenes: Scene[] = []
+
+        // 1. Check if graph.scenes exists in projectData
+        const graphData = (projectData as { graph?: { scenes?: unknown[] } })?.graph
+        const scenesFromGraph = Array.isArray(graphData?.scenes) ? graphData.scenes : []
+        if (scenesFromGraph.length > 0) {
+            scenesFromGraph.forEach(s => {
+                parsedScenes.push(Scene.fromJSON(s as Record<string, unknown>))
+            })
+        }
+
+        // 2. Parse Paragraphs entity items (detect whether legacy Scene or direct Paragraph)
+        rawParagraphEntities.forEach(item => {
+            const isLegacyScene = Array.isArray((item as { paragraphs?: unknown[] }).paragraphs)
+            if (isLegacyScene) {
+                parsedScenes.push(Scene.fromJSON(item as Record<string, unknown>))
+            } else {
+                parsedParagraphs.push(Paragraph.fromJSON(item as Record<string, unknown>))
+            }
+        })
+
+        // 3. Extract any paragraphs defined inside scenes into parsedParagraphs if missing
+        parsedScenes.forEach(s => {
+            s.getParagraphs().forEach(p => {
+                if (!parsedParagraphs.some(existing => existing.getId() === p.getId())) {
+                    parsedParagraphs.push(p)
+                }
+            })
+        })
+
+        // 4. Assign matching paragraphs to scenes if not already attached
+        parsedScenes.forEach(s => {
+            parsedParagraphs.forEach(p => {
+                if (s.intersectsParagraph(p) && !s.hasParagraph(p.getId())) {
+                    s.addParagraph(p)
+                }
+            })
+        })
 
         const playerCharacterData = (entities.PlayerCharacter ?? entities.PostacGracza ?? [])[0]
         const playerCharacter = playerCharacterData
@@ -418,7 +479,7 @@ export class Project {
             author,
             version,
             new Description(),
-            scenes,
+            parsedScenes,
             locations,
             characters,
             items,
@@ -428,7 +489,8 @@ export class Project {
             globalSkills,
             globalFeatures,
             globalParameters,
-            templates
+            templates,
+            parsedParagraphs
         )
 
         const editorData = projectData.editor || {}

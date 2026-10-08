@@ -32,6 +32,7 @@
                 >
                     <span class="text-blue-500 font-bold text-sm">§ </span>
                     <span class="text-[#a1a1aa] font-normal" id="project-name-display">Moja Gra</span>
+                    <span id="project-dirty-indicator" class="hidden"></span>
                 </div>
 
                 <!-- Ribbon Tabs -->
@@ -1041,16 +1042,25 @@
                                 </div>
 
                                 <div class="pt-1 space-y-2 border-t border-[#2d2d32]">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked
-                                            class="rounded accent-blue-500"
-                                        />
-                                        <span data-i18n="settings.auto_save"
-                                            >Automatyczny zapis</span
+                                    <div class="space-y-1">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                id="settings-auto-save"
+                                                checked
+                                                class="rounded accent-blue-500 cursor-pointer"
+                                            />
+                                            <span data-i18n="settings.auto_save"
+                                                >Automatyczny zapis</span
+                                            >
+                                        </label>
+                                        <p
+                                            class="text-[10px] text-[#71717a] leading-tight ml-5"
+                                            data-i18n="settings.auto_save_help"
                                         >
-                                    </label>
+                                            Automatycznie zapisuje projekt w tle, gdy występują niezapisane zmiany.
+                                        </p>
+                                    </div>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"

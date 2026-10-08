@@ -567,6 +567,7 @@
         "title": "Editor Settings",
         "language": "Interface Language",
         "auto_save": "Auto save",
+        "auto_save_help": "Automatically saves the project in the background when there are unsaved changes.",
         "show_grid": "Show grid in graph",
         "zoom_sensitivity": "Mouse Wheel Zoom Sensitivity",
         "zoom_sensitivity_help": "Sensitivity of graph zoom level change per mouse wheel tick."
@@ -660,7 +661,11 @@
         "file_locked_warning": "Warning: File is locked by another process. Changes kept in memory.",
         "meta_sync_warning": "Warning: Inconsistency detected in project structure and metadata was updated.",
         "save_success": "Changes saved successfully.",
-        "save_error": "An error occurred while saving: {{error}}"
+        "save_error": "An error occurred while saving: {{error}}",
+        "auto_save_title": "Auto-save",
+        "auto_saved": "Project automatically saved.",
+        "auto_save_enabled": "Background auto-save enabled.",
+        "auto_save_disabled": "Background auto-save disabled."
     },
     "condition": {
         "type_text": "Author Condition"

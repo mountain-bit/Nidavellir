@@ -222,9 +222,14 @@ export function extractProjectData(project, files = {}) {
     }
 
     const scenes = typeof project.getScenes === 'function' ? project.getScenes() : []
-    const paragraphs = scenes.flatMap(s =>
-        typeof s.getParagraphs === 'function' ? s.getParagraphs() : []
-    )
+    let paragraphs = []
+    if (typeof project.getParagraphs === 'function' && project.getParagraphs().length > 0) {
+        paragraphs = [...project.getParagraphs()]
+    } else {
+        paragraphs = scenes.flatMap(s =>
+            typeof s.getParagraphs === 'function' ? s.getParagraphs() : []
+        )
+    }
     const tags =
         typeof project.getAllTags === 'function'
             ? project.getAllTags()

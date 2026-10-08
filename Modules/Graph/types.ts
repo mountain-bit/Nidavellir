@@ -43,6 +43,7 @@ export interface IStoryGraphOptions {
     customStyles?: ICytoscapeStyleRule[]
     wheelSensitivity?: number
     onZoomChange?: (zoomLevel: number) => void
+    onGraphModified?: () => void
 }
 
 export interface INodeDragState {
