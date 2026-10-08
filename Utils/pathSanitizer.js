@@ -92,11 +92,45 @@ function generateUniqueSlug(baseSlug, existingSlugsOrChecker) {
     return candidate
 }
 
+const CATEGORY_SINGULAR_MAP = {
+    paragraphs: 'Paragraph',
+    paragraph: 'Paragraph',
+    npc: 'NPC',
+    characters: 'NPC',
+    character: 'NPC',
+    locations: 'Location',
+    location: 'Location',
+    items: 'Item',
+    item: 'Item',
+    templates: 'Template',
+    template: 'Template',
+    playercharacter: 'PlayerCharacter',
+    characterclasses: 'CharacterClass',
+    characterclass: 'CharacterClass',
+    rules: 'Rule',
+    rule: 'Rule',
+}
+
+function formatDescriptionFileName(category, entityName) {
+    const normalizedKey = (category || '').trim().toLowerCase()
+    const cat =
+        CATEGORY_SINGULAR_MAP[normalizedKey] ||
+        (category ? category.charAt(0).toUpperCase() + category.slice(1) : 'Entity')
+    const rawClean = sanitizeFileName(entityName, 'element')
+    const cleanName = removeDiacritics(rawClean)
+        .replace(/[\s-]+/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '')
+    return `Description_${cat}_${cleanName || 'element'}.md`
+}
+
 module.exports = {
     DIACRITICS_MAP,
     MAX_SLUG_ATTEMPTS,
+    CATEGORY_SINGULAR_MAP,
     removeDiacritics,
     sanitizeFileName,
     slugifyEntityName,
     generateUniqueSlug,
+    formatDescriptionFileName,
 }

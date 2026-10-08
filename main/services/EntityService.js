@@ -5,7 +5,11 @@ const {
     isPathInsideBase,
     atomicWriteJsonSync,
 } = require('../../Utils/fsSecurity')
-const { slugifyEntityName, generateUniqueSlug } = require('../../Utils/pathSanitizer')
+const {
+    slugifyEntityName,
+    generateUniqueSlug,
+    formatDescriptionFileName,
+} = require('../../Utils/pathSanitizer')
 
 class EntityService {
     /**
@@ -86,8 +90,10 @@ class EntityService {
             fs.mkdirSync(entityDir, { recursive: true })
 
             if (createDescriptionPaths) {
-                const textPath = `./${category}/${entityFolderSlug}/text.md`
-                const authorNotesPath = `./${category}/${entityFolderSlug}/author.md`
+                const entityName =
+                    entityData?.name || entityData?.title || entityFolderSlug || 'element'
+                const descFileName = formatDescriptionFileName(category, entityName)
+                const filePath = `./${category}/${entityFolderSlug}/${descFileName}`
 
                 const existingDesc =
                     typeof entityData?.description === 'object' && entityData.description !== null
@@ -96,14 +102,12 @@ class EntityService {
 
                 const text = existingDesc.text || ''
                 const summary = existingDesc.summary || ''
-                const authorNotes = existingDesc.authorNotes || ''
 
                 entityData.description = {
                     text,
                     summary,
-                    authorNotes,
-                    textPath,
-                    authorNotesPath,
+                    filePath,
+                    textPath: filePath,
                 }
             }
 
@@ -156,6 +160,15 @@ class EntityService {
         }
 
         try {
+            if (
+                entityData &&
+                typeof entityData.description === 'object' &&
+                entityData.description !== null
+            ) {
+                delete entityData.description.authorNotes
+                delete entityData.description.authorNotesPath
+            }
+
             atomicWriteJsonSync(entityJsonPath, entityData)
             return { success: true }
         } catch (err) {

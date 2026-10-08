@@ -4,6 +4,7 @@ import { Markdown } from 'tiptap-markdown'
 
 import { CustomStylesService } from './CustomStylesService'
 import { EntitySyncService } from './EntitySyncService'
+import { CustomImage } from './extensions/CustomImage'
 import { CustomStyleMark } from './extensions/CustomStyleMark'
 import { CustomUnderline } from './extensions/CustomUnderline'
 import { DialogBlock } from './extensions/DialogBlock'
@@ -63,6 +64,7 @@ export class MarkdownEditor {
                 CustomUnderline,
                 CustomStyleMark,
                 DialogBlock,
+                CustomImage,
                 Markdown.configure({
                     html: true,
                     tightLists: true,
@@ -305,6 +307,25 @@ export class MarkdownEditor {
     public toggleDialog(): boolean {
         this.editor?.commands.focus()
         return (this.editor?.commands as unknown as IEditorCommands).toggleDialog?.() ?? false
+    }
+
+    public setImage(options: { src: string; alt?: string; title?: string }): boolean {
+        return this.editor?.chain().focus().setImage(options).run() ?? false
+    }
+
+    public updateImage(
+        pos: number,
+        options: { src: string; alt?: string; title?: string }
+    ): boolean {
+        if (!this.editor) return false
+        return (
+            this.editor
+                .chain()
+                .focus()
+                .setNodeSelection(pos)
+                .updateAttributes('image', options)
+                .run() ?? false
+        )
     }
 
     public toggleCustomStyle(styleId: string): boolean {

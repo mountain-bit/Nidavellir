@@ -84,6 +84,11 @@ declare module '*/View/ui/npcModal.js' {
     export function getModalMode(): 'character' | 'template'
     export function setModalMode(mode: 'character' | 'template'): void
     export function closeNpcModal(): void
+    export function hasUnsavedNpcChanges(): boolean
+    export function requestCloseNpcModal(): Promise<boolean>
+    export function executeNpcModalSave(ctx?: unknown): object | null
+    export function getNpcSnapshot(): string
+    export function captureNpcInitialSnapshot(): void
     export function setupNpcModal(ctx?: unknown): Record<string, unknown>
     export function updateSelectedAvatarPreview(avatarId: string): void
     export function toggleDescriptionDrawer(forceState?: boolean): void
@@ -399,16 +404,29 @@ declare module '*/View/ui/editor/editorToolbar.js' {
     export const TOOLBAR_BUTTON_STATE_MAP: Array<{ id: string; key: string }>
     export function updateToolbarActiveStates(
         activeStates: Record<string, unknown>,
-        ctx: unknown
+        ctx: unknown,
+        options?: { prefix?: string; buttonMap?: Array<{ id: string; key: string }> }
     ): void
-    export function setupToolbarButtons(editor: unknown, ctx: unknown): void
+    export function setupToolbarButtons(
+        editor: unknown,
+        ctx: unknown,
+        options?: { prefix?: string; toolbarEl?: HTMLElement | null }
+    ): void
 }
 
 declare module '*/View/ui/editor/customStylesMenu.js' {
     export function setupCustomStylesUI(
         editor: unknown,
         ctx: unknown,
-        onSelectionUpdate?: (activeStates: Record<string, unknown>, ctx: unknown) => void
+        onSelectionUpdate?: (activeStates: Record<string, unknown>, ctx: unknown) => void,
+        options?: {
+            prefix?: string
+            dropdownBtn?: HTMLElement | null
+            dropdownMenu?: HTMLElement | null
+            container?: HTMLElement | null
+            clearBtn?: HTMLElement | null
+            openModalBtn?: HTMLElement | null
+        }
     ): { renderList: () => void; openModal: (style?: unknown) => void }
 }
 
@@ -461,6 +479,13 @@ declare module '*/View/ui/editor/mainEditor.js' {
     ): unknown
 }
 
+declare module '*/View/ui/editor/npcEditor.js' {
+    export function getNpcEditorInstance(): unknown
+    export function updateNpcEditorStats(editor?: unknown): void
+    export function getOrCreateNpcEditor(ctx: unknown): unknown
+    export function destroyNpcEditor(): void
+}
+
 declare module '*/View/ui/editor/index.js' {
     export * from '*/View/ui/editor/customStyleModal.js'
     export * from '*/View/ui/editor/customStylesMenu.js'
@@ -468,4 +493,115 @@ declare module '*/View/ui/editor/index.js' {
     export * from '*/View/ui/editor/entityLinkModal.js'
     export * from '*/View/ui/editor/fontBrowserModal.js'
     export * from '*/View/ui/editor/mainEditor.js'
+    export * from '*/View/ui/editor/npcEditor.js'
+}
+
+declare module '*/View/ui/npcAvatars.js' {
+    export interface IFantasyAvatar {
+        id: string
+        nameKey?: string
+        name?: string
+        category?: string
+        color?: string
+        bgColor?: string
+        borderColor?: string
+        svg: string
+        isCustom?: boolean
+        src?: string
+    }
+
+    export const FANTASY_AVATARS: IFantasyAvatar[]
+    export function getAvatarName(avatar: IFantasyAvatar): string
+    export function getAvatarById(id: string): IFantasyAvatar
+    export function isCustomAvatarPath(avatarId: string): boolean
+}
+
+declare module '*/View/ui/imageEditorModal.js' {
+    export function setupImageEditorModal(ctx: unknown): {
+        open: (options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }) => void
+        close: () => void
+    }
+    export function getImageEditorModal(ctx: unknown): {
+        open: (options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }) => void
+        close: () => void
+    }
+    export function openImageEditor(
+        ctx: unknown,
+        options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }
+    ): void
+}
+
+declare module '*/dist/Modules/ImageEditor/index.js' {
+    export * from '../Modules/ImageEditor/index'
+}
+
+declare module '*/View/ui/assetPicker.js' {
+    export function getActiveProjectPath(ctx?: unknown): string
+    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
+    export function pickProjectImage(
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function importDroppedImage(
+        file: unknown,
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function setupElementDropZone(
+        element: HTMLElement | null,
+        options?: {
+            highlightClass?: string
+            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
+            overlayElement?: HTMLElement | null
+        }
+    ): void
+}
+
+declare module '*/View/ui/confirmModal.js' {
+    export function markFileDirty(fileName: string): void
+    export function markFileClean(fileName: string): void
+    export function hasUnsavedFileChanges(): boolean
+    export function getUnsavedFiles(): string[]
+    export function clearDirtyFiles(): void
+    export function showUnsavedChangesModal(options?: {
+        title?: string
+        subtitle?: string
+        message?: string
+        saveLabel?: string
+        dontSaveLabel?: string
+        cancelLabel?: string
+    }): Promise<'save' | 'dont_save' | 'cancel'>
+    export function confirmApplicationClose(
+        target?: 'app' | 'project',
+        ctx?: unknown,
+        helpers?: {
+            hasUnsavedNpc?: () => boolean
+            saveNpc?: () => Promise<void> | void
+            saveFiles?: (ctx: unknown) => Promise<void> | void
+        }
+    ): Promise<boolean>
+}
+
+declare module '*/View/ui/workspace.js' {
+    export function renderEditorTabs(ctx?: unknown): void
+    export function saveActiveFile(ctx?: unknown): void
+    export function saveAllUnsavedFiles(ctx?: unknown): Promise<void>
+    export function setupResizers(leftDrawer?: unknown, rightSidebar?: unknown, vm?: unknown): void
+    export function updateMainWorkspaceUI(ctx?: unknown): void
+    export function updateRightSidebarUI(
+        vm?: unknown,
+        rightSidebar?: unknown,
+        toggleBtn?: unknown,
+        reopenBtn?: unknown
+    ): void
+    export function updateZoomToolbarUI(storyGraphInstance?: unknown, zoomLevel?: number): void
 }

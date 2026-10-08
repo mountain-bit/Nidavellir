@@ -5,6 +5,13 @@
  */
 
 import { applyTranslations, t } from '../../dist/Utils/translate.js'
+import { showUnsavedChangesModal } from './confirmModal.js'
+import {
+    destroyNpcEditor,
+    getNpcEditorInstance,
+    getOrCreateNpcEditor,
+    updateNpcEditorStats,
+} from './editor/npcEditor.js'
 import { evaluateFormula, parseStatValueAsNumber } from './npcModal/formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcModal/npcCharacterSaver.js'
 import { clampModalPosition, initDraggable, initResizable } from './npcModal/npcDraggable.js'
@@ -210,7 +217,7 @@ export function toggleDescriptionDrawer(forceState) {
         }
 
         if (modal) {
-            const drawerWidth = drawer.offsetWidth || 380
+            const drawerWidth = parseInt(drawer.style.width, 10) || drawer.offsetWidth || 380
             const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 860
             modal.dataset.widthBeforeDrawer = String(currentWidth)
 
@@ -236,6 +243,11 @@ export function toggleDescriptionDrawer(forceState) {
 
             clampModalPosition(modal)
         }
+
+        const editor = getNpcEditorInstance()
+        if (editor) {
+            updateNpcEditorStats(editor)
+        }
     } else {
         const wasOpen = !drawer.classList.contains('hidden')
         drawer.classList.add('hidden')
@@ -245,12 +257,12 @@ export function toggleDescriptionDrawer(forceState) {
         }
 
         if (modal && wasOpen) {
-            const drawerWidth = 380
+            const drawerWidth = parseInt(drawer.style.width, 10) || drawer.offsetWidth || 380
             if (modal.dataset.widthBeforeDrawer) {
                 modal.style.width = `${modal.dataset.widthBeforeDrawer}px`
                 delete modal.dataset.widthBeforeDrawer
             } else {
-                const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 1240
+                const currentWidth = parseInt(modal.style.width, 10) || modal.offsetWidth || 1320
                 const newWidth = Math.max(500, currentWidth - drawerWidth)
                 modal.style.width = `${newWidth}px`
             }
@@ -604,6 +616,8 @@ export function openNpcModal(options = {}) {
     if (nameInput && typeof nameInput.focus === 'function') {
         nameInput.focus()
     }
+
+    captureNpcInitialSnapshot()
 }
 
 /**
@@ -613,6 +627,101 @@ export function openNpcModal(options = {}) {
  */
 export function openNpcTemplateModal(options = {}) {
     return openNpcModal({ ...options, mode: 'template' })
+}
+
+let initialNpcSnapshot = null
+
+/**
+ * Returns a serialized snapshot of all fields and state in the NPC creation modal.
+ *
+ * @returns {string}
+ */
+export function getNpcSnapshot() {
+    syncActiveModalInputs()
+    return JSON.stringify({
+        name: getNpcName(),
+        summary: getNpcSummary(),
+        description: getNpcDescription().trim(),
+        avatar: state.getCurrentAvatarId() || 'warrior',
+        tags: state.getNpcTags() || [],
+        stats: state.getNpcStats() || [],
+        skills: state.getNpcSkills() || [],
+        vitals: state.getNpcVitals(evaluateFormula) || [],
+        customAttributes: state.getCustomAttributes() || [],
+        appliedTemplates: (state.getAppliedTemplates() || []).map(t => t.id || t.name),
+    })
+}
+
+/**
+ * Captures the current NPC modal state as baseline snapshot for unsaved changes detection.
+ */
+export function captureNpcInitialSnapshot() {
+    initialNpcSnapshot = getNpcSnapshot()
+}
+
+/**
+ * Returns true if the user modified any field or state in the NPC modal since opening.
+ *
+ * @returns {boolean}
+ */
+export function hasUnsavedNpcChanges() {
+    const modal = state.getActiveModal() || document.getElementById('npc-create-modal')
+    if (!modal || modal.classList.contains('hidden')) {
+        return false
+    }
+    if (!initialNpcSnapshot) {
+        return false
+    }
+    return getNpcSnapshot() !== initialNpcSnapshot
+}
+
+/**
+ * Executes saving of current NPC character or template.
+ * Returns the saved entity or null if validation failed.
+ *
+ * @param {object} [ctx]
+ * @returns {object|null}
+ */
+export function executeNpcModalSave(ctx = state.getActiveCtx()) {
+    syncActiveModalInputs()
+    if (state.getModalMode() === 'template') {
+        return saveNpcTemplate(ctx)
+    } else {
+        return saveNpcCharacter(ctx)
+    }
+}
+
+/**
+ * Requests closing the NPC modal. If unsaved changes are present, prompts the user
+ * with a confirmation dialog offering Save, Don't Save, or Cancel.
+ *
+ * @returns {Promise<boolean>} Resolves to true if modal was closed, false if cancelled.
+ */
+export function requestCloseNpcModal() {
+    if (!document.getElementById('unsaved-changes-modal') || !hasUnsavedNpcChanges()) {
+        closeNpcModal()
+        return Promise.resolve(true)
+    }
+
+    return (async () => {
+        const choice = await showUnsavedChangesModal({
+            title: typeof t === 'function' ? t('unsaved_changes.title') : 'Niezapisane zmiany',
+            message:
+                typeof t === 'function'
+                    ? t('unsaved_changes.npc_message')
+                    : 'Czy na pewno chcesz wyjść z panelu NPC? Masz niezapisane zmiany w formularzu, które zostaną bezpowrotnie utracone.',
+        })
+
+        if (choice === 'save') {
+            const result = executeNpcModalSave(state.getActiveCtx())
+            return Boolean(result)
+        } else if (choice === 'dont_save') {
+            closeNpcModal()
+            return true
+        } else {
+            return false
+        }
+    })()
 }
 
 /**
@@ -633,6 +742,11 @@ export function closeNpcModal() {
     }
 
     closeTemplateDropdown()
+
+    const stylesMenu = document.getElementById('npc-editor-custom-styles-dropdown-menu')
+    if (stylesMenu) stylesMenu.classList.add('hidden')
+    const entityMenu = document.getElementById('npc-editor-entity-dropdown-menu')
+    if (entityMenu) entityMenu.classList.add('hidden')
 
     modal.classList.add('hidden')
     resetNpcModalForm()
@@ -666,6 +780,10 @@ export function setNpcName(name) {
  * @returns {string}
  */
 export function getNpcDescription() {
+    const editor = getNpcEditorInstance()
+    if (editor && typeof editor.getMarkdown === 'function') {
+        return editor.getMarkdown()
+    }
     const textarea = document.getElementById('npc-description-textarea')
     return textarea ? textarea.value : ''
 }
@@ -676,6 +794,11 @@ export function getNpcDescription() {
  * @param {string} text
  */
 export function setNpcDescription(text) {
+    const editor = getNpcEditorInstance()
+    if (editor && typeof editor.setMarkdown === 'function') {
+        editor.setMarkdown(text || '')
+        updateNpcEditorStats(editor)
+    }
     const textarea = document.getElementById('npc-description-textarea')
     if (textarea) {
         textarea.value = text || ''
@@ -739,6 +862,8 @@ export function resetNpcModalForm() {
 
     const tagPopover = document.getElementById('npc-tag-picker-popover')
     if (tagPopover) tagPopover.classList.add('hidden')
+
+    initialNpcSnapshot = null
 }
 
 /**
@@ -804,10 +929,13 @@ export function setupNpcModal(ctx) {
     }
 
     // Initialize fantasy avatar picker grid & preview
-    initAvatarGrid()
+    initAvatarGrid(ctx)
 
     // Initialize character tags controller
     initNpcTagsController(ctx)
+
+    // Initialize NPC rich markdown editor
+    getOrCreateNpcEditor(ctx)
 
     // Initialize side drawer toggle
     if (btnToggleDesc) {
@@ -856,7 +984,7 @@ export function setupNpcModal(ctx) {
     if (btnCloseModal) {
         btnCloseModal.addEventListener('click', e => {
             e.preventDefault()
-            closeNpcModal()
+            requestCloseNpcModal()
         })
     }
 
@@ -893,6 +1021,20 @@ export function setupNpcModal(ctx) {
                 closeTemplateDropdown()
             }
         }
+        const stylesMenu = document.getElementById('npc-editor-custom-styles-dropdown-menu')
+        const stylesBtn = document.getElementById('npc-btn-editor-custom-styles-dropdown')
+        if (stylesMenu && !stylesMenu.classList.contains('hidden')) {
+            if (!stylesMenu.contains(e.target) && (!stylesBtn || !stylesBtn.contains(e.target))) {
+                stylesMenu.classList.add('hidden')
+            }
+        }
+        const entityMenu = document.getElementById('npc-editor-entity-dropdown-menu')
+        const entityBtn = document.getElementById('npc-btn-insert-entity-dropdown')
+        if (entityMenu && !entityMenu.classList.contains('hidden')) {
+            if (!entityMenu.contains(e.target) && (!entityBtn || !entityBtn.contains(e.target))) {
+                entityMenu.classList.add('hidden')
+            }
+        }
     }
     state.setGlobalOutsideClickHandler(outsideClickHandler)
     document.addEventListener('click', outsideClickHandler)
@@ -918,8 +1060,18 @@ export function setupNpcModal(ctx) {
                 tagPopover.classList.add('hidden')
                 return
             }
+            const stylesMenu = document.getElementById('npc-editor-custom-styles-dropdown-menu')
+            if (stylesMenu && !stylesMenu.classList.contains('hidden')) {
+                stylesMenu.classList.add('hidden')
+                return
+            }
+            const entityMenu = document.getElementById('npc-editor-entity-dropdown-menu')
+            if (entityMenu && !entityMenu.classList.contains('hidden')) {
+                entityMenu.classList.add('hidden')
+                return
+            }
             if (modal && !modal.classList.contains('hidden')) {
-                closeNpcModal()
+                requestCloseNpcModal()
             }
         }
     }
@@ -992,21 +1144,13 @@ export function setupNpcModal(ctx) {
     if (btnCancel) {
         btnCancel.addEventListener('click', e => {
             e.preventDefault()
-            closeNpcModal()
-            resetNpcModalForm()
+            requestCloseNpcModal()
         })
     }
 
     const btnSave = document.getElementById('btn-save-npc-modal')
     const form = document.getElementById('npc-create-modal-form')
-    const executeSave = () => {
-        syncActiveModalInputs()
-        if (state.getModalMode() === 'template') {
-            saveNpcTemplate(ctx)
-        } else {
-            saveNpcCharacter(ctx)
-        }
-    }
+    const executeSave = () => executeNpcModalSave(ctx)
     if (btnSave) {
         btnSave.addEventListener('click', e => {
             e.preventDefault()
@@ -1093,6 +1237,15 @@ export function setupNpcModal(ctx) {
         toggleTemplateDropdown,
         isTemplateDropdownOpen,
         getAvailableTemplates,
+        getNpcEditorInstance,
+        getOrCreateNpcEditor,
+        updateNpcEditorStats,
+        destroyNpcEditor,
+        hasUnsavedNpcChanges,
+        requestCloseNpcModal,
+        executeNpcModalSave,
+        getNpcSnapshot,
+        captureNpcInitialSnapshot,
     }
 
     if (ctx) {

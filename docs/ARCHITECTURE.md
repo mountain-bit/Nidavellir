@@ -239,17 +239,15 @@ Projects are persisted directly as clean, human-readable JSON files and standard
 │   ├── meta.json                       # Category index referencing element.json paths
 │   ├── p_001_prologue/                 # Individual entity folder (unique slug)
 │   │   ├── element.json                # Paragraph metadata (id, title, choices, combat)
-│   │   ├── text.md                     # Actual narrative prose read by the player
-│   │   └── author.md                   # Author's private development notes
+│   │   └── Description_Paragraph_Prologue.md # Actual narrative prose
 │   └── p_002_chamber/
 │       ├── element.json
-│       ├── text.md
-│       └── author.md
+│       └── Description_Paragraph_Chamber.md
 ├── NPC/                                # Category: Non-Player Characters
 │   ├── meta.json
 │   └── town_guard/
 │       ├── element.json
-│       └── text.md
+│       └── Description_NPC_Town_Guard.md
 ├── Items/                              # Category: Items and Equipment
 │   ├── meta.json
 │   └── steel_sword/

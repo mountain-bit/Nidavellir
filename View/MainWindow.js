@@ -7,8 +7,9 @@ import {
     setLanguage,
     t,
 } from '../dist/Utils/translate.js'
-import { MainWindowViewModel } from '../dist/ViewModel/MainWindowViewModel.js'
-import { loadProjectData } from './projectData.js'
+import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
+import { extractProjectData, loadProjectData } from './projectData.js'
+import { confirmApplicationClose, markFileDirty } from './ui/confirmModal.js'
 import {
     handleColorSelection,
     openColorPicker,
@@ -31,10 +32,17 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
-import { renderDynamicSuggestions, setupNpcModal, updateTraitsCounterUI } from './ui/npcModal.js'
+import {
+    executeNpcModalSave,
+    hasUnsavedNpcChanges,
+    renderDynamicSuggestions,
+    setupNpcModal,
+    updateTraitsCounterUI,
+} from './ui/npcModal.js'
 import {
     renderEditorTabs,
     saveActiveFile,
+    saveAllUnsavedFiles,
     setupResizers,
     updateMainWorkspaceUI,
     updateRightSidebarUI,
@@ -61,6 +69,7 @@ const saveStatus = document.getElementById('save-status')
 
 // Active project data state (defaults to mock data; easily switchable to real data via loadProjectData)
 let projectData = loadProjectData(vm)
+vm.ensureStartParagraph(projectData.projectParagraphs)
 
 let storyGraphInstance = null
 
@@ -69,6 +78,14 @@ let storyGraphInstance = null
  */
 const appContext = {
     vm,
+    projectPath: '',
+    getProjectPath() {
+        return (
+            this.projectPath ||
+            (typeof window !== 'undefined' ? window.currentProjectPath : '') ||
+            ''
+        )
+    },
     get projectData() {
         return projectData
     },
@@ -100,6 +117,10 @@ const appContext = {
         return projectData.projectFeatures || []
     },
     get projectParagraphs() {
+        if (!Array.isArray(projectData.projectParagraphs)) {
+            projectData.projectParagraphs = []
+        }
+        vm.ensureStartParagraph(projectData.projectParagraphs)
         return projectData.projectParagraphs
     },
     get projectScenes() {
@@ -279,6 +300,8 @@ function showGraph(forceRebuild = false) {
     const canvasContainer = document.getElementById('story-graph')
     const nodesLayer = document.getElementById('graph-nodes-layer')
     if (!canvasContainer || !nodesLayer) return
+
+    vm.ensureStartParagraph(projectData.projectParagraphs)
 
     if (!storyGraphInstance) {
         storyGraphInstance = new StoryGraph({
@@ -602,10 +625,157 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
     btn.addEventListener('click', () => saveActiveFile(appContext))
 })
 
+function updateProjectNameUI(name) {
+    const titleEl = document.getElementById('project-name-display')
+    if (titleEl) {
+        titleEl.textContent = name || 'Projekt'
+    }
+    if (name) {
+        document.title = `${name} - Silnik Gier Paragrafowych`
+    }
+}
+
+function applyLoadedProject(projectInstance, projectPath) {
+    if (!projectInstance) return
+
+    const realData = extractProjectData(projectInstance, {})
+    vm.ensureStartParagraph(realData.projectParagraphs)
+    projectData = realData
+    appContext.projectPath = projectPath || ''
+    window.currentProjectPath = projectPath || ''
+
+    updateProjectNameUI(projectInstance.getName())
+
+    if (typeof vm.clearSelection === 'function') {
+        vm.clearSelection()
+    }
+
+    renderParagraphsList(appContext)
+    renderScenesList(appContext)
+    renderConnectionsList(appContext)
+    renderCharactersList(appContext)
+    renderLocationsList(appContext)
+    renderTraitsList(appContext)
+    renderTagsList(appContext)
+    renderFilterTags(appContext)
+    populateFilterSelects(appContext)
+    renderHistoryBar(appContext)
+    renderDetailsPanel(appContext)
+    updateMainWorkspaceUI(appContext)
+
+    if (storyGraphInstance) {
+        storyGraphInstance.render(true)
+    }
+}
+
+document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (window.electronAPI && typeof window.electronAPI.openProject === 'function') {
+            try {
+                const res = await window.electronAPI.openProject()
+                if (res && res.success && res.project) {
+                    const projectDir = res.path
+                        ? res.path.endsWith('project.json')
+                            ? res.path.replace(/[\\/]project\.json$/i, '')
+                            : res.path
+                        : ''
+                    const projectInstance = ProjectManager.getInstance().load(
+                        res.project,
+                        res.entities || {},
+                        res.path || projectDir
+                    )
+                    applyLoadedProject(projectInstance, projectDir || res.path)
+                    toast.success(t('project.opened') || 'Projekt został pomyślnie otwarty')
+                } else if (res && !res.success && res.error) {
+                    toast.error(res.error)
+                }
+            } catch (err) {
+                console.error('Error opening project:', err)
+                toast.error(t('error.open_project_failed') || 'Nie udało się otworzyć projektu')
+            }
+        }
+    })
+})
+
+document.querySelectorAll('[data-action="close-project"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const canClose = await confirmApplicationClose('project', appContext, {
+            hasUnsavedNpc: hasUnsavedNpcChanges,
+            saveNpc: () => executeNpcModalSave(appContext),
+            saveFiles: ctx => saveAllUnsavedFiles(ctx),
+        })
+        if (
+            canClose &&
+            window.electronAPI &&
+            typeof window.electronAPI.loadStartWindow === 'function'
+        ) {
+            window.electronAPI.loadStartWindow()
+        }
+    })
+})
+
+if (window.electronAPI && typeof window.electronAPI.onAppCloseRequested === 'function') {
+    window.electronAPI.onAppCloseRequested(async () => {
+        const canClose = await confirmApplicationClose('app', appContext, {
+            hasUnsavedNpc: hasUnsavedNpcChanges,
+            saveNpc: () => executeNpcModalSave(appContext),
+            saveFiles: ctx => saveAllUnsavedFiles(ctx),
+        })
+        if (canClose && typeof window.electronAPI.forceCloseApp === 'function') {
+            window.electronAPI.forceCloseApp()
+        }
+    })
+}
+
+// Prevent OS default file navigation on unhandled drag/drop in Electron
+window.addEventListener('dragover', e => {
+    e.preventDefault()
+})
+window.addEventListener('drop', e => {
+    e.preventDefault()
+})
+
 document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
         saveActiveFile(appContext)
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        const activeEl = document.activeElement
+        const isInput =
+            activeEl &&
+            (activeEl.tagName === 'INPUT' ||
+                activeEl.tagName === 'TEXTAREA' ||
+                activeEl.isContentEditable)
+        if (isInput) return
+
+        const sel = vm.getSelectedItem()
+        if (sel && sel.type === 'paragraph' && sel.entity) {
+            if (sel.entity.getIsStart && sel.entity.getIsStart()) {
+                toast.warning(
+                    t('graph.start_node_cannot_be_deleted') ||
+                        'Węzeł START nie może zostać usunięty'
+                )
+                return
+            }
+            const confirmDel = confirm(
+                t('context_menu.confirm_delete', {
+                    name: sel.entity.getTitle() || sel.entity.getId(),
+                })
+            )
+            if (confirmDel) {
+                const deleted = vm.deleteParagraph(
+                    sel.entity.getId(),
+                    projectData.projectParagraphs,
+                    projectData.projectScenes
+                )
+                if (deleted) {
+                    vm.clearSelection()
+                    refreshActiveSection('paragraph')
+                    if (storyGraphInstance) storyGraphInstance.render(true)
+                    toast.success(t('toast.paragraph_deleted') || 'Paragraf został usunięty')
+                }
+            }
+        }
     }
 })
 
@@ -613,6 +783,7 @@ if (fileEditor) {
     fileEditor.addEventListener('input', () => {
         const active = vm.getActiveFile()
         if (active) {
+            markFileDirty(active)
             projectData.files[active] = fileEditor.value
             if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
         }
@@ -622,6 +793,36 @@ if (fileEditor) {
 // Initial Render & i18n setup
 async function initApp() {
     try {
+        if (window.electronAPI && typeof window.electronAPI.getCurrentProject === 'function') {
+            try {
+                const cur = await window.electronAPI.getCurrentProject()
+                if (cur) {
+                    window.currentProjectPath = cur
+                    appContext.projectPath = cur
+                    if (typeof window.electronAPI.openProject === 'function') {
+                        const openRes = await window.electronAPI.openProject(cur)
+                        if (openRes && openRes.success && openRes.project) {
+                            const projectInstance = ProjectManager.getInstance().load(
+                                openRes.project,
+                                openRes.entities || {},
+                                openRes.path || cur
+                            )
+                            projectData = extractProjectData(projectInstance, {})
+                            vm.ensureStartParagraph(projectData.projectParagraphs)
+                            updateProjectNameUI(projectInstance.getName() || openRes.project.name)
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Could not query current project path on startup:', err)
+            }
+        } else if (ProjectManager.getInstance().getProject()) {
+            const existingProj = ProjectManager.getInstance().getProject()
+            projectData = extractProjectData(existingProj, {})
+            vm.ensureStartParagraph(projectData.projectParagraphs)
+            updateProjectNameUI(existingProj.getName())
+        }
+
         await initTranslations()
         applyTranslations()
 

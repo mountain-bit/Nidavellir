@@ -1,16 +1,23 @@
 const { app, BrowserWindow } = require('electron')
 const { initI18n } = require('./Utils/i18n')
-const { createMainWindow } = require('./main/windowManager')
+const { createStartWindow } = require('./main/windowManager')
 const { registerAllIpc } = require('./main/ipc')
+const {
+    registerAssetScheme,
+    registerAssetProtocol,
+} = require('./main/services/AssetProtocolService')
+
+registerAssetScheme()
 
 app.whenReady().then(async () => {
+    registerAssetProtocol()
     await initI18n()
     registerAllIpc()
-    createMainWindow()
+    createStartWindow()
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
-            createMainWindow()
+            createStartWindow()
         }
     })
 })

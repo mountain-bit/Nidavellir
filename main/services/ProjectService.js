@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const os = require('os')
 const {
     resolveProjectDir,
     isPathInsideBase,
@@ -7,6 +8,7 @@ const {
     atomicWriteJsonSync,
 } = require('../../Utils/fsSecurity')
 const { t } = require('../../Utils/i18n')
+const { ASSETS_IMAGES_DIR } = require('../../Utils/assetConstants')
 const RecentProjectsService = require('./RecentProjectsService')
 
 const DEFAULT_PROJECT_FOLDERS = [
@@ -20,7 +22,106 @@ const DEFAULT_PROJECT_FOLDERS = [
     'PlayerCharacter',
 ]
 
+let currentProjectDir = null
+
+/**
+ * Ensures the project's image assets directory exists (non-entity folder, no meta.json).
+ *
+ * @param {string} projectDir
+ */
+function ensureAssetsDirectory(projectDir) {
+    const imagesDir = path.join(projectDir, ...ASSETS_IMAGES_DIR.split('/'))
+    if (!fs.existsSync(imagesDir)) {
+        fs.mkdirSync(imagesDir, { recursive: true })
+    }
+}
+
 class ProjectService {
+    /**
+     * Resolves the default workspace directory in Electron userData or temp.
+     *
+     * @returns {string}
+     */
+    static getDefaultWorkspaceDir() {
+        let baseDir = null
+        try {
+            const electron = require('electron')
+            if (electron && electron.app && typeof electron.app.getPath === 'function') {
+                baseDir = electron.app.getPath('userData')
+            }
+        } catch {
+            baseDir = null
+        }
+        if (!baseDir) {
+            baseDir = path.join(os.tmpdir(), 'sgp-workspace')
+        }
+        return path.join(baseDir, 'DefaultProject')
+    }
+
+    /**
+     * Returns the currently active project directory path.
+     * If no active project is set, attempts to restore the most recent valid project
+     * or ensures an initial default workspace directory.
+     *
+     * @returns {string|null}
+     */
+    static getCurrentProjectDir() {
+        if (currentProjectDir && fs.existsSync(currentProjectDir)) {
+            return currentProjectDir
+        }
+
+        // 1. Try to find the most recent valid project on disk
+        const recents = RecentProjectsService.getRecentProjects()
+        for (const recent of recents) {
+            if (recent && recent.path && fs.existsSync(recent.path)) {
+                try {
+                    const stat = fs.statSync(recent.path)
+                    const dir = stat.isDirectory() ? recent.path : path.dirname(recent.path)
+                    if (fs.existsSync(dir)) {
+                        this.setCurrentProjectDir(dir)
+                        return currentProjectDir
+                    }
+                } catch {
+                    // ignore invalid path and check next
+                }
+            }
+        }
+
+        // 2. Fall back to a default project workspace in userData
+        const defaultDir = this.getDefaultWorkspaceDir()
+        if (defaultDir) {
+            try {
+                if (!fs.existsSync(defaultDir)) {
+                    fs.mkdirSync(defaultDir, { recursive: true })
+                }
+                const projectFile = path.join(defaultDir, 'project.json')
+                if (!fs.existsSync(projectFile)) {
+                    const defaultProjectData = {
+                        name: 'Domyślny Projekt',
+                        descriptionPaths: [],
+                        dataPaths: [],
+                    }
+                    fs.writeFileSync(projectFile, JSON.stringify(defaultProjectData, null, 2))
+                }
+                ensureAssetsDirectory(defaultDir)
+                this.setCurrentProjectDir(defaultDir)
+                return currentProjectDir
+            } catch (err) {
+                console.error('Error initializing default project dir:', err)
+            }
+        }
+
+        return currentProjectDir
+    }
+
+    /**
+     * Sets the currently active project directory path.
+     *
+     * @param {string|null} dir
+     */
+    static setCurrentProjectDir(dir) {
+        currentProjectDir = dir ? resolveProjectDir(dir) : null
+    }
     /**
      * Creates a new gamebook project directory structure with default folders and metadata.
      *
@@ -69,8 +170,11 @@ class ProjectService {
                 dataPaths: dataPaths,
             }
 
+            ensureAssetsDirectory(projectPath)
+
             fs.writeFileSync(projectFile, JSON.stringify(projectData, null, 2))
             RecentProjectsService.saveRecentProject(projectFile, projectData.name)
+            this.setCurrentProjectDir(projectPath)
 
             return { success: true, path: projectFile }
         } catch (err) {
@@ -218,6 +322,9 @@ class ProjectService {
                 }
             }
 
+            ensureAssetsDirectory(projectDir)
+            this.setCurrentProjectDir(projectDir)
+
             return {
                 success: true,
                 path: resolvedProjectFile,
@@ -285,6 +392,7 @@ class ProjectService {
 
             atomicWriteJsonSync(projectFile, updatedData)
             RecentProjectsService.saveRecentProject(projectFile, updatedData.name)
+            this.setCurrentProjectDir(projectDir)
 
             return { success: true, path: projectFile }
         } catch (err) {

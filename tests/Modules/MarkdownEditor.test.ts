@@ -273,4 +273,37 @@ describe('MarkdownEditor', () => {
 
         editor.destroy()
     })
+
+    it('inserts image and serializes to clean markdown format', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Przed obrazem',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        editor.setImage({ src: 'Assets/Images/mapa.png', alt: 'Mapa krainy' })
+        const md = editor.getMarkdown()
+
+        expect(md).toContain('![Mapa krainy](Assets/Images/mapa.png)')
+
+        editor.destroy()
+    })
+
+    it('parses markdown image and renders DOM element with asset URL', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '![Zamek](Assets/Images/zamek.png)',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const img = container.querySelector('img')
+        expect(img).not.toBeNull()
+        expect(img?.getAttribute('src')).toBe('asset://project/Assets/Images/zamek.png')
+        expect(img?.getAttribute('alt')).toBe('Zamek')
+
+        const md = editor.getMarkdown()
+        expect(md).toContain('![Zamek](Assets/Images/zamek.png)')
+
+        editor.destroy()
+    })
 })

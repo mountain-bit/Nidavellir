@@ -59,6 +59,16 @@ export type IconName =
     | 'eraser'
     | 'alert-triangle'
     | 'link'
+    | 'image'
+    | 'upload'
+    | 'crop'
+    | 'rotate-cw'
+    | 'rotate-ccw'
+    | 'flip-h'
+    | 'flip-v'
+    | 'sliders'
+    | 'play'
+    | 'flag'
 
 export interface IIconConfig {
     viewBox?: string
@@ -269,6 +279,46 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     link: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"></path>',
+    },
+    image: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline>',
+    },
+    upload: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>',
+    },
+    crop: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6.13 1L6 16a2 2 0 002 2h15M1 6.13L16 6a2 2 0 012 2v15"></path>',
+    },
+    'rotate-cw': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 11-9-9c2.52 0 4.85.99 6.57 2.57L21 8m0-5v5h-5"></path>',
+    },
+    'rotate-ccw': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12a9 9 0 109-9 8.96 8.96 0 00-6.57 2.57L3 8m0-5v5h5"></path>',
+    },
+    'flip-h': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 2v20M4 6l6 6-6 6V6zm16 0l-6 6 6 6V6z"></path>',
+    },
+    'flip-v': {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2 12h20M6 4l6 6 6-6H6zm0 16l6-6 6 6H6z"></path>',
+    },
+    sliders: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6"></path>',
+    },
+    play: {
+        viewBox: '0 0 24 24',
+        path: '<polygon points="5 3 19 12 5 21 5 3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="currentColor"></polygon>',
+    },
+    flag: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zm0 0v7"></path>',
     },
 }
 

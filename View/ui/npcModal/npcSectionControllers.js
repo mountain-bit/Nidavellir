@@ -4,8 +4,12 @@
  * Avatars, Custom Attributes, Stats, Skills, and Vitals.
  */
 
+import { isCustomAvatarPath } from '../../../dist/Utils/assetUtils.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
+import { importDroppedImage, pickProjectImage, setupElementDropZone } from '../assetPicker.js'
+import { getNpcEditorInstance, updateNpcEditorStats } from '../editor/npcEditor.js'
+import { openImageEditor } from '../imageEditorModal.js'
 import { FANTASY_AVATARS, getAvatarById } from '../npcAvatars.js'
 import { evaluateFormula } from './formulaEvaluator.js'
 import * as state from './npcState.js'
@@ -66,9 +70,11 @@ export function updateSelectedAvatarPreview(avatarId) {
 }
 
 /**
- * Populates the avatar selection grid with fantasy class archetypes.
+ * Populates the avatar selection grid with fantasy class archetypes and binds upload / drop interactions.
+ *
+ * @param {object} [ctx] Application UI Context
  */
-export function initAvatarGrid() {
+export function initAvatarGrid(ctx) {
     const grid = document.getElementById('npc-avatar-grid')
     const popover = document.getElementById('npc-avatar-picker-popover')
     const triggerBtn = document.getElementById('btn-npc-avatar-trigger')
@@ -93,6 +99,67 @@ export function initAvatarGrid() {
         triggerBtn.addEventListener('click', e => {
             e.stopPropagation()
             popover.classList.toggle('hidden')
+        })
+
+        triggerBtn.addEventListener('dblclick', e => {
+            const currentId = state.getCurrentAvatarId()
+            if (isCustomAvatarPath(currentId)) {
+                e.preventDefault()
+                e.stopPropagation()
+                if (popover) popover.classList.add('hidden')
+                openImageEditor(ctx, {
+                    src: currentId,
+                    onSave: ({ relativePath }) => {
+                        updateSelectedAvatarPreview(relativePath)
+                    },
+                })
+            }
+        })
+
+        // Drag & drop directly onto the portrait trigger frame
+        setupElementDropZone(triggerBtn, {
+            highlightClass: 'ring-4 ring-blue-400 bg-blue-500/20 scale-[1.03]',
+            onFileDrop: async file => {
+                const imported = await importDroppedImage(file, ctx, 'npc')
+                if (imported && imported.relativePath) {
+                    updateSelectedAvatarPreview(imported.relativePath)
+                    if (popover) popover.classList.add('hidden')
+                    toast.success(t('npc.avatar_updated') || 'Portret został zaktualizowany')
+                }
+            },
+        })
+
+        // Drag & drop onto the popover
+        setupElementDropZone(popover, {
+            highlightClass: 'ring-2 ring-blue-400 bg-blue-500/10',
+            onFileDrop: async file => {
+                const imported = await importDroppedImage(file, ctx, 'npc')
+                if (imported && imported.relativePath) {
+                    updateSelectedAvatarPreview(imported.relativePath)
+                    popover.classList.add('hidden')
+                    toast.success(t('npc.avatar_updated') || 'Portret został zaktualizowany')
+                }
+            },
+        })
+    }
+
+    const uploadBtn = document.getElementById('btn-npc-upload-custom-avatar')
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', async e => {
+            e.stopPropagation()
+            try {
+                const res = await pickProjectImage(ctx, 'npc')
+                if (res && res.relativePath) {
+                    updateSelectedAvatarPreview(res.relativePath)
+                    if (popover) {
+                        popover.classList.add('hidden')
+                    }
+                    toast.success(t('npc.avatar_updated') || 'Portret został zaktualizowany')
+                }
+            } catch (err) {
+                console.error('Error importing custom avatar:', err)
+                toast.error(t('asset.error.import_failed'), t('asset.error.title'))
+            }
         })
     }
 
@@ -1768,6 +1835,11 @@ export function applyTemplate(templateIdOrInstance, ctx) {
                 ? template.getDescription().getText()
                 : template.description?.text || ''
         descTextarea.value = tplDesc
+        const editor = getNpcEditorInstance()
+        if (editor && typeof editor.setMarkdown === 'function') {
+            editor.setMarkdown(tplDesc)
+            updateNpcEditorStats(editor)
+        }
     }
 
     // Show feedback toast

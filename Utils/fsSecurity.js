@@ -39,6 +39,11 @@ function isPathInsideBase(basePath, targetPath) {
     }
     const resolvedBase = path.resolve(basePath)
     const resolvedTarget = path.resolve(targetPath)
+    if (process.platform === 'win32') {
+        const lowerBase = resolvedBase.toLowerCase()
+        const lowerTarget = resolvedTarget.toLowerCase()
+        return lowerTarget.startsWith(lowerBase + path.sep) || lowerTarget === lowerBase
+    }
     return resolvedTarget.startsWith(resolvedBase + path.sep) || resolvedTarget === resolvedBase
 }
 

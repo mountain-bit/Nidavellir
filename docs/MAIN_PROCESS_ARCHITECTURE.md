@@ -147,7 +147,7 @@ Pure Node.js business logic that operates independently of Electron IPC objects:
     - `createProject(projectDetails)`: Generates directory hierarchy (`NPC`, `Paragraphs`, `Items`, `Locations`, `Templates`, `CharacterClasses`, `Rules`, `PlayerCharacter`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
     - `openProject(targetPath)`: Validates path safety, parses `project.json`, reads all related `meta.json` records, parses each `element.json`, and returns structured entity data (supports backward compatibility with legacy Polish schema keys).
 - **`EntityService`**:
-    - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json` with `{ text, summary, authorNotes, textPath, authorNotesPath }`, creates markdown references, and updates the category `meta.json` elements list atomically.
+    - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json` with `{ text, summary, filePath }`, creates standardized `Description_<Category>_<Name>.md` markdown references, and updates the category `meta.json` elements list atomically.
     - `saveEntity(payload)`: Atomically updates an existing `element.json` file.
 - **`MarkdownService`**:
     - `readMarkdownFile(payload)`: Reads `.md` narrative text files within project boundaries; returns virtual empty state when file does not exist yet.

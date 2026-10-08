@@ -89,7 +89,6 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
 
         beforeEach(() => {
             const desc = new Description('Wojownik z północy', 'Wojownik z północy')
-            desc.setAuthorNotes('Lubi dobrą walkę')
             npc = new NPC('npc-1', 'Geralt', desc)
             npc.setAvatar('warrior')
 
@@ -203,22 +202,20 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             expect(detailsContent.querySelector('#details-avatar-grid')).toBeNull()
         })
 
-        it('should render summary and author notes module for NPC using getDescription() in read-only', () => {
+        it('should render summary and description file module for NPC using getDescription() in read-only without author notes', () => {
             renderDetailsPanel(ctx)
 
             expect(detailsContent.innerHTML).toContain('Wojownik z północy')
             // Brak edytowalnego pola tekstowego
             expect(detailsContent.querySelector('#details-summary-input')).toBeNull()
 
-            // Sprawdzenie obecności sekcji plików narracyjnych
+            // Sprawdzenie obecności sekcji pojedynczego pliku narracyjnego i braku notatek autora
             const btnPlayerText = detailsContent.querySelector(
                 '#btn-open-player-text'
             ) as HTMLButtonElement
-            const btnAuthorNotes = detailsContent.querySelector(
-                '#btn-open-author-notes'
-            ) as HTMLButtonElement
+            const btnAuthorNotes = detailsContent.querySelector('#btn-open-author-notes')
             expect(btnPlayerText).not.toBeNull()
-            expect(btnAuthorNotes).not.toBeNull()
+            expect(btnAuthorNotes).toBeNull()
         })
 
         it('should render tags in read-only mode without delete buttons or add controls', () => {

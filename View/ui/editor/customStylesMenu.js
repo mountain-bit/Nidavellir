@@ -3,22 +3,40 @@ import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { setupCustomStyleModal } from './customStyleModal.js'
 
+let sharedStyleModal = null
+const activeStyleRenderers = new Set()
+
 /**
  * Sets up the Custom Styles dropdown menu and its modal integration.
  *
  * @param {object} editor Active MarkdownEditor instance
  * @param {object} ctx Application UI Context
  * @param {(activeStates: object, ctx: object) => void} [onSelectionUpdate] Callback to refresh toolbar button states
+ * @param {object} [options] Optional configuration (e.g. prefix, elements)
  * @returns {{ renderList: () => void, openModal: (style?: object | null) => void }}
  */
-export function setupCustomStylesUI(editor, ctx, onSelectionUpdate) {
-    const dropdownBtn = document.getElementById('btn-editor-custom-styles-dropdown')
-    const dropdownMenu = document.getElementById('editor-custom-styles-dropdown-menu')
-    const container = document.getElementById('custom-styles-list-container')
-    const clearBtn = document.getElementById('btn-clear-custom-style')
-    const openModalBtn = document.getElementById('btn-open-custom-style-modal')
-
-    let styleModal = null
+export function setupCustomStylesUI(editor, ctx, onSelectionUpdate, options = {}) {
+    const prefix = options.prefix || ''
+    const dropdownBtn =
+        options.dropdownBtn ||
+        document.getElementById(`${prefix}btn-editor-custom-styles-dropdown`) ||
+        (!prefix ? document.getElementById('btn-editor-custom-styles-dropdown') : null)
+    const dropdownMenu =
+        options.dropdownMenu ||
+        document.getElementById(`${prefix}editor-custom-styles-dropdown-menu`) ||
+        (!prefix ? document.getElementById('editor-custom-styles-dropdown-menu') : null)
+    const container =
+        options.container ||
+        document.getElementById(`${prefix}custom-styles-list-container`) ||
+        (!prefix ? document.getElementById('custom-styles-list-container') : null)
+    const clearBtn =
+        options.clearBtn ||
+        document.getElementById(`${prefix}btn-clear-custom-style`) ||
+        (!prefix ? document.getElementById('btn-clear-custom-style') : null)
+    const openModalBtn =
+        options.openModalBtn ||
+        document.getElementById(`${prefix}btn-open-custom-style-modal`) ||
+        (!prefix ? document.getElementById('btn-open-custom-style-modal') : null)
 
     const renderList = () => {
         if (!container) return
@@ -70,7 +88,7 @@ export function setupCustomStylesUI(editor, ctx, onSelectionUpdate) {
             edit.addEventListener('click', e => {
                 e.stopPropagation()
                 if (dropdownMenu) dropdownMenu.classList.add('hidden')
-                styleModal?.openModal(style)
+                sharedStyleModal?.openModal(style)
             })
             right.appendChild(edit)
 
@@ -96,10 +114,14 @@ export function setupCustomStylesUI(editor, ctx, onSelectionUpdate) {
         })
     }
 
-    styleModal = setupCustomStyleModal(ctx, {
-        onStyleSaved: () => renderList(),
-        onStyleDeleted: () => renderList(),
-    })
+    activeStyleRenderers.add(renderList)
+
+    if (!sharedStyleModal) {
+        sharedStyleModal = setupCustomStyleModal(ctx, {
+            onStyleSaved: () => activeStyleRenderers.forEach(render => render()),
+            onStyleDeleted: () => activeStyleRenderers.forEach(render => render()),
+        })
+    }
 
     // Dropdown listeners
     dropdownBtn?.addEventListener('click', e => {
@@ -130,11 +152,11 @@ export function setupCustomStylesUI(editor, ctx, onSelectionUpdate) {
     openModalBtn?.addEventListener('click', e => {
         e.stopPropagation()
         dropdownMenu?.classList.add('hidden')
-        styleModal?.openModal(null)
+        sharedStyleModal?.openModal(null)
     })
 
     return {
         renderList,
-        openModal: style => styleModal?.openModal(style),
+        openModal: style => sharedStyleModal?.openModal(style),
     }
 }

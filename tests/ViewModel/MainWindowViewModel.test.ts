@@ -108,6 +108,23 @@ describe('MainWindowViewModel', () => {
         expect(vm.getActiveFile()).toBeNull()
     })
 
+    it('zwraca czytelną nazwę obiektu zamiast pełnej nazwy pliku opisu', () => {
+        expect(vm.getFileDisplayName(null)).toBe('')
+        expect(vm.getFileDisplayName('Description_NPC_Jan.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Description_NPC_Jan')).toBe('Jan')
+        expect(vm.getFileDisplayName('C:/Projekt/Descriptions/Description_NPC_Jan.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Description_Item_Zardzewialy_Miecz.md')).toBe(
+            'Zardzewialy Miecz'
+        )
+        expect(vm.getFileDisplayName('Description_Location_Mroczny_Las.md')).toBe('Mroczny Las')
+        expect(vm.getFileDisplayName('Jan_text.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Jan_author.md')).toBe('Jan')
+        expect(vm.getFileDisplayName('Wprowadzenie.md')).toBe('Wprowadzenie')
+
+        vm.setFileDisplayName('custom_file.md', 'Mój Specjalny Obiekt')
+        expect(vm.getFileDisplayName('custom_file.md')).toBe('Mój Specjalny Obiekt')
+    })
+
     it('zmienia główny widok na graf historii i z powrotem', () => {
         expect(vm.getActiveMainView()).toBe('graph')
 
@@ -495,19 +512,22 @@ describe('MainWindowViewModel', () => {
             expect(p.getContent().getSummary()).toBe('Krótkie streszczenie wątku')
         })
 
-        it('przygotowuje i otwiera pliki narracyjne text.md oraz author.md', () => {
+        it('przygotowuje i otwiera ustandaryzowany plik narracyjny Description_Paragraph_Intro.md i zwraca czytelną nazwę', () => {
             const p = vm.createParagraph('Intro')
             vm.selectElement(p, 'paragraph')
 
-            const textFile = vm.openOrCreateDescriptionFile('text')
-            expect(textFile.fileName).toBe('Intro_text.md')
-            expect(textFile.content).toContain('Narrative text')
-            expect(vm.getActiveFile()).toBe('Intro_text.md')
+            const descFile = vm.openOrCreateDescriptionFile()
+            expect(descFile.fileName).toBe('Description_Paragraph_Intro.md')
+            expect(descFile.content).toContain('Narrative text')
+            expect(vm.getActiveFile()).toBe('Description_Paragraph_Intro.md')
+            expect(vm.getFileDisplayName(descFile.fileName)).toBe('Intro')
+        })
 
-            const authorFile = vm.openOrCreateDescriptionFile('author')
-            expect(authorFile.fileName).toBe('Intro_author.md')
-            expect(authorFile.content).toContain('Author Notes')
-            expect(vm.getActiveFile()).toBe('Intro_author.md')
+        it('zwraca czytelną nazwę obiektu zamiast technicznej nazwy pliku', () => {
+            expect(vm.getFileDisplayName('Description_NPC_Jan.md')).toBe('Jan')
+            expect(vm.getFileDisplayName('Description_Location_Mroczny_Las.md')).toBe('Mroczny Las')
+            expect(vm.getFileDisplayName('Intro_text.md')).toBe('Intro')
+            expect(vm.getFileDisplayName(null)).toBe('')
         })
     })
 
@@ -923,6 +943,96 @@ describe('MainWindowViewModel', () => {
 
             vm.removeFeatureFromSelected(feat.getId())
             expect(char.getFeatures()).not.toContain(feat)
+        })
+    })
+
+    describe('START paragraph and deletion protection', () => {
+        it('tworzy węzeł startowy za pomocą createStartParagraph', () => {
+            const startP = vm.createStartParagraph({ x: 100, y: 150 })
+            expect(startP.getIsStart()).toBe(true)
+            expect(startP.getTitle()).toBe('START')
+            expect(startP.getPosition()).toEqual({ x: 100, y: 150 })
+        })
+
+        it('ensureStartParagraph dodaje węzeł startowy jeśli lista jest pusta lub go brak', () => {
+            const list: Paragraph[] = []
+            const startP = vm.ensureStartParagraph(list)
+            expect(startP.getIsStart()).toBe(true)
+            expect(list).toHaveLength(1)
+            expect(list[0]).toBe(startP)
+
+            // Wywołane ponownie zwraca istniejący
+            const sameStart = vm.ensureStartParagraph(list)
+            expect(sameStart).toBe(startP)
+            expect(list).toHaveLength(1)
+        })
+
+        it('ensureStartParagraph normalizuje listę gdy jest wiele węzłów oznaczonych jako start', () => {
+            const p1 = vm.createParagraph('P1')
+            p1.setIsStart(true)
+            const p2 = vm.createParagraph('P2')
+            p2.setIsStart(true)
+            const list = [p1, p2]
+
+            const start = vm.ensureStartParagraph(list)
+            expect(start).toBe(p1)
+            expect(p1.getIsStart()).toBe(true)
+            expect(p2.getIsStart()).toBe(false)
+        })
+
+        it('deleteParagraph usuwa zwykły paragraf oraz usuwa go ze scen i powiązań wyborów', () => {
+            const startP = vm.createStartParagraph()
+            const p1 = vm.createParagraph('P1')
+            const p2 = vm.createParagraph('P2')
+            const choice = vm.createChoice(p1, p2, 'Idź do P2')
+            p1.addChoice(choice)
+
+            const scene = vm.createScene('Scena testowa')
+            scene.addParagraph(p2)
+
+            const paragraphs = [startP, p1, p2]
+            const scenes = [scene]
+
+            const deleted = vm.deleteParagraph(p2.getId(), paragraphs, scenes)
+            expect(deleted).toBe(true)
+            expect(paragraphs).toEqual([startP, p1])
+            expect(scene.getParagraphs()).not.toContain(p2)
+            expect(p1.getChoices()).toHaveLength(0)
+        })
+
+        it('deleteParagraph blokuje usunięcie węzła START', () => {
+            const startP = vm.createStartParagraph()
+            const paragraphs = [startP]
+            const scenes = [vm.createScene('Scena')]
+
+            const deleted = vm.deleteParagraph(startP.getId(), paragraphs, scenes)
+            expect(deleted).toBe(false)
+            expect(paragraphs).toContain(startP)
+        })
+
+        it('ensureStartParagraph radzi sobie z pustymi wartościami i automatycznie dodaje brakujący węzeł START', () => {
+            const emptyList: Paragraph[] = []
+            const created = vm.ensureStartParagraph(emptyList)
+            expect(created).toBeDefined()
+            expect(created.getIsStart()).toBe(true)
+            expect(emptyList).toContain(created)
+
+            // Wywołanie z parametrem niebędącym tablicą zwraca nowy węzeł START
+            const invalidFallback = vm.ensureStartParagraph(null as unknown as Paragraph[])
+            expect(invalidFallback).toBeDefined()
+            expect(invalidFallback.getIsStart()).toBe(true)
+        })
+
+        it('deleteParagraph po usunięciu innych elementów gwarantuje obecność węzła START', () => {
+            const p1 = vm.createParagraph('Tymczasowy')
+            const paragraphs = [p1]
+            expect(paragraphs.some(p => p.getIsStart())).toBe(false)
+
+            // Usunięcie p1 usuwa p1 i natychmiast zabezpiecza listę dodając węzeł START
+            const deleted = vm.deleteParagraph(p1.getId(), paragraphs)
+            expect(deleted).toBe(true)
+            expect(paragraphs).toHaveLength(1)
+            expect(paragraphs[0].getIsStart()).toBe(true)
         })
     })
 })

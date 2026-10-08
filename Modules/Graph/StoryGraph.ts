@@ -127,6 +127,24 @@ export class StoryGraph {
         const paragraphs = this.options.getParagraphs()
         const scenes = this.options.getScenes()
 
+        // Safeguard: Ensure START node exists on the graph. If missing, automatically add it!
+        if (Array.isArray(paragraphs)) {
+            const hasStart = paragraphs.some(
+                p =>
+                    p &&
+                    ((typeof p.getIsStart === 'function' && p.getIsStart()) ||
+                        (typeof p.getId === 'function' && p.getId() === 'start') ||
+                        (p as unknown as { isStart?: boolean }).isStart === true ||
+                        (p as unknown as { id?: string }).id === 'start')
+            )
+            if (!hasStart) {
+                const startP = new Paragraph('start', 'START')
+                startP.setIsStart(true)
+                startP.setPosition(this.calculateDefaultPosition(0))
+                paragraphs.unshift(startP)
+            }
+        }
+
         // Reorder choices to prevent line crossings before building edges
         preventChoiceLineCrossings(paragraphs)
 
@@ -1353,6 +1371,9 @@ export class StoryGraph {
         entityType: 'tag' | 'character' | 'location' | string,
         entityId: string
     ): void {
+        if (targetParagraph.getIsStart && targetParagraph.getIsStart()) {
+            return
+        }
         const tags = this.options.getTags ? this.options.getTags() : []
         const characters = this.options.getCharacters ? this.options.getCharacters() : []
         const locations = this.options.getLocations ? this.options.getLocations() : []

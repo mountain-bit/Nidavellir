@@ -177,7 +177,7 @@ SilnikGierParagrafowych/
 │   ├── CharacterClass.ts          # Character class
 │   ├── Item.ts                    # Item / equipment
 │   ├── Location.ts                # World location
-│   ├── Description.ts             # Rich description (text, summary, authorNotes, paths)
+│   ├── Description.ts             # Description model (single markdown file + summary)
 │   ├── Tag.ts                     # Color-coded categorization tag
 │   ├── Stat.ts                    # Character stat / attribute
 │   ├── Skill.ts                   # Character skill (direct value or stat modifier)
@@ -436,24 +436,22 @@ When a project is created, the engine scaffolds this directory structure on disk
 │   ├── meta.json
 │   └── <npc_slug>/
 │       ├── element.json
-│       ├── text.md
-│       └── author.md
+│       └── Description_NPC_<name>.md
 ├── Paragraphs/
 │   ├── meta.json
 │   └── <paragraph_slug>/
 │       ├── element.json
-│       ├── text.md
-│       └── author.md
+│       └── Description_Paragraph_<title>.md
 ├── Items/
 │   ├── meta.json
 │   └── <item_slug>/
 │       ├── element.json
-│       └── text.md
+│       └── Description_Item_<name>.md
 ├── Locations/
 │   ├── meta.json
 │   └── <location_slug>/
 │       ├── element.json
-│       └── text.md
+│       └── Description_Location_<name>.md
 ├── Templates/
 │   └── meta.json
 ├── CharacterClasses/
@@ -509,9 +507,7 @@ When a project is created, the engine scaffolds this directory structure on disk
     "description": {
         "text": "An ancient, misty forest.",
         "summary": "Misty woods",
-        "authorNotes": "Player needs a torch here.",
-        "textPath": "./Locations/dark_forest/text.md",
-        "authorNotesPath": "./Locations/dark_forest/author.md"
+        "filePath": "./Locations/dark_forest/Description_Location_Dark_Forest.md"
     },
     "tags": ["wilderness", "danger"]
 }

@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
     getRecentProjects: () => ipcRenderer.invoke('get-recent-projects'),
@@ -18,6 +18,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
     saveMarkdownFile: (projectPath, relativePath, content) =>
         ipcRenderer.invoke('save-markdown-file', { projectPath, relativePath, content }),
     closeApp: () => ipcRenderer.invoke('close-app'),
+    forceCloseApp: () => ipcRenderer.invoke('force-close-app'),
+    onAppCloseRequested: callback => {
+        const handler = () => callback()
+        ipcRenderer.on('app-close-requested', handler)
+        return () => ipcRenderer.removeListener('app-close-requested', handler)
+    },
     loadMainWindow: () => ipcRenderer.invoke('load-main-window'),
+    loadStartWindow: () => ipcRenderer.invoke('load-start-window'),
     getSystemUsername: () => ipcRenderer.invoke('get-system-username'),
+    getCurrentProject: () => ipcRenderer.invoke('get-current-project'),
+    getPathForFile: file => {
+        if (webUtils && typeof webUtils.getPathForFile === 'function') {
+            try {
+                const p = webUtils.getPathForFile(file)
+                if (p) return p
+            } catch {
+                // ignore
+            }
+        }
+        return file && file.path ? file.path : ''
+    },
+    importImage: (projectPath, prefix) =>
+        ipcRenderer.invoke('asset-import-image', { projectPath, prefix }),
+    importImageFile: (projectPath, filePath, prefix) =>
+        ipcRenderer.invoke('asset-import-file', { projectPath, filePath, prefix }),
+    listImages: projectPath => ipcRenderer.invoke('asset-list-images', { projectPath }),
+    saveEditedImage: payload => ipcRenderer.invoke('asset-save-edited-image', payload),
 })
