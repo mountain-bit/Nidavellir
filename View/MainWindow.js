@@ -47,6 +47,7 @@ import {
     markProjectDirty,
     updateProjectSaveIndicatorUI,
 } from './ui/projectStateTracker.js'
+import { initTopBar, updateTopBarUI } from './ui/topBar.js'
 import {
     renderEditorTabs,
     saveAllUnsavedFiles,
@@ -254,6 +255,7 @@ function updateLeftDrawerUI() {
         leftDrawer.classList.add('collapsed')
         if (leftResizer) leftResizer.classList.add('collapsed')
     }
+    updateTopBarUI(appContext)
 }
 
 function refreshActiveSection(type) {
@@ -529,6 +531,7 @@ if (toggleRightSidebarBtn) {
     toggleRightSidebarBtn.addEventListener('click', () => {
         vm.toggleRightSidebar()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -536,6 +539,7 @@ if (reopenRightSidebarBtn) {
     reopenRightSidebarBtn.addEventListener('click', () => {
         vm.setRightSidebarCollapsed(false)
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -553,6 +557,7 @@ if (viewMarkdownBtn) {
     viewMarkdownBtn.addEventListener('click', () => {
         vm.setActiveMainView('markdown')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -560,6 +565,7 @@ if (viewGraphBtn) {
     viewGraphBtn.addEventListener('click', () => {
         vm.setActiveMainView('graph')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -567,6 +573,7 @@ document.querySelectorAll('[data-action="show-graph"]').forEach(btn => {
     btn.addEventListener('click', () => {
         vm.setActiveMainView('graph')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 })
 
@@ -574,6 +581,7 @@ document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
     btn.addEventListener('click', () => {
         vm.setActiveMainView('markdown')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 })
 
@@ -606,6 +614,7 @@ document.querySelectorAll('[data-action="toggle-left-drawer"]').forEach(btn => {
             vm.toggleLeftTab(vm.getActiveLeftTab() || 'paragraphs')
         }
         updateLeftDrawerUI()
+        updateTopBarUI(appContext)
     })
 })
 
@@ -613,6 +622,7 @@ document.querySelectorAll('[data-action="toggle-right-sidebar"]').forEach(btn =>
     btn.addEventListener('click', () => {
         vm.toggleRightSidebar()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
+        updateTopBarUI(appContext)
     })
 })
 
@@ -883,6 +893,8 @@ async function initApp() {
         populateFilterSelects(appContext)
 
         updateRibbonUI()
+        initTopBar(appContext)
+        updateTopBarUI(appContext)
         updateLeftDrawerUI()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
         renderHistoryBar(appContext)

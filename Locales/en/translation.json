@@ -434,6 +434,33 @@
         "np_create_error": "Error creating project:",
         "np_unexpected_error": "An unexpected error occurred:"
     },
+    "topbar": {
+        "project_placeholder": "No project",
+        "saved": "Saved",
+        "unsaved_changes": "Unsaved changes",
+        "buttons": {
+            "save": "Save",
+            "save_as": "Save As...",
+            "close_project": "Close Project",
+            "open_project": "Open Project",
+            "new_file": "New File",
+            "undo": "Undo (Ctrl+Z)",
+            "redo": "Redo (Ctrl+Y)",
+            "search": "Quick Search (Ctrl+P)",
+            "view_graph": "Story Graph",
+            "view_editor": "Text Editor",
+            "validate_graph": "Validate Graph",
+            "validation_clean": "0 issues",
+            "zoom_fit": "Fit Graph to View",
+            "playtest": "Playtest Game",
+            "export": "Export",
+            "left_panel": "Left Panel (Ctrl+B)",
+            "right_panel": "Right Panel (Ctrl+Alt+B)",
+            "assets": "Image Assets",
+            "settings": "Settings",
+            "help": "Help & Shortcuts"
+        }
+    },
     "ribbon": {
         "tabs": {
             "main": "Home",

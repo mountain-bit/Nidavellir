@@ -434,6 +434,33 @@
         "np_create_error": "Błąd podczas tworzenia projektu:",
         "np_unexpected_error": "Wystąpił nieoczekiwany błąd:"
     },
+    "topbar": {
+        "project_placeholder": "Brak projektu",
+        "saved": "Zapisano",
+        "unsaved_changes": "Niezapisane zmiany",
+        "buttons": {
+            "save": "Zapisz",
+            "save_as": "Zapisz jako...",
+            "close_project": "Zamknij projekt",
+            "open_project": "Otwórz projekt",
+            "new_file": "Nowy plik",
+            "undo": "Cofnij (Ctrl+Z)",
+            "redo": "Ponów (Ctrl+Y)",
+            "search": "Szybkie szukanie (Ctrl+P)",
+            "view_graph": "Graf historii",
+            "view_editor": "Edytor tekstu",
+            "validate_graph": "Waliduj graf",
+            "validation_clean": "0 błędów",
+            "zoom_fit": "Dopasuj widok grafu",
+            "playtest": "Testuj grę",
+            "export": "Eksportuj",
+            "left_panel": "Panel lewy (Ctrl+B)",
+            "right_panel": "Panel prawy (Ctrl+Alt+B)",
+            "assets": "Zasoby graficzne",
+            "settings": "Ustawienia",
+            "help": "Pomoc i skróty"
+        }
+    },
     "ribbon": {
         "tabs": {
             "main": "Główne",

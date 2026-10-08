@@ -639,3 +639,31 @@ declare module '*/View/ui/autoSaveService.js' {
     export function stopAutoSave(): void
     export function isAutoSaveRunningStatus(): boolean
 }
+
+declare module '*/View/ui/graphValidator.js' {
+    export interface IGraphValidationIssue {
+        id: string
+        type: 'error' | 'warning'
+        title: string
+        description: string
+        paragraphId?: string
+    }
+
+    export interface IGraphValidationReport {
+        isValid: boolean
+        errorCount: number
+        warningCount: number
+        issuesCount: number
+        issues: IGraphValidationIssue[]
+    }
+
+    export function validateStoryGraph(ctx: unknown): IGraphValidationReport
+}
+
+declare module '*/View/ui/topBar.js' {
+    export function updateTopBarUI(ctx: unknown): void
+    export function runGraphValidation(ctx: unknown): unknown
+    export function openPlaytestSimulator(ctx: unknown): void
+    export function openExportModal(ctx: unknown): void
+    export function initTopBar(ctx: unknown): void
+}

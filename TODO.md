@@ -19,6 +19,7 @@ This document serves as a comprehensive registry of planned features, enhancemen
    - [8.3. Media & Asset Manager](#83-media--asset-manager)
    - [8.4. Global Search & Replace](#84-global-search--replace)
    - [8.5. Import and Export of External Formats (Twine, Ink, Web Player) (Optional)](#85-import-and-export-of-external-formats-twine-ink-web-player-optional)
+9. [Top Bar Toolbar System (Pasek Górny)](file:///c:/Projekty/SilnikGierParagrafowych/SilnikGierParagrafowych/TODO_TOPBAR.md)
 
 ---
 
@@ -86,4 +87,13 @@ This document serves as a comprehensive registry of planned features, enhancemen
   - [x] Standardized file naming convention `Description_<Category>_<EntityName>.md` (e.g. `Description_NPC_Jan.md`, `Description_Paragraph_Intro.md`) in `pathSanitizer` and `EntityService.js`.
   - [x] Updated UI Details Panel (`renderFilesModule`) to a single clean description button, removing author notes button and listeners.
   - [x] Updated i18n locales (PL, EN, DE), schemas, architectural documentation, and full test suite.
+
+---
+
+## 9. Top Bar Toolbar System (Pasek Górny)
+- [x] **Pełna specyfikacja, podział na kategorie i lista zadań znajduje się w dedykowanym dokumencie:**
+  - 👉 **[TODO_TOPBAR.md](file:///c:/Projekty/SilnikGierParagrafowych/SilnikGierParagrafowych/TODO_TOPBAR.md)**
+  - **Kategorie:** Zarządzanie Projektem i Plikami, Edycja i Historia, Widoki i Panele, Walidacja i Diagnostyka Grafu, Testowanie i Publikacja, Narzędzia i Ustawienia.
+  - **Etap 1 (Ukończony):** Wizualne dodanie przycisków, układ i grupowanie, ikony SVG, etykiety i i18n.
+  - **Etap 2 (Ukończony):** Implementacja logiki biznesowej, walidacji grafu, symulatora rozgrywki, eksportu i integracja z ViewModel/IPC.
 
