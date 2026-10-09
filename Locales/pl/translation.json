@@ -332,6 +332,9 @@
             "entity_location": "Lokacja...",
             "entity_character": "Postać (NPC)...",
             "entity_tag": "Cecha / Tag...",
+            "entity_item": "Przedmiot...",
+            "insert_description_embed_title": "Wstaw opis przedmiotu, postaci lub lokacji (wstrzykiwany przy eksporcie)",
+            "insert_description_embed": "Wstaw opis obiektu",
             "entity_hint_prefix": "Wpisz",
             "entity_hint_suffix": "aby dodać lokację lub postać",
             "list_label": "Lista",
@@ -419,6 +422,18 @@
             "items": "Przedmioty",
             "toast_linked": "Powiązano „{{label}}” z encją: {{name}}",
             "toast_unlinked": "Usunięto powiązanie encji"
+        },
+        "embed_modal": {
+            "title": "Wstaw opis encji (do eksportu)",
+            "label_in_text": "Tekst w treści (etykieta linku):",
+            "search_placeholder": "Szukaj przedmiotu, postaci lub lokacji...",
+            "variant_label": "Wariant wstawianej treści:",
+            "empty_list": "Brak obiektów z opisem w wybranej kategorii.",
+            "no_selection": "(brak wyboru)",
+            "remove_embed": "Usuń wstawkę",
+            "confirm": "Wstaw opis",
+            "toast_inserted": "Wstawiono opis: „{{name}}”",
+            "toast_removed": "Usunięto wstawkę opisu."
         },
         "context_menu": {
             "link_entity": "Połącz z encją projektu...",

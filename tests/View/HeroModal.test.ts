@@ -250,8 +250,8 @@ describe('HeroModal and renderMainCharacter', () => {
         btnSave.click()
 
         expect(ctx.projectData.playerCharacter).not.toBeNull()
-        expect(ctx.projectData.playerCharacter.getName()).toBe('Geralt z Rivii')
-        expect(ctx.projectData.playerCharacter.getSummary()).toBe('Biały Wilk.')
+        expect(ctx.projectData.playerCharacter!.getName()).toBe('Geralt z Rivii')
+        expect(ctx.projectData.playerCharacter!.getSummary()).toBe('Biały Wilk.')
 
         const modal = document.getElementById('hero-create-modal')
         expect(modal?.classList.contains('hidden')).toBe(true)

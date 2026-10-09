@@ -332,6 +332,9 @@
             "entity_location": "Location...",
             "entity_character": "Character (NPC)...",
             "entity_tag": "Trait / Tag...",
+            "entity_item": "Item...",
+            "insert_description_embed_title": "Insert description of item, character or location (injected at export)",
+            "insert_description_embed": "Insert object description",
             "entity_hint_prefix": "Type",
             "entity_hint_suffix": "to link location or character",
             "list_label": "List",
@@ -419,6 +422,18 @@
             "items": "Items",
             "toast_linked": "Linked '{{label}}' to entity: {{name}}",
             "toast_unlinked": "Removed entity link"
+        },
+        "embed_modal": {
+            "title": "Insert Entity Description (for export)",
+            "label_in_text": "Text in content (link label):",
+            "search_placeholder": "Search item, character or location...",
+            "variant_label": "Content variant to insert:",
+            "empty_list": "No objects with description in selected category.",
+            "no_selection": "(no selection)",
+            "remove_embed": "Remove embed",
+            "confirm": "Insert description",
+            "toast_inserted": "Inserted description: \"{{name}}\"",
+            "toast_removed": "Description embed removed."
         },
         "context_menu": {
             "link_entity": "Link with project entity...",

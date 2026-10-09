@@ -63,6 +63,24 @@ export function createMockProjectData(vm) {
         vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
     ]
     const projectFeatures = [vm.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
+    const projectItems = [
+        {
+            id: 'item_sword',
+            name: 'Miecz żelazny',
+            description: {
+                text: 'Ostrze wykute w krasnoludzkiej kuźni, niezastąpione w boju.',
+                summary: 'Solidny miecz żelazny.',
+            },
+        },
+        {
+            id: 'item_potion',
+            name: 'Mikstura leczenia',
+            description: {
+                text: 'Czerwony eliksir przywracający siły witalne rannemu wędrowcowi.',
+                summary: 'Leczniczy wywar ziołowy.',
+            },
+        },
+    ]
 
     const p1 = new Paragraph(
         'p1',
@@ -213,6 +231,8 @@ export function createMockProjectData(vm) {
         projectSkills,
         projectParameters,
         projectFeatures,
+        projectItems,
+        items: projectItems,
         projectParagraphs,
         projectScenes,
     }
@@ -280,6 +300,7 @@ export function extractProjectData(project, files = {}) {
         typeof project.getGlobalParameters === 'function' ? project.getGlobalParameters() : []
     const features =
         typeof project.getGlobalFeatures === 'function' ? project.getGlobalFeatures() : []
+    const items = typeof project.getItems === 'function' ? project.getItems() : project.items || []
     const playerCharacter =
         typeof project.getPlayerCharacter === 'function'
             ? project.getPlayerCharacter()
@@ -292,6 +313,8 @@ export function extractProjectData(project, files = {}) {
         playerCharacter,
         projectTemplates: templates,
         projectLocations: locations,
+        projectItems: items,
+        items,
         projectStats: stats,
         projectSkills: skills,
         projectParameters: parameters,

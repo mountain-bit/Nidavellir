@@ -2,15 +2,20 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
 
+import { DescriptionTransclusionService } from '../../Services/DescriptionTransclusionService'
 import { CustomStylesService } from './CustomStylesService'
 import { EntitySyncService } from './EntitySyncService'
 import { CustomImage } from './extensions/CustomImage'
 import { CustomStyleMark } from './extensions/CustomStyleMark'
 import { CustomUnderline } from './extensions/CustomUnderline'
+import { DescriptionEmbed } from './extensions/DescriptionEmbed'
 import { DialogBlock } from './extensions/DialogBlock'
 import { createEntitySuggestionConfig, EntityMention } from './extensions/EntityMention'
 import {
+    DescriptionEmbedType,
+    DescriptionEmbedVariant,
     IActiveFormatting,
+    IDescriptionEmbedAttrs,
     IDocumentEntities,
     IEntityMentionItem,
     IMarkdownEditorOptions,
@@ -65,6 +70,7 @@ export class MarkdownEditor {
                 CustomStyleMark,
                 DialogBlock,
                 CustomImage,
+                DescriptionEmbed,
                 Markdown.configure({
                     html: true,
                     tightLists: true,
@@ -75,7 +81,9 @@ export class MarkdownEditor {
                     suggestion: createEntitySuggestionConfig(getEntities),
                 }),
             ],
-            content: this.options.initialContent || '',
+            content: this.options.initialContent
+                ? DescriptionTransclusionService.preprocessForEditor(this.options.initialContent)
+                : '',
             editorProps: {
                 attributes: {
                     class: 'gamebook-prose prose prose-invert max-w-none focus:outline-none min-h-[200px] text-sm leading-relaxed text-[#e4e4e7] p-6 font-sans',
@@ -84,6 +92,39 @@ export class MarkdownEditor {
                 handleClick: (_view, pos, event): boolean => {
                     const mouseEvent = event as MouseEvent
                     const target = mouseEvent.target as HTMLElement
+                    const embedBadge = target?.closest?.(
+                        '.description-embed-badge, .description-embed-card, [data-description-embed="true"]'
+                    ) as HTMLElement
+                    if (embedBadge && this.options.onDescriptionEmbedClick) {
+                        const id = embedBadge.getAttribute('data-id') || ''
+                        const type = (embedBadge.getAttribute('data-type') ||
+                            'item') as DescriptionEmbedType
+                        const variant = (embedBadge.getAttribute('data-variant') ||
+                            'text') as DescriptionEmbedVariant
+                        const name =
+                            embedBadge.getAttribute('data-name') ||
+                            embedBadge.getAttribute('data-label') ||
+                            ''
+                        const rect =
+                            typeof embedBadge.getBoundingClientRect === 'function'
+                                ? embedBadge.getBoundingClientRect()
+                                : undefined
+                        const clientPoint =
+                            mouseEvent.clientX !== undefined
+                                ? { x: mouseEvent.clientX, y: mouseEvent.clientY }
+                                : undefined
+                        this.options.onDescriptionEmbedClick({
+                            id,
+                            type,
+                            variant,
+                            name,
+                            pos,
+                            rect,
+                            clientPoint,
+                        })
+                        return true
+                    }
+
                     const badge = target?.closest?.('.entity-mention-badge') as HTMLElement
                     if (badge && this.options.onEntityClick) {
                         const id = badge.getAttribute('data-entity-id') || ''
@@ -134,20 +175,72 @@ export class MarkdownEditor {
     public getMarkdown(): string {
         if (!this.editor) return ''
         const storage = (this.editor.storage as IMarkdownStorage).markdown
+        let md = ''
         if (storage && typeof storage.getMarkdown === 'function') {
-            return storage.getMarkdown()
+            md = storage.getMarkdown()
+        } else {
+            md = this.editor.getText()
         }
-        return this.editor.getText()
+        return DescriptionTransclusionService.postprocessFromEditor(md)
     }
 
     public setMarkdown(content: string): void {
         if (!this.editor) return
         this.isUpdatingInternally = true
         try {
-            this.editor.commands.setContent(content || '')
+            const preprocessed = DescriptionTransclusionService.preprocessForEditor(content || '')
+            this.editor.commands.setContent(preprocessed)
         } finally {
             this.isUpdatingInternally = false
         }
+    }
+
+    public insertDescriptionEmbed(attrs: IDescriptionEmbedAttrs): boolean {
+        if (!this.editor) return false
+        const cleanName = (attrs.name || attrs.id).replace(/^Opis:\s*/i, '')
+        const label = attrs.label || `Opis: ${cleanName}`
+        return (
+            this.editor
+                .chain()
+                .focus()
+                .insertContent({
+                    type: 'descriptionEmbed',
+                    attrs: {
+                        id: attrs.id,
+                        type: attrs.type,
+                        variant: attrs.variant || 'text',
+                        name: cleanName,
+                        label,
+                    },
+                })
+                .insertContent(' ')
+                .run() ?? false
+        )
+    }
+
+    public updateDescriptionEmbed(pos: number, attrs: Partial<IDescriptionEmbedAttrs>): boolean {
+        if (!this.editor) return false
+        const cleanName = attrs.name ? attrs.name.replace(/^Opis:\s*/i, '') : undefined
+        const updateAttrs: Record<string, unknown> = { ...attrs }
+        if (cleanName) {
+            updateAttrs.name = cleanName
+            if (!updateAttrs.label) {
+                updateAttrs.label = `Opis: ${cleanName}`
+            }
+        }
+        return (
+            this.editor
+                .chain()
+                .focus()
+                .setNodeSelection(pos)
+                .updateAttributes('descriptionEmbed', updateAttrs)
+                .run() ?? false
+        )
+    }
+
+    public removeDescriptionEmbed(pos: number): boolean {
+        if (!this.editor) return false
+        return this.editor.chain().focus().setNodeSelection(pos).deleteSelection().run() ?? false
     }
 
     public getExtractedEntities(): IDocumentEntities {

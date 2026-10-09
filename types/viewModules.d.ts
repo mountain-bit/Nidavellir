@@ -476,6 +476,31 @@ declare module '*/View/ui/editor/entityLinkModal.js' {
     export function closeEntityLinkModal(): void
 }
 
+declare module '*/View/ui/editor/descriptionEmbedModal.js' {
+    export function extractEmbeddableEntities(source?: unknown): Array<{
+        id: string
+        name: string
+        type: 'item' | 'character' | 'location'
+        descriptionText: string
+        summaryText: string
+    }>
+    export function positionDescriptionEmbedPopover(targetRectOrPoint?: unknown): void
+    export function openDescriptionEmbedModal(
+        editor: unknown,
+        ctx: unknown,
+        options?: {
+            initialEntityId?: string
+            initialType?: string
+            initialVariant?: 'text' | 'summary'
+            embedPos?: number | null
+            targetRect?: unknown
+            point?: { x: number; y: number }
+        }
+    ): void
+    export function closeDescriptionEmbedModal(): void
+    export function setupDescriptionEmbedModalEvents(ctx?: unknown): void
+}
+
 declare module '*/View/ui/editor/mainEditor.js' {
     export function getMainEditorInstance(): unknown
     export function updateEditorStats(editor: unknown): void

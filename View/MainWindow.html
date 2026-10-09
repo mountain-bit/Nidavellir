@@ -1617,8 +1617,30 @@
                                             >Przedmiot...</span
                                         >
                                     </button>
+                                    <button
+                                        type="button"
+                                        id="btn-menu-insert-description-embed"
+                                        class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-emerald-950/40 text-emerald-400 font-medium cursor-pointer border-t border-zinc-800/80 mt-1"
+                                    >
+                                        <app-icon name="paragraph" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
+                                        <span data-i18n="editor.toolbar.insert_description_embed"
+                                            >Wstaw opis obiektu...</span
+                                        >
+                                    </button>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                id="btn-insert-description-embed"
+                                class="flex items-center gap-1.5 px-2 py-1 rounded bg-[#27272a] hover:bg-emerald-600/20 hover:text-emerald-300 border border-[#3f3f46] text-xs transition-colors cursor-pointer"
+                                title="Wstaw opis przedmiotu, postaci lub lokacji (wstrzykiwany przy eksporcie)"
+                                data-i18n-title="editor.toolbar.insert_description_embed_title"
+                            >
+                                <app-icon name="paragraph" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
+                                <span data-i18n="editor.toolbar.insert_description_embed"
+                                    >Wstaw opis obiektu</span
+                                >
+                            </button>
                         </div>
                         <div
                             class="text-[11px] text-zinc-500 italic hidden sm:flex items-center gap-1"
@@ -5163,6 +5185,200 @@
                         data-i18n="editor.entity_modal.confirm"
                     >
                         Zastosuj
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Embed Modal (Wstawka opisu encji przy eksporcie) -->
+        <div
+            id="description-embed-modal"
+            class="hidden fixed z-50 w-96 max-h-[520px] bg-[#1c1c21] border border-zinc-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-zinc-200"
+            style="top: 0; left: 0"
+        >
+            <!-- Header -->
+            <div
+                class="px-3.5 py-2.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80 shrink-0"
+            >
+                <div class="flex items-center gap-2">
+                    <app-icon name="paragraph" class="w-4 h-4 text-emerald-400 inline-block"></app-icon>
+                    <div>
+                        <h3
+                            class="text-xs font-semibold text-zinc-100"
+                            id="description-embed-modal-title"
+                            data-i18n="editor.embed_modal.title"
+                        >
+                            Wstaw opis encji (do eksportu)
+                        </h3>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    id="btn-close-description-embed-modal"
+                    class="text-zinc-400 hover:text-zinc-200 p-1 rounded hover:bg-zinc-800 cursor-pointer"
+                    title="Zamknij"
+                    data-i18n-title="buttons.close"
+                >
+                    <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-3 space-y-2.5 overflow-y-auto flex-1 bg-[#161619]">
+                <!-- Tekst w treści (etykieta linku) -->
+                <div>
+                    <label
+                        for="description-embed-label-input"
+                        class="block text-[11px] font-medium text-zinc-300 mb-1"
+                        data-i18n="editor.embed_modal.label_in_text"
+                    >
+                        Tekst w treści (etykieta linku):
+                    </label>
+                    <div class="relative">
+                        <span
+                            class="absolute inset-y-0 left-2 flex items-center text-zinc-500 pointer-events-none"
+                        >
+                            <app-icon name="edit" class="w-3.5 h-3.5 text-zinc-500"></app-icon>
+                        </span>
+                        <input
+                            type="text"
+                            id="description-embed-label-input"
+                            placeholder="np. Opis: Miecz..."
+                            class="w-full bg-[#1e1e24] border border-zinc-700/80 rounded-lg pl-7 pr-2.5 py-1 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+                        />
+                    </div>
+                </div>
+
+                <!-- Wyszukiwarka i filtry kategorii -->
+                <div class="space-y-1.5">
+                    <div class="relative">
+                        <span
+                            class="absolute inset-y-0 left-2 flex items-center text-zinc-500 pointer-events-none"
+                        >
+                            <app-icon name="search" class="w-3.5 h-3.5 text-zinc-500"></app-icon>
+                        </span>
+                        <input
+                            type="text"
+                            id="description-embed-search-input"
+                            placeholder="Szukaj przedmiotu, postaci lub lokacji..."
+                            data-i18n-placeholder="editor.embed_modal.search_placeholder"
+                            class="w-full bg-[#1e1e24] border border-zinc-700/80 rounded-lg pl-7 pr-2.5 py-1 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500"
+                        />
+                    </div>
+
+                    <!-- Filtry pigułkowe typów -->
+                    <div class="flex items-center gap-1 flex-wrap" id="description-embed-type-filters">
+                        <button
+                            type="button"
+                            data-filter-type="all"
+                            class="embed-type-pill active px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-600 text-white cursor-pointer transition-colors"
+                            data-i18n="editor.entity_modal.all"
+                        >
+                            Wszystkie
+                        </button>
+                        <button
+                            type="button"
+                            data-filter-type="item"
+                            class="embed-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-emerald-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            data-i18n="editor.toolbar.entity_item"
+                        >
+                            Przedmioty
+                        </button>
+                        <button
+                            type="button"
+                            data-filter-type="character"
+                            class="embed-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-amber-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            data-i18n="editor.toolbar.entity_character"
+                        >
+                            Postacie
+                        </button>
+                        <button
+                            type="button"
+                            data-filter-type="location"
+                            class="embed-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-blue-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            data-i18n="editor.toolbar.entity_location"
+                        >
+                            Lokacje
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista dostępnych obiektów -->
+                <div
+                    id="description-embed-items-list"
+                    class="max-h-36 overflow-y-auto rounded-lg border border-zinc-700/60 bg-[#1a1a20] divide-y divide-zinc-800/60"
+                >
+                    <!-- Dynamic items -->
+                </div>
+
+                <!-- Konfiguracja wariantu (Pełny vs Streszczenie) -->
+                <div class="p-2 rounded-lg bg-zinc-800/40 border border-zinc-700/40 text-[11px] space-y-1.5">
+                    <span class="text-zinc-400 text-[10px] font-medium uppercase tracking-wide block" data-i18n="editor.embed_modal.variant_label">
+                        Wariant wstawianej treści:
+                    </span>
+                    <div class="flex items-center gap-3">
+                        <label class="flex items-center gap-1.5 cursor-pointer text-zinc-200 hover:text-white">
+                            <input type="radio" name="embed-variant" value="text" checked class="text-emerald-500 focus:ring-emerald-500 rounded border-zinc-700 bg-zinc-900" />
+                            <span>Pełny opis (narracyjny)</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-zinc-200 hover:text-white">
+                            <input type="radio" name="embed-variant" value="summary" class="text-emerald-500 focus:ring-emerald-500 rounded border-zinc-700 bg-zinc-900" />
+                            <span>Krótkie streszczenie</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Podgląd wybranego powiązania i tekstu -->
+                <div
+                    id="description-embed-selected-preview"
+                    class="p-2 rounded-lg bg-zinc-800/40 border border-zinc-700/40 text-[11px] space-y-1"
+                >
+                    <div class="flex items-center justify-between">
+                        <span class="text-zinc-400 text-[10px]" data-i18n="editor.entity_modal.selected_entity_label">
+                            Wybrany obiekt:
+                        </span>
+                        <span id="description-embed-selected-name" class="font-semibold text-zinc-500 truncate ml-2">
+                            (brak wyboru)
+                        </span>
+                    </div>
+                    <div
+                        id="description-embed-preview-content"
+                        class="mt-1 p-2 rounded bg-zinc-900/90 border border-zinc-800 text-[11px] text-zinc-400 max-h-24 overflow-y-auto leading-relaxed select-text"
+                    >
+                        Wybierz obiekt z listy powyżej, aby podejrzeć jego opis.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div
+                class="px-3 py-2 border-t border-zinc-800 flex items-center justify-between bg-zinc-900/80 shrink-0 text-xs"
+            >
+                <button
+                    type="button"
+                    id="btn-remove-description-embed"
+                    class="hidden px-2 py-1 rounded bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 cursor-pointer text-[11px] transition-colors"
+                    data-i18n="editor.embed_modal.remove_embed"
+                >
+                    Usuń wstawkę
+                </button>
+                <div class="flex items-center gap-1.5 ml-auto">
+                    <button
+                        type="button"
+                        id="btn-cancel-description-embed"
+                        class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 cursor-pointer border border-zinc-700 text-xs"
+                        data-i18n="buttons.cancel"
+                    >
+                        Anuluj
+                    </button>
+                    <button
+                        type="button"
+                        id="btn-confirm-description-embed"
+                        disabled
+                        class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium cursor-pointer text-xs transition-colors shadow-md"
+                        data-i18n="editor.embed_modal.confirm"
+                    >
+                        Wstaw opis
                     </button>
                 </div>
             </div>

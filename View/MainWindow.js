@@ -137,6 +137,10 @@ const appContext = {
     get storyGraphInstance() {
         return storyGraphInstance
     },
+    get projectItems() {
+        return projectData.projectItems || projectData.items || []
+    },
+    saveActiveFile: () => saveActiveFile(appContext),
     selectEntity,
     refreshActiveSection,
     renderParagraphsList: () => renderParagraphsList(appContext),

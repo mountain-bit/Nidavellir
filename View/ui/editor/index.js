@@ -1,6 +1,11 @@
 export { persistStylesAndFonts, setupCustomStyleModal } from './customStyleModal.js'
 export { setupCustomStylesUI } from './customStylesMenu.js'
 export {
+    closeDescriptionEmbedModal,
+    extractEmbeddableEntities,
+    openDescriptionEmbedModal,
+} from './descriptionEmbedModal.js'
+export {
     setupToolbarButtons,
     TOOLBAR_BUTTON_STATE_MAP,
     updateToolbarActiveStates,
