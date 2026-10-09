@@ -1,4 +1,4 @@
-import { toAssetUrl } from '../../dist/Utils/assetUtils.js'
+import { isCustomAvatarPath, toAssetUrl } from '../../dist/Utils/assetUtils.js'
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
@@ -950,10 +950,10 @@ export function renderMainCharacter(ctx) {
     let avatarPreviewHtml = getIconSvg('character', 'w-5 h-5')
     if (
         heroAvatar &&
-        (heroAvatar.startsWith('data:') ||
+        (isCustomAvatarPath(heroAvatar) ||
+            heroAvatar.startsWith('data:') ||
             heroAvatar.startsWith('http') ||
-            heroAvatar.includes('/') ||
-            heroAvatar.includes('\\'))
+            heroAvatar.startsWith('blob:'))
     ) {
         const assetUrl = toAssetUrl(heroAvatar)
         avatarPreviewHtml = `<img src="${assetUrl}" alt="Avatar" class="w-full h-full object-cover rounded" />`

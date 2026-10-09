@@ -11,9 +11,30 @@ import { renderMainCharacter } from '../../View/ui/drawerLists.js'
 import { closeHeroModal, openHeroModal, setupHeroModal } from '../../View/ui/heroModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
+interface IMockHeroContext {
+    vm?: MainWindowViewModel
+    projectData: {
+        playerCharacter?: PlayerCharacter | null
+        projectTags?: Tag[]
+        projectStats: Stat[]
+        projectParameters: Parameter[]
+        projectSkills: Skill[]
+        projectFeatures: unknown[]
+    }
+    projectStats?: Stat[]
+    projectParameters?: Parameter[]
+    projectSkills?: Skill[]
+    projectTags?: Tag[]
+    getProjectPath: () => string
+    renderMainCharacter: ReturnType<typeof vi.fn>
+    refreshActiveSection: ReturnType<typeof vi.fn>
+    renderTraitsList?: ReturnType<typeof vi.fn>
+    updateTraitsCounterUI?: ReturnType<typeof vi.fn>
+}
+
 describe('HeroModal and renderMainCharacter', () => {
     let vm: MainWindowViewModel
-    let ctx: any
+    let ctx: IMockHeroContext
 
     beforeEach(() => {
         document.body.innerHTML = `
@@ -110,7 +131,7 @@ describe('HeroModal and renderMainCharacter', () => {
                 ],
                 projectFeatures: [],
             },
-            getProjectPath: () => '/mock/project',
+            getProjectPath: (): string => '/mock/project',
             renderMainCharacter: vi.fn(),
             refreshActiveSection: vi.fn(),
         }
@@ -320,11 +341,65 @@ describe('HeroModal and renderMainCharacter', () => {
         expect(preview?.innerHTML).toContain('Brak zdjęcia')
     })
 
+    it('evaluates dynamic formula vitals based on hero stats and displays numerical result', async () => {
+        setupHeroModal(ctx)
+        openHeroModal({ ctx })
+
+        const controllers = await import('../../View/ui/heroModal/heroSectionControllers.js')
+        controllers.addHeroStat('Siła', 15)
+        controllers.addHeroVital('Zdrowie', 'formula', 0, 'Siła * 2 + 10')
+
+        const vitalsList = document.getElementById('hero-vitals-list')
+        expect(vitalsList?.innerHTML).toContain('40')
+        expect(vitalsList?.innerHTML).not.toContain('[object Object]')
+    })
+
+    it('registers new unique stats and parameters in ctx.projectData when saving', async () => {
+        setupHeroModal(ctx)
+        openHeroModal({ ctx })
+
+        const controllers = await import('../../View/ui/heroModal/heroSectionControllers.js')
+        controllers.addHeroStat('Zręczność', 14)
+        controllers.addHeroVital('Mana', 'direct', 50, '')
+
+        const nameInput = document.getElementById('hero-name-input') as HTMLInputElement
+        nameInput.value = 'Młody Mag'
+
+        const btnSave = document.getElementById('btn-save-hero-modal') as HTMLButtonElement
+        btnSave.click()
+
+        expect(ctx.projectData.projectStats.some((s: Stat) => s.getName() === 'Zręczność')).toBe(
+            true
+        )
+        expect(
+            ctx.projectData.projectParameters.some((p: Parameter) => p.getName() === 'Mana')
+        ).toBe(true)
+    })
+
+    it('displays edit title when editing an existing hero and create title when creating a new one', () => {
+        setupHeroModal(ctx)
+        openHeroModal({ ctx })
+
+        const modal = document.getElementById('hero-create-modal')
+        expect(modal?.querySelector('#hero-create-modal-title')?.textContent).toContain(
+            'Karta Postaci Gracza'
+        )
+
+        closeHeroModal(true)
+
+        const existingHero = new PlayerCharacter('h1', 'Wojownik')
+        openHeroModal({ ctx, editEntity: existingHero })
+
+        expect(modal?.querySelector('#hero-create-modal-title')?.textContent).toContain(
+            'Edycja Postaci Gracza'
+        )
+    })
+
     it('works with the actual MainWindow.html DOM structure', async () => {
         const fs = await import('fs')
         const path = await import('path')
         const html = fs.readFileSync(path.resolve(__dirname, '../../View/MainWindow.html'), 'utf-8')
-        document.body.innerHTML = html
+        document.body.innerHTML = html.replace(/<script[\s\S]*?<\/script>/gi, '')
 
         expect(() => {
             setupHeroModal(ctx)

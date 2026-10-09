@@ -6,18 +6,13 @@
 
 import { t } from '../../dist/Utils/translate.js'
 import { showUnsavedChangesModal } from './confirmModal.js'
-import {
-    getHeroEditorInstance,
-    getOrCreateHeroEditor,
-    updateHeroEditorStats,
-} from './editor/heroEditor.js'
+import { getHeroEditorInstance, getOrCreateHeroEditor } from './editor/heroEditor.js'
 import { saveHeroCharacter as saveHeroCharacterHelper } from './heroModal/heroSaver.js'
 import {
     addHeroCustomAttribute,
     addHeroSkill,
     addHeroStat,
     addHeroVital,
-    closeHeroAvatarPopover,
     initHeroAvatarGrid,
     initHeroTagsController,
     renderHeroCustomAttributes,
@@ -34,6 +29,7 @@ import { clampModalPosition, initDraggable, initResizable } from './npcModal/npc
 
 let activeCtx = null
 let heroDocumentListenerBound = false
+let heroKeydownListenerBound = false
 
 export function getActiveHeroModal() {
     return state.getActiveModal() || document.getElementById('hero-create-modal')
@@ -98,11 +94,6 @@ export function toggleHeroDescriptionDrawer(forceState) {
 
             clampModalPosition(modal)
         }
-
-        const editor = getHeroEditorInstance()
-        if (editor) {
-            updateHeroEditorStats(editor)
-        }
     } else {
         drawer.classList.add('hidden')
         if (arrow) arrow.textContent = '›'
@@ -149,10 +140,8 @@ export function setHeroDescription(text = '') {
     const editor = getHeroEditorInstance()
     if (editor && typeof editor.setMarkdown === 'function') {
         editor.setMarkdown(text || '')
-        updateHeroEditorStats(editor)
     } else if (editor && typeof editor.setContent === 'function') {
         editor.setContent(text || '')
-        updateHeroEditorStats(editor)
     }
     const textarea = document.getElementById('hero-description-textarea')
     if (textarea) {
@@ -197,8 +186,19 @@ export function openHeroModal(options = {}) {
 
     state.resetHeroState()
 
+    const titleSpan = modal.querySelector('#hero-create-modal-title > span:first-child')
+    const saveBtnSpan = document.getElementById('btn-save-hero-modal')?.querySelector('span')
+
+    const tr = (key, fallback) => {
+        const val = t(key)
+        return val && val !== key ? val : fallback
+    }
+
     if (targetHero) {
         state.setEditingHero(targetHero)
+
+        if (titleSpan) titleSpan.textContent = tr('hero.edit_modal_title', 'Edycja Postaci Gracza')
+        if (saveBtnSpan) saveBtnSpan.textContent = tr('hero.save_changes', 'Zapisz zmiany')
 
         const name = targetHero.getName ? targetHero.getName() : targetHero.name || ''
         const summary = targetHero.getSummary
@@ -269,6 +269,10 @@ export function openHeroModal(options = {}) {
     } else {
         // New Hero defaults
         state.setEditingHero(null)
+
+        if (titleSpan) titleSpan.textContent = tr('hero.modal_title', 'Karta Postaci Gracza')
+        if (saveBtnSpan) saveBtnSpan.textContent = tr('hero.btn_save', 'Zapisz bohatera')
+
         if (nameInput) nameInput.value = ''
         if (summaryInput) summaryInput.value = ''
         if (descTextarea) descTextarea.value = ''
@@ -351,7 +355,6 @@ export async function closeHeroModal(force = false) {
 
     modal.classList.add('hidden')
     state.setIsModalOpen(false)
-    closeHeroAvatarPopover()
     toggleHeroDescriptionDrawer(false)
     state.resetHeroState()
 }
@@ -455,25 +458,23 @@ export function setupHeroModal(ctx) {
         }
     }
 
-    // ESC key support
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && state.getIsModalOpen()) {
-            const avatarPopover = document.getElementById('hero-avatar-picker-popover')
-            if (avatarPopover && !avatarPopover.classList.contains('hidden')) {
-                closeHeroAvatarPopover()
-                return
+    // ESC key support (single binding guard)
+    if (!heroKeydownListenerBound && typeof document !== 'undefined') {
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && state.getIsModalOpen()) {
+                const tagPopover = document.getElementById('hero-tag-picker-popover')
+                if (tagPopover && !tagPopover.classList.contains('hidden')) {
+                    tagPopover.classList.add('hidden')
+                    return
+                }
+                closeHeroModal()
             }
-            const tagPopover = document.getElementById('hero-tag-picker-popover')
-            if (tagPopover && !tagPopover.classList.contains('hidden')) {
-                tagPopover.classList.add('hidden')
-                return
-            }
-            closeHeroModal()
-        }
-    })
+        })
+        heroKeydownListenerBound = true
+    }
 
     // Triggers with [data-action="open-hero-modal"] (both direct and delegated)
-    if (!heroDocumentListenerBound) {
+    if (!heroDocumentListenerBound && typeof document !== 'undefined') {
         document.addEventListener('click', e => {
             const btn = e.target?.closest?.('[data-action="open-hero-modal"]')
             if (btn) {

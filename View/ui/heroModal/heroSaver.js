@@ -23,16 +23,25 @@ import * as state from './heroState.js'
  * @param {object} effectiveCtx
  * @param {object} vm
  * @param {object} traits
+ * @returns {boolean} Whether any new trait was registered
  */
 function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
     const { stats, vitals, skills, selectedTags } = traits
+    let anyAdded = false
+
+    const projectStats = effectiveCtx.projectStats || effectiveCtx.projectData?.projectStats || null
+    const projectParameters =
+        effectiveCtx.projectParameters || effectiveCtx.projectData?.projectParameters || null
+    const projectSkills =
+        effectiveCtx.projectSkills || effectiveCtx.projectData?.projectSkills || null
+    const projectTags = effectiveCtx.projectTags || effectiveCtx.projectData?.projectTags || null
 
     // 1. Global Stats
-    if (Array.isArray(effectiveCtx.projectStats)) {
+    if (Array.isArray(projectStats)) {
         stats.forEach(s => {
             const sName = (s.name || '').trim()
             if (!sName) return
-            const exists = effectiveCtx.projectStats.some(
+            const exists = projectStats.some(
                 ps =>
                     (typeof ps.getName === 'function'
                         ? ps.getName()
@@ -49,20 +58,21 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                           s.value
                       )
                 if (globalStat.setValue) globalStat.setValue(s.value)
-                effectiveCtx.projectStats.push(globalStat)
+                projectStats.push(globalStat)
                 if (vm?.project && typeof vm.project.addGlobalStat === 'function') {
                     vm.project.addGlobalStat(globalStat)
                 }
+                anyAdded = true
             }
         })
     }
 
     // 2. Global Parameters
-    if (Array.isArray(effectiveCtx.projectParameters)) {
+    if (Array.isArray(projectParameters)) {
         vitals.forEach(v => {
             const pName = (v.name || '').trim()
             if (!pName) return
-            const exists = effectiveCtx.projectParameters.some(
+            const exists = projectParameters.some(
                 pp =>
                     (typeof pp.getName === 'function'
                         ? pp.getName()
@@ -79,20 +89,21 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     v.formula || '',
                     v.calculatedValue || null
                 )
-                effectiveCtx.projectParameters.push(globalParam)
+                projectParameters.push(globalParam)
                 if (vm?.project && typeof vm.project.addGlobalParameter === 'function') {
                     vm.project.addGlobalParameter(globalParam)
                 }
+                anyAdded = true
             }
         })
     }
 
     // 3. Global Skills
-    if (Array.isArray(effectiveCtx.projectSkills)) {
+    if (Array.isArray(projectSkills)) {
         skills.forEach(sk => {
             const skName = (sk.name || '').trim()
             if (!skName) return
-            const exists = effectiveCtx.projectSkills.some(
+            const exists = projectSkills.some(
                 psk =>
                     (typeof psk.getName === 'function'
                         ? psk.getName()
@@ -108,20 +119,21 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     sk.value || '+1',
                     sk.statName || ''
                 )
-                effectiveCtx.projectSkills.push(globalSkill)
+                projectSkills.push(globalSkill)
                 if (vm?.project && typeof vm.project.addGlobalSkill === 'function') {
                     vm.project.addGlobalSkill(globalSkill)
                 }
+                anyAdded = true
             }
         })
     }
 
     // 4. Global Tags
-    if (Array.isArray(effectiveCtx.projectTags)) {
+    if (Array.isArray(projectTags)) {
         selectedTags.forEach(tag => {
             const tName = (tag.getName ? tag.getName() : tag.name || '').trim()
             if (!tName) return
-            const exists = effectiveCtx.projectTags.some(
+            const exists = projectTags.some(
                 pt =>
                     (typeof pt.getName === 'function'
                         ? pt.getName()
@@ -129,13 +141,16 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === tName.toLowerCase()
             )
             if (!exists) {
-                effectiveCtx.projectTags.push(tag)
+                projectTags.push(tag)
                 if (vm?.project && typeof vm.project.addTag === 'function') {
                     vm.project.addTag(tag)
                 }
+                anyAdded = true
             }
         })
     }
+
+    return anyAdded
 }
 
 /**
@@ -183,7 +198,7 @@ export function saveHeroCharacter(ctx, options = {}) {
     const selectedTags = state.getHeroTags()
 
     // Register into project traits pool
-    registerGlobalProjectTraits(effectiveCtx, vm, {
+    const traitsAdded = registerGlobalProjectTraits(effectiveCtx, vm, {
         stats: rawStats,
         vitals: rawVitals,
         skills: rawSkills,
@@ -304,6 +319,14 @@ export function saveHeroCharacter(ctx, options = {}) {
     }
     if (typeof effectiveCtx.renderDetailsPanel === 'function') {
         effectiveCtx.renderDetailsPanel()
+    }
+    if (traitsAdded) {
+        if (typeof effectiveCtx.renderTraitsList === 'function') {
+            effectiveCtx.renderTraitsList()
+        }
+        if (typeof effectiveCtx.updateTraitsCounterUI === 'function') {
+            effectiveCtx.updateTraitsCounterUI()
+        }
     }
 
     return hero

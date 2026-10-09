@@ -1,3 +1,4 @@
+import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
 import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { DEFAULT_TAG_COLOR } from '../../../dist/ViewModel/MainWindowViewModel.js'
@@ -60,21 +61,26 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
 
     // 3. Avatar Module (Read-only)
     const avatarVal =
-        (typeof entity.getAvatar === 'function' ? entity.getAvatar() : entity.avatar) || 'warrior'
+        (typeof entity.getAvatar === 'function' ? entity.getAvatar() : entity.avatar) || ''
     const isCustomAvatar =
-        avatarVal &&
-        (avatarVal.startsWith('data:') ||
+        Boolean(avatarVal) &&
+        (isCustomAvatarPath(avatarVal) ||
+            avatarVal.startsWith('data:') ||
             avatarVal.startsWith('http') ||
             avatarVal.startsWith('blob:'))
-    const avatarPreset = !isCustomAvatar ? getAvatarById(avatarVal) : null
+    const avatarPreset = !isCustomAvatar && avatarVal ? getAvatarById(avatarVal) : null
 
     const avatarHtml = isCustomAvatar
         ? `<div id="details-hero-avatar-preview" class="w-10 h-10 rounded-lg overflow-hidden shrink-0 shadow-md border border-amber-500/40">
-               <img src="${escapeHtml(avatarVal)}" alt="Hero Avatar" class="w-full h-full object-cover" />
+               <img src="${escapeHtml(toAssetUrl(avatarVal))}" alt="Hero Avatar" class="w-full h-full object-cover" />
            </div>`
-        : `<div id="details-hero-avatar-preview" class="w-10 h-10 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-md border" style="background-color: ${avatarPreset?.bgColor || '#27272a'}; color: ${avatarPreset?.color || '#fbbf24'}; border-color: ${avatarPreset?.borderColor || '#b45309'}">
-               ${avatarPreset?.svg || ''}
-           </div>`
+        : avatarPreset?.svg
+          ? `<div id="details-hero-avatar-preview" class="w-10 h-10 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-md border" style="background-color: ${avatarPreset.bgColor || '#27272a'}; color: ${avatarPreset.color || '#fbbf24'}; border-color: ${avatarPreset.borderColor || '#b45309'}">
+                 ${avatarPreset.svg}
+             </div>`
+          : `<div id="details-hero-avatar-preview" class="w-10 h-10 rounded-lg p-1.5 flex items-center justify-center shrink-0 shadow-md border border-zinc-800 bg-zinc-900 text-zinc-500">
+                 ${getIconSvg('character', 'w-5 h-5')}
+             </div>`
 
     const avatarMod = createSection(
         'border-b border-[#333338] p-3 space-y-2',

@@ -13,20 +13,8 @@ export function getHeroEditorInstance() {
     return heroEditorInstance
 }
 
-export function updateHeroEditorStats(editor = heroEditorInstance) {
-    const wordCountEl = document.getElementById('hero-description-word-count')
-    const charCountEl = document.getElementById('hero-description-char-count')
-    if (!editor) return
-
-    if (wordCountEl) {
-        const words = typeof editor.getWordCount === 'function' ? editor.getWordCount() : 0
-        wordCountEl.textContent = String(words)
-    }
-    if (charCountEl) {
-        const chars =
-            typeof editor.getCharacterCount === 'function' ? editor.getCharacterCount() : 0
-        charCountEl.textContent = String(chars)
-    }
+export function updateHeroEditorStats() {
+    // Kept as safe no-op since word and char count badges were removed per user request
 }
 
 export function destroyHeroEditor() {
@@ -62,7 +50,6 @@ export function getOrCreateHeroEditor(ctx) {
                 if (textarea) {
                     textarea.value = markdown
                 }
-                updateHeroEditorStats(heroEditorInstance)
             },
             onEntityClick: entity => {
                 openEntityLinkModal(heroEditorInstance, ctx, {

@@ -1,15 +1,17 @@
 /**
  * Hero Modal Section Controllers
- * Coordinates avatar selection, identity attributes, class selection,
+ * Coordinates avatar selection, identity attributes,
  * base stats, vitals formulas, skills, and tags for the Player Character folio.
  */
 
-import { toAssetUrl } from '../../../dist/Utils/assetUtils.js'
+import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
-import { getAvatarById } from '../npcAvatars.js'
+import { escapeHtml } from '../htmlTemplates.js'
 import { evaluateFormula, parseStatValueAsNumber } from '../npcModal/formulaEvaluator.js'
 import * as state from './heroState.js'
+
+let tagPopoverOutsideBound = false
 
 /**
  * Initializes avatar triggers for custom photo upload and removal.
@@ -27,7 +29,11 @@ export function initHeroAvatarGrid() {
                     const res = await window.electronAPI.importImage()
                     if (res && res.success && res.relativePath) {
                         updateHeroSelectedAvatarPreview(res.relativePath)
-                        toast.success(t('npc.avatar_updated') || 'Portret został zaktualizowany')
+                        toast.success(
+                            t('hero.avatar_updated') ||
+                                t('npc.avatar_updated') ||
+                                'Portret został zaktualizowany'
+                        )
                     }
                 } catch (err) {
                     console.error('Failed to import avatar:', err)
@@ -45,6 +51,11 @@ export function initHeroAvatarGrid() {
     }
 }
 
+function tr(key, fallback) {
+    const val = t(key)
+    return val && val !== key ? val : fallback
+}
+
 export function updateHeroSelectedAvatarPreview(avatarId = '') {
     const rawId = (avatarId || '').trim()
     state.setCurrentAvatarId(rawId)
@@ -58,55 +69,42 @@ export function updateHeroSelectedAvatarPreview(avatarId = '') {
             previewContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center text-zinc-600 gap-1 select-none pointer-events-none">
                     <app-icon name="character" class="w-7 h-7 text-zinc-600"></app-icon>
-                    <span class="text-[9px] text-zinc-500 font-medium">Brak zdjęcia</span>
+                    <span class="text-[9px] text-zinc-500 font-medium">${escapeHtml(tr('hero.no_photo', 'Brak zdjęcia'))}</span>
                 </div>
             `
         }
         if (removeBtn) removeBtn.classList.add('hidden')
-        if (labelSpan) labelSpan.textContent = 'Dodaj zdjęcie'
+        if (labelSpan) labelSpan.textContent = tr('hero.add_photo', 'Dodaj zdjęcie')
         return
     }
 
     if (removeBtn) removeBtn.classList.remove('hidden')
-    if (labelSpan) labelSpan.textContent = 'Zmień zdjęcie'
+    if (labelSpan) labelSpan.textContent = tr('hero.change_photo', 'Zmień zdjęcie')
 
     if (previewContainer) {
-        const avatarObj = getAvatarById(rawId)
-        if (avatarObj && avatarObj.isCustom) {
-            previewContainer.innerHTML = avatarObj.svg || ''
-        } else if (
+        if (
+            isCustomAvatarPath(rawId) ||
             rawId.startsWith('data:') ||
             rawId.startsWith('http') ||
-            rawId.includes('/') ||
-            rawId.includes('\\')
+            rawId.startsWith('blob:')
         ) {
             const assetUrl = toAssetUrl(rawId)
             previewContainer.innerHTML = `<img src="${assetUrl}" alt="Portret bohatera" class="w-full h-full object-cover rounded-lg" />`
         } else {
-            // If someone had an old preset or other string, display clean placeholder or empty
             previewContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center text-zinc-600 gap-1 select-none pointer-events-none">
                     <app-icon name="character" class="w-7 h-7 text-zinc-600"></app-icon>
-                    <span class="text-[9px] text-zinc-500 font-medium">Brak zdjęcia</span>
+                    <span class="text-[9px] text-zinc-500 font-medium">${escapeHtml(tr('hero.no_photo', 'Brak zdjęcia'))}</span>
                 </div>
             `
             if (removeBtn) removeBtn.classList.add('hidden')
-            if (labelSpan) labelSpan.textContent = 'Dodaj zdjęcie'
+            if (labelSpan) labelSpan.textContent = tr('hero.add_photo', 'Dodaj zdjęcie')
         }
     }
 }
 
-export function openHeroAvatarPopover() {
-    // No popover needed anymore
-}
-
-export function closeHeroAvatarPopover() {
-    // No popover needed anymore
-}
-
-export function toggleHeroAvatarPopover() {
-    // No popover needed anymore
-}
+// Deprecated no-op export for backward compatibility
+export function closeHeroAvatarPopover() {}
 
 // -------------------------------------------------------------
 // Identity / Custom Attributes
@@ -133,20 +131,20 @@ export function renderHeroCustomAttributes() {
             <div class="flex items-center gap-2 p-1.5 rounded-lg bg-zinc-900/80 border border-zinc-800" data-attr-index="${index}">
                 <input
                     type="text"
-                    value="${attr.name || ''}"
-                    placeholder="${t('npc.attr_name_placeholder') || 'Atrybut'}"
+                    value="${escapeHtml(attr.name || '')}"
+                    placeholder="${escapeHtml(t('npc.attr_name_placeholder') || 'Atrybut')}"
                     class="hero-attr-name w-1/3 bg-zinc-950 border border-zinc-700/60 focus:border-amber-500 rounded px-2 py-1 text-xs text-zinc-100 placeholder-zinc-500"
                 />
                 <input
                     type="text"
-                    value="${attr.value || ''}"
-                    placeholder="${t('npc.attr_value_placeholder') || 'Wartość'}"
+                    value="${escapeHtml(attr.value || '')}"
+                    placeholder="${escapeHtml(t('npc.attr_value_placeholder') || 'Wartość')}"
                     class="hero-attr-value flex-1 bg-zinc-950 border border-zinc-700/60 focus:border-amber-500 rounded px-2 py-1 text-xs text-zinc-100 placeholder-zinc-500"
                 />
                 <button
                     type="button"
                     class="btn-remove-hero-attr p-1 text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
-                    title="${t('buttons.delete') || 'Usuń'}"
+                    title="${escapeHtml(t('buttons.delete') || 'Usuń')}"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -195,10 +193,6 @@ export function addHeroCustomAttribute(name = '', value = '') {
     renderHeroCustomAttributes()
 }
 
-export function renderHeroSuggestedAttributes() {
-    // Intentionally empty - suggestions removed
-}
-
 // -------------------------------------------------------------
 // Tags Section
 // -------------------------------------------------------------
@@ -223,13 +217,13 @@ export function renderHeroTags() {
             const name = tag.getName ? tag.getName() : tag.name || ''
             const color = tag.getColor ? tag.getColor() : tag.color || '#3b82f6'
             return `
-            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium text-white shadow-sm" style="background-color: ${color}">
-                <span>${name}</span>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium text-white shadow-sm" style="background-color: ${escapeHtml(color)}">
+                <span>${escapeHtml(name)}</span>
                 <button
                     type="button"
                     data-tag-index="${idx}"
                     class="hover:opacity-75 cursor-pointer leading-none text-white/90"
-                    title="${t('buttons.delete') || 'Usuń'}"
+                    title="${escapeHtml(t('buttons.delete') || 'Usuń')}"
                 >×</button>
             </span>
         `
@@ -266,7 +260,6 @@ export function initHeroTagsController(ctx) {
     const createAction = document.getElementById('hero-create-tag-action')
     const btnCreateNew = document.getElementById('btn-create-new-hero-tag')
     const previewName = document.getElementById('hero-new-tag-preview-name')
-    const suggestedContainer = document.getElementById('hero-suggested-tags')
 
     if (btnAdd && popover) {
         btnAdd.onclick = e => {
@@ -279,9 +272,22 @@ export function initHeroTagsController(ctx) {
         }
     }
 
+    if (!tagPopoverOutsideBound && typeof document !== 'undefined') {
+        document.addEventListener('click', e => {
+            const popEl = document.getElementById('hero-tag-picker-popover')
+            const addEl = document.getElementById('btn-add-hero-tag')
+            if (popEl && !popEl.classList.contains('hidden')) {
+                if (!popEl.contains(e.target) && !addEl?.contains(e.target)) {
+                    popEl.classList.add('hidden')
+                }
+            }
+        })
+        tagPopoverOutsideBound = true
+    }
+
     function renderAvailableTagsList() {
         if (!tagsList) return
-        const projectTags = ctx?.projectTags || []
+        const projectTags = ctx?.projectTags || ctx?.projectData?.projectTags || []
         const query = (searchInp?.value || '').trim().toLowerCase()
 
         const filtered = projectTags.filter(t => {
@@ -290,7 +296,7 @@ export function initHeroTagsController(ctx) {
         })
 
         if (filtered.length === 0) {
-            tagsList.innerHTML = `<span class="text-[11px] text-zinc-500 italic p-1">Brak istniejących tagów</span>`
+            tagsList.innerHTML = `<span class="text-[11px] text-zinc-500 italic p-1">${escapeHtml(t('hero.no_existing_tags') || 'Brak istniejących tagów')}</span>`
         } else {
             tagsList.innerHTML = filtered
                 .map(t => {
@@ -300,8 +306,8 @@ export function initHeroTagsController(ctx) {
                     <button
                         type="button"
                         class="px-2 py-0.5 rounded text-[11px] font-medium text-white transition-opacity hover:opacity-90 cursor-pointer"
-                        style="background-color: ${color}"
-                    >${name}</button>
+                        style="background-color: ${escapeHtml(color)}"
+                    >${escapeHtml(name)}</button>
                 `
                 })
                 .join('')
@@ -352,16 +358,13 @@ export function initHeroTagsController(ctx) {
                   }
             if (Array.isArray(ctx?.projectTags)) {
                 ctx.projectTags.push(newTag)
+            } else if (Array.isArray(ctx?.projectData?.projectTags)) {
+                ctx.projectData.projectTags.push(newTag)
             }
             addHeroTag(newTag)
             searchInp.value = ''
             if (popover) popover.classList.add('hidden')
         }
-    }
-
-    // Suggested tags row removed
-    if (suggestedContainer) {
-        suggestedContainer.innerHTML = ''
     }
 }
 
@@ -392,8 +395,8 @@ export function renderHeroStats() {
                     <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
                     <input
                         type="text"
-                        value="${s.name || ''}"
-                        placeholder="${t('details.name_placeholder') || 'Nazwa cechy'}"
+                        value="${escapeHtml(s.name || '')}"
+                        placeholder="${escapeHtml(t('details.name_placeholder') || 'Nazwa cechy')}"
                         class="hero-stat-name bg-transparent border-0 font-medium text-xs text-zinc-200 focus:outline-none focus:text-white w-full truncate"
                     />
                 </div>
@@ -406,7 +409,7 @@ export function renderHeroStats() {
                     <button
                         type="button"
                         class="btn-remove-hero-stat p-1 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
-                        title="${t('buttons.delete') || 'Usuń'}"
+                        title="${escapeHtml(t('buttons.delete') || 'Usuń')}"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -463,10 +466,6 @@ export function addHeroStat(name = '', value = 10) {
     updateHeroSkillStatDropdowns()
 }
 
-export function renderHeroSuggestedStats() {
-    // Intentionally empty - suggestions removed
-}
-
 // -------------------------------------------------------------
 // Vitals Section (Parametry Życiowe)
 // -------------------------------------------------------------
@@ -495,19 +494,19 @@ export function renderHeroVitals() {
                 <div class="flex items-center justify-between">
                     <input
                         type="text"
-                        value="${v.name || ''}"
-                        placeholder="${t('details.name_placeholder') || 'Parametr (np. Punkty Życia)'}"
+                        value="${escapeHtml(v.name || '')}"
+                        placeholder="${escapeHtml(t('details.name_placeholder') || 'Parametr (np. Punkty Życia)')}"
                         class="hero-vital-name bg-transparent font-medium text-xs text-zinc-100 focus:outline-none w-1/2"
                     />
                     <div class="flex items-center gap-1.5">
                         <select class="hero-vital-mode bg-zinc-950 border border-zinc-700 rounded px-1.5 py-0.5 text-[11px] text-zinc-300 focus:outline-none">
-                            <option value="direct" ${!isFormula ? 'selected' : ''}>Wartość stała</option>
-                            <option value="formula" ${isFormula ? 'selected' : ''}>Wzór kalkulacyjny</option>
+                            <option value="direct" ${!isFormula ? 'selected' : ''}>${escapeHtml(t('npc.mode_direct') || 'Wartość stała')}</option>
+                            <option value="formula" ${isFormula ? 'selected' : ''}>${escapeHtml(t('npc.mode_formula') || 'Wzór kalkulacyjny')}</option>
                         </select>
                         <button
                             type="button"
                             class="btn-remove-hero-vital p-1 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
-                            title="${t('buttons.delete') || 'Usuń'}"
+                            title="${escapeHtml(t('buttons.delete') || 'Usuń')}"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -523,7 +522,7 @@ export function renderHeroVitals() {
                             ? `
                         <input
                             type="text"
-                            value="${v.formula || ''}"
+                            value="${escapeHtml(v.formula || '')}"
                             placeholder="Wzór np. Kondycja * 2 + 10"
                             class="hero-vital-formula flex-1 bg-zinc-950 border border-zinc-700/80 focus:border-amber-500 rounded px-2 py-1 text-xs text-zinc-200 font-mono"
                         />
@@ -628,10 +627,6 @@ export function addHeroVital(name = '', mode = 'direct', value = 10, formula = '
     renderHeroVitals()
 }
 
-export function renderHeroSuggestedVitals() {
-    // Intentionally empty - suggestions removed
-}
-
 // -------------------------------------------------------------
 // Skills Section
 // -------------------------------------------------------------
@@ -658,29 +653,29 @@ export function renderHeroSkills() {
             <div class="flex items-center gap-2 p-2 rounded-lg bg-zinc-900/90 border border-zinc-800" data-skill-index="${idx}">
                 <input
                     type="text"
-                    value="${sk.name || ''}"
-                    placeholder="${t('details.name_placeholder') || 'Nazwa umiejętności'}"
+                    value="${escapeHtml(sk.name || '')}"
+                    placeholder="${escapeHtml(t('details.name_placeholder') || 'Nazwa umiejętności')}"
                     class="hero-skill-name flex-1 bg-transparent font-medium text-xs text-zinc-200 focus:outline-none"
                 />
                 <select class="hero-skill-stat bg-zinc-950 border border-zinc-700 rounded px-1.5 py-0.5 text-[11px] text-zinc-300 focus:outline-none">
-                    <option value="">(brak cechy)</option>
+                    <option value="">${escapeHtml(t('hero.no_stat_selected') || '(brak cechy)')}</option>
                     ${stats
                         .map(s => {
                             const isSel = s.name === sk.statName ? 'selected' : ''
-                            return `<option value="${s.name}" ${isSel}>${s.name}</option>`
+                            return `<option value="${escapeHtml(s.name)}" ${isSel}>${escapeHtml(s.name)}</option>`
                         })
                         .join('')}
                 </select>
                 <input
                     type="text"
-                    value="${sk.value || '+1'}"
+                    value="${escapeHtml(sk.value || '+1')}"
                     placeholder="+1"
                     class="hero-skill-val w-14 bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded px-1.5 py-0.5 text-xs text-center font-mono text-amber-300 focus:outline-none"
                 />
                 <button
                     type="button"
                     class="btn-remove-hero-skill p-1 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
-                    title="${t('buttons.delete') || 'Usuń'}"
+                    title="${escapeHtml(t('buttons.delete') || 'Usuń')}"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -741,11 +736,11 @@ export function updateHeroSkillStatDropdowns() {
     list.querySelectorAll('.hero-skill-stat').forEach((sel, idx) => {
         const curStat = skills[idx]?.statName || ''
         sel.innerHTML = `
-            <option value="">(brak cechy)</option>
+            <option value="">${escapeHtml(t('hero.no_stat_selected') || '(brak cechy)')}</option>
             ${stats
                 .map(s => {
                     const isSel = s.name === curStat ? 'selected' : ''
-                    return `<option value="${s.name}" ${isSel}>${s.name}</option>`
+                    return `<option value="${escapeHtml(s.name)}" ${isSel}>${escapeHtml(s.name)}</option>`
                 })
                 .join('')}
         `
@@ -762,8 +757,4 @@ export function addHeroSkill(name = '', statName = '', value = '') {
     })
     state.setHeroSkills(current)
     renderHeroSkills()
-}
-
-export function renderHeroSuggestedSkills() {
-    // Intentionally empty - suggestions removed
 }

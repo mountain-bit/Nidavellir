@@ -93,12 +93,27 @@ export function clearHeroSkills() {
     heroSkills = []
 }
 
+export function getHeroStatsMap() {
+    const map = {}
+    heroStats.forEach(s => {
+        const name = (s.name || '').trim()
+        if (name) {
+            map[name] = s.value ?? 10
+        }
+    })
+    return map
+}
+
 export function getHeroVitals(evaluateFormulaFn) {
     if (typeof evaluateFormulaFn !== 'function') return heroVitals
+    const statsMap = getHeroStatsMap()
     return heroVitals.map(v => {
         if (v.mode === 'formula' && v.formula) {
-            const calculated = evaluateFormulaFn(v.formula, heroStats)
-            return { ...v, calculatedValue: calculated }
+            const calculated = evaluateFormulaFn(v.formula, statsMap)
+            return {
+                ...v,
+                calculatedValue: calculated?.result ?? null,
+            }
         }
         return v
     })
