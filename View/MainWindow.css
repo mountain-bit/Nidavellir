@@ -181,6 +181,162 @@ body.is-resizing .resizer-line {
     background-color: #27272a;
 }
 
+/* ==========================================================================
+   Modern Top Bar / Toolbar Styles
+   ========================================================================== */
+.topbar-header {
+    background-color: #202023;
+    border-bottom: 1px solid #333338;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    user-select: none;
+    flex-shrink: 0;
+    z-index: 30;
+    gap: 8px;
+}
+
+.topbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.topbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: #333338;
+    margin: 0 4px;
+    flex-shrink: 0;
+}
+
+.topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #d4d4d8;
+    background-color: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease;
+    white-space: nowrap;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.topbar-btn:hover {
+    background-color: #2e2e33;
+    color: #ffffff;
+    border-color: #3a3a40;
+}
+
+.topbar-btn:active {
+    background-color: #26262a;
+}
+
+.topbar-btn.active {
+    background-color: #2b2b30;
+    color: #ffffff;
+    border-color: #4b4b52;
+}
+
+.topbar-btn:disabled,
+.topbar-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.topbar-btn-primary {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #1d4ed8;
+}
+
+.topbar-btn-primary:hover {
+    background-color: #1d4ed8;
+    color: #ffffff;
+    border-color: #1e40af;
+}
+
+.topbar-btn-icon-only {
+    padding: 6px;
+    width: 28px;
+    height: 28px;
+}
+
+.topbar-segmented {
+    display: inline-flex;
+    align-items: center;
+    background-color: #161618;
+    border: 1px solid #2e2e33;
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.topbar-segmented-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #a1a1aa;
+    background: transparent;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.topbar-segmented-btn:hover {
+    color: #f4f4f5;
+    background-color: #222226;
+}
+
+.topbar-segmented-btn.active {
+    background-color: #2a2a30;
+    color: #ffffff;
+    font-weight: 600;
+    border-color: #3f3f46;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.topbar-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.topbar-badge-ok {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.topbar-badge-warning {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
 /* Custom Scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
     width: 4px;

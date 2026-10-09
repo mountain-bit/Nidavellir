@@ -5,6 +5,8 @@ import type {
     OpenProjectResult,
     ReadMarkdownResult,
     SaveEntityResult,
+    SaveFullProjectPayload,
+    SaveFullProjectResult,
     SaveMarkdownResult,
 } from './ipc'
 
@@ -36,6 +38,10 @@ declare global {
                 projectPath: string,
                 projectData: Record<string, unknown>
             ) => Promise<{ success: boolean; path?: string; error?: string }>
+            saveFullProject: (
+                projectPath: string,
+                data: SaveFullProjectPayload
+            ) => Promise<SaveFullProjectResult>
             createEntity: (options: CreateEntityOptions) => Promise<CreateEntityResult>
             saveEntity: (
                 projectPath: string,

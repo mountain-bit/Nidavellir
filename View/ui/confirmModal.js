@@ -5,6 +5,7 @@
  */
 
 import { t } from '../../dist/Utils/translate.js'
+import { markProjectDirty } from './projectStateTracker.js'
 
 /**
  * Tracks project files with unsaved changes in memory.
@@ -14,6 +15,7 @@ const dirtyFiles = new Set()
 export function markFileDirty(fileName) {
     if (fileName && typeof fileName === 'string') {
         dirtyFiles.add(fileName)
+        markProjectDirty()
     }
 }
 
@@ -150,6 +152,9 @@ export function showUnsavedChangesModal(options = {}) {
  * @param {() => boolean} [helpers.hasUnsavedNpc]
  * @param {() => Promise<void> | void} [helpers.saveNpc]
  * @param {(ctx: object) => Promise<void> | void} [helpers.saveFiles]
+ * @param {() => boolean} [helpers.isProjectDirty]
+ * @param {(ctx: object) => Promise<any> | any} [helpers.saveFullProject]
+ * @param {() => void} [helpers.markProjectClean]
  * @returns {Promise<boolean>} Resolves to true if confirmed/saved, false if cancelled.
  */
 export async function confirmApplicationClose(target = 'app', ctx = null, helpers = {}) {
@@ -168,11 +173,13 @@ export async function confirmApplicationClose(target = 'app', ctx = null, helper
 
     const saveFiles = helpers.saveFiles || helpers.saveAllUnsavedFiles
     const saveNpc = helpers.saveNpc || helpers.executeNpcModalSave
+    const hasUnsavedProject = helpers.isProjectDirty || (() => false)
 
     const npcDirty = hasUnsavedNpc()
     const filesDirty = hasUnsavedFileChanges()
+    const projectDirty = hasUnsavedProject()
 
-    if (!npcDirty && !filesDirty) {
+    if (!npcDirty && !filesDirty && !projectDirty) {
         return true
     }
 
@@ -189,23 +196,33 @@ export async function confirmApplicationClose(target = 'app', ctx = null, helper
     })
 
     if (choice === 'save') {
-        if (filesDirty && typeof saveFiles === 'function') {
-            await saveFiles(ctx)
-        }
-        if (npcDirty) {
-            if (typeof saveNpc === 'function') {
-                await saveNpc()
-            } else if (
-                typeof window !== 'undefined' &&
-                typeof window.executeNpcModalSave === 'function'
-            ) {
-                window.executeNpcModalSave()
+        if (projectDirty && typeof helpers.saveFullProject === 'function') {
+            await helpers.saveFullProject(ctx)
+        } else {
+            if (filesDirty && typeof saveFiles === 'function') {
+                await saveFiles(ctx)
+            }
+            if (npcDirty) {
+                if (typeof saveNpc === 'function') {
+                    await saveNpc()
+                } else if (
+                    typeof window !== 'undefined' &&
+                    typeof window.executeNpcModalSave === 'function'
+                ) {
+                    window.executeNpcModalSave()
+                }
             }
         }
         clearDirtyFiles()
+        if (typeof helpers.markProjectClean === 'function') {
+            helpers.markProjectClean()
+        }
         return true
     } else if (choice === 'dont_save') {
         clearDirtyFiles()
+        if (typeof helpers.markProjectClean === 'function') {
+            helpers.markProjectClean()
+        }
         return true
     } else {
         return false

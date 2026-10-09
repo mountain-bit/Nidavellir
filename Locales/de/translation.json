@@ -434,6 +434,33 @@
         "np_create_error": "Fehler beim Erstellen des Projekts:",
         "np_unexpected_error": "Ein unerwarteter Fehler ist aufgetreten:"
     },
+    "topbar": {
+        "project_placeholder": "Kein Projekt",
+        "saved": "Gespeichert",
+        "unsaved_changes": "Ungespeicherte Änderungen",
+        "buttons": {
+            "save": "Speichern",
+            "save_as": "Speichern unter...",
+            "close_project": "Projekt schließen",
+            "open_project": "Projekt öffnen",
+            "new_file": "Neue Datei",
+            "undo": "Rückgängig (Ctrl+Z)",
+            "redo": "Wiederholen (Ctrl+Y)",
+            "search": "Schnellsuche (Ctrl+P)",
+            "view_graph": "Story-Graph",
+            "view_editor": "Text-Editor",
+            "validate_graph": "Graph validieren",
+            "validation_clean": "0 Fehler",
+            "zoom_fit": "Graph anpassen",
+            "playtest": "Spiel testen",
+            "export": "Exportieren",
+            "left_panel": "Linke Leiste (Ctrl+B)",
+            "right_panel": "Rechte Leiste (Ctrl+Alt+B)",
+            "assets": "Bildressourcen",
+            "settings": "Einstellungen",
+            "help": "Hilfe & Tastenkürzel"
+        }
+    },
     "ribbon": {
         "tabs": {
             "main": "Start",
@@ -567,6 +594,7 @@
         "title": "Editor-Einstellungen",
         "language": "Oberflächensprache",
         "auto_save": "Automatisches Speichern",
+        "auto_save_help": "Speichert das Projekt automatisch im Hintergrund, wenn nicht gespeicherte Änderungen vorliegen.",
         "show_grid": "Gitter im Graph anzeigen",
         "zoom_sensitivity": "Mausrad-Zoom-Empfindlichkeit",
         "zoom_sensitivity_help": "Empfindlichkeit der Zoomstufenänderung des Graphen pro Mausrad-Rasterung."
@@ -659,7 +687,11 @@
         "file_locked_warning": "Warnung: Die Datei ist durch einen anderen Prozess gesperrt. Änderungen im Speicher gehalten.",
         "meta_sync_warning": "Warnung: Inkonsistenz in der Projektstruktur erkannt und Metadaten aktualisiert.",
         "save_success": "Änderungen erfolgreich gespeichert.",
-        "save_error": "Beim Speichern ist ein Fehler aufgetreten: {{error}}"
+        "save_error": "Beim Speichern ist ein Fehler aufgetreten: {{error}}",
+        "auto_save_title": "Automatisches Speichern",
+        "auto_saved": "Projekt wurde automatisch gespeichert.",
+        "auto_save_enabled": "Automatisches Speichern im Hintergrund aktiviert.",
+        "auto_save_disabled": "Automatisches Speichern im Hintergrund deaktiviert."
     },
     "condition": {
         "type_text": "Schriftliche Autorenbedingung"

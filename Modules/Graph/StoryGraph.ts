@@ -577,6 +577,7 @@ export class StoryGraph {
                             this.options.onSceneAssignmentChange(scene, scene.getParagraphs())
                         }
                     }
+                    this.options.onGraphModified?.()
                 }
             }
 
@@ -756,6 +757,7 @@ export class StoryGraph {
                             }
                         })
                     }
+                    this.options.onGraphModified?.()
                 }
             }
 

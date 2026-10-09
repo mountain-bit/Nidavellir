@@ -42,6 +42,11 @@ function registerProjectIpc() {
         const { projectPath, projectData } = payload || {}
         return await ProjectService.saveProject(projectPath, projectData)
     })
+
+    ipcMain.handle('save-full-project', async (_event, payload) => {
+        const { projectPath, data } = payload || {}
+        return await ProjectService.saveFullProject(projectPath, data)
+    })
 }
 
 module.exports = { registerProjectIpc }
