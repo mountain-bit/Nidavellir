@@ -21,6 +21,7 @@ import {
     renderCharactersList,
     renderConnectionsList,
     renderLocationsList,
+    renderMainCharacter,
     renderParagraphsList,
     renderScenesList,
     renderTagsList,
@@ -32,6 +33,7 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
+import { openHeroModal, setupHeroModal } from './ui/heroModal.js'
 import {
     executeNpcModalSave,
     hasUnsavedNpcChanges,
@@ -129,6 +131,9 @@ const appContext = {
     get files() {
         return projectData.files
     },
+    get playerCharacter() {
+        return projectData.playerCharacter || null
+    },
     get storyGraphInstance() {
         return storyGraphInstance
     },
@@ -138,6 +143,7 @@ const appContext = {
     renderScenesList: () => renderScenesList(appContext),
     renderTagsList: () => renderTagsList(appContext),
     renderCharactersList: () => renderCharactersList(appContext),
+    renderMainCharacter: () => renderMainCharacter(appContext),
     renderLocationsList: () => renderLocationsList(appContext),
     renderTraitsList: () => renderTraitsList(appContext),
     renderDynamicSuggestions: () => renderDynamicSuggestions(appContext),
@@ -150,6 +156,7 @@ const appContext = {
     renderDetailsPanel: () => renderDetailsPanel(appContext),
     renderEditorTabs: () => renderEditorTabs(appContext),
     updateMainWorkspaceUI: () => updateMainWorkspaceUI(appContext),
+    openHeroModal: opts => openHeroModal(opts),
     openContextMenu,
     openColorPicker,
     handleColorSelection: color => handleColorSelection(color, appContext),
@@ -238,6 +245,7 @@ function updateLeftDrawerUI() {
         else if (activeLeftTab === 'locations') renderLocationsList(appContext)
         else if (activeLeftTab === 'traits') renderTraitsList(appContext)
         else if (activeLeftTab === 'tags') renderTagsList(appContext)
+        else if (activeLeftTab === 'main-character') renderMainCharacter(appContext)
     } else if (leftDrawer) {
         leftDrawer.classList.add('collapsed')
         if (leftResizer) leftResizer.classList.add('collapsed')
@@ -251,8 +259,14 @@ function refreshActiveSection(type) {
         renderParagraphsList(appContext)
         renderScenesList(appContext)
     }
-    if (type === 'character') {
+    if (
+        type === 'character' ||
+        type === 'player_character' ||
+        type === 'playerCharacter' ||
+        type === 'main-character'
+    ) {
         renderCharactersList(appContext)
+        renderMainCharacter(appContext)
         populateFilterSelects(appContext)
         renderParagraphsList(appContext)
         renderScenesList(appContext)
@@ -558,6 +572,21 @@ document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
     })
 })
 
+document.querySelectorAll('[data-action="open-main-character"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        vm.toggleLeftTab('main-character')
+        updateLeftDrawerUI()
+    })
+})
+
+document.querySelectorAll('[data-action="open-hero-modal"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        openHeroModal({ ctx: appContext })
+    })
+})
+
 document.querySelectorAll('[data-action="open-npcs"]').forEach(btn => {
     btn.addEventListener('click', () => {
         vm.toggleLeftTab('characters')
@@ -841,6 +870,7 @@ async function initApp() {
         setupParagraphSearchAndFilters(appContext)
         setupSectionControlsAndContextMenu(appContext)
         setupNpcModal(appContext)
+        setupHeroModal(appContext)
         setupResizers(leftDrawer, rightSidebar, vm)
 
         // Initial drawer lists & filters rendering
@@ -848,6 +878,7 @@ async function initApp() {
         renderScenesList(appContext)
         renderConnectionsList(appContext)
         renderCharactersList(appContext)
+        renderMainCharacter(appContext)
         renderLocationsList(appContext)
         renderTraitsList(appContext)
         renderTagsList(appContext)
@@ -876,6 +907,7 @@ async function initApp() {
                 renderConnectionsList(appContext)
                 renderTagsList(appContext)
                 renderCharactersList(appContext)
+                renderMainCharacter(appContext)
                 renderLocationsList(appContext)
                 renderTraitsList(appContext)
                 renderHistoryBar(appContext)

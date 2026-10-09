@@ -24,6 +24,7 @@ declare module '*/View/mockData.js' {
         projectParagraphs: Paragraph[]
         projectScenes: Scene[]
         projectTemplates: NPC_Template[]
+        playerCharacter?: any
     }
 
     export const mockFiles: Record<string, string>
@@ -368,6 +369,7 @@ declare module '*/View/ui/drawerLists.js' {
     export function renderScenesList(ctx?: unknown): void
     export function renderConnectionsList(ctx?: unknown): void
     export function renderCharactersList(ctx?: unknown): void
+    export function renderMainCharacter(ctx?: unknown): void
     export function getCharactersSectionCollapsed(): boolean
     export function setCharactersSectionCollapsed(collapsed: boolean): void
     export function getTemplatesSectionCollapsed(): boolean
@@ -393,6 +395,16 @@ declare module '*/View/ui/drawerLists.js' {
         targetArray: unknown[],
         ctx: unknown
     ): void
+}
+
+declare module '*/View/ui/heroModal.js' {
+    export function setupHeroModal(ctx?: unknown): {
+        open: (options?: unknown) => void
+        close: (options?: unknown) => void
+    }
+    export function openHeroModal(options?: unknown): void
+    export function closeHeroModal(options?: unknown): void
+    export function hasUnsavedHeroChanges(): boolean
 }
 
 declare module '*/View/ui/detailsPanel.js' {
@@ -604,4 +616,30 @@ declare module '*/View/ui/workspace.js' {
         reopenBtn?: unknown
     ): void
     export function updateZoomToolbarUI(storyGraphInstance?: unknown, zoomLevel?: number): void
+}
+
+declare module '*/View/ui/heroModal/heroSectionControllers.js' {
+    export function initHeroAvatarGrid(): void
+    export function updateHeroSelectedAvatarPreview(avatarId?: string): void
+    export function openHeroAvatarPopover(): void
+    export function closeHeroAvatarPopover(): void
+    export function toggleHeroAvatarPopover(): void
+    export function renderHeroCustomAttributes(): void
+    export function addHeroCustomAttribute(name?: string, value?: string): void
+    export function renderHeroTags(): void
+    export function addHeroTag(tag: unknown): void
+    export function initHeroTagsController(ctx?: unknown): void
+    export function renderHeroStats(): void
+    export function addHeroStat(name?: string, value?: number): void
+    export function renderHeroVitals(): void
+    export function updateHeroVitalFormulasPreview(): void
+    export function addHeroVital(
+        name?: string,
+        mode?: string,
+        value?: number,
+        formula?: string
+    ): void
+    export function renderHeroSkills(): void
+    export function updateHeroSkillStatDropdowns(): void
+    export function addHeroSkill(name?: string, statName?: string, value?: string): void
 }

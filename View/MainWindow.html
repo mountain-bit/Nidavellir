@@ -31,7 +31,9 @@
                     class="flex items-center gap-2 pr-3 py-1 font-medium border-r border-[#333338] text-xs shrink-0"
                 >
                     <span class="text-blue-500 font-bold text-sm">§ </span>
-                    <span class="text-[#a1a1aa] font-normal" id="project-name-display">Moja Gra</span>
+                    <span class="text-[#a1a1aa] font-normal" id="project-name-display"
+                        >Moja Gra</span
+                    >
                 </div>
 
                 <!-- Ribbon Tabs -->
@@ -83,7 +85,12 @@
                                 <app-icon name="open" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.open">Otwórz</span>
                             </button>
-                            <button class="ribbon-btn" type="button" data-action="close-project" title="Zamknij projekt">
+                            <button
+                                class="ribbon-btn"
+                                type="button"
+                                data-action="close-project"
+                                title="Zamknij projekt"
+                            >
                                 <app-icon name="close" class="w-4 h-4"></app-icon>
                                 <span data-i18n="project.close">Zamknij</span>
                             </button>
@@ -156,6 +163,14 @@
                     <!-- Group: Elementy Świata -->
                     <div class="ribbon-section">
                         <div class="flex items-center gap-1">
+                            <button
+                                class="ribbon-btn"
+                                type="button"
+                                data-action="open-main-character"
+                            >
+                                <app-icon name="character" class="w-4 h-4 text-blue-400"></app-icon>
+                                <span data-i18n="ribbon.buttons.hero">Bohater</span>
+                            </button>
                             <button class="ribbon-btn" type="button" data-action="open-npcs">
                                 <app-icon name="character" class="w-4 h-4"></app-icon>
                                 <span data-i18n="ribbon.buttons.npcs">Postacie NPC</span>
@@ -961,10 +976,25 @@
                         <!-- Content: Main Character -->
                         <div class="left-tab-content hidden" id="left-content-main-character">
                             <div
-                                class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
-                                data-i18n="left_panel.main_character"
+                                class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
                             >
-                                Postać Główna (Gracz)
+                                <span
+                                    class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                    data-i18n="left_panel.main_character"
+                                >
+                                    Postać Główna (Gracz)
+                                </span>
+                                <button
+                                    id="btn-add-main-character"
+                                    type="button"
+                                    data-action="open-hero-modal"
+                                    class="px-2 py-0.5 rounded bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-sm"
+                                    data-i18n-title="hero.create_hero_btn"
+                                    title="Stwórz Postać Gracza"
+                                >
+                                    <span>+</span>
+                                    <span data-i18n="hero.create_hero_btn">Bohater</span>
+                                </button>
                             </div>
                             <div class="p-2 text-xs text-[#a1a1aa]" id="main-character-container">
                                 <p
@@ -1459,9 +1489,19 @@
                                     title="Wybierz lub utwórz własny styl tekstu"
                                     data-i18n-title="editor.toolbar.styles_dropdown_title"
                                 >
-                                    <app-icon name="sparkles" class="w-3.5 h-3.5 text-amber-400 inline-block"></app-icon>
-                                    <span id="label-active-custom-style" data-i18n="editor.toolbar.styles_label">Style tekstu</span>
-                                    <app-icon name="chevron-down" class="w-3 h-3 text-zinc-400 inline-block"></app-icon>
+                                    <app-icon
+                                        name="sparkles"
+                                        class="w-3.5 h-3.5 text-amber-400 inline-block"
+                                    ></app-icon>
+                                    <span
+                                        id="label-active-custom-style"
+                                        data-i18n="editor.toolbar.styles_label"
+                                        >Style tekstu</span
+                                    >
+                                    <app-icon
+                                        name="chevron-down"
+                                        class="w-3 h-3 text-zinc-400 inline-block"
+                                    ></app-icon>
                                 </button>
                                 <div
                                     id="editor-custom-styles-dropdown-menu"
@@ -1479,16 +1519,26 @@
                                             id="btn-clear-custom-style"
                                             class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
                                         >
-                                            <app-icon name="eraser" class="w-3.5 h-3.5 text-zinc-400 inline-block"></app-icon>
-                                            <span data-i18n="editor.toolbar.clear_style">Wyczyść styl z zaznaczenia</span>
+                                            <app-icon
+                                                name="eraser"
+                                                class="w-3.5 h-3.5 text-zinc-400 inline-block"
+                                            ></app-icon>
+                                            <span data-i18n="editor.toolbar.clear_style"
+                                                >Wyczyść styl z zaznaczenia</span
+                                            >
                                         </button>
                                         <button
                                             type="button"
                                             id="btn-open-custom-style-modal"
                                             class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 font-medium cursor-pointer"
                                         >
-                                            <app-icon name="plus" class="w-3.5 h-3.5 text-blue-400 inline-block"></app-icon>
-                                            <span data-i18n="editor.toolbar.new_style">Nowy własny styl...</span>
+                                            <app-icon
+                                                name="plus"
+                                                class="w-3.5 h-3.5 text-blue-400 inline-block"
+                                            ></app-icon>
+                                            <span data-i18n="editor.toolbar.new_style"
+                                                >Nowy własny styl...</span
+                                            >
                                         </button>
                                     </div>
                                 </div>
@@ -1506,7 +1556,9 @@
                                     data-i18n-title="editor.toolbar.insert_entity_title"
                                 >
                                     <span class="text-blue-400 font-bold">@</span>
-                                    <span data-i18n="editor.toolbar.insert_entity">Wstaw słowo kluczowe</span>
+                                    <span data-i18n="editor.toolbar.insert_entity"
+                                        >Wstaw słowo kluczowe</span
+                                    >
                                 </button>
                                 <div
                                     id="editor-entity-dropdown-menu"
@@ -1517,8 +1569,13 @@
                                         id="btn-open-entity-link-modal"
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-400 font-medium cursor-pointer border-b border-zinc-800/80 mb-1"
                                     >
-                                        <app-icon name="link" class="w-3.5 h-3.5 text-blue-400"></app-icon>
-                                        <span data-i18n="editor.toolbar.link_entity">Połącz ze słowem / aliasem...</span>
+                                        <app-icon
+                                            name="link"
+                                            class="w-3.5 h-3.5 text-blue-400"
+                                        ></app-icon>
+                                        <span data-i18n="editor.toolbar.link_entity"
+                                            >Połącz ze słowem / aliasem...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -1526,7 +1583,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-amber-300 cursor-pointer"
                                     >
                                         <app-icon name="character" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_character">Postać (NPC)...</span>
+                                        <span data-i18n="editor.toolbar.entity_character"
+                                            >Postać (NPC)...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -1534,7 +1593,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-300 cursor-pointer"
                                     >
                                         <app-icon name="location" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_location">Lokacja...</span>
+                                        <span data-i18n="editor.toolbar.entity_location"
+                                            >Lokacja...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -1542,7 +1603,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-purple-300 cursor-pointer"
                                     >
                                         <app-icon name="tag" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_tag">Cecha / Tag...</span>
+                                        <span data-i18n="editor.toolbar.entity_tag"
+                                            >Cecha / Tag...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -1550,7 +1613,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-emerald-300 cursor-pointer"
                                     >
                                         <app-icon name="item" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_item">Przedmiot...</span>
+                                        <span data-i18n="editor.toolbar.entity_item"
+                                            >Przedmiot...</span
+                                        >
                                     </button>
                                 </div>
                             </div>
@@ -1596,7 +1661,8 @@
                                 class="text-xs text-zinc-400 leading-relaxed mb-4"
                                 data-i18n="editor.empty_state_hint"
                             >
-                                Wybierz akapit lub opis z drzewa projektu po lewej stronie, aby otworzyć plik i rozpocząć edycję tekstu.
+                                Wybierz akapit lub opis z drzewa projektu po lewej stronie, aby
+                                otworzyć plik i rozpocząć edycję tekstu.
                             </p>
                             <button
                                 type="button"
@@ -1784,15 +1850,25 @@
                 type="button"
                 class="hidden w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer text-blue-200 hover:text-white"
             >
-                <app-icon name="link" class="w-3.5 h-3.5 text-blue-400 group-hover:text-white shrink-0"></app-icon>
-                <span id="ctx-editor-link-selection-label" data-i18n="editor.context_menu.link_entity">Połącz z encją projektu...</span>
+                <app-icon
+                    name="link"
+                    class="w-3.5 h-3.5 text-blue-400 group-hover:text-white shrink-0"
+                ></app-icon>
+                <span
+                    id="ctx-editor-link-selection-label"
+                    data-i18n="editor.context_menu.link_entity"
+                    >Połącz z encją projektu...</span
+                >
             </button>
             <button
                 id="ctx-editor-edit-badge"
                 type="button"
                 class="hidden w-full px-3 py-1.5 text-left hover:bg-amber-600 flex items-center gap-2 cursor-pointer text-amber-200 hover:text-white"
             >
-                <app-icon name="edit" class="w-3.5 h-3.5 text-amber-400 group-hover:text-white shrink-0"></app-icon>
+                <app-icon
+                    name="edit"
+                    class="w-3.5 h-3.5 text-amber-400 group-hover:text-white shrink-0"
+                ></app-icon>
                 <span data-i18n="editor.context_menu.edit_badge">Edytuj powiązanie...</span>
             </button>
             <button
@@ -1800,7 +1876,10 @@
                 type="button"
                 class="hidden w-full px-3 py-1.5 text-left hover:bg-red-600 flex items-center gap-2 cursor-pointer text-red-300 hover:text-white"
             >
-                <app-icon name="close" class="w-3.5 h-3.5 text-red-400 group-hover:text-white shrink-0"></app-icon>
+                <app-icon
+                    name="close"
+                    class="w-3.5 h-3.5 text-red-400 group-hover:text-white shrink-0"
+                ></app-icon>
                 <span data-i18n="editor.context_menu.unlink_badge">Usuń powiązanie</span>
             </button>
         </div>
@@ -2030,7 +2109,9 @@
                                             class="w-full flex items-center justify-center gap-1.5 py-1.5 px-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 rounded-lg text-xs text-blue-200 font-medium transition-colors cursor-pointer"
                                         >
                                             <app-icon name="upload" class="w-3.5 h-3.5"></app-icon>
-                                            <span data-i18n="npc.upload_custom_avatar">Wgraj własną grafikę</span>
+                                            <span data-i18n="npc.upload_custom_avatar"
+                                                >Wgraj własną grafikę</span
+                                            >
                                         </button>
                                         <div
                                             id="npc-avatar-grid"
@@ -2657,7 +2738,9 @@
                             </h3>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span id="npc-editor-stats" class="text-[11px] text-zinc-400 font-mono">0 słów · 0 znaków</span>
+                            <span id="npc-editor-stats" class="text-[11px] text-zinc-400 font-mono"
+                                >0 słów · 0 znaków</span
+                            >
                             <span
                                 class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-300 font-medium border border-blue-500/20"
                             >
@@ -2824,9 +2907,19 @@
                                     title="Wybierz lub utwórz własny styl tekstu"
                                     data-i18n-title="editor.toolbar.styles_dropdown_title"
                                 >
-                                    <app-icon name="sparkles" class="w-3.5 h-3.5 text-amber-400 inline-block"></app-icon>
-                                    <span id="npc-label-active-custom-style" data-i18n="editor.toolbar.styles_label">Style tekstu</span>
-                                    <app-icon name="chevron-down" class="w-3 h-3 text-zinc-400 inline-block"></app-icon>
+                                    <app-icon
+                                        name="sparkles"
+                                        class="w-3.5 h-3.5 text-amber-400 inline-block"
+                                    ></app-icon>
+                                    <span
+                                        id="npc-label-active-custom-style"
+                                        data-i18n="editor.toolbar.styles_label"
+                                        >Style tekstu</span
+                                    >
+                                    <app-icon
+                                        name="chevron-down"
+                                        class="w-3 h-3 text-zinc-400 inline-block"
+                                    ></app-icon>
                                 </button>
                                 <div
                                     id="npc-editor-custom-styles-dropdown-menu"
@@ -2844,16 +2937,26 @@
                                             id="npc-btn-clear-custom-style"
                                             class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 cursor-pointer"
                                         >
-                                            <app-icon name="eraser" class="w-3.5 h-3.5 text-zinc-400 inline-block"></app-icon>
-                                            <span data-i18n="editor.toolbar.clear_style">Wyczyść styl z zaznaczenia</span>
+                                            <app-icon
+                                                name="eraser"
+                                                class="w-3.5 h-3.5 text-zinc-400 inline-block"
+                                            ></app-icon>
+                                            <span data-i18n="editor.toolbar.clear_style"
+                                                >Wyczyść styl z zaznaczenia</span
+                                            >
                                         </button>
                                         <button
                                             type="button"
                                             id="npc-btn-open-custom-style-modal"
                                             class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-blue-600/20 text-blue-400 hover:text-blue-300 font-medium cursor-pointer"
                                         >
-                                            <app-icon name="plus" class="w-3.5 h-3.5 text-blue-400 inline-block"></app-icon>
-                                            <span data-i18n="editor.toolbar.new_style">Nowy własny styl...</span>
+                                            <app-icon
+                                                name="plus"
+                                                class="w-3.5 h-3.5 text-blue-400 inline-block"
+                                            ></app-icon>
+                                            <span data-i18n="editor.toolbar.new_style"
+                                                >Nowy własny styl...</span
+                                            >
                                         </button>
                                     </div>
                                 </div>
@@ -2872,7 +2975,9 @@
                                     data-i18n-title="editor.toolbar.insert_entity_title"
                                 >
                                     <span class="text-blue-400 font-bold">@</span>
-                                    <span data-i18n="editor.toolbar.insert_entity">Wstaw słowo kluczowe</span>
+                                    <span data-i18n="editor.toolbar.insert_entity"
+                                        >Wstaw słowo kluczowe</span
+                                    >
                                 </button>
                                 <div
                                     id="npc-editor-entity-dropdown-menu"
@@ -2883,8 +2988,13 @@
                                         id="npc-btn-open-entity-link-modal"
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-400 font-medium cursor-pointer border-b border-zinc-800/80 mb-1"
                                     >
-                                        <app-icon name="link" class="w-3.5 h-3.5 text-blue-400"></app-icon>
-                                        <span data-i18n="editor.toolbar.link_entity">Połącz ze słowem / aliasem...</span>
+                                        <app-icon
+                                            name="link"
+                                            class="w-3.5 h-3.5 text-blue-400"
+                                        ></app-icon>
+                                        <span data-i18n="editor.toolbar.link_entity"
+                                            >Połącz ze słowem / aliasem...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -2892,7 +3002,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-amber-300 cursor-pointer"
                                     >
                                         <app-icon name="character" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_character">Postać (NPC)...</span>
+                                        <span data-i18n="editor.toolbar.entity_character"
+                                            >Postać (NPC)...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -2900,7 +3012,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-blue-300 cursor-pointer"
                                     >
                                         <app-icon name="location" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_location">Lokacja...</span>
+                                        <span data-i18n="editor.toolbar.entity_location"
+                                            >Lokacja...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -2908,7 +3022,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-purple-300 cursor-pointer"
                                     >
                                         <app-icon name="tag" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_tag">Cecha / Tag...</span>
+                                        <span data-i18n="editor.toolbar.entity_tag"
+                                            >Cecha / Tag...</span
+                                        >
                                     </button>
                                     <button
                                         type="button"
@@ -2916,7 +3032,9 @@
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-zinc-800 text-emerald-300 cursor-pointer"
                                     >
                                         <app-icon name="item" class="w-3.5 h-3.5"></app-icon>
-                                        <span data-i18n="editor.toolbar.entity_item">Przedmiot...</span>
+                                        <span data-i18n="editor.toolbar.entity_item"
+                                            >Przedmiot...</span
+                                        >
                                     </button>
                                 </div>
                             </div>
@@ -2972,6 +3090,735 @@
             </div>
         </div>
 
+        <!-- Floating Draggable Hero Window (Player Character Folio / Karta Postaci Gracza) -->
+        <div
+            id="hero-create-modal"
+            class="hidden fixed z-40 bg-[#18181b] border border-[#333338] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-left ring-1 ring-white/5 w-[860px] min-w-[700px] min-h-[540px] max-w-[96vw] max-h-[92vh]"
+            role="dialog"
+            aria-labelledby="hero-create-modal-title"
+        >
+            <!-- Draggable Window Title Bar / Folio Header -->
+            <div
+                id="hero-create-modal-header"
+                class="flex items-center justify-between px-5 py-3 border-b border-[#333338] bg-[#202023] cursor-move select-none shrink-0"
+                title="Przeciągnij, aby przesunąć kartę bohatera gracza"
+                data-i18n-title="hero.drag_title"
+            >
+                <div class="flex items-center gap-3 pointer-events-none">
+                    <div
+                        class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-sm"
+                    >
+                        <app-icon name="character" class="w-4 h-4"></app-icon>
+                    </div>
+                    <div>
+                        <h2
+                            id="hero-create-modal-title"
+                            class="text-xs font-bold text-zinc-100 tracking-wide leading-tight flex items-center gap-1.5"
+                            data-i18n="hero.modal_title"
+                        >
+                            <span>Karta Postaci Gracza</span>
+                            <span
+                                class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono font-normal"
+                                data-i18n="hero.badge"
+                                >Protagonista</span
+                            >
+                        </h2>
+                        <p
+                            class="text-[10px] text-zinc-400 m-0 leading-tight"
+                            data-i18n="hero.modal_subtitle"
+                        >
+                            Tworzenie i personalizacja bohatera gracza
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button
+                        id="btn-close-hero-modal"
+                        type="button"
+                        class="text-zinc-400 hover:text-zinc-100 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                        data-i18n-title="buttons.close"
+                        aria-label="Zamknij"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Window Main Content Row (Character Sheet Column + Side Drawer) -->
+            <div id="hero-window-content-row" class="flex flex-1 min-h-0 relative">
+                <!-- Main Character Sheet Column (flexible, expands with window resizing) -->
+                <div id="hero-form-column" class="flex-1 min-w-0 w-full flex flex-col bg-[#18181b]">
+                    <div
+                        id="hero-create-modal-body"
+                        class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 flex flex-col gap-4 max-h-[82vh]"
+                    >
+                        <form
+                            id="hero-create-modal-form"
+                            class="flex flex-col gap-4"
+                            onsubmit="return false"
+                        >
+                            <!-- Top Block: Vertical Portrait on Left, Name & Attributes on Right -->
+                            <div
+                                class="relative flex flex-col sm:flex-row gap-5 items-start pb-4 border-b border-zinc-800"
+                            >
+                                <!-- Vertical Rectangular Portrait Frame -->
+                                <div class="relative shrink-0 flex flex-col items-center">
+                                    <div
+                                        id="hero-avatar-card"
+                                        class="w-32 sm:w-36 h-48 sm:h-52 rounded-xl border border-dashed border-zinc-700 hover:border-amber-500/70 bg-gradient-to-b from-[#202026] via-[#1a1a1f] to-[#16161a] p-3 flex flex-col items-center justify-between text-amber-300 transition-all shadow-lg shadow-black/50 group shrink-0 relative overflow-hidden"
+                                    >
+                                        <!-- Heraldic header embellishment -->
+                                        <div
+                                            class="w-full flex items-center justify-between text-[9px] text-amber-400/70 font-mono uppercase tracking-wider border-b border-amber-500/20 pb-1"
+                                        >
+                                            <span data-i18n="npc.portrait">Portret</span>
+                                            <app-icon
+                                                name="feature"
+                                                class="w-2.5 h-2.5 text-amber-400 shrink-0"
+                                            ></app-icon>
+                                        </div>
+
+                                        <!-- Centered Avatar Image preview / Empty placeholder -->
+                                        <div
+                                            id="hero-selected-avatar-preview"
+                                            class="w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center p-1 rounded-xl bg-black/40 border border-zinc-800 shadow-inner overflow-hidden"
+                                        >
+                                            <!-- Empty by default -->
+                                        </div>
+
+                                        <!-- Bottom actions: Upload button and Remove button -->
+                                        <div class="w-full pt-1 border-t border-amber-500/20 flex items-center justify-center gap-1.5">
+                                            <button
+                                                type="button"
+                                                id="btn-hero-avatar-trigger"
+                                                class="flex-1 py-1 px-1.5 rounded bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-[10px] text-amber-200 font-medium transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-sm"
+                                                title="Wgraj własne zdjęcie"
+                                            >
+                                                <app-icon name="upload" class="w-3 h-3 text-amber-300"></app-icon>
+                                                <span id="hero-avatar-action-label">Dodaj zdjęcie</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                id="btn-hero-avatar-remove"
+                                                class="hidden p-1 rounded hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer border border-transparent hover:border-rose-500/30"
+                                                title="Usuń zdjęcie"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Column: Character Name, Class & Identity Attributes -->
+                                <div class="flex-1 min-w-0 w-full flex flex-col gap-3">
+                                    <!-- Character Name Hero Field -->
+                                    <div class="flex flex-col gap-1">
+                                        <div class="flex items-center justify-between">
+                                            <label
+                                                for="hero-name-input"
+                                                class="text-[11px] font-semibold uppercase tracking-wider text-amber-300/90 flex items-center gap-1"
+                                            >
+                                                <span data-i18n="hero.name_label"
+                                                    >Imię i miano bohatera</span
+                                                >
+                                                <span class="text-rose-400">*</span>
+                                            </label>
+                                            <span
+                                                class="text-[10px] text-zinc-500 font-serif italic"
+                                                data-i18n="hero.independent_hero"
+                                                >Główny Bohater Gracza</span
+                                            >
+                                        </div>
+                                        <input
+                                            type="text"
+                                            id="hero-name-input"
+                                            placeholder="np. Artur Pendragon, Elion Gwiazdozbieg..."
+                                            data-i18n-placeholder="hero.name_placeholder"
+                                            class="w-full bg-zinc-900/60 hover:bg-zinc-900 focus:bg-zinc-950 border-b-2 border-zinc-700 focus:border-amber-500 rounded-t px-3 py-2 text-sm sm:text-base font-bold text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all tracking-wide"
+                                            autocomplete="off"
+                                        />
+                                    </div>
+
+
+                                    <!-- Custom Attributes / Tożsamość Section (Directly under class) -->
+                                    <div
+                                        id="hero-custom-attributes-section"
+                                        class="flex flex-col gap-2 pt-1"
+                                    >
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-1.5">
+                                                <app-icon
+                                                    name="stat"
+                                                    class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                                ></app-icon>
+                                                <h4
+                                                    class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                    data-i18n="hero.custom_attributes_title"
+                                                >
+                                                    Tożsamość i Atrybuty
+                                                </h4>
+                                            </div>
+                                            <button
+                                                id="btn-add-hero-custom-attribute"
+                                                type="button"
+                                                class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                            >
+                                                <span class="font-bold leading-none">+</span>
+                                                <span data-i18n="hero.add_attribute"
+                                                    >Dodaj pole</span
+                                                >
+                                            </button>
+                                        </div>
+
+                                        <!-- Dynamic Attributes List -->
+                                        <div
+                                            id="hero-custom-attributes-list"
+                                            class="flex flex-col gap-1 max-h-36 overflow-y-auto custom-scrollbar"
+                                        ></div>
+
+                                        <!-- Empty State -->
+                                        <div
+                                            id="hero-custom-attributes-empty"
+                                            class="rounded-lg border border-dashed border-zinc-800 p-2 text-center text-[10px] text-zinc-500 italic"
+                                            data-i18n="hero.empty_attributes"
+                                        >
+                                            Brak cech tożsamości. Kliknij „Dodaj pole”.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Middle Section: Summary / Story Biogram (Full Width) -->
+                            <div class="flex flex-col gap-1.5 pb-4 border-b border-zinc-800">
+                                <div class="flex items-center justify-between">
+                                    <label
+                                        for="hero-summary-input"
+                                        class="text-[11px] font-semibold text-zinc-200 flex items-center gap-1.5"
+                                        data-i18n="hero.summary_label"
+                                    >
+                                        <app-icon
+                                            name="feature"
+                                            class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                        ></app-icon>
+                                        <span>Rys fabularny / Biogram</span>
+                                    </label>
+                                    <span
+                                        class="text-[10px] text-zinc-500 italic"
+                                        data-i18n="hero.summary_hint"
+                                    >
+                                        Krótka notatka o tożsamości i pochodzeniu bohatera
+                                    </span>
+                                </div>
+                                <textarea
+                                    id="hero-summary-input"
+                                    rows="2"
+                                    placeholder="Krótki biogram (np. były strażnik królewski poszukujący prawdy o zdradzie)..."
+                                    data-i18n-placeholder="hero.summary_placeholder"
+                                    class="w-full bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-zinc-700 focus:border-amber-500/60 rounded-lg px-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none transition-colors resize-none leading-relaxed italic custom-scrollbar"
+                                ></textarea>
+                            </div>
+
+                            <!-- Tags Section (Tagi bohatera) -->
+                            <div
+                                id="hero-tags-section"
+                                class="flex flex-col gap-2 pb-4 border-b border-zinc-800 relative"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-1.5">
+                                        <app-icon
+                                            name="tag"
+                                            class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                        ></app-icon>
+                                        <h4
+                                            class="text-xs font-bold text-zinc-200 tracking-wide"
+                                            data-i18n="hero.tags_title"
+                                        >
+                                            Tagi bohatera
+                                        </h4>
+                                    </div>
+                                    <div class="relative">
+                                        <button
+                                            id="btn-add-hero-tag"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="hero.add_tag">Dodaj tag</span>
+                                        </button>
+                                        <!-- Tag Picker Popover -->
+                                        <div
+                                            id="hero-tag-picker-popover"
+                                            class="hidden absolute right-0 top-full mt-2 w-72 bg-[#1c1c20] border border-amber-500/30 rounded-xl p-3 shadow-2xl flex flex-col gap-2.5 z-30"
+                                        >
+                                            <div
+                                                class="flex items-center justify-between border-b border-zinc-800 pb-1.5"
+                                            >
+                                                <span
+                                                    class="text-[11px] font-semibold text-amber-200 uppercase tracking-wider"
+                                                    data-i18n="hero.select_tag"
+                                                >
+                                                    Przypisz lub stwórz tag
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                id="hero-tag-search-input"
+                                                placeholder="Wpisz lub wyszukaj tag..."
+                                                data-i18n-placeholder="npc.search_tag_placeholder"
+                                                class="w-full bg-zinc-950/70 border border-zinc-700 focus:border-amber-500 rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                                            />
+                                            <div
+                                                id="hero-available-tags-list"
+                                                class="flex flex-wrap gap-1 max-h-36 overflow-y-auto custom-scrollbar p-1"
+                                            ></div>
+                                            <div
+                                                id="hero-create-tag-action"
+                                                class="hidden pt-2 border-t border-zinc-800 flex items-center justify-between gap-2"
+                                            >
+                                                <span
+                                                    class="text-[11px] text-zinc-300 truncate font-medium"
+                                                    id="hero-new-tag-preview-name"
+                                                    >Nowy tag</span
+                                                >
+                                                <button
+                                                    type="button"
+                                                    id="btn-create-new-hero-tag"
+                                                    class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-semibold cursor-pointer shrink-0 transition-colors shadow-sm"
+                                                >
+                                                    + Utwórz i dodaj
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Selected tags list -->
+                                <div
+                                    id="hero-tags-list"
+                                    class="flex flex-wrap items-center gap-1.5 min-h-[22px]"
+                                ></div>
+
+                                <!-- Empty State -->
+                                <div
+                                    id="hero-tags-empty"
+                                    class="text-[10px] text-zinc-500 italic"
+                                    data-i18n="hero.empty_tags"
+                                >
+                                    Brak przypisanych tagów. Kliknij „Dodaj tag”.
+                                </div>
+                            </div>
+
+                            <!-- Bottom Section: Full-Width Character Mechanics -->
+                            <div class="flex flex-col gap-4">
+                                <!-- Stats Section (Cechy Bazowe) -->
+                                <div
+                                    id="hero-stats-section"
+                                    class="flex flex-col gap-2.5 pb-4 border-b border-zinc-800"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon
+                                                name="stat"
+                                                class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                            ></app-icon>
+                                            <h4
+                                                class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                data-i18n="hero.stats_title"
+                                            >
+                                                Cechy Bazowe
+                                            </h4>
+                                        </div>
+                                        <button
+                                            id="btn-add-hero-stat"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="hero.add_stat">Dodaj cechę</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Dynamic Stats List -->
+                                    <div
+                                        id="hero-stats-list"
+                                        class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"
+                                    ></div>
+
+                                    <!-- Empty State -->
+                                    <div
+                                        id="hero-stats-empty"
+                                        class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic"
+                                        data-i18n="hero.empty_stats"
+                                    >
+                                        Brak zdefiniowanych cech. Kliknij „Dodaj cechę”.
+                                    </div>
+                                </div>
+
+                                <!-- Vitals Section (Parametry Życiowe) -->
+                                <div
+                                    id="hero-vitals-section"
+                                    class="flex flex-col gap-2.5 pb-4 border-b border-zinc-800"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon
+                                                name="parameter"
+                                                class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                            ></app-icon>
+                                            <h4
+                                                class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                data-i18n="hero.vitals_title"
+                                            >
+                                                Parametry Życiowe
+                                            </h4>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            id="btn-add-hero-vital"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="hero.add_vital">Dodaj parametr</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Dynamic Vitals List -->
+                                    <div id="hero-vitals-list" class="flex flex-col gap-2"></div>
+
+                                    <!-- Empty State -->
+                                    <div
+                                        id="hero-vitals-empty"
+                                        class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic"
+                                        data-i18n="hero.empty_vitals"
+                                    >
+                                        Brak parametrów. Kliknij „Dodaj parametr”.
+                                    </div>
+                                </div>
+
+                                <!-- Skills Section (Zdolności i Umiejętności) -->
+                                <div id="hero-skills-section" class="flex flex-col gap-2.5 pb-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon
+                                                name="skill"
+                                                class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                            ></app-icon>
+                                            <h4
+                                                class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                data-i18n="hero.skills_title"
+                                            >
+                                                Zdolności i Umiejętności
+                                            </h4>
+                                        </div>
+                                        <button
+                                            id="btn-add-hero-skill"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="hero.add_skill"
+                                                >Dodaj umiejętność</span
+                                            >
+                                        </button>
+                                    </div>
+
+                                    <!-- Dynamic Skills List -->
+                                    <div id="hero-skills-list" class="flex flex-col gap-2"></div>
+
+                                    <!-- Empty State -->
+                                    <div
+                                        id="hero-skills-empty"
+                                        class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic"
+                                        data-i18n="hero.empty_skills"
+                                    >
+                                        Brak umiejętności. Kliknij „Dodaj umiejętność”.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Error Alert (hidden by default) -->
+                            <div
+                                id="hero-create-error-message"
+                                class="hidden px-3.5 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="shrink-0 text-rose-400"
+                                >
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span
+                                    id="hero-create-error-text"
+                                    data-i18n="hero.validation_name_required"
+                                >
+                                    Nazwa postaci gracza jest wymagana
+                                </span>
+                            </div>
+
+                            <!-- Modal Actions Footer -->
+                            <div
+                                id="hero-create-modal-footer"
+                                class="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800"
+                            >
+                                <button
+                                    type="button"
+                                    id="btn-cancel-hero-modal"
+                                    class="px-4 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-300 hover:text-white font-medium transition-all cursor-pointer border border-zinc-700/50"
+                                    data-i18n="hero.btn_cancel"
+                                >
+                                    Anuluj
+                                </button>
+                                <button
+                                    type="submit"
+                                    id="btn-save-hero-modal"
+                                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-amber-900/30 hover:shadow-amber-600/30 active:scale-[0.98]"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                    >
+                                        <path
+                                            d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                                        ></path>
+                                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                        <polyline points="7 3 7 8 15 8"></polyline>
+                                    </svg>
+                                    <span data-i18n="hero.btn_save">Zapisz bohatera</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Vertical Strip with Arrow Toggle Button for Right Side Panel -->
+                <div class="shrink-0 flex items-stretch border-l border-zinc-800 bg-[#151518]">
+                    <button
+                        id="btn-toggle-hero-description"
+                        type="button"
+                        class="w-7 flex flex-col items-center justify-center gap-2 text-zinc-400 hover:text-amber-300 hover:bg-zinc-800/60 transition-colors cursor-pointer group py-3"
+                        title="Rozwiń panel opisu narracyjnego"
+                        data-i18n-title="hero.description_drawer_toggle"
+                    >
+                        <span
+                            id="hero-desc-toggle-arrow"
+                            class="text-xs font-bold transition-transform group-hover:scale-125 text-amber-400"
+                            >›</span
+                        >
+                        <span
+                            class="text-[9px] font-bold uppercase tracking-widest opacity-70 group-hover:opacity-100 select-none text-zinc-300"
+                            style="writing-mode: vertical-rl; text-orientation: mixed"
+                            data-i18n="hero.chronicle"
+                        >
+                            Kronika
+                        </span>
+                    </button>
+                </div>
+
+                <!-- Expandable Right Side Panel (Narrative Description Drawer) -->
+                <div
+                    id="hero-description-drawer"
+                    class="hidden w-[460px] bg-[#161619] border-l border-zinc-800 flex flex-col shrink-0 overflow-hidden"
+                >
+                    <!-- Drawer Header -->
+                    <div
+                        class="flex items-center justify-between px-3.5 py-2.5 border-b border-zinc-800 bg-[#1a1a1e] shrink-0"
+                    >
+                        <div class="flex items-center gap-2">
+                            <app-icon
+                                name="markdown"
+                                class="w-4 h-4 text-amber-400 shrink-0"
+                            ></app-icon>
+                            <div>
+                                <h3
+                                    class="text-xs font-bold text-zinc-100 leading-tight"
+                                    data-i18n="hero.description_title"
+                                >
+                                    Kronika Bohatera (Markdown)
+                                </h3>
+                                <p
+                                    class="text-[10px] text-zinc-400 m-0 leading-tight"
+                                    data-i18n="hero.description_subtitle"
+                                >
+                                    Szczegółowy opis, historia i tło fabularne bohatera gracza
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compact Visual Formatting Toolbar -->
+                    <div
+                        id="hero-editor-toolbar"
+                        class="flex flex-wrap items-center gap-0.5 px-3 py-1.5 border-b border-zinc-800 bg-[#141416] text-zinc-300 shrink-0"
+                    >
+                        <button
+                            type="button"
+                            id="hero-btn-editor-bold"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                            title="Pogrubienie (Ctrl+B)"
+                            data-i18n-title="editor.toolbar.bold"
+                        >
+                            <span class="font-bold text-xs px-1">B</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-italic"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                            title="Kursywa (Ctrl+I)"
+                            data-i18n-title="editor.toolbar.italic"
+                        >
+                            <span class="italic text-xs px-1">I</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-underline"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                            title="Podkreślenie (Ctrl+U)"
+                            data-i18n-title="editor.toolbar.underline"
+                        >
+                            <span class="underline text-xs px-1">U</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-strike"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer"
+                            title="Przekreślenie (Ctrl+Shift+X)"
+                            data-i18n-title="editor.toolbar.strike"
+                        >
+                            <span class="line-through text-xs px-1">S</span>
+                        </button>
+                        <div class="h-4 w-px bg-zinc-700/60 mx-1"></div>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-bullet-list"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs"
+                            title="Lista punktowana (- )"
+                            data-i18n-title="editor.toolbar.bullet_list"
+                        >
+                            • <span data-i18n="editor.toolbar.list_label">Lista</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-ordered-list"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs"
+                            title="Lista numerowana (1. )"
+                            data-i18n-title="editor.toolbar.ordered_list"
+                        >
+                            1. <span data-i18n="editor.toolbar.list_label">Lista</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-quote"
+                            class="p-1.5 rounded hover:bg-[#2d2d32] hover:text-white transition-colors cursor-pointer text-xs italic"
+                            title="Cytat (> )"
+                            data-i18n-title="editor.toolbar.quote"
+                        >
+                            “ <span data-i18n="editor.toolbar.quote_label">Cytat</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-dialog"
+                            class="flex items-center gap-1 p-1.5 rounded hover:bg-[#2d2d32] hover:text-amber-300 transition-colors cursor-pointer text-xs font-serif"
+                            title="Kwestia dialogowa (wcięcie i pauza dialogowa — )"
+                            data-i18n-title="editor.toolbar.dialog"
+                        >
+                            <span class="text-amber-400 font-bold">—</span>
+                            <span data-i18n="editor.toolbar.dialog_label">Dialog</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="hero-btn-editor-image"
+                            class="flex items-center gap-1 p-1.5 rounded hover:bg-[#2d2d32] hover:text-amber-300 transition-colors cursor-pointer text-xs"
+                            title="Wstaw grafikę z dysku"
+                            data-i18n-title="editor.toolbar.image"
+                        >
+                            <app-icon name="image" class="w-3.5 h-3.5 inline-block"></app-icon>
+                            <span data-i18n="editor.toolbar.image_label">Grafika</span>
+                        </button>
+                    </div>
+
+                    <!-- Drawer Content / Editor Slot -->
+                    <div
+                        id="hero-description-editor-slot"
+                        class="p-3 flex-1 flex flex-col gap-2 min-h-0 overflow-hidden"
+                    >
+                        <!-- Rich Markdown Editor Mount Container -->
+                        <div
+                            id="hero-rich-editor-mount"
+                            class="flex-1 min-h-[220px] overflow-y-auto bg-[#18181b] border border-zinc-800 rounded-lg custom-scrollbar focus:outline-none"
+                        ></div>
+
+                        <!-- Editable Raw Description Textarea -->
+                        <textarea
+                            id="hero-description-textarea"
+                            rows="12"
+                            placeholder="Wpisz szczegółowy opis postaci gracza, wygląd zewnętrzny, dialogi lub fabularny wstęp..."
+                            data-i18n-placeholder="hero.description_placeholder"
+                            class="hidden"
+                            spellcheck="false"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resize Handle in Bottom Right Corner -->
+            <div
+                id="hero-modal-resizer"
+                class="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize flex items-end justify-end p-0.5 select-none z-50 text-zinc-600 hover:text-amber-400 group"
+                title="Zmień rozmiar okna"
+                data-i18n-title="npc.resize_title"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="currentColor"
+                    class="opacity-40 group-hover:opacity-100 transition-opacity"
+                >
+                    <circle cx="8.5" cy="8.5" r="1"></circle>
+                    <circle cx="8.5" cy="5" r="1"></circle>
+                    <circle cx="5" cy="5" r="1"></circle>
+                    <circle cx="8.5" cy="1.5" r="1"></circle>
+                    <circle cx="5" cy="1.5" r="1"></circle>
+                    <circle cx="1.5" cy="8.5" r="1"></circle>
+                </svg>
+            </div>
+        </div>
+
         <!-- Modal: Zaawansowany Edytor Grafik (Image Editor) -->
         <div
             id="image-editor-modal"
@@ -2985,7 +3832,10 @@
                     class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0"
                 >
                     <div class="flex items-center gap-2">
-                        <app-icon name="crop" class="w-4 h-4 text-amber-400 inline-block"></app-icon>
+                        <app-icon
+                            name="crop"
+                            class="w-4 h-4 text-amber-400 inline-block"
+                        ></app-icon>
                         <h3
                             class="text-sm font-semibold text-zinc-100"
                             data-i18n="image_editor.title"
@@ -3022,21 +3872,43 @@
                                 id="image-editor-crop-overlay"
                                 class="hidden absolute border-2 border-dashed border-amber-400 bg-amber-400/10 cursor-move"
                             >
-                                <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40 divide-x divide-y divide-amber-300">
-                                    <div></div><div></div><div></div>
-                                    <div></div><div></div><div></div>
-                                    <div></div><div></div><div></div>
+                                <div
+                                    class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-40 divide-x divide-y divide-amber-300"
+                                >
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
                                 </div>
-                                <div data-handle="nw" class="crop-handle absolute -top-1.5 -left-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nwse-resize rounded-xs"></div>
-                                <div data-handle="ne" class="crop-handle absolute -top-1.5 -right-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nesw-resize rounded-xs"></div>
-                                <div data-handle="se" class="crop-handle absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nwse-resize rounded-xs"></div>
-                                <div data-handle="sw" class="crop-handle absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nesw-resize rounded-xs"></div>
+                                <div
+                                    data-handle="nw"
+                                    class="crop-handle absolute -top-1.5 -left-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nwse-resize rounded-xs"
+                                ></div>
+                                <div
+                                    data-handle="ne"
+                                    class="crop-handle absolute -top-1.5 -right-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nesw-resize rounded-xs"
+                                ></div>
+                                <div
+                                    data-handle="se"
+                                    class="crop-handle absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nwse-resize rounded-xs"
+                                ></div>
+                                <div
+                                    data-handle="sw"
+                                    class="crop-handle absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-amber-400 border border-black cursor-nesw-resize rounded-xs"
+                                ></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Right Controls Sidebar -->
-                    <div class="w-80 border-l border-[#2d2d32] bg-[#1a1a1e] flex flex-col shrink-0 text-xs text-zinc-300">
+                    <div
+                        class="w-80 border-l border-[#2d2d32] bg-[#1a1a1e] flex flex-col shrink-0 text-xs text-zinc-300"
+                    >
                         <!-- Sidebar Tab Buttons -->
                         <div class="flex items-center border-b border-[#2d2d32] bg-[#222226]">
                             <button
@@ -3070,37 +3942,102 @@
                             <!-- Tab: Crop -->
                             <div id="tab-content-crop" class="space-y-4">
                                 <div>
-                                    <label class="block font-medium text-zinc-300 mb-1.5" data-i18n="image_editor.aspect_ratio">
+                                    <label
+                                        class="block font-medium text-zinc-300 mb-1.5"
+                                        data-i18n="image_editor.aspect_ratio"
+                                    >
                                         Proporcje kadru:
                                     </label>
-                                    <div class="grid grid-cols-2 gap-1.5" id="image-editor-aspect-presets">
-                                        <button type="button" data-aspect="free" class="aspect-btn active px-2.5 py-1.5 rounded bg-amber-500 text-black font-semibold text-[11px] cursor-pointer" data-i18n="image_editor.aspect_free">Dowolne</button>
-                                        <button type="button" data-aspect="1:1" class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer" data-i18n="image_editor.aspect_square">1:1 (Kwadrat)</button>
-                                        <button type="button" data-aspect="16:9" class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer">16:9</button>
-                                        <button type="button" data-aspect="4:3" class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer">4:3</button>
-                                        <button type="button" data-aspect="3:2" class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer">3:2</button>
+                                    <div
+                                        class="grid grid-cols-2 gap-1.5"
+                                        id="image-editor-aspect-presets"
+                                    >
+                                        <button
+                                            type="button"
+                                            data-aspect="free"
+                                            class="aspect-btn active px-2.5 py-1.5 rounded bg-amber-500 text-black font-semibold text-[11px] cursor-pointer"
+                                            data-i18n="image_editor.aspect_free"
+                                        >
+                                            Dowolne
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-aspect="1:1"
+                                            class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer"
+                                            data-i18n="image_editor.aspect_square"
+                                        >
+                                            1:1 (Kwadrat)
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-aspect="16:9"
+                                            class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer"
+                                        >
+                                            16:9
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-aspect="4:3"
+                                            class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer"
+                                        >
+                                            4:3
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-aspect="3:2"
+                                            class="aspect-btn px-2.5 py-1.5 rounded bg-[#25252b] text-zinc-300 hover:bg-[#2e2e36] text-[11px] cursor-pointer"
+                                        >
+                                            3:2
+                                        </button>
                                     </div>
-                                    <p class="mt-2 text-[11px] text-zinc-400 italic" data-i18n="image_editor.crop_hint">
+                                    <p
+                                        class="mt-2 text-[11px] text-zinc-400 italic"
+                                        data-i18n="image_editor.crop_hint"
+                                    >
                                         Przeciągaj narożniki ramki, aby wykadrować zaznaczony obszar
                                     </p>
                                 </div>
 
                                 <div class="pt-3 border-t border-[#2d2d32]">
-                                    <label class="block font-medium text-zinc-300 mb-2">Obrót i odbicie:</label>
+                                    <label class="block font-medium text-zinc-300 mb-2"
+                                        >Obrót i odbicie:</label
+                                    >
                                     <div class="grid grid-cols-2 gap-1.5">
-                                        <button type="button" id="btn-editor-rotate-ccw" class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]">
-                                            <app-icon name="rotate-ccw" class="w-3.5 h-3.5"></app-icon>
+                                        <button
+                                            type="button"
+                                            id="btn-editor-rotate-ccw"
+                                            class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]"
+                                        >
+                                            <app-icon
+                                                name="rotate-ccw"
+                                                class="w-3.5 h-3.5"
+                                            ></app-icon>
                                             <span data-i18n="image_editor.rotate_left">-90°</span>
                                         </button>
-                                        <button type="button" id="btn-editor-rotate-cw" class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]">
-                                            <app-icon name="rotate-cw" class="w-3.5 h-3.5"></app-icon>
+                                        <button
+                                            type="button"
+                                            id="btn-editor-rotate-cw"
+                                            class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]"
+                                        >
+                                            <app-icon
+                                                name="rotate-cw"
+                                                class="w-3.5 h-3.5"
+                                            ></app-icon>
                                             <span data-i18n="image_editor.rotate_right">+90°</span>
                                         </button>
-                                        <button type="button" id="btn-editor-flip-h" class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]">
+                                        <button
+                                            type="button"
+                                            id="btn-editor-flip-h"
+                                            class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]"
+                                        >
                                             <app-icon name="flip-h" class="w-3.5 h-3.5"></app-icon>
                                             <span data-i18n="image_editor.flip_h">Odbij H</span>
                                         </button>
-                                        <button type="button" id="btn-editor-flip-v" class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]">
+                                        <button
+                                            type="button"
+                                            id="btn-editor-flip-v"
+                                            class="flex items-center justify-center gap-1 px-2 py-1.5 rounded bg-[#25252b] hover:bg-[#2e2e36] text-zinc-200 cursor-pointer text-[11px]"
+                                        >
                                             <app-icon name="flip-v" class="w-3.5 h-3.5"></app-icon>
                                             <span data-i18n="image_editor.flip_v">Odbij V</span>
                                         </button>
@@ -3112,31 +4049,105 @@
                             <div id="tab-content-resize" class="hidden space-y-4">
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
-                                        <label for="image-resize-width" class="block font-medium text-zinc-400 mb-1" data-i18n="image_editor.width">Szerokość (px)</label>
-                                        <input type="number" id="image-resize-width" min="1" max="8000" class="w-full bg-[#25252b] border border-[#3f3f46] rounded px-2 py-1 text-zinc-100 font-mono text-xs focus:outline-none focus:border-amber-400" />
+                                        <label
+                                            for="image-resize-width"
+                                            class="block font-medium text-zinc-400 mb-1"
+                                            data-i18n="image_editor.width"
+                                            >Szerokość (px)</label
+                                        >
+                                        <input
+                                            type="number"
+                                            id="image-resize-width"
+                                            min="1"
+                                            max="8000"
+                                            class="w-full bg-[#25252b] border border-[#3f3f46] rounded px-2 py-1 text-zinc-100 font-mono text-xs focus:outline-none focus:border-amber-400"
+                                        />
                                     </div>
                                     <div>
-                                        <label for="image-resize-height" class="block font-medium text-zinc-400 mb-1" data-i18n="image_editor.height">Wysokość (px)</label>
-                                        <input type="number" id="image-resize-height" min="1" max="8000" class="w-full bg-[#25252b] border border-[#3f3f46] rounded px-2 py-1 text-zinc-100 font-mono text-xs focus:outline-none focus:border-amber-400" />
+                                        <label
+                                            for="image-resize-height"
+                                            class="block font-medium text-zinc-400 mb-1"
+                                            data-i18n="image_editor.height"
+                                            >Wysokość (px)</label
+                                        >
+                                        <input
+                                            type="number"
+                                            id="image-resize-height"
+                                            min="1"
+                                            max="8000"
+                                            class="w-full bg-[#25252b] border border-[#3f3f46] rounded px-2 py-1 text-zinc-100 font-mono text-xs focus:outline-none focus:border-amber-400"
+                                        />
                                     </div>
                                 </div>
 
                                 <div class="flex items-center gap-2">
-                                    <input type="checkbox" id="image-resize-lock-aspect" checked class="rounded border-zinc-700 text-amber-500 focus:ring-0 cursor-pointer" />
-                                    <label for="image-resize-lock-aspect" class="text-xs text-zinc-300 cursor-pointer" data-i18n="image_editor.lock_aspect">
+                                    <input
+                                        type="checkbox"
+                                        id="image-resize-lock-aspect"
+                                        checked
+                                        class="rounded border-zinc-700 text-amber-500 focus:ring-0 cursor-pointer"
+                                    />
+                                    <label
+                                        for="image-resize-lock-aspect"
+                                        class="text-xs text-zinc-300 cursor-pointer"
+                                        data-i18n="image_editor.lock_aspect"
+                                    >
                                         Zachowaj proporcje
                                     </label>
                                 </div>
 
                                 <div class="pt-3 border-t border-[#2d2d32]">
-                                    <label class="block font-medium text-zinc-300 mb-1.5" data-i18n="image_editor.quick_presets">Szybkie presety:</label>
-                                    <div class="grid grid-cols-3 gap-1.5" id="image-editor-scale-presets">
-                                        <button type="button" data-scale="1" class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200">100%</button>
-                                        <button type="button" data-scale="0.75" class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200">75%</button>
-                                        <button type="button" data-scale="0.5" class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200">50%</button>
-                                        <button type="button" data-scale="0.25" class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200">25%</button>
-                                        <button type="button" data-width="800" class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200">800px</button>
-                                        <button type="button" data-width="400" class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200">400px</button>
+                                    <label
+                                        class="block font-medium text-zinc-300 mb-1.5"
+                                        data-i18n="image_editor.quick_presets"
+                                        >Szybkie presety:</label
+                                    >
+                                    <div
+                                        class="grid grid-cols-3 gap-1.5"
+                                        id="image-editor-scale-presets"
+                                    >
+                                        <button
+                                            type="button"
+                                            data-scale="1"
+                                            class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200"
+                                        >
+                                            100%
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-scale="0.75"
+                                            class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200"
+                                        >
+                                            75%
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-scale="0.5"
+                                            class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200"
+                                        >
+                                            50%
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-scale="0.25"
+                                            class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200"
+                                        >
+                                            25%
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-width="800"
+                                            class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200"
+                                        >
+                                            800px
+                                        </button>
+                                        <button
+                                            type="button"
+                                            data-width="400"
+                                            class="px-2 py-1 rounded bg-[#25252b] hover:bg-[#2e2e36] text-[11px] text-zinc-200"
+                                        >
+                                            400px
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -3145,50 +4156,146 @@
                             <div id="tab-content-adjust" class="hidden space-y-3.5">
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
-                                        <label for="adj-brightness" class="font-medium text-zinc-300" data-i18n="image_editor.brightness">Jasność</label>
-                                        <span id="val-brightness" class="text-zinc-400 font-mono text-[11px]">100%</span>
+                                        <label
+                                            for="adj-brightness"
+                                            class="font-medium text-zinc-300"
+                                            data-i18n="image_editor.brightness"
+                                            >Jasność</label
+                                        >
+                                        <span
+                                            id="val-brightness"
+                                            class="text-zinc-400 font-mono text-[11px]"
+                                            >100%</span
+                                        >
                                     </div>
-                                    <input type="range" id="adj-brightness" min="0" max="200" value="100" class="w-full accent-amber-400 cursor-pointer" />
+                                    <input
+                                        type="range"
+                                        id="adj-brightness"
+                                        min="0"
+                                        max="200"
+                                        value="100"
+                                        class="w-full accent-amber-400 cursor-pointer"
+                                    />
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
-                                        <label for="adj-contrast" class="font-medium text-zinc-300" data-i18n="image_editor.contrast">Kontrast</label>
-                                        <span id="val-contrast" class="text-zinc-400 font-mono text-[11px]">100%</span>
+                                        <label
+                                            for="adj-contrast"
+                                            class="font-medium text-zinc-300"
+                                            data-i18n="image_editor.contrast"
+                                            >Kontrast</label
+                                        >
+                                        <span
+                                            id="val-contrast"
+                                            class="text-zinc-400 font-mono text-[11px]"
+                                            >100%</span
+                                        >
                                     </div>
-                                    <input type="range" id="adj-contrast" min="0" max="200" value="100" class="w-full accent-amber-400 cursor-pointer" />
+                                    <input
+                                        type="range"
+                                        id="adj-contrast"
+                                        min="0"
+                                        max="200"
+                                        value="100"
+                                        class="w-full accent-amber-400 cursor-pointer"
+                                    />
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
-                                        <label for="adj-saturation" class="font-medium text-zinc-300" data-i18n="image_editor.saturation">Nasycenie</label>
-                                        <span id="val-saturation" class="text-zinc-400 font-mono text-[11px]">100%</span>
+                                        <label
+                                            for="adj-saturation"
+                                            class="font-medium text-zinc-300"
+                                            data-i18n="image_editor.saturation"
+                                            >Nasycenie</label
+                                        >
+                                        <span
+                                            id="val-saturation"
+                                            class="text-zinc-400 font-mono text-[11px]"
+                                            >100%</span
+                                        >
                                     </div>
-                                    <input type="range" id="adj-saturation" min="0" max="200" value="100" class="w-full accent-amber-400 cursor-pointer" />
+                                    <input
+                                        type="range"
+                                        id="adj-saturation"
+                                        min="0"
+                                        max="200"
+                                        value="100"
+                                        class="w-full accent-amber-400 cursor-pointer"
+                                    />
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
-                                        <label for="adj-sepia" class="font-medium text-zinc-300" data-i18n="image_editor.sepia">Sepia (Pergamin)</label>
-                                        <span id="val-sepia" class="text-zinc-400 font-mono text-[11px]">0%</span>
+                                        <label
+                                            for="adj-sepia"
+                                            class="font-medium text-zinc-300"
+                                            data-i18n="image_editor.sepia"
+                                            >Sepia (Pergamin)</label
+                                        >
+                                        <span
+                                            id="val-sepia"
+                                            class="text-zinc-400 font-mono text-[11px]"
+                                            >0%</span
+                                        >
                                     </div>
-                                    <input type="range" id="adj-sepia" min="0" max="100" value="0" class="w-full accent-amber-400 cursor-pointer" />
+                                    <input
+                                        type="range"
+                                        id="adj-sepia"
+                                        min="0"
+                                        max="100"
+                                        value="0"
+                                        class="w-full accent-amber-400 cursor-pointer"
+                                    />
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
-                                        <label for="adj-grayscale" class="font-medium text-zinc-300" data-i18n="image_editor.grayscale">Skala szarości</label>
-                                        <span id="val-grayscale" class="text-zinc-400 font-mono text-[11px]">0%</span>
+                                        <label
+                                            for="adj-grayscale"
+                                            class="font-medium text-zinc-300"
+                                            data-i18n="image_editor.grayscale"
+                                            >Skala szarości</label
+                                        >
+                                        <span
+                                            id="val-grayscale"
+                                            class="text-zinc-400 font-mono text-[11px]"
+                                            >0%</span
+                                        >
                                     </div>
-                                    <input type="range" id="adj-grayscale" min="0" max="100" value="0" class="w-full accent-amber-400 cursor-pointer" />
+                                    <input
+                                        type="range"
+                                        id="adj-grayscale"
+                                        min="0"
+                                        max="100"
+                                        value="0"
+                                        class="w-full accent-amber-400 cursor-pointer"
+                                    />
                                 </div>
 
                                 <div>
                                     <div class="flex justify-between items-center mb-1">
-                                        <label for="adj-hue" class="font-medium text-zinc-300" data-i18n="image_editor.hue">Odcień barwy</label>
-                                        <span id="val-hue" class="text-zinc-400 font-mono text-[11px]">0°</span>
+                                        <label
+                                            for="adj-hue"
+                                            class="font-medium text-zinc-300"
+                                            data-i18n="image_editor.hue"
+                                            >Odcień barwy</label
+                                        >
+                                        <span
+                                            id="val-hue"
+                                            class="text-zinc-400 font-mono text-[11px]"
+                                            >0°</span
+                                        >
                                     </div>
-                                    <input type="range" id="adj-hue" min="0" max="360" value="0" class="w-full accent-amber-400 cursor-pointer" />
+                                    <input
+                                        type="range"
+                                        id="adj-hue"
+                                        min="0"
+                                        max="360"
+                                        value="0"
+                                        class="w-full accent-amber-400 cursor-pointer"
+                                    />
                                 </div>
 
                                 <button
@@ -3205,9 +4312,14 @@
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#222226] flex items-center justify-between shrink-0">
+                <div
+                    class="px-5 py-3 border-t border-[#2d2d32] bg-[#222226] flex items-center justify-between shrink-0"
+                >
                     <div class="flex items-center gap-3">
-                        <span id="image-editor-dimensions-info" class="text-xs text-zinc-400 font-mono">
+                        <span
+                            id="image-editor-dimensions-info"
+                            class="text-xs text-zinc-400 font-mono"
+                        >
                             0 × 0 px
                         </span>
                         <button
@@ -3263,7 +4375,10 @@
                     class="flex items-center justify-between px-5 py-3.5 border-b border-[#2d2d32] bg-[#222226]"
                 >
                     <div class="flex items-center gap-2">
-                        <app-icon name="sparkles" class="w-4 h-4 text-amber-400 inline-block"></app-icon>
+                        <app-icon
+                            name="sparkles"
+                            class="w-4 h-4 text-amber-400 inline-block"
+                        ></app-icon>
                         <h3
                             id="custom-style-modal-title"
                             class="text-sm font-semibold text-zinc-100"
@@ -3288,7 +4403,8 @@
                     <!-- Nazwa stylu -->
                     <div class="flex flex-col gap-1.5">
                         <label for="custom-style-name" class="font-medium text-zinc-300">
-                            <span data-i18n="editor.styles.name_label">Nazwa stylu</span> <span class="text-red-400">*</span>
+                            <span data-i18n="editor.styles.name_label">Nazwa stylu</span>
+                            <span class="text-red-400">*</span>
                         </label>
                         <input
                             type="text"
@@ -3302,7 +4418,11 @@
 
                     <!-- Kolor tekstu -->
                     <div class="flex flex-col gap-1.5">
-                        <label class="font-medium text-zinc-300" data-i18n="editor.styles.color_label">Kolor tekstu</label>
+                        <label
+                            class="font-medium text-zinc-300"
+                            data-i18n="editor.styles.color_label"
+                            >Kolor tekstu</label
+                        >
                         <div class="flex items-center gap-2.5">
                             <input
                                 type="color"
@@ -3357,7 +4477,11 @@
                     <!-- Kolor tła / zakreślacza -->
                     <div class="flex flex-col gap-1.5">
                         <div class="flex items-center justify-between">
-                            <label class="font-medium text-zinc-300" data-i18n="editor.styles.bg_label">Tło / Zakreślacz</label>
+                            <label
+                                class="font-medium text-zinc-300"
+                                data-i18n="editor.styles.bg_label"
+                                >Tło / Zakreślacz</label
+                            >
                             <label
                                 class="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer"
                             >
@@ -3376,13 +4500,21 @@
                                 value="#3b1d5c"
                                 class="w-8 h-8 rounded border border-zinc-700 bg-transparent cursor-pointer p-0"
                             />
-                            <span class="text-[11px] text-zinc-400" data-i18n="editor.styles.bg_color_hint">Wybrany kolor tła tekstu</span>
+                            <span
+                                class="text-[11px] text-zinc-400"
+                                data-i18n="editor.styles.bg_color_hint"
+                                >Wybrany kolor tła tekstu</span
+                            >
                         </div>
                     </div>
 
                     <!-- Formatowanie typograficzne -->
                     <div class="flex flex-col gap-2 pt-1 border-t border-zinc-800">
-                        <span class="font-medium text-zinc-300" data-i18n="editor.styles.typography_title">Opcje typograficzne</span>
+                        <span
+                            class="font-medium text-zinc-300"
+                            data-i18n="editor.styles.typography_title"
+                            >Opcje typograficzne</span
+                        >
                         <div class="grid grid-cols-2 gap-2 text-[11px] text-zinc-300">
                             <label
                                 class="flex items-center gap-2 p-1.5 rounded bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 cursor-pointer"
@@ -3430,7 +4562,11 @@
                     <!-- Krój czcionki i wyszukiwarka online -->
                     <div class="flex flex-col gap-1.5">
                         <div class="flex items-center justify-between">
-                            <label for="custom-style-font-family" class="font-medium text-zinc-300" data-i18n="editor.styles.font_label">
+                            <label
+                                for="custom-style-font-family"
+                                class="font-medium text-zinc-300"
+                                data-i18n="editor.styles.font_label"
+                            >
                                 Krój czcionki
                             </label>
                             <div class="flex items-center gap-2">
@@ -3439,8 +4575,13 @@
                                     id="btn-open-font-browser"
                                     class="text-[11px] text-blue-400 hover:text-blue-300 hover:underline cursor-pointer flex items-center gap-1 font-medium bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/25"
                                 >
-                                    <app-icon name="globe" class="w-3.5 h-3.5 inline-block"></app-icon>
-                                    <span data-i18n="editor.styles.font_search_online">Szukaj w internecie</span>
+                                    <app-icon
+                                        name="globe"
+                                        class="w-3.5 h-3.5 inline-block"
+                                    ></app-icon>
+                                    <span data-i18n="editor.styles.font_search_online"
+                                        >Szukaj w internecie</span
+                                    >
                                 </button>
                                 <button
                                     type="button"
@@ -3457,9 +4598,15 @@
                                 id="custom-style-font-family"
                                 class="flex-1 bg-[#121215] border border-zinc-700 rounded-lg px-2.5 py-1.5 text-zinc-200 text-xs focus:outline-none focus:border-blue-500 cursor-pointer"
                             >
-                                <option value="sans" data-i18n="editor.styles.font_default">Domyślna (Bezszeryfowa / Sans)</option>
-                                <option value="serif" data-i18n="editor.styles.font_serif">Książkowa (Szeryfowa / Serif)</option>
-                                <option value="mono" data-i18n="editor.styles.font_mono">Maszynopis (Monospace)</option>
+                                <option value="sans" data-i18n="editor.styles.font_default">
+                                    Domyślna (Bezszeryfowa / Sans)
+                                </option>
+                                <option value="serif" data-i18n="editor.styles.font_serif">
+                                    Książkowa (Szeryfowa / Serif)
+                                </option>
+                                <option value="mono" data-i18n="editor.styles.font_mono">
+                                    Maszynopis (Monospace)
+                                </option>
                             </select>
                             <button
                                 type="button"
@@ -3479,7 +4626,9 @@
                             class="hidden p-2.5 rounded-lg bg-zinc-900/90 border border-zinc-800 flex flex-col gap-2"
                         >
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-semibold text-zinc-300" data-i18n="editor.styles.add_font_title"
+                                <span
+                                    class="text-[11px] font-semibold text-zinc-300"
+                                    data-i18n="editor.styles.add_font_title"
                                     >Wpisz nazwę czcionki (Google Fonts lub systemowa)</span
                                 >
                                 <button
@@ -3548,11 +4697,19 @@
 
                     <!-- Żywy podgląd (Live Preview) -->
                     <div class="flex flex-col gap-1.5 pt-1 border-t border-zinc-800">
-                        <span class="text-[11px] font-medium text-zinc-400" data-i18n="editor.styles.preview_label">Podgląd na żywo:</span>
+                        <span
+                            class="text-[11px] font-medium text-zinc-400"
+                            data-i18n="editor.styles.preview_label"
+                            >Podgląd na żywo:</span
+                        >
                         <div
                             class="p-3 rounded-lg bg-[#141416] border border-zinc-800 text-center select-none min-h-[44px] flex items-center justify-center"
                         >
-                            <span id="custom-style-live-preview" class="text-sm" data-i18n="editor.styles.preview_sample">
+                            <span
+                                id="custom-style-live-preview"
+                                class="text-sm"
+                                data-i18n="editor.styles.preview_sample"
+                            >
                                 Prastara pieczęć rozbłysła tajemniczym światłem.
                             </span>
                         </div>
@@ -3604,10 +4761,15 @@
                     class="px-5 py-3.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 shrink-0"
                 >
                     <div class="flex items-center gap-2.5">
-                        <app-icon name="globe" class="w-5 h-5 text-blue-400 inline-block"></app-icon>
+                        <app-icon
+                            name="globe"
+                            class="w-5 h-5 text-blue-400 inline-block"
+                        ></app-icon>
                         <div>
                             <h3 class="text-sm font-semibold text-zinc-100 flex items-center gap-2">
-                                <span data-i18n="editor.font_browser.title">Wyszukiwarka czcionek (Google Fonts)</span>
+                                <span data-i18n="editor.font_browser.title"
+                                    >Wyszukiwarka czcionek (Google Fonts)</span
+                                >
                                 <span
                                     id="font-browser-status-badge"
                                     class="text-[10px] px-2 py-0.5 rounded-full font-normal bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
@@ -3615,7 +4777,10 @@
                                     Online
                                 </span>
                             </h3>
-                            <p class="text-[11px] text-zinc-400" data-i18n="editor.font_browser.subtitle">
+                            <p
+                                class="text-[11px] text-zinc-400"
+                                data-i18n="editor.font_browser.subtitle"
+                            >
                                 Przeglądaj czcionki z podglądem na żywo. Kliknij, aby wybrać
                                 czcionkę dla stylu.
                             </p>
@@ -3638,8 +4803,15 @@
                     class="hidden mx-4 mt-3 px-3.5 py-2.5 rounded-lg bg-amber-950/70 border border-amber-600/70 text-amber-200 text-xs flex items-center justify-between gap-3 shrink-0"
                 >
                     <div class="flex items-center gap-2 min-w-0">
-                        <app-icon name="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></app-icon>
-                        <span id="font-browser-offline-message" class="truncate" data-i18n="editor.font_browser.offline_banner">
+                        <app-icon
+                            name="alert-triangle"
+                            class="w-4 h-4 text-amber-400 shrink-0"
+                        ></app-icon>
+                        <span
+                            id="font-browser-offline-message"
+                            class="truncate"
+                            data-i18n="editor.font_browser.offline_banner"
+                        >
                             Brak połączenia z internetem. Wyświetlamy podręczny katalog czcionek
                             offline.
                         </span>
@@ -3662,7 +4834,10 @@
                             <span
                                 class="absolute inset-y-0 left-2.5 flex items-center text-zinc-500 pointer-events-none"
                             >
-                                <app-icon name="search" class="w-3.5 h-3.5 text-zinc-500"></app-icon>
+                                <app-icon
+                                    name="search"
+                                    class="w-3.5 h-3.5 text-zinc-500"
+                                ></app-icon>
                             </span>
                             <input
                                 type="text"
@@ -3765,7 +4940,9 @@
                                     checked
                                     class="rounded accent-blue-600"
                                 />
-                                <span class="text-[11px]" data-i18n="editor.font_browser.filter_polish"
+                                <span
+                                    class="text-[11px]"
+                                    data-i18n="editor.font_browser.filter_polish"
                                     >Tylko z polskimi znakami (ą, ę, ś...)</span
                                 >
                             </label>
@@ -3812,7 +4989,7 @@
         <div
             id="entity-link-modal"
             class="hidden fixed z-50 w-80 max-h-[440px] bg-[#1c1c21] border border-zinc-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-zinc-200"
-            style="top: 0; left: 0;"
+            style="top: 0; left: 0"
         >
             <!-- Header: compact with title and close icon -->
             <div
@@ -3885,10 +5062,7 @@
                     </div>
 
                     <!-- Filtry pigułkowe typów -->
-                    <div
-                        class="flex items-center gap-1 flex-wrap"
-                        id="entity-link-type-filters"
-                    >
+                    <div class="flex items-center gap-1 flex-wrap" id="entity-link-type-filters">
                         <button
                             type="button"
                             data-filter-type="all"
@@ -3951,7 +5125,10 @@
                     >
                         Wybrany:
                     </span>
-                    <span id="entity-link-selected-name" class="font-semibold text-zinc-200 truncate ml-2">
+                    <span
+                        id="entity-link-selected-name"
+                        class="font-semibold text-zinc-200 truncate ml-2"
+                    >
                         (brak wyboru)
                     </span>
                 </div>
@@ -4003,15 +5180,27 @@
                 class="bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col scale-100 transition-transform"
             >
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900/90">
-                    <div class="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <div
+                    class="px-5 py-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900/90"
+                >
+                    <div
+                        class="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0"
+                    >
                         <app-icon name="alert-triangle" class="w-5 h-5 text-amber-400"></app-icon>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <h3 id="unsaved-changes-title" class="text-sm font-semibold text-zinc-100" data-i18n="unsaved_changes.title">
+                        <h3
+                            id="unsaved-changes-title"
+                            class="text-sm font-semibold text-zinc-100"
+                            data-i18n="unsaved_changes.title"
+                        >
                             Niezapisane zmiany
                         </h3>
-                        <p id="unsaved-changes-subtitle" class="text-[11px] text-zinc-400 mt-0.5" data-i18n="unsaved_changes.subtitle">
+                        <p
+                            id="unsaved-changes-subtitle"
+                            class="text-[11px] text-zinc-400 mt-0.5"
+                            data-i18n="unsaved_changes.subtitle"
+                        >
                             Utrata wprowadzonych danych
                         </p>
                     </div>
@@ -4029,12 +5218,15 @@
                 <!-- Body -->
                 <div class="p-5 text-xs text-zinc-300 leading-relaxed bg-[#161619]/90">
                     <p id="unsaved-changes-message" class="text-zinc-300">
-                        Czy na pewno chcesz wyjść? Masz niezapisane zmiany, które zostaną bezpowrotnie utracone.
+                        Czy na pewno chcesz wyjść? Masz niezapisane zmiany, które zostaną
+                        bezpowrotnie utracone.
                     </p>
                 </div>
 
                 <!-- Footer with 3 buttons: Anuluj, Nie zapisuj, Zapisz -->
-                <div class="px-5 py-3.5 bg-zinc-950/80 border-t border-zinc-800 flex items-center justify-between gap-2">
+                <div
+                    class="px-5 py-3.5 bg-zinc-950/80 border-t border-zinc-800 flex items-center justify-between gap-2"
+                >
                     <button
                         type="button"
                         id="btn-unsaved-cancel"
