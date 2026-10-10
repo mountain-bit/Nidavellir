@@ -732,6 +732,7 @@ declare module '*/View/ui/topBar.js' {
     export function initTopBar(ctx: unknown): void
     export function openQuickSearch(ctx: unknown): void
     export function centerGraphView(ctx: unknown): void
+    export function openSettingsView(ctx: unknown): void
 }
 
 declare module '*/View/ui/quickSearch.js' {

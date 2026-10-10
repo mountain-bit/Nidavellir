@@ -561,14 +561,10 @@ function registerGlobalShortcuts(ctx) {
             return
         }
 
-        // Ctrl + , : Otwórz ustawienia
+        // Ctrl + , : Otwórz ustawienia (Opcje w panelu bocznym)
         if ((e.ctrlKey || e.metaKey) && (e.key === ',' || e.code === 'Comma')) {
             e.preventDefault()
-            if (ctx.vm) {
-                ctx.vm.toggleLeftTab('settings')
-                if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
-                updateTopBarUI(ctx)
-            }
+            openSettingsView(ctx)
             return
         }
 
@@ -694,6 +690,51 @@ export function centerGraphView(ctx) {
 }
 
 /**
+ * Opens the options/settings tab in the left side panel drawer.
+ *
+ * @param {object} ctx - Application context
+ */
+export function openSettingsView(ctx) {
+    if (!ctx) return
+
+    if (typeof ctx.openSettings === 'function') {
+        ctx.openSettings()
+        return
+    }
+
+    if (ctx.vm) {
+        if (typeof ctx.vm.setActiveLeftTab === 'function') {
+            ctx.vm.setActiveLeftTab('settings')
+        } else if (typeof ctx.vm.toggleLeftTab === 'function') {
+            if (
+                typeof ctx.vm.getActiveLeftTab === 'function' &&
+                ctx.vm.getActiveLeftTab() !== 'settings'
+            ) {
+                ctx.vm.toggleLeftTab('settings')
+            } else if (
+                typeof ctx.vm.isLeftDrawerOpen === 'function' &&
+                !ctx.vm.isLeftDrawerOpen()
+            ) {
+                ctx.vm.toggleLeftTab('settings')
+            }
+        }
+    }
+
+    if (typeof ctx.updateLeftDrawerUI === 'function') {
+        ctx.updateLeftDrawerUI()
+    } else {
+        const settingsTabBtn = document.querySelector('[data-left-tab="settings"]')
+        if (settingsTabBtn && typeof settingsTabBtn.click === 'function') {
+            settingsTabBtn.click()
+        }
+    }
+
+    if (typeof updateTopBarUI === 'function') {
+        updateTopBarUI(ctx)
+    }
+}
+
+/**
  * Initializes click handlers, modals and keyboard shortcuts for Top Bar buttons.
  *
  * @param {object} ctx - Application context
@@ -781,14 +822,10 @@ export function initTopBar(ctx) {
         })
     })
 
-    // Settings button -> Switches left drawer to settings tab
+    // Settings / Options button -> Opens options in the side panel
     document.querySelectorAll('[data-action="open-settings"]').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (ctx.vm) {
-                ctx.vm.toggleLeftTab('settings')
-                if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
-                updateTopBarUI(ctx)
-            }
+            openSettingsView(ctx)
         })
     })
 

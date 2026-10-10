@@ -259,4 +259,27 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         expect(centerSpy).toHaveBeenCalledWith(true)
         expect(updateZoomSpy).toHaveBeenCalledWith(mockCtx.storyGraphInstance)
     })
+
+    it('opens settings in the side panel when "open-settings" (Opcje) is clicked', async () => {
+        const { openSettingsView } = await import('../../View/ui/topBar.js')
+
+        const updateLeftDrawerSpy = vi.fn()
+        const setActiveLeftTabSpy = vi.fn()
+
+        const mockCtx = {
+            updateLeftDrawerUI: updateLeftDrawerSpy,
+            vm: {
+                setActiveLeftTab: setActiveLeftTabSpy,
+                getActiveLeftTab: vi.fn().mockReturnValue('paragraphs'),
+                getActiveMainView: vi.fn().mockReturnValue('graph'),
+                isLeftDrawerOpen: vi.fn().mockReturnValue(true),
+                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+            },
+        }
+
+        openSettingsView(mockCtx)
+
+        expect(setActiveLeftTabSpy).toHaveBeenCalledWith('settings')
+        expect(updateLeftDrawerSpy).toHaveBeenCalled()
+    })
 })

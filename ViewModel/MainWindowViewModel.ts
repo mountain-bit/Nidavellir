@@ -225,6 +225,10 @@ export class MainWindowViewModel {
         }
     }
 
+    public setActiveLeftTab(tab: LeftTab | null): void {
+        this.activeLeftTab = tab
+    }
+
     public closeLeftDrawer(): void {
         this.activeLeftTab = null
     }

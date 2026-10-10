@@ -182,6 +182,16 @@ const appContext = {
         }
     },
     updateZoomToolbarUI: (sg, lvl) => updateZoomToolbarUI(sg || storyGraphInstance, lvl),
+    updateLeftDrawerUI: () => updateLeftDrawerUI(),
+    openSettings: () => {
+        if (typeof vm.setActiveLeftTab === 'function') {
+            vm.setActiveLeftTab('settings')
+        } else if (vm.getActiveLeftTab() !== 'settings') {
+            vm.toggleLeftTab('settings')
+        }
+        updateLeftDrawerUI()
+        updateTopBarUI(appContext)
+    },
     openQuickSearch: () => openQuickSearch(appContext),
     markProjectDirty: () => markProjectDirty(),
     markProjectClean: () => markProjectClean(),
