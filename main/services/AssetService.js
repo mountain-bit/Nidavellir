@@ -418,11 +418,22 @@ class AssetService {
             let fileName
             if (overwrite && originalRelativePath) {
                 const candidateName = path.basename(originalRelativePath)
-                const candidatePath = path.join(targetDir, candidateName)
+                const candidateExt = path.extname(candidateName).toLowerCase()
+                const isMatchingJpg =
+                    (candidateExt === '.jpg' || candidateExt === '.jpeg') &&
+                    (ext === '.jpg' || ext === '.jpeg')
+
+                if (candidateExt !== ext && !isMatchingJpg) {
+                    const baseWithoutExt = path.basename(candidateName, candidateExt)
+                    fileName = `${baseWithoutExt}${ext}`
+                } else {
+                    fileName = candidateName
+                }
+
+                const candidatePath = path.join(targetDir, fileName)
                 if (!isPathInsideBase(projectDir, candidatePath)) {
                     return failure(ASSET_ERRORS.FORBIDDEN_PATH)
                 }
-                fileName = candidateName
             } else {
                 const baseName = originalRelativePath
                     ? path.basename(originalRelativePath, path.extname(originalRelativePath))

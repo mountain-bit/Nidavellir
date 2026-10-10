@@ -8,7 +8,9 @@ const cjsConstants = require('../../Utils/assetConstants.js')
 
 describe('assetConstantsSync', () => {
     it('synchronizes shared directory and protocol constants', () => {
+        expect(tsUtils.ASSETS_ROOT_DIR).toBe(cjsConstants.ASSETS_ROOT_DIR)
         expect(tsUtils.ASSETS_IMAGES_DIR).toBe(cjsConstants.ASSETS_IMAGES_DIR)
+        expect(tsUtils.ASSETS_AUDIO_DIR).toBe(cjsConstants.ASSETS_AUDIO_DIR)
         expect(tsUtils.ASSET_PROTOCOL_SCHEME).toBe(cjsConstants.ASSET_PROTOCOL_SCHEME)
         expect(tsUtils.ASSET_PROTOCOL_HOST).toBe(cjsConstants.ASSET_PROTOCOL_HOST)
         expect(tsUtils.ASSET_URL_PREFIX).toBe(cjsConstants.ASSET_URL_PREFIX)
@@ -17,5 +19,16 @@ describe('assetConstantsSync', () => {
 
     it('synchronizes supported image extensions list', () => {
         expect([...tsUtils.IMAGE_EXTENSIONS]).toEqual([...cjsConstants.IMAGE_EXTENSIONS])
+    })
+
+    it('synchronizes supported audio extensions list', () => {
+        expect([...tsUtils.AUDIO_EXTENSIONS]).toEqual([...cjsConstants.AUDIO_EXTENSIONS])
+    })
+
+    it('synchronizes asset category classification logic', () => {
+        const testFiles = ['hero.png', 'sound.mp3', 'clip.wav', 'bg.webp', 'script.js']
+        for (const f of testFiles) {
+            expect(tsUtils.getAssetCategory(f)).toBe(cjsConstants.getAssetCategory(f))
+        }
     })
 })

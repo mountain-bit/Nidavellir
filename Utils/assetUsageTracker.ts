@@ -19,14 +19,18 @@ function getFileName(p: string): string {
     return parts[parts.length - 1] || ''
 }
 
+function escapeRegex(str: string): string {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function pathMatches(candidate: string, targetPath: string, targetFileName: string): boolean {
-    if (!candidate) return false
+    if (!candidate || typeof candidate !== 'string') return false
     const clean = normalizePath(candidate)
     const normTarget = normalizePath(targetPath)
     if (clean === normTarget) return true
-    if (clean.endsWith(normTarget)) return true
-    if (clean.includes(`/${targetFileName}`) || clean === targetFileName) return true
-    if (clean.includes(`asset://project/${normTarget}`)) return true
+    if (clean === `asset://project/${normTarget}`) return true
+    if (clean.endsWith(`/${normTarget}`)) return true
+    if (clean === targetFileName || clean.endsWith(`/${targetFileName}`)) return true
     return false
 }
 
@@ -35,8 +39,56 @@ function textContainsAsset(text: string, targetPath: string, targetFileName: str
     const normTarget = normalizePath(targetPath)
     if (text.includes(normTarget)) return true
     if (text.includes(`asset://project/${normTarget}`)) return true
-    if (text.includes(targetFileName)) return true
+
+    if (targetFileName) {
+        const escapedFileName = escapeRegex(targetFileName)
+        const regex = new RegExp(
+            `(?:(?<=[\\s\\(\\[\\"\\'\\/<>:])|^)${escapedFileName}(?=[\\s\\)\\]\\"\\'\\/>\\?\\#\\.,;:]|$)`,
+            'i'
+        )
+        if (regex.test(text)) return true
+    }
     return false
+}
+
+/**
+ * Replaces references to an asset inside text (markdown, HTML, URLs) in a single-pass regex,
+ * preventing corrupted or double-renamed substrings.
+ */
+export function replaceTextAssetReferences(
+    text: string,
+    oldPath: string,
+    newPath: string,
+    oldFileName: string,
+    newFileName: string
+): { updatedText: string; count: number } {
+    if (!text || typeof text !== 'string') return { updatedText: text, count: 0 }
+    if (!oldPath || !newPath || oldPath === newPath) return { updatedText: text, count: 0 }
+
+    let count = 0
+    const escapedOldPath = escapeRegex(oldPath)
+    const escapedOldFileName = escapeRegex(oldFileName)
+
+    // Matches:
+    // 1. (asset:\/\/project\/)?oldPath
+    // 2. oldFileName when bounded by markdown, path, quote or whitespace delimiters
+    const pattern = new RegExp(
+        `(asset:\\/\\/project\\/)?${escapedOldPath}|(?:(?<=[\\s\\(\\[\\"\\'\\/<>:])|^)${escapedOldFileName}(?=[\\s\\)\\]\\"\\'\\/>\\?\\#\\.,;:]|$)`,
+        'g'
+    )
+
+    const updatedText = text.replace(pattern, (match, protocolGroup) => {
+        count++
+        if (protocolGroup) {
+            return `asset://project/${newPath}`
+        }
+        if (match.endsWith(oldPath)) {
+            return newPath
+        }
+        return newFileName
+    })
+
+    return { updatedText, count }
 }
 
 interface IGenericEntity {
@@ -55,6 +107,90 @@ interface IGenericEntity {
     getDescription?: () => { getText?: () => string; setText?: (v: string) => void }
     getContent?: () => { getText?: () => string; setText?: (v: string) => void }
     setAvatar?: (v: string) => void
+    setImage?: (v: string) => void
+}
+
+function extractEntityDescription(entity: IGenericEntity): {
+    text: string
+    update: (newText: string) => void
+} {
+    if (!entity) return { text: '', update: () => {} }
+
+    if (typeof entity.getDescription === 'function') {
+        const descObj = entity.getDescription()
+        if (descObj && typeof descObj.getText === 'function') {
+            return {
+                text: descObj.getText() || '',
+                update: (newText: string) => {
+                    if (typeof descObj.setText === 'function') {
+                        descObj.setText(newText)
+                    }
+                },
+            }
+        }
+    }
+
+    if (typeof entity.getContent === 'function') {
+        const contentObj = entity.getContent()
+        if (contentObj && typeof contentObj.getText === 'function') {
+            return {
+                text: contentObj.getText() || '',
+                update: (newText: string) => {
+                    if (typeof contentObj.setText === 'function') {
+                        contentObj.setText(newText)
+                    }
+                },
+            }
+        }
+    }
+
+    if (typeof entity.content === 'string') {
+        return {
+            text: entity.content,
+            update: (newText: string) => {
+                entity.content = newText
+            },
+        }
+    }
+
+    if (
+        entity.content &&
+        typeof entity.content === 'object' &&
+        typeof entity.content.text === 'string'
+    ) {
+        const contentObj = entity.content
+        return {
+            text: contentObj.text || '',
+            update: (newText: string) => {
+                contentObj.text = newText
+            },
+        }
+    }
+
+    if (typeof entity.description === 'string') {
+        return {
+            text: entity.description,
+            update: (newText: string) => {
+                entity.description = newText
+            },
+        }
+    }
+
+    if (
+        entity.description &&
+        typeof entity.description === 'object' &&
+        typeof entity.description.text === 'string'
+    ) {
+        const descObj = entity.description
+        return {
+            text: descObj.text || '',
+            update: (newText: string) => {
+                descObj.text = newText
+            },
+        }
+    }
+
+    return { text: '', update: () => {} }
 }
 
 interface IProjectContextLike {
@@ -105,13 +241,7 @@ export function findAssetUsages(ctx: unknown, assetPath: string): IAssetUsage[] 
             })
         }
 
-        const heroDesc =
-            typeof hero.getDescription === 'function'
-                ? hero.getDescription()?.getText?.() || ''
-                : typeof hero.description === 'string'
-                  ? hero.description
-                  : hero.description?.text || ''
-
+        const heroDesc = extractEntityDescription(hero).text
         if (textContainsAsset(heroDesc, targetPath, targetFileName)) {
             usages.push({
                 id: heroId,
@@ -141,13 +271,7 @@ export function findAssetUsages(ctx: unknown, assetPath: string): IAssetUsage[] 
                 })
             }
 
-            const npcDesc =
-                typeof npc.getDescription === 'function'
-                    ? npc.getDescription()?.getText?.() || ''
-                    : typeof npc.description === 'string'
-                      ? npc.description
-                      : npc.description?.text || ''
-
+            const npcDesc = extractEntityDescription(npc).text
             if (textContainsAsset(npcDesc, targetPath, targetFileName)) {
                 usages.push({
                     id: npcId,
@@ -180,6 +304,16 @@ export function findAssetUsages(ctx: unknown, assetPath: string): IAssetUsage[] 
                     field: 'Ikona przedmiotu',
                 })
             }
+
+            const itemDesc = extractEntityDescription(item).text
+            if (textContainsAsset(itemDesc, targetPath, targetFileName)) {
+                usages.push({
+                    id: itemId,
+                    name: itemName,
+                    type: 'item',
+                    field: 'Opis przedmiotu',
+                })
+            }
         }
     }
 
@@ -202,6 +336,16 @@ export function findAssetUsages(ctx: unknown, assetPath: string): IAssetUsage[] 
                     field: 'Grafika lokacji',
                 })
             }
+
+            const locDesc = extractEntityDescription(loc).text
+            if (textContainsAsset(locDesc, targetPath, targetFileName)) {
+                usages.push({
+                    id: locId,
+                    name: locName,
+                    type: 'location',
+                    field: 'Opis lokacji',
+                })
+            }
         }
     }
 
@@ -216,27 +360,7 @@ export function findAssetUsages(ctx: unknown, assetPath: string): IAssetUsage[] 
                 (typeof p.getName === 'function' ? p.getName() : p.name) ||
                 `Węzeł ${pId}`
 
-            let contentText = ''
-            if (typeof p.getContent === 'function') {
-                contentText = p.getContent()?.getText?.() || ''
-            } else if (typeof p.getDescription === 'function') {
-                contentText = p.getDescription()?.getText?.() || ''
-            } else if (typeof p.content === 'string') {
-                contentText = p.content
-            } else if (
-                typeof p.content === 'object' &&
-                p.content &&
-                typeof p.content.text === 'string'
-            ) {
-                contentText = p.content.text
-            } else if (
-                typeof p.description === 'object' &&
-                p.description &&
-                typeof p.description.text === 'string'
-            ) {
-                contentText = p.description.text
-            }
-
+            const contentText = extractEntityDescription(p).text
             if (textContainsAsset(contentText, targetPath, targetFileName)) {
                 usages.push({
                     id: pId,
@@ -256,7 +380,6 @@ export function findAssetUsages(ctx: unknown, assetPath: string): IAssetUsage[] 
                 typeof fileContent === 'string' &&
                 textContainsAsset(fileContent, targetPath, targetFileName)
             ) {
-                // Ensure not already counted as a scene
                 const alreadyRecorded = usages.some(u => u.detail === filePath)
                 if (!alreadyRecorded) {
                     usages.push({
@@ -300,21 +423,15 @@ export function replaceAssetReferences(
     const projectData = (context.projectData || context) as IProjectContextLike
 
     const replaceText = (str: string): string => {
-        if (!str || typeof str !== 'string') return str
-        let res = str
-        if (res.includes(oldPath)) {
-            res = res.split(oldPath).join(newPath)
-            replaceCount++
-        }
-        if (res.includes(`asset://project/${oldPath}`)) {
-            res = res.split(`asset://project/${oldPath}`).join(`asset://project/${newPath}`)
-            replaceCount++
-        }
-        if (oldFileName !== newFileName && res.includes(oldFileName)) {
-            res = res.split(oldFileName).join(newFileName)
-            replaceCount++
-        }
-        return res
+        const { updatedText, count } = replaceTextAssetReferences(
+            str,
+            oldPath,
+            newPath,
+            oldFileName,
+            newFileName
+        )
+        replaceCount += count
+        return updatedText
     }
 
     // 1. Hero
@@ -326,13 +443,10 @@ export function replaceAssetReferences(
             else hero.avatar = newPath
             replaceCount++
         }
-        if (typeof hero.getDescription === 'function' && hero.getDescription()) {
-            const desc = hero.getDescription()
-            if (desc && typeof desc.getText === 'function') {
-                const text = desc.getText() || ''
-                const updated = replaceText(text)
-                if (updated !== text && typeof desc.setText === 'function') desc.setText(updated)
-            }
+        const { text, update } = extractEntityDescription(hero)
+        if (text) {
+            const updated = replaceText(text)
+            if (updated !== text) update(updated)
         }
     }
 
@@ -347,14 +461,10 @@ export function replaceAssetReferences(
                 else npc.avatar = newPath
                 replaceCount++
             }
-            if (typeof npc.getDescription === 'function' && npc.getDescription()) {
-                const desc = npc.getDescription()
-                if (desc && typeof desc.getText === 'function') {
-                    const text = desc.getText() || ''
-                    const updated = replaceText(text)
-                    if (updated !== text && typeof desc.setText === 'function')
-                        desc.setText(updated)
-                }
+            const { text, update } = extractEntityDescription(npc)
+            if (text) {
+                const updated = replaceText(text)
+                if (updated !== text) update(updated)
             }
         }
     }
@@ -369,44 +479,52 @@ export function replaceAssetReferences(
                 (typeof item.getImage === 'function' ? item.getImage() : item.image)
             if (curAvatar && pathMatches(curAvatar, oldPath, oldFileName)) {
                 if (typeof item.setAvatar === 'function') item.setAvatar(newPath)
-                else item.avatar = newPath
+                else if (typeof item.setImage === 'function') item.setImage(newPath)
+                else if (item.avatar !== undefined) item.avatar = newPath
+                else item.image = newPath
                 replaceCount++
+            }
+            const { text, update } = extractEntityDescription(item)
+            if (text) {
+                const updated = replaceText(text)
+                if (updated !== text) update(updated)
             }
         }
     }
 
-    // 4. Paragraphs
+    // 4. Locations
+    const locations = context.projectLocations || projectData.projectLocations || []
+    if (Array.isArray(locations)) {
+        for (const loc of locations) {
+            if (!loc) continue
+            const curAvatar = typeof loc.getAvatar === 'function' ? loc.getAvatar() : loc.avatar
+            if (curAvatar && pathMatches(curAvatar, oldPath, oldFileName)) {
+                if (typeof loc.setAvatar === 'function') loc.setAvatar(newPath)
+                else loc.avatar = newPath
+                replaceCount++
+            }
+            const { text, update } = extractEntityDescription(loc)
+            if (text) {
+                const updated = replaceText(text)
+                if (updated !== text) update(updated)
+            }
+        }
+    }
+
+    // 5. Paragraphs
     const paragraphs = context.projectParagraphs || projectData.projectParagraphs || []
     if (Array.isArray(paragraphs)) {
         for (const p of paragraphs) {
             if (!p) continue
-            if (typeof p.getContent === 'function' && p.getContent()) {
-                const c = p.getContent()
-                if (c && typeof c.getText === 'function') {
-                    const text = c.getText() || ''
-                    const updated = replaceText(text)
-                    if (updated !== text && typeof c.setText === 'function') c.setText(updated)
-                }
-            } else if (typeof p.getDescription === 'function' && p.getDescription()) {
-                const d = p.getDescription()
-                if (d && typeof d.getText === 'function') {
-                    const text = d.getText() || ''
-                    const updated = replaceText(text)
-                    if (updated !== text && typeof d.setText === 'function') d.setText(updated)
-                }
-            } else if (typeof p.content === 'string') {
-                p.content = replaceText(p.content)
-            } else if (
-                typeof p.content === 'object' &&
-                p.content &&
-                typeof p.content.text === 'string'
-            ) {
-                p.content.text = replaceText(p.content.text)
+            const { text, update } = extractEntityDescription(p)
+            if (text) {
+                const updated = replaceText(text)
+                if (updated !== text) update(updated)
             }
         }
     }
 
-    // 5. Files map
+    // 6. Files map
     const files = context.files || projectData.files
     if (files && typeof files === 'object') {
         for (const [filePath, content] of Object.entries(files)) {

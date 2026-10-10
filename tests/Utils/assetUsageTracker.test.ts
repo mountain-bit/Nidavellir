@@ -87,4 +87,69 @@ describe('assetUsageTracker', () => {
         expect(mockCtx.files['doc.md']).toContain('Assets/Images/new_name.png')
         expect(dirtyCalled).toBe(true)
     })
+
+    it('does not corrupt or duplicate substrings when new name contains old name', () => {
+        const mockParagraph = {
+            id: 'p_2',
+            title: 'Las',
+            content: {
+                text: 'Spójrz na ![art](Assets/Images/cat.png) oraz ![standalone](cat.png). Nie dotykaj słowa scatter.png ani bobcat.png ani Assets/Images/bobcat.png!',
+            },
+        }
+
+        const mockItem = {
+            id: 'item_1',
+            name: 'Koci amulet',
+            description: {
+                text: 'Amulet przedstawiający cat.png w złocie.',
+            },
+        }
+
+        const mockLocation = {
+            id: 'loc_1',
+            name: 'Kocia grota',
+            description: {
+                text: 'Grota z malowidłem asset://project/Assets/Images/cat.png.',
+            },
+        }
+
+        const mockCtx = {
+            projectParagraphs: [mockParagraph],
+            projectItems: [mockItem],
+            projectLocations: [mockLocation],
+            markProjectDirty: () => {},
+        }
+
+        // Test finding usages in item & location descriptions
+        const usages = findAssetUsages(mockCtx, 'Assets/Images/cat.png')
+        expect(usages.length).toBe(3)
+        expect(usages.some(u => u.type === 'scene')).toBe(true)
+        expect(usages.some(u => u.type === 'item')).toBe(true)
+        expect(usages.some(u => u.type === 'location')).toBe(true)
+
+        // Rename cat.png -> big_cat.png (which contains "cat.png"!)
+        const count = replaceAssetReferences(
+            mockCtx,
+            'Assets/Images/cat.png',
+            'Assets/Images/big_cat.png'
+        )
+
+        expect(count).toBe(4) // 2 in paragraph, 1 in item, 1 in location
+        const text = mockParagraph.content.text
+        expect(text).toContain('![art](Assets/Images/big_cat.png)')
+        expect(text).toContain('![standalone](big_cat.png)')
+        // CRITICAL: Ensure words containing "cat.png" were NOT corrupted into "big_cat.png"
+        expect(text).toContain('scatter.png')
+        expect(text).toContain('bobcat.png')
+        expect(text).toContain('Assets/Images/bobcat.png')
+        expect(text).not.toContain('sbig_cat.png')
+        expect(text).not.toContain('bobbig_cat.png')
+        // CRITICAL: Ensure no double-replacement occurred (e.g. big_big_cat.png)
+        expect(text).not.toContain('big_big_cat.png')
+
+        expect(mockItem.description.text).toBe('Amulet przedstawiający big_cat.png w złocie.')
+        expect(mockLocation.description.text).toBe(
+            'Grota z malowidłem asset://project/Assets/Images/big_cat.png.'
+        )
+    })
 })

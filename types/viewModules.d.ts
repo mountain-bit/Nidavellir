@@ -623,28 +623,6 @@ declare module '*/dist/Modules/ImageEditor/index.js' {
     export * from '../Modules/ImageEditor/index'
 }
 
-declare module '*/View/ui/assetPicker.js' {
-    export function getActiveProjectPath(ctx?: unknown): string
-    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
-    export function pickProjectImage(
-        ctx?: unknown,
-        prefix?: string
-    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
-    export function importDroppedImage(
-        file: unknown,
-        ctx?: unknown,
-        prefix?: string
-    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
-    export function setupElementDropZone(
-        element: HTMLElement | null,
-        options?: {
-            highlightClass?: string
-            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
-            overlayElement?: HTMLElement | null
-        }
-    ): void
-}
-
 declare module '*/View/ui/confirmModal.js' {
     export function markFileDirty(fileName: string): void
     export function markFileClean(fileName: string): void
@@ -837,15 +815,16 @@ declare module '*/View/ui/assetPicker.js' {
         options?: { directNativeDialog?: boolean; title?: string; currentRelativePath?: string }
     ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
     export function importDroppedImage(
-        file: File,
+        file: File | unknown,
         ctx?: unknown,
         prefix?: string
     ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
     export function setupElementDropZone(
-        element: HTMLElement,
+        element: HTMLElement | null,
         options?: {
             highlightClass?: string
             onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
+            onFilesDrop?: (files: File[], event: DragEvent) => Promise<void> | void
             overlayElement?: HTMLElement | null
         }
     ): void

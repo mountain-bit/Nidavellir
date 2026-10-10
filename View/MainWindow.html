@@ -3852,7 +3852,7 @@
             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
         >
             <div
-                class="w-full max-w-6xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px]"
+                class="relative w-full max-w-6xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px]"
             >
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0">
@@ -3975,19 +3975,19 @@
                             <!-- File Info -->
                             <div class="flex flex-col gap-1.5 bg-[#222226] p-3 rounded-lg border border-[#303036]">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400 font-medium">Nazwa:</span>
+                                    <span class="text-zinc-400 font-medium" data-i18n="asset_manager.label_name">Nazwa:</span>
                                     <span id="asset-detail-name" class="font-semibold text-zinc-100 truncate max-w-[170px]" title=""></span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400">Rozmiar:</span>
+                                    <span class="text-zinc-400" data-i18n="asset_manager.label_size">Rozmiar:</span>
                                     <span id="asset-detail-size" class="text-zinc-300"></span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400">Wymiary:</span>
-                                    <span id="asset-detail-dimensions" class="text-zinc-300">Wczytywanie...</span>
+                                    <span class="text-zinc-400" data-i18n="asset_manager.label_dimensions">Wymiary:</span>
+                                    <span id="asset-detail-dimensions" class="text-zinc-300" data-i18n="asset_manager.loading_dimensions">Wczytywanie...</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400">Ścieżka:</span>
+                                    <span class="text-zinc-400" data-i18n="asset_manager.label_path">Ścieżka:</span>
                                     <span id="asset-detail-path" class="text-zinc-400 truncate max-w-[170px]" title=""></span>
                                 </div>
                             </div>
@@ -3997,7 +3997,7 @@
                                 <div class="flex items-center justify-between">
                                     <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
                                         <app-icon name="link" class="w-3.5 h-3.5 text-blue-400"></app-icon>
-                                        Gdzie użyto
+                                        <span data-i18n="asset_manager.label_usages">Gdzie użyto</span>
                                     </span>
                                     <span id="asset-detail-usage-badge" class="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">0 miejsc</span>
                                 </div>
@@ -4014,7 +4014,7 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium transition-colors cursor-pointer"
                                 >
                                     <app-icon name="crop" class="w-3.5 h-3.5"></app-icon>
-                                    <span>Edytuj w edytorze grafik</span>
+                                    <span data-i18n="asset_manager.action_edit_image">Edytuj w edytorze grafik</span>
                                 </button>
                                 <button
                                     type="button"
@@ -4022,7 +4022,7 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
                                 >
                                     <app-icon name="edit" class="w-3.5 h-3.5"></app-icon>
-                                    <span>Zmień nazwę</span>
+                                    <span data-i18n="asset_manager.action_rename">Zmień nazwę</span>
                                 </button>
                                 <button
                                     type="button"
@@ -4030,7 +4030,7 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
                                 >
                                     <app-icon name="markdown" class="w-3.5 h-3.5"></app-icon>
-                                    <span>Kopiuj znacznik Markdown</span>
+                                    <span data-i18n="asset_manager.action_copy_markdown">Kopiuj znacznik Markdown</span>
                                 </button>
                                 <button
                                     type="button"
@@ -4038,7 +4038,7 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
                                 >
                                     <app-icon name="open" class="w-3.5 h-3.5"></app-icon>
-                                    <span>Pokaż w folderze</span>
+                                    <span data-i18n="asset_manager.action_open_folder">Pokaż w folderze</span>
                                 </button>
                                 <button
                                     type="button"
@@ -4046,12 +4046,111 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-900/30 hover:bg-red-900/60 text-red-300 rounded-md font-medium transition-colors cursor-pointer border border-red-700/40"
                                 >
                                     <app-icon name="trash" class="w-3.5 h-3.5"></app-icon>
-                                    <span>Usuń plik</span>
+                                    <span data-i18n="asset_manager.action_delete">Usuń plik</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Modal wewnętrzny: Zmiana nazwy pliku -->
+                <div
+                    id="asset-rename-dialog"
+                    class="hidden absolute inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+                >
+                    <div class="w-full max-w-md bg-[#202024] border border-[#38383e] rounded-xl shadow-2xl p-5 flex flex-col gap-4">
+                        <div class="flex items-center justify-between border-b border-[#2d2d32] pb-3">
+                            <div class="flex items-center gap-2">
+                                <app-icon name="edit" class="w-4 h-4 text-blue-400"></app-icon>
+                                <h4 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.rename_dialog_title">Zmień nazwę pliku</h4>
+                            </div>
+                            <button
+                                type="button"
+                                id="btn-cancel-asset-rename-x"
+                                class="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                            >
+                                <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                            </button>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label for="asset-rename-input" class="text-xs text-zinc-300" data-i18n="asset_manager.rename_label">
+                                Nowa nazwa pliku (bez rozszerzenia):
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    id="asset-rename-input"
+                                    class="flex-1 px-3 py-1.5 bg-[#18181b] border border-[#38383e] focus:border-blue-500 rounded-md text-xs text-zinc-200 focus:outline-none"
+                                />
+                                <span id="asset-rename-ext-badge" class="px-2 py-1.5 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-md text-xs font-mono">.png</span>
+                            </div>
+                            <span class="text-[11px] text-zinc-500" data-i18n="asset_manager.rename_hint">Wszystkie odwołania w projekcie zostaną automatycznie zaktualizowane.</span>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#2d2d32]">
+                            <button
+                                type="button"
+                                id="btn-cancel-asset-rename"
+                                class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                                data-i18n="asset_manager.btn_cancel"
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-confirm-asset-rename"
+                                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+                                data-i18n="asset_manager.btn_save_change"
+                            >
+                                Zapisz zmianę
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal wewnętrzny: Potwierdzenie usunięcia pliku -->
+                <div
+                    id="asset-delete-dialog"
+                    class="hidden absolute inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+                >
+                    <div class="w-full max-w-md bg-[#202024] border border-[#38383e] rounded-xl shadow-2xl p-5 flex flex-col gap-4">
+                        <div class="flex items-center gap-2.5 text-red-400 border-b border-[#2d2d32] pb-3">
+                            <app-icon name="trash" class="w-4 h-4 text-red-400"></app-icon>
+                            <h4 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.delete_dialog_title">Usuń plik zasobu</h4>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <p id="asset-delete-message" class="text-xs text-zinc-300" data-i18n="asset_manager.delete_message">
+                                Czy na pewno chcesz usunąć ten plik?
+                            </p>
+                            <div id="asset-delete-warning-box" class="hidden p-3 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex flex-col gap-1.5">
+                                <span class="font-semibold flex items-center gap-1 text-red-300">
+                                    <app-icon name="warning" class="w-3.5 h-3.5"></app-icon>
+                                    <span data-i18n="asset_manager.delete_warning_used">Plik jest aktualnie używany w projekcie!</span>
+                                </span>
+                                <span id="asset-delete-warning-details" class="text-[11px] text-red-300/90 leading-relaxed"></span>
+                                <span class="text-[11px] text-red-400/80 italic mt-0.5" data-i18n="asset_manager.delete_warning_hint">Usunięcie spowoduje brakujące grafiki w grze.</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#2d2d32]">
+                            <button
+                                type="button"
+                                id="btn-cancel-asset-delete"
+                                class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                                data-i18n="asset_manager.btn_cancel"
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                type="button"
+                                id="btn-confirm-asset-delete"
+                                class="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+                                data-i18n="asset_manager.btn_delete_permanently"
+                            >
+                                Usuń trwale
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 

@@ -359,6 +359,7 @@ export function setupElementDropZone(element, options = {}) {
     const {
         highlightClass = 'ring-2 ring-blue-500 bg-blue-500/10',
         onFileDrop,
+        onFilesDrop,
         overlayElement = null,
     } = options
 
@@ -412,9 +413,13 @@ export function setupElementDropZone(element, options = {}) {
             f => f.type.startsWith('image/') || /\.(png|jpe?g|webp|svg|gif)$/i.test(f.name)
         )
 
-        if (files.length > 0 && typeof onFileDrop === 'function') {
-            for (const file of files) {
-                await onFileDrop(file, e)
+        if (files.length > 0) {
+            if (typeof onFilesDrop === 'function') {
+                await onFilesDrop(files, e)
+            } else if (typeof onFileDrop === 'function') {
+                for (const file of files) {
+                    await onFileDrop(file, e)
+                }
             }
         }
     })

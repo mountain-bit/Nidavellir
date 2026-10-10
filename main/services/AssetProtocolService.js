@@ -90,7 +90,19 @@ function registerAssetProtocol() {
             if (!fs.existsSync(resolved.fullPath)) {
                 return new Response('Asset not found', { status: 404 })
             }
-            return net.fetch(pathToFileURL(resolved.fullPath).toString())
+            const fileUrl = pathToFileURL(resolved.fullPath).toString()
+            try {
+                const response = await net.fetch(fileUrl)
+                const headers = new Headers(response.headers)
+                headers.set('Cache-Control', 'no-cache, must-revalidate')
+                return new Response(response.body, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers,
+                })
+            } catch {
+                return net.fetch(fileUrl)
+            }
         } catch (err) {
             console.error('Error handling asset protocol request:', err)
             return new Response('Internal error', { status: 500 })

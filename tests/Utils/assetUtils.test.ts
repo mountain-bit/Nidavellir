@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { isCustomAvatarPath, toAssetUrl, toRelativeAssetPath } from '../../Utils/assetUtils'
+import {
+    getAssetCategory,
+    isAllowedAudioExtension,
+    isAllowedImageExtension,
+    isCustomAvatarPath,
+    toAssetUrl,
+    toRelativeAssetPath,
+} from '../../Utils/assetUtils'
 
 describe('assetUtils', () => {
     describe('toAssetUrl', () => {
@@ -27,6 +34,22 @@ describe('assetUtils', () => {
             expect(toAssetUrl('data:image/png;base64,abc')).toBe('data:image/png;base64,abc')
         })
 
+        it('appends version query parameter for cache busting when provided', () => {
+            expect(toAssetUrl('Assets/Images/test.png', 1728560000)).toBe(
+                'asset://project/Assets/Images/test.png?v=1728560000'
+            )
+            expect(toAssetUrl('asset://project/Assets/Images/test.png', 'v2')).toBe(
+                'asset://project/Assets/Images/test.png?v=v2'
+            )
+            expect(toAssetUrl('https://example.com/img.png?size=large', 123)).toBe(
+                'https://example.com/img.png?size=large&v=123'
+            )
+        })
+
+        it('does not append version query parameter to data URLs', () => {
+            expect(toAssetUrl('data:image/png;base64,abc', 123)).toBe('data:image/png;base64,abc')
+        })
+
         it('returns empty string for invalid inputs', () => {
             expect(toAssetUrl('')).toBe('')
             expect(toAssetUrl(null as unknown as string)).toBe('')
@@ -49,8 +72,52 @@ describe('assetUtils', () => {
             )
         })
 
+        it('strips query parameters and hashes from urls', () => {
+            expect(toRelativeAssetPath('asset://project/Assets/Images/test.png?v=1728560000')).toBe(
+                'Assets/Images/test.png'
+            )
+            expect(toRelativeAssetPath('Assets/Images/test.png?v=123#thumb')).toBe(
+                'Assets/Images/test.png'
+            )
+        })
+
         it('leaves clean relative paths untouched', () => {
             expect(toRelativeAssetPath('Assets/Images/test.png')).toBe('Assets/Images/test.png')
+        })
+    })
+
+    describe('getAssetCategory', () => {
+        it('identifies image files and extensions', () => {
+            expect(getAssetCategory('Assets/Images/hero.png')).toBe('image')
+            expect(getAssetCategory('pic.webp')).toBe('image')
+            expect(getAssetCategory('photo.jpg?v=123')).toBe('image')
+            expect(getAssetCategory('svg')).toBe('image')
+        })
+
+        it('identifies audio files and extensions', () => {
+            expect(getAssetCategory('Assets/Audio/theme.mp3')).toBe('audio')
+            expect(getAssetCategory('sfx.ogg')).toBe('audio')
+            expect(getAssetCategory('music.wav?v=456')).toBe('audio')
+            expect(getAssetCategory('flac')).toBe('audio')
+        })
+
+        it('returns unknown for other extensions or invalid inputs', () => {
+            expect(getAssetCategory('document.pdf')).toBe('unknown')
+            expect(getAssetCategory('script.js')).toBe('unknown')
+            expect(getAssetCategory('')).toBe('unknown')
+            expect(getAssetCategory(null as unknown as string)).toBe('unknown')
+        })
+    })
+
+    describe('extension helpers', () => {
+        it('identifies valid image and audio extensions', () => {
+            expect(isAllowedImageExtension('png')).toBe(true)
+            expect(isAllowedImageExtension('.jpg')).toBe(true)
+            expect(isAllowedImageExtension('mp3')).toBe(false)
+
+            expect(isAllowedAudioExtension('mp3')).toBe(true)
+            expect(isAllowedAudioExtension('.wav')).toBe(true)
+            expect(isAllowedAudioExtension('png')).toBe(false)
         })
     })
 

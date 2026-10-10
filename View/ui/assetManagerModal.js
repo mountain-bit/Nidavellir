@@ -7,6 +7,7 @@
 import { findAssetUsages, replaceAssetReferences } from '../../dist/Utils/assetUsageTracker.js'
 import { toAssetUrl } from '../../dist/Utils/assetUtils.js'
 import { toast } from '../../dist/Utils/toast.js'
+import { applyTranslations, t } from '../../dist/Utils/translate.js'
 import {
     ensureActiveProjectPath,
     importDroppedImage,
@@ -16,6 +17,7 @@ import {
 import { openImageEditor } from './imageEditorModal.js'
 
 let _activeCtx = null
+
 let _assets = []
 let _selectedAsset = null
 let _isInitialized = false
@@ -55,6 +57,9 @@ export async function openAssetManager(ctx) {
         _isInitialized = true
     }
 
+    if (typeof applyTranslations === 'function') {
+        applyTranslations()
+    }
     modal.classList.remove('hidden')
     await refreshAssetList()
 }
@@ -84,6 +89,25 @@ export async function refreshAssetList() {
     }
 
     renderFilteredGrid()
+}
+
+function selectAsset(asset) {
+    _selectedAsset = asset
+    const grid = document.getElementById('asset-manager-grid')
+    if (grid) {
+        const cards = grid.querySelectorAll('[data-asset-path]')
+        cards.forEach(card => {
+            const p = card.getAttribute('data-asset-path')
+            if (asset && p === asset.relativePath) {
+                card.classList.add('border-blue-500', 'ring-2', 'ring-blue-500/30')
+                card.classList.remove('border-[#2d2d32]')
+            } else {
+                card.classList.remove('border-blue-500', 'ring-2', 'ring-blue-500/30')
+                card.classList.add('border-[#2d2d32]')
+            }
+        })
+    }
+    renderDetailPanel(asset)
 }
 
 function renderFilteredGrid() {
@@ -122,14 +146,17 @@ function renderFilteredGrid() {
 
     if (countBadge) {
         const totalSize = filtered.reduce((acc, curr) => acc + (curr.size || 0), 0)
-        countBadge.textContent = `${filtered.length} plików (${formatFileSize(totalSize)})`
+        countBadge.textContent = t('asset_manager.files_count', {
+            count: filtered.length,
+            size: formatFileSize(totalSize),
+        })
     }
 
     grid.innerHTML = ''
 
     if (filtered.length === 0) {
         if (emptyState) emptyState.classList.remove('hidden')
-        renderDetailPanel(null)
+        selectAsset(null)
         return
     }
 
@@ -138,6 +165,7 @@ function renderFilteredGrid() {
     filtered.forEach(asset => {
         const card = document.createElement('div')
         const isSelected = _selectedAsset && _selectedAsset.relativePath === asset.relativePath
+        card.setAttribute('data-asset-path', asset.relativePath)
         card.className = `group relative flex flex-col bg-[#202024] border ${
             isSelected ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[#2d2d32]'
         } hover:border-zinc-500 rounded-lg p-2 transition-all cursor-pointer select-none overflow-hidden shadow-sm`
@@ -146,7 +174,7 @@ function renderFilteredGrid() {
         const usages = findAssetUsages(_activeCtx, asset.relativePath)
         const hasUsages = usages.length > 0
 
-        const url = asset.assetUrl || toAssetUrl(asset.relativePath)
+        const url = toAssetUrl(asset.relativePath, asset.modifiedAt)
 
         card.innerHTML = `
             <div class="w-full h-24 rounded bg-black/40 overflow-hidden flex items-center justify-center mb-1.5 relative">
@@ -172,9 +200,7 @@ function renderFilteredGrid() {
         `
 
         card.addEventListener('click', () => {
-            _selectedAsset = asset
-            renderFilteredGrid()
-            renderDetailPanel(asset)
+            selectAsset(asset)
         })
 
         grid.appendChild(card)
@@ -183,10 +209,9 @@ function renderFilteredGrid() {
     if (_selectedAsset) {
         const stillPresent = filtered.find(a => a.relativePath === _selectedAsset.relativePath)
         if (stillPresent) {
-            renderDetailPanel(stillPresent)
+            selectAsset(stillPresent)
         } else {
-            _selectedAsset = null
-            renderDetailPanel(null)
+            selectAsset(null)
         }
     }
 }
@@ -213,7 +238,7 @@ function renderDetailPanel(asset) {
     const usageBadge = document.getElementById('asset-detail-usage-badge')
     const usageList = document.getElementById('asset-detail-usage-list')
 
-    const url = asset.assetUrl || toAssetUrl(asset.relativePath)
+    const url = toAssetUrl(asset.relativePath, asset.modifiedAt)
     if (img) img.src = url
     if (nameEl) {
         nameEl.textContent = asset.fileName
@@ -225,15 +250,20 @@ function renderDetailPanel(asset) {
         pathEl.title = asset.relativePath
     }
 
-    // Resolve resolution
+    // Resolve resolution safely (guard against out-of-order image loads)
     if (dimsEl) {
-        dimsEl.textContent = '...'
+        dimsEl.textContent = t('asset_manager.loading_dimensions')
+        const requestedPath = asset.relativePath
         const tempImg = new Image()
         tempImg.onload = () => {
-            dimsEl.textContent = `${tempImg.naturalWidth} × ${tempImg.naturalHeight} px`
+            if (_selectedAsset && _selectedAsset.relativePath === requestedPath) {
+                dimsEl.textContent = `${tempImg.naturalWidth} × ${tempImg.naturalHeight} px`
+            }
         }
         tempImg.onerror = () => {
-            dimsEl.textContent = 'Nieznane'
+            if (_selectedAsset && _selectedAsset.relativePath === requestedPath) {
+                dimsEl.textContent = t('asset_manager.unknown_dimensions')
+            }
         }
         tempImg.src = url
     }
@@ -241,7 +271,13 @@ function renderDetailPanel(asset) {
     // Check usages
     const usages = findAssetUsages(_activeCtx, asset.relativePath)
     if (usageBadge) {
-        usageBadge.textContent = `${usages.length} miejsc`
+        if (usages.length === 0) {
+            usageBadge.textContent = t('asset_manager.no_usages')
+        } else if (usages.length === 1) {
+            usageBadge.textContent = t('asset_manager.places_count_singular', { count: 1 })
+        } else {
+            usageBadge.textContent = t('asset_manager.places_count', { count: usages.length })
+        }
         usageBadge.className =
             usages.length > 0
                 ? 'px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800'
@@ -268,6 +304,150 @@ function renderDetailPanel(asset) {
             })
         }
     }
+}
+
+/**
+ * Prompts user for a new asset name using custom UI dialog (falls back to window.prompt).
+ * @param {object} asset
+ * @returns {Promise<string | null>}
+ */
+function promptRenameAsset(asset) {
+    const dialog = document.getElementById('asset-rename-dialog')
+    const input = document.getElementById('asset-rename-input')
+    const extBadge = document.getElementById('asset-rename-ext-badge')
+    const btnConfirm = document.getElementById('btn-confirm-asset-rename')
+    const btnCancel = document.getElementById('btn-cancel-asset-rename')
+    const btnCancelX = document.getElementById('btn-cancel-asset-rename-x')
+
+    const currentBase = asset.fileName.replace(/\.[^/.]+$/, '')
+
+    if (!dialog || !input || !btnConfirm) {
+        const val = prompt(t('asset_manager.rename_label'), currentBase)
+        return Promise.resolve(val ? val.trim() : null)
+    }
+
+    const ext = asset.extension ? `.${asset.extension}` : ''
+    if (extBadge) extBadge.textContent = ext
+
+    input.value = currentBase
+    dialog.classList.remove('hidden')
+    input.focus()
+    input.select()
+
+    return new Promise(resolve => {
+        let isHandled = false
+
+        const cleanup = () => {
+            dialog.classList.add('hidden')
+            btnConfirm.onclick = null
+            if (btnCancel) btnCancel.onclick = null
+            if (btnCancelX) btnCancelX.onclick = null
+            input.onkeydown = null
+        }
+
+        const submit = () => {
+            if (isHandled) return
+            isHandled = true
+            const val = input.value.trim()
+            cleanup()
+            resolve(val || null)
+        }
+
+        const cancel = () => {
+            if (isHandled) return
+            isHandled = true
+            cleanup()
+            resolve(null)
+        }
+
+        btnConfirm.onclick = submit
+        if (btnCancel) btnCancel.onclick = cancel
+        if (btnCancelX) btnCancelX.onclick = cancel
+
+        input.onkeydown = e => {
+            if (e.key === 'Enter') {
+                e.preventDefault()
+                submit()
+            } else if (e.key === 'Escape') {
+                e.preventDefault()
+                cancel()
+            }
+        }
+    })
+}
+
+/**
+ * Confirms asset deletion with usage warnings using custom UI dialog (falls back to window.confirm).
+ * @param {object} asset
+ * @param {Array<object>} usages
+ * @returns {Promise<boolean>}
+ */
+function confirmDeleteAsset(asset, usages) {
+    const dialog = document.getElementById('asset-delete-dialog')
+    const msgEl = document.getElementById('asset-delete-message')
+    const warnBox = document.getElementById('asset-delete-warning-box')
+    const warnDetails = document.getElementById('asset-delete-warning-details')
+    const btnConfirm = document.getElementById('btn-confirm-asset-delete')
+    const btnCancel = document.getElementById('btn-cancel-asset-delete')
+
+    if (!dialog || !btnConfirm) {
+        let confirmMsg = `${t('asset_manager.delete_message')} (${asset.fileName})`
+        if (usages.length > 0) {
+            confirmMsg = `${t('asset_manager.delete_warning_used')}\n${usages.map(u => u.name).join(', ')}\n${t('asset_manager.delete_warning_hint')}\n\n${confirmMsg}`
+        }
+        return Promise.resolve(confirm(confirmMsg))
+    }
+
+    if (msgEl) {
+        msgEl.textContent = `${t('asset_manager.delete_message')} (${asset.fileName})`
+    }
+
+    if (usages.length > 0) {
+        if (warnBox) warnBox.classList.remove('hidden')
+        if (warnDetails) {
+            warnDetails.textContent = `Użyto w: ${usages.map(u => `${u.name} (${u.field})`).join(', ')}`
+        }
+    } else {
+        if (warnBox) warnBox.classList.add('hidden')
+    }
+
+    dialog.classList.remove('hidden')
+
+    return new Promise(resolve => {
+        let isHandled = false
+
+        const cleanup = () => {
+            dialog.classList.add('hidden')
+            btnConfirm.onclick = null
+            if (btnCancel) btnCancel.onclick = null
+            window.removeEventListener('keydown', onKeyDown)
+        }
+
+        const submit = () => {
+            if (isHandled) return
+            isHandled = true
+            cleanup()
+            resolve(true)
+        }
+
+        const cancel = () => {
+            if (isHandled) return
+            isHandled = true
+            cleanup()
+            resolve(false)
+        }
+
+        const onKeyDown = e => {
+            if (e.key === 'Escape') {
+                e.preventDefault()
+                cancel()
+            }
+        }
+
+        window.addEventListener('keydown', onKeyDown)
+        btnConfirm.onclick = submit
+        if (btnCancel) btnCancel.onclick = cancel
+    })
 }
 
 function setupAssetManagerEvents() {
@@ -298,26 +478,57 @@ function setupAssetManagerEvents() {
         uploadBtn.onclick = async () => {
             const res = await pickProjectImage(_activeCtx, 'img')
             if (res && res.relativePath) {
-                toast.success(`Zaimportowano: ${res.fileName}`, 'Zasoby graficzne')
+                toast.success(
+                    t('asset_manager.import_success_single', { name: res.fileName }),
+                    t('asset_manager.title')
+                )
                 await refreshAssetList()
                 const found = _assets.find(a => a.relativePath === res.relativePath)
                 if (found) {
-                    _selectedAsset = found
-                    renderDetailPanel(found)
+                    selectAsset(found)
                 }
             }
         }
     }
 
-    // Drag and Drop
+    // Drag and Drop with Batch Support
     if (dropzone) {
         setupElementDropZone(dropzone, {
             overlayElement: dragOverlay,
-            onFileDrop: async file => {
-                const res = await importDroppedImage(file, _activeCtx, 'img')
-                if (res && res.relativePath) {
-                    toast.success(`Zaimportowano: ${res.fileName}`, 'Zasoby graficzne')
+            onFilesDrop: async files => {
+                if (!files || files.length === 0) return
+                let importedCount = 0
+                let lastImported = null
+                for (const file of files) {
+                    const res = await importDroppedImage(file, _activeCtx, 'img')
+                    if (res && res.relativePath) {
+                        importedCount++
+                        lastImported = res
+                    }
+                }
+                if (importedCount > 0) {
+                    if (importedCount === 1 && lastImported) {
+                        toast.success(
+                            t('asset_manager.import_success_single', {
+                                name: lastImported.fileName,
+                            }),
+                            t('asset_manager.title')
+                        )
+                    } else {
+                        toast.success(
+                            t('asset_manager.import_success_multi', { count: importedCount }),
+                            t('asset_manager.title')
+                        )
+                    }
                     await refreshAssetList()
+                    if (lastImported) {
+                        const found = _assets.find(
+                            a => a.relativePath === lastImported.relativePath
+                        )
+                        if (found) {
+                            selectAsset(found)
+                        }
+                    }
                 }
             },
         })
@@ -343,10 +554,7 @@ function setupAssetManagerEvents() {
         renameBtn.onclick = async () => {
             if (!_selectedAsset) return
             const currentName = _selectedAsset.fileName
-            const newName = prompt(
-                'Wpisz nową nazwę pliku (bez rozszerzenia):',
-                currentName.replace(/\.[^/.]+$/, '')
-            )
+            const newName = await promptRenameAsset(_selectedAsset)
             if (!newName || !newName.trim() || newName.trim() === currentName) return
 
             const api = window.electronAPI
@@ -368,20 +576,23 @@ function setupAssetManagerEvents() {
                     )
                     toast.success(
                         usagesCount > 0
-                            ? `Zmieniono nazwę na ${res.newFileName} i zaktualizowano ${usagesCount} odwołań w projekcie!`
-                            : `Zmieniono nazwę na ${res.newFileName}`,
-                        'Zasoby graficzne'
+                            ? t('asset_manager.rename_success_usages', { count: usagesCount })
+                            : t('asset_manager.rename_success'),
+                        t('asset_manager.title')
                     )
                     await refreshAssetList()
-                    _selectedAsset =
+                    const updated =
                         _assets.find(a => a.relativePath === res.newRelativePath) || null
-                    renderDetailPanel(_selectedAsset)
+                    selectAsset(updated)
                 } else if (res && res.error) {
-                    toast.error(res.error, 'Błąd zmiany nazwy')
+                    toast.error(
+                        res.error || t('asset_manager.rename_failed'),
+                        t('asset_manager.title')
+                    )
                 }
             } catch (err) {
                 console.error('Rename asset failed:', err)
-                toast.error('Nie udało się zmienić nazwy pliku.', 'Błąd')
+                toast.error(t('asset_manager.rename_failed'), t('asset_manager.title'))
             }
         }
     }
@@ -394,7 +605,7 @@ function setupAssetManagerEvents() {
             const mdTag = `![${_selectedAsset.fileName}](${_selectedAsset.relativePath})`
             try {
                 await navigator.clipboard.writeText(mdTag)
-                toast.success('Skopiowano znacznik Markdown do schowka!', 'Schowek')
+                toast.success(t('asset_manager.copied_markdown_toast'), t('asset_manager.title'))
             } catch {
                 toast.info(`Markdown: ${mdTag}`)
             }
@@ -420,12 +631,8 @@ function setupAssetManagerEvents() {
         deleteBtn.onclick = async () => {
             if (!_selectedAsset) return
             const usages = findAssetUsages(_activeCtx, _selectedAsset.relativePath)
-            let confirmMsg = `Czy na pewno chcesz usunąć plik "${_selectedAsset.fileName}"?`
-            if (usages.length > 0) {
-                confirmMsg = `UWAGA: Plik jest obecnie używany w ${usages.length} miejscach projektu (${usages.map(u => u.name).join(', ')})!\nUsunięcie spowoduje brakujące grafiki w grze.\n\nCzy na pewno chcesz usunąć?`
-            }
-
-            if (!confirm(confirmMsg)) return
+            const confirmed = await confirmDeleteAsset(_selectedAsset, usages)
+            if (!confirmed) return
 
             const api = window.electronAPI
             if (!api || typeof api.deleteAsset !== 'function') return
@@ -434,16 +641,18 @@ function setupAssetManagerEvents() {
             try {
                 const res = await api.deleteAsset(_selectedAsset.relativePath, projectPath || null)
                 if (res && res.success) {
-                    toast.success(`Usunięto plik: ${_selectedAsset.fileName}`, 'Zasoby graficzne')
-                    _selectedAsset = null
-                    renderDetailPanel(null)
+                    toast.success(t('asset_manager.delete_success'), t('asset_manager.title'))
+                    selectAsset(null)
                     await refreshAssetList()
                 } else if (res && res.error) {
-                    toast.error(res.error, 'Błąd usuwania')
+                    toast.error(
+                        res.error || t('asset_manager.delete_failed'),
+                        t('asset_manager.title')
+                    )
                 }
             } catch (err) {
                 console.error('Delete asset failed:', err)
-                toast.error('Nie udało się usunąć pliku.', 'Błąd')
+                toast.error(t('asset_manager.delete_failed'), t('asset_manager.title'))
             }
         }
     }
