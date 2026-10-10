@@ -682,6 +682,7 @@ declare module '*/View/ui/projectStateTracker.js' {
         state: 'dirty' | 'saving' | 'saved' | 'clean',
         customProjectName?: string
     ): void
+    export function updateProjectNameUI(name?: string): void
 }
 
 declare module '*/View/ui/projectSaver.js' {
@@ -729,4 +730,43 @@ declare module '*/View/ui/topBar.js' {
     export function openPlaytestSimulator(ctx: unknown): void
     export function openExportModal(ctx: unknown): void
     export function initTopBar(ctx: unknown): void
+    export function openQuickSearch(ctx: unknown): void
+    export function centerGraphView(ctx: unknown): void
+}
+
+declare module '*/View/ui/quickSearch.js' {
+    export interface ISearchCandidate {
+        id: string
+        title: string
+        description?: string
+        category: string
+        type: string
+        typeLabel: string
+        icon: string
+        badgeColor: string
+        actionText: string
+        tags?: string[]
+        locationName?: string
+        charNames?: string[]
+        entity: unknown
+        number?: number
+    }
+
+    export function getEntityText(desc: unknown): string
+    export function highlightMatch(text: string, query: string): string
+    export function getAllProjectObjects(ctx: unknown): ISearchCandidate[]
+    export function scoreCandidate(
+        candidate: ISearchCandidate,
+        query: string
+    ): { matched: boolean; tier: number; score: number }
+    export function searchProjectObjects(
+        ctx: unknown,
+        query: string,
+        categoryFilter?: string
+    ): ISearchCandidate[]
+    export function executeQuickSearchAction(item: ISearchCandidate, ctx: unknown): void
+    export function renderQuickSearchResults(ctx: unknown, query: string): void
+    export function openQuickSearch(ctx: unknown): void
+    export function closeQuickSearch(): void
+    export function initQuickSearch(ctx: unknown): void
 }

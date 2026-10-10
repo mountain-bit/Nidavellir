@@ -9,6 +9,7 @@ import {
     markProjectDirty,
     setProjectSaved,
     setProjectSaving,
+    updateProjectNameUI,
     updateProjectSaveIndicatorUI,
 } from '../../View/ui/projectStateTracker.js'
 
@@ -191,5 +192,27 @@ describe('Project Dirty State and Indicator System', () => {
         expect(canClose).toBe(true)
         expect(saveProjectSpy).not.toHaveBeenCalled()
         expect(isProjectDirty()).toBe(false)
+    })
+
+    it('updateProjectNameUI ustawia nazwę projektu, usuwa data-i18n i synchronizuje tytuł okna', () => {
+        const titleEl = document.getElementById('project-name-display')
+        titleEl?.setAttribute('data-i18n', 'topbar.project_placeholder')
+
+        updateProjectNameUI('Wrota Baldura')
+
+        expect(titleEl?.textContent).toBe('Wrota Baldura')
+        expect(titleEl?.getAttribute('title')).toBe('Wrota Baldura')
+        expect(titleEl?.hasAttribute('data-i18n')).toBe(false)
+        expect(document.title).toContain('Wrota Baldura')
+    })
+
+    it('updateProjectNameUI przy pustej nazwie ustawia data-i18n oraz localized placeholder', () => {
+        const titleEl = document.getElementById('project-name-display')
+
+        updateProjectNameUI('')
+
+        expect(titleEl?.hasAttribute('data-i18n')).toBe(true)
+        expect(titleEl?.getAttribute('data-i18n')).toBe('topbar.project_placeholder')
+        expect(titleEl?.textContent).toBe('Brak projektu')
     })
 })

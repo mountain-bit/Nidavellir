@@ -24,6 +24,8 @@ export interface ICytoscapeInstance {
     animate: (options: unknown, params?: unknown) => void
     resize: () => void
     destroy: () => void
+    nodes?: (selector?: string) => any
+    elements?: (selector?: string) => any
     on: (events: string, selectorOrHandler: unknown, handler?: unknown) => void
     removeListener: (events: string, handler: unknown) => void
     getElementById: (id: string) =>
@@ -1277,6 +1279,57 @@ export class StoryGraph {
     public fit(padding: number = 40): void {
         if (this.cy && typeof this.cy.fit === 'function') {
             this.cy.fit(undefined, padding)
+            this.syncTransform()
+        }
+    }
+
+    /**
+     * Centers the graph viewport on all nodes/elements.
+     *
+     * @param {boolean} [animate=true] Whether to animate the pan to center
+     */
+    public center(animate: boolean = true): void {
+        if (!this.cy) {
+            this.render(false)
+        }
+        if (!this.cy) return
+
+        this.cy.resize()
+
+        const nodes =
+            typeof this.cy.nodes === 'function' && this.cy.nodes().length > 0
+                ? this.cy.nodes()
+                : typeof this.cy.elements === 'function'
+                  ? this.cy.elements()
+                  : null
+
+        const hasNodes = Boolean(
+            nodes &&
+            (typeof nodes.nonempty === 'function'
+                ? nodes.nonempty()
+                : (nodes as any).length === undefined || (nodes as any).length > 0)
+        )
+
+        if (hasNodes && nodes) {
+            if (animate && typeof this.cy.animate === 'function') {
+                this.cy.animate(
+                    {
+                        center: { eles: nodes },
+                    },
+                    {
+                        duration: 350,
+                        easing: 'ease-out-cubic',
+                        complete: () => {
+                            this.syncTransform()
+                        },
+                    }
+                )
+            } else if (typeof this.cy.center === 'function') {
+                this.cy.center(nodes)
+                this.syncTransform()
+            }
+        } else if (typeof this.cy.center === 'function') {
+            this.cy.center()
             this.syncTransform()
         }
     }

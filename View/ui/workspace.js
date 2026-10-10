@@ -317,7 +317,11 @@ export function updateZoomToolbarUI(storyGraphInstance, zoomLevel) {
     const zoomInBtn = document.getElementById('btn-graph-zoom-in')
 
     const currentZoom =
-        zoomLevel !== undefined ? zoomLevel : storyGraphInstance ? storyGraphInstance.getZoom() : 1
+        zoomLevel !== undefined
+            ? zoomLevel
+            : typeof storyGraphInstance?.getZoom === 'function'
+              ? storyGraphInstance.getZoom()
+              : 1
     const percentage = Math.round(currentZoom * 100)
 
     if (badge) {

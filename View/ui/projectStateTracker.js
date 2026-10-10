@@ -19,7 +19,51 @@ export function isProjectDirty() {
  */
 function getCurrentProjectName() {
     const titleEl = document.getElementById('project-name-display')
-    return titleEl?.textContent?.trim() || 'Projekt'
+    const text = titleEl?.textContent?.trim()
+    const placeholder =
+        (typeof t === 'function' ? t('topbar.project_placeholder') : '') || 'Brak projektu'
+    if (text && text !== placeholder && text !== 'No project' && text !== 'Kein Projekt') {
+        return text
+    }
+    return 'Projekt'
+}
+
+/**
+ * Updates the project name display in the top bar and syncs window title.
+ * If a name is present, it removes data-i18n to prevent translation overrides.
+ * If no name is provided, it applies the localized project placeholder.
+ *
+ * @param {string} [name] - Project name to display.
+ */
+export function updateProjectNameUI(name) {
+    if (typeof document === 'undefined') return
+
+    const titleEl = document.getElementById('project-name-display')
+    const cleanName = (name || '').trim()
+
+    if (titleEl) {
+        if (cleanName) {
+            titleEl.textContent = cleanName
+            titleEl.removeAttribute('data-i18n')
+            titleEl.title = cleanName
+            titleEl.classList.remove('italic', 'text-zinc-400')
+            titleEl.classList.add('text-zinc-200')
+        } else {
+            const placeholder =
+                (typeof t === 'function' ? t('topbar.project_placeholder') : '') || 'Brak projektu'
+            titleEl.setAttribute('data-i18n', 'topbar.project_placeholder')
+            titleEl.textContent = placeholder
+            titleEl.title = placeholder
+            titleEl.classList.add('italic', 'text-zinc-400')
+            titleEl.classList.remove('text-zinc-200')
+        }
+    }
+
+    const currentName =
+        cleanName ||
+        (typeof t === 'function' ? t('topbar.project_placeholder') : '') ||
+        'Brak projektu'
+    updateProjectSaveIndicatorUI(isProjectDirty() ? 'dirty' : 'clean', currentName)
 }
 
 /**

@@ -228,4 +228,35 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         expect(badge?.textContent).toContain('§ 2: Mroczny Las')
         expect(content?.textContent).toContain('Dotarłeś do mrocznego lasu.')
     })
+
+    it('centers the graph and switches to graph view when "zoom-fit" (Dopasuj widok grafu) is clicked', async () => {
+        const { centerGraphView } = await import('../../View/ui/topBar.js')
+
+        const centerSpy = vi.fn()
+        const showGraphSpy = vi.fn()
+        const updateMainWorkspaceSpy = vi.fn()
+        const updateZoomSpy = vi.fn()
+
+        const mockCtx = {
+            storyGraphInstance: {
+                center: centerSpy,
+                getZoom: vi.fn().mockReturnValue(1),
+            },
+            showGraph: showGraphSpy,
+            updateMainWorkspaceUI: updateMainWorkspaceSpy,
+            updateZoomToolbarUI: updateZoomSpy,
+            vm: {
+                getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                setActiveMainView: vi.fn(),
+                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+            },
+        }
+
+        centerGraphView(mockCtx)
+
+        expect(showGraphSpy).toHaveBeenCalledWith(true)
+        expect(centerSpy).toHaveBeenCalledWith(true)
+        expect(updateZoomSpy).toHaveBeenCalledWith(mockCtx.storyGraphInstance)
+    })
 })
