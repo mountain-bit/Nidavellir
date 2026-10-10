@@ -7,14 +7,14 @@
             http-equiv="Content-Security-Policy"
             content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: asset:; connect-src 'self' https://api.fontsource.org asset:; media-src 'self' data: asset:;"
         />
-        <title>Silnik Gier Paragrafowych</title>
+        <title>Nidavelir</title>
         <link rel="stylesheet" href="MainWindow.generated.css" />
         <script src="../node_modules/cytoscape/dist/cytoscape.min.js"></script>
         <script type="module" src="../dist/Utils/icons.js"></script>
     </head>
 
     <body
-        class="m-0 h-screen w-screen overflow-hidden bg-[#18181b] text-[#e4e4e7] flex flex-col font-sans select-none"
+        class="m-0 h-screen w-screen overflow-hidden bg-[#141517] text-[#dcdde0] flex flex-col font-sans select-none"
     >
         <!-- Top Navigation Bar (Modern Top Bar) -->
         <header
@@ -399,20 +399,20 @@
                                     <button
                                         id="paragraph-filter-btn"
                                         type="button"
-                                        class="relative px-2 py-1.5 rounded bg-[#2c2c30] hover:bg-[#38383f] border border-[#3f3f46] text-xs text-[#d4d4d8] flex items-center gap-1 shrink-0 cursor-pointer"
+                                        class="relative px-2 py-1.5 rounded bg-[#25262c] hover:bg-[#2e3037] border border-[#3b3d45] text-xs text-[#d4d4d8] flex items-center gap-1 shrink-0 cursor-pointer"
                                         title="Filtruj"
                                         data-i18n-title="left_panel.filter_tile_title"
                                     >
                                         <app-icon
                                             name="filter"
-                                            class="w-3.5 h-3.5 text-blue-400"
+                                            class="w-3.5 h-3.5 text-[#9bb7d4]"
                                         ></app-icon>
                                         <span data-i18n="left_panel.filter_tile_title"
                                             >Filtruj</span
                                         >
                                         <span
                                             id="active-filter-badge"
-                                            class="hidden w-2 h-2 rounded-full bg-blue-500"
+                                            class="hidden w-2 h-2 rounded-full bg-[#4f6b8a]"
                                         ></span>
                                     </button>
                                 </div>
@@ -420,7 +420,7 @@
                                 <!-- Filter Popover Menu (Hidden by default) -->
                                 <div
                                     id="paragraph-filter-popover"
-                                    class="hidden mt-1 p-2 bg-[#18181b] border border-[#333338] rounded-md shadow-xl text-xs space-y-2 relative z-30"
+                                    class="hidden mt-1 p-2 bg-[#1b1c20] border border-[#2e3037] rounded-md shadow-xl text-xs space-y-2 relative z-30"
                                 >
                                     <div>
                                         <span
@@ -430,7 +430,7 @@
                                         >
                                         <div
                                             id="filter-tags-list"
-                                            class="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-[#202023] rounded border border-[#2d2d32]"
+                                            class="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-1 bg-[#16171a] rounded border border-[#25262c]"
                                         >
                                             <!-- Dynamic Tag badges -->
                                         </div>
@@ -443,7 +443,7 @@
                                         >
                                         <select
                                             id="filter-character-select"
-                                            class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                            class="w-full bg-[#1e1f24] border border-[#35373f] rounded px-2 py-1 text-xs text-white"
                                         >
                                             <option value="" data-i18n="left_panel.all_characters">
                                                 Wszystkie postacie
@@ -458,7 +458,7 @@
                                         >
                                         <select
                                             id="filter-scene-select"
-                                            class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                            class="w-full bg-[#1e1f24] border border-[#35373f] rounded px-2 py-1 text-xs text-white"
                                         >
                                             <option value="" data-i18n="left_panel.all_scenes">
                                                 Wszystkie sceny
@@ -469,7 +469,7 @@
                                         <button
                                             id="btn-clear-paragraph-filters"
                                             type="button"
-                                            class="text-[10px] text-blue-400 hover:underline cursor-pointer"
+                                            class="text-[10px] text-[#9bb7d4] hover:text-[#c4d7ec] hover:underline cursor-pointer"
                                             data-i18n="left_panel.clear_filters"
                                         >
                                             Wyczyść filtry
@@ -1782,12 +1782,12 @@
         <!-- Custom Context Menu for Items -->
         <div
             id="custom-context-menu"
-            class="hidden fixed bg-[#1f1f23] border border-[#3f3f46] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[180px]"
+            class="hidden fixed bg-[#1b1c20] border border-[#2e3037] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[180px]"
         >
             <button
                 id="ctx-edit-title"
                 type="button"
-                class="w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer"
+                class="w-full px-3 py-1.5 text-left hover:bg-[#3d4e61] flex items-center gap-2 cursor-pointer"
             >
                 <app-icon
                     name="edit"
@@ -1799,7 +1799,7 @@
             <button
                 id="ctx-create-character-from-template"
                 type="button"
-                class="hidden w-full px-3 py-1.5 text-left hover:bg-purple-600 flex items-center gap-2 cursor-pointer text-purple-200 hover:text-white"
+                class="hidden w-full px-3 py-1.5 text-left hover:bg-[#53406b] flex items-center gap-2 cursor-pointer text-purple-200 hover:text-white"
             >
                 <app-icon
                     name="character"
@@ -1814,7 +1814,7 @@
                 <button
                     id="ctx-add-tag-toggle"
                     type="button"
-                    class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
+                    class="w-full px-3 py-1.5 text-left hover:bg-[#25262c] flex items-center justify-between gap-2 cursor-pointer"
                 >
                     <span class="flex items-center gap-2">
                         <app-icon name="tag" class="w-3.5 h-3.5 text-gray-400 shrink-0"></app-icon>
@@ -1826,7 +1826,7 @@
                 </button>
                 <div
                     id="ctx-add-tag-list"
-                    class="hidden max-h-[140px] overflow-y-auto bg-[#18181b] border-t border-b border-[#333338]"
+                    class="hidden max-h-[140px] overflow-y-auto bg-[#16171a] border-t border-b border-[#25262c]"
                 >
                     <!-- Dynamic tag list items rendered by JS -->
                 </div>
@@ -1836,12 +1836,12 @@
                 <button
                     id="ctx-add-trait-toggle"
                     type="button"
-                    class="w-full px-3 py-1.5 text-left hover:bg-[#2a2a2f] flex items-center justify-between gap-2 cursor-pointer"
+                    class="w-full px-3 py-1.5 text-left hover:bg-[#25262c] flex items-center justify-between gap-2 cursor-pointer"
                 >
                     <span class="flex items-center gap-2">
                         <app-icon
                             name="trait"
-                            class="w-3.5 h-3.5 text-blue-400 shrink-0"
+                            class="w-3.5 h-3.5 text-[#9bb7d4] shrink-0"
                         ></app-icon>
                         <span data-i18n="context_menu.add_trait">Dodaj cechę</span>
                     </span>
@@ -1851,12 +1851,12 @@
                 </button>
                 <div
                     id="ctx-add-trait-list"
-                    class="hidden max-h-[140px] overflow-y-auto bg-[#18181b] border-t border-b border-[#333338]"
+                    class="hidden max-h-[140px] overflow-y-auto bg-[#16171a] border-t border-b border-[#25262c]"
                 >
                     <!-- Dynamic trait list items rendered by JS -->
                 </div>
             </div>
-            <div class="my-1 border-t border-[#333338]"></div>
+            <div class="my-1 border-t border-[#2e3037]"></div>
             <button
                 id="ctx-delete"
                 type="button"
@@ -1870,16 +1870,16 @@
         <!-- Rich Text Editor Context Menu (Right Click on Text or Badge) -->
         <div
             id="editor-context-menu"
-            class="hidden fixed bg-[#1f1f23] border border-[#3f3f46] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[210px]"
+            class="hidden fixed bg-[#1b1c20] border border-[#2e3037] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[210px]"
         >
             <button
                 id="ctx-editor-link-selection"
                 type="button"
-                class="hidden w-full px-3 py-1.5 text-left hover:bg-blue-600 flex items-center gap-2 cursor-pointer text-blue-200 hover:text-white"
+                class="hidden w-full px-3 py-1.5 text-left hover:bg-[#3d4e61] flex items-center gap-2 cursor-pointer text-zinc-200 hover:text-white"
             >
                 <app-icon
                     name="link"
-                    class="w-3.5 h-3.5 text-blue-400 group-hover:text-white shrink-0"
+                    class="w-3.5 h-3.5 text-[#9bb7d4] group-hover:text-white shrink-0"
                 ></app-icon>
                 <span
                     id="ctx-editor-link-selection-label"
@@ -1890,11 +1890,11 @@
             <button
                 id="ctx-editor-edit-badge"
                 type="button"
-                class="hidden w-full px-3 py-1.5 text-left hover:bg-amber-600 flex items-center gap-2 cursor-pointer text-amber-200 hover:text-white"
+                class="hidden w-full px-3 py-1.5 text-left hover:bg-[#856338] flex items-center gap-2 cursor-pointer text-zinc-200 hover:text-white"
             >
                 <app-icon
                     name="edit"
-                    class="w-3.5 h-3.5 text-amber-400 group-hover:text-white shrink-0"
+                    class="w-3.5 h-3.5 text-[#dfb87c] group-hover:text-white shrink-0"
                 ></app-icon>
                 <span data-i18n="editor.context_menu.edit_badge">Edytuj powiązanie...</span>
             </button>
@@ -1914,63 +1914,63 @@
         <!-- Tag Color Picker Popover -->
         <div
             id="tag-color-picker-popover"
-            class="hidden fixed bg-[#18181b] border border-[#3f3f46] shadow-2xl rounded-lg p-2.5 z-50 w-48 space-y-2"
+            class="hidden fixed bg-[#141517] border border-[#2e3037] shadow-2xl rounded-lg p-2.5 z-50 w-48 space-y-2"
         >
             <span
-                class="block text-[10px] font-semibold text-[#a1a1aa] uppercase tracking-wider mb-1"
+                class="block text-[10px] font-semibold text-[#8b8e96] uppercase tracking-wider mb-1"
                 data-i18n="tags.choose_color"
                 >Wybierz kolor taga</span
             >
             <div class="grid grid-cols-5 gap-1.5" id="preset-colors-grid">
                 <button
                     type="button"
-                    data-color="#ef4444"
-                    class="w-6 h-6 rounded-full bg-[#ef4444] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#4a5b6d"
+                    class="w-6 h-6 rounded-full bg-[#4a5b6d] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#f97316"
-                    class="w-6 h-6 rounded-full bg-[#f97316] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#3f5263"
+                    class="w-6 h-6 rounded-full bg-[#3f5263] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#eab308"
-                    class="w-6 h-6 rounded-full bg-[#eab308] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#245842"
+                    class="w-6 h-6 rounded-full bg-[#245842] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#10b981"
-                    class="w-6 h-6 rounded-full bg-[#10b981] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#4c573f"
+                    class="w-6 h-6 rounded-full bg-[#4c573f] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#06b6d4"
-                    class="w-6 h-6 rounded-full bg-[#06b6d4] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#69563c"
+                    class="w-6 h-6 rounded-full bg-[#69563c] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#3b82f6"
-                    class="w-6 h-6 rounded-full bg-[#3b82f6] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#69453b"
+                    class="w-6 h-6 rounded-full bg-[#69453b] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#8b5cf6"
-                    class="w-6 h-6 rounded-full bg-[#8b5cf6] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#643c42"
+                    class="w-6 h-6 rounded-full bg-[#643c42] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#ec4899"
-                    class="w-6 h-6 rounded-full bg-[#ec4899] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#55425a"
+                    class="w-6 h-6 rounded-full bg-[#55425a] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#6b7280"
-                    class="w-6 h-6 rounded-full bg-[#6b7280] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#41455a"
+                    class="w-6 h-6 rounded-full bg-[#41455a] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
                 <button
                     type="button"
-                    data-color="#111827"
-                    class="w-6 h-6 rounded-full bg-[#111827] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
+                    data-color="#4f545c"
+                    class="w-6 h-6 rounded-full bg-[#4f545c] border border-white/20 hover:scale-110 transition-transform cursor-pointer"
                 ></button>
             </div>
             <div class="flex items-center gap-2 pt-1 border-t border-[#2d2d32]">
@@ -1988,20 +1988,20 @@
         <!-- Floating Draggable NPC Window (Character Folio / Karta Postaci) -->
         <div
             id="npc-create-modal"
-            class="hidden fixed z-40 bg-[#18181b] border border-[#333338] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-left ring-1 ring-white/5 w-[860px] min-w-[700px] min-h-[540px] max-w-[96vw] max-h-[92vh]"
+            class="hidden fixed z-40 bg-[#1b1c20] border border-[#2e3037] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-left ring-1 ring-white/5 w-[860px] min-w-[700px] min-h-[540px] max-w-[96vw] max-h-[92vh]"
             role="dialog"
             aria-labelledby="npc-create-modal-title"
         >
             <!-- Draggable Window Title Bar / Folio Header -->
             <div
                 id="npc-create-modal-header"
-                class="flex items-center justify-between px-5 py-3 border-b border-[#333338] bg-[#202023] cursor-move select-none shrink-0"
+                class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] cursor-move select-none shrink-0"
                 title="Przeciągnij, aby przesunąć kartę postaci"
                 data-i18n-title="npc.drag_title"
             >
                 <div class="flex items-center gap-3 pointer-events-none">
                     <div
-                        class="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0 shadow-sm"
+                        class="w-7 h-7 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center text-[#9bb7d4] shrink-0 shadow-sm"
                     >
                         <app-icon name="character" class="w-4 h-4"></app-icon>
                     </div>
@@ -2013,7 +2013,7 @@
                         >
                             <span>Karta Postaci NPC</span>
                             <span
-                                class="text-[9px] px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono font-normal"
+                                class="text-[9px] px-1.5 py-0.2 rounded bg-[#3d4e61]/25 text-[#9bb7d4] border border-[#4a5e74]/40 font-mono font-normal"
                                 data-i18n="npc.character_folio_badge"
                                 >Folio</span
                             >
@@ -2170,7 +2170,7 @@
                                         <input
                                             type="text"
                                             id="npc-name-input"
-                                            placeholder="np. Mistrz Elion, Strażnik Aldor..."
+                                            placeholder="Wpisz nazwę postaci..."
                                             data-i18n-placeholder="npc.name_placeholder"
                                             class="w-full bg-zinc-900/60 hover:bg-zinc-900 focus:bg-zinc-950 border-b-2 border-zinc-700 focus:border-blue-500 rounded-t px-3 py-2 text-sm sm:text-base font-bold text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all tracking-wide"
                                             autocomplete="off"
@@ -2696,7 +2696,7 @@
                                 <button
                                     type="submit"
                                     id="btn-save-npc-modal"
-                                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-blue-900/30 hover:shadow-blue-600/30 active:scale-[0.98]"
+                                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-xs text-white font-semibold transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -3120,20 +3120,20 @@
         <!-- Floating Draggable Hero Window (Player Character Folio / Karta Postaci Gracza) -->
         <div
             id="hero-create-modal"
-            class="hidden fixed z-40 bg-[#18181b] border border-[#333338] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-left ring-1 ring-white/5 w-[860px] min-w-[700px] min-h-[540px] max-w-[96vw] max-h-[92vh]"
+            class="hidden fixed z-40 bg-[#1b1c20] border border-[#2e3037] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.85)] flex flex-col overflow-hidden text-left ring-1 ring-white/5 w-[860px] min-w-[700px] min-h-[540px] max-w-[96vw] max-h-[92vh]"
             role="dialog"
             aria-labelledby="hero-create-modal-title"
         >
             <!-- Draggable Window Title Bar / Folio Header -->
             <div
                 id="hero-create-modal-header"
-                class="flex items-center justify-between px-5 py-3 border-b border-[#333338] bg-[#202023] cursor-move select-none shrink-0"
+                class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] cursor-move select-none shrink-0"
                 title="Przeciągnij, aby przesunąć kartę bohatera gracza"
                 data-i18n-title="hero.drag_title"
             >
                 <div class="flex items-center gap-3 pointer-events-none">
                     <div
-                        class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0 shadow-sm"
+                        class="w-7 h-7 rounded-lg bg-[#856338]/20 border border-[#ad824a]/40 flex items-center justify-center text-[#dfb87c] shrink-0 shadow-sm"
                     >
                         <app-icon name="character" class="w-4 h-4"></app-icon>
                     </div>
@@ -3145,7 +3145,7 @@
                         >
                             <span>Karta Postaci Gracza</span>
                             <span
-                                class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono font-normal"
+                                class="text-[9px] px-1.5 py-0.2 rounded bg-[#856338]/20 text-[#dfb87c] border border-[#ad824a]/30 font-mono font-normal"
                                 data-i18n="hero.badge"
                                 >Protagonista</span
                             >
@@ -3276,7 +3276,7 @@
                                         <input
                                             type="text"
                                             id="hero-name-input"
-                                            placeholder="np. Artur Pendragon, Elion Gwiazdozbieg..."
+                                            placeholder="Wpisz imię bohatera..."
                                             data-i18n-placeholder="hero.name_placeholder"
                                             class="w-full bg-zinc-900/60 hover:bg-zinc-900 focus:bg-zinc-950 border-b-2 border-zinc-700 focus:border-amber-500 rounded-t px-3 py-2 text-sm sm:text-base font-bold text-zinc-100 placeholder-zinc-500 focus:outline-none transition-all tracking-wide"
                                             autocomplete="off"
@@ -3625,7 +3625,7 @@
                                 <button
                                     type="submit"
                                     id="btn-save-hero-modal"
-                                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-amber-900/30 hover:shadow-amber-600/30 active:scale-[0.98]"
+                                    class="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#856338] hover:bg-[#997341] border border-[#ad824a] text-xs text-white font-semibold transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -3852,12 +3852,12 @@
             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
         >
             <div
-                class="relative w-full max-w-6xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px]"
+                class="relative w-full max-w-6xl bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px]"
             >
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0">
                     <div class="flex items-center gap-2">
-                        <app-icon name="image" class="w-4 h-4 text-blue-400 inline-block"></app-icon>
+                        <app-icon name="image" class="w-4 h-4 text-[#9bb7d4] inline-block"></app-icon>
                         <h3 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.title">
                             Menedżer zasobów
                         </h3>
@@ -3867,7 +3867,7 @@
                         <button
                             type="button"
                             id="btn-asset-manager-upload"
-                            class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition-colors shadow-sm cursor-pointer"
+                            class="flex items-center gap-1.5 px-3 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white rounded-md text-xs font-medium transition-colors shadow-sm cursor-pointer"
                         >
                             <app-icon name="plus" class="w-3.5 h-3.5 text-white"></app-icon>
                             <span data-i18n="asset_manager.add_assets">Dodaj pliki</span>
@@ -3949,10 +3949,10 @@
                         <!-- Drag Overlay -->
                         <div
                             id="asset-manager-drag-overlay"
-                            class="hidden absolute inset-0 bg-blue-600/20 border-2 border-dashed border-blue-500 rounded-lg flex flex-col items-center justify-center pointer-events-none z-20 backdrop-blur-xs"
+                            class="hidden absolute inset-0 bg-[#3d4e61]/25 border-2 border-dashed border-[#4f6b8a] rounded-lg flex flex-col items-center justify-center pointer-events-none z-20 backdrop-blur-xs"
                         >
-                            <app-icon name="upload" class="w-12 h-12 text-blue-400 mb-2"></app-icon>
-                            <span class="text-sm font-medium text-blue-200" data-i18n="asset_manager.drop_here">Upuść pliki tutaj, aby zaimportować</span>
+                            <app-icon name="upload" class="w-12 h-12 text-[#9bb7d4] mb-2"></app-icon>
+                            <span class="text-sm font-medium text-[#d2e0ee]" data-i18n="asset_manager.drop_here">Upuść pliki tutaj, aby zaimportować</span>
                         </div>
                     </div>
 
@@ -4011,7 +4011,7 @@
                                 <button
                                     type="button"
                                     id="btn-asset-action-edit-image"
-                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium transition-colors cursor-pointer"
+                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white rounded-md font-medium transition-colors cursor-pointer shadow-sm"
                                 >
                                     <app-icon name="crop" class="w-3.5 h-3.5"></app-icon>
                                     <span data-i18n="asset_manager.action_edit_image">Edytuj w edytorze grafik</span>
@@ -4098,7 +4098,7 @@
                             <button
                                 type="button"
                                 id="btn-confirm-asset-rename"
-                                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+                                class="px-3 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white rounded-md text-xs font-medium transition-colors cursor-pointer shadow-sm"
                                 data-i18n="asset_manager.btn_save_change"
                             >
                                 Zapisz zmianę
@@ -4160,12 +4160,12 @@
             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
         >
             <div
-                class="w-full max-w-4xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[80vh] max-h-[720px]"
+                class="w-full max-w-4xl bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[80vh] max-h-[720px]"
             >
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0">
                     <div class="flex items-center gap-2">
-                        <app-icon name="image" class="w-4 h-4 text-blue-400 inline-block"></app-icon>
+                        <app-icon name="image" class="w-4 h-4 text-[#9bb7d4] inline-block"></app-icon>
                         <h3 id="asset-picker-title" class="text-sm font-semibold text-zinc-100" data-i18n="asset_picker.title">
                             Wybierz grafikę z projektu
                         </h3>
@@ -4180,7 +4180,7 @@
                 </div>
 
                 <!-- Filter bar -->
-                <div class="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2d2d32] bg-[#1a1a1d] shrink-0">
+                <div class="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2e3037] bg-[#17181b] shrink-0">
                     <div class="relative flex-1 max-w-sm">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400">
                             <app-icon name="search" class="w-3.5 h-3.5"></app-icon>
@@ -4189,7 +4189,7 @@
                             type="text"
                             id="asset-picker-search"
                             placeholder="Filtruj grafiki..."
-                            class="w-full pl-8 pr-3 py-1.5 bg-[#26262a] border border-[#38383e] focus:border-blue-500 rounded-md text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                            class="w-full pl-8 pr-3 py-1.5 bg-[#26262a] border border-[#38383e] focus:border-[#4f6b8a] rounded-md text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
                         />
                     </div>
                     <button
@@ -4197,7 +4197,7 @@
                         id="btn-asset-picker-upload-new"
                         class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-md text-xs font-medium border border-zinc-700 transition-colors cursor-pointer"
                     >
-                        <app-icon name="upload" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                        <app-icon name="upload" class="w-3.5 h-3.5 text-[#9bb7d4]"></app-icon>
                         <span data-i18n="asset_picker.upload_new">Wgraj nowy z dysku</span>
                     </button>
                 </div>
@@ -4213,13 +4213,13 @@
                 </div>
 
                 <!-- Footer -->
-                <div class="flex items-center justify-between px-5 py-3 border-t border-[#2d2d32] bg-[#222226] shrink-0">
+                <div class="flex items-center justify-between px-5 py-3 border-t border-[#2e3037] bg-[#141517] shrink-0">
                     <span id="asset-picker-selected-label" class="text-xs text-zinc-400 truncate max-w-md">Nie wybrano grafiki</span>
                     <div class="flex items-center gap-2">
                         <button
                             type="button"
                             id="btn-asset-picker-cancel"
-                            class="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                            class="px-4 py-1.5 bg-[#222429] hover:bg-[#2c2e35] text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer border border-[#2e3037]"
                         >
                             Anuluj
                         </button>
@@ -4227,7 +4227,7 @@
                             type="button"
                             id="btn-asset-picker-select"
                             disabled
-                            class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+                            class="px-4 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] disabled:opacity-50 disabled:cursor-not-allowed border border-[#4a5e74] text-white rounded-md text-xs font-medium transition-colors cursor-pointer shadow-sm"
                         >
                             Wybierz
                         </button>
@@ -4242,11 +4242,11 @@
             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
         >
             <div
-                class="w-full max-w-5xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[88vh] max-h-[820px]"
+                class="w-full max-w-5xl bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[88vh] max-h-[820px]"
             >
                 <!-- Modal Header -->
                 <div
-                    class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0"
+                    class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0"
                 >
                     <div class="flex items-center gap-2">
                         <app-icon
@@ -4785,11 +4785,11 @@
             class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
         >
             <div
-                class="w-full max-w-md bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col"
+                class="w-full max-w-md bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl overflow-hidden flex flex-col"
             >
                 <!-- Modal Header -->
                 <div
-                    class="flex items-center justify-between px-5 py-3.5 border-b border-[#2d2d32] bg-[#222226]"
+                    class="flex items-center justify-between px-5 py-3.5 border-b border-[#2e3037] bg-[#212226]"
                 >
                     <div class="flex items-center gap-2">
                         <app-icon
@@ -4990,7 +4990,7 @@
                                 <button
                                     type="button"
                                     id="btn-open-font-browser"
-                                    class="text-[11px] text-blue-400 hover:text-blue-300 hover:underline cursor-pointer flex items-center gap-1 font-medium bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/25"
+                                    class="text-[11px] text-[#9bb7d4] hover:text-white hover:underline cursor-pointer flex items-center gap-1 font-medium bg-[#3d4e61]/25 px-2 py-0.5 rounded border border-[#4a5e74]/40"
                                 >
                                     <app-icon
                                         name="globe"
@@ -5067,7 +5067,7 @@
                                 <button
                                     type="button"
                                     id="btn-confirm-add-font"
-                                    class="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs cursor-pointer shrink-0"
+                                    class="px-2.5 py-1 rounded bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white font-medium text-xs cursor-pointer shrink-0 transition-colors"
                                     data-i18n="editor.styles.add_font_btn"
                                 >
                                     Dodaj
@@ -5146,7 +5146,7 @@
                             <button
                                 type="button"
                                 id="btn-cancel-custom-style-modal"
-                                class="px-3 py-1.5 rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 transition-colors cursor-pointer text-xs"
+                                class="px-3 py-1.5 rounded-lg border border-[#2e3037] bg-[#222429] text-zinc-300 hover:bg-[#2c2e35] transition-colors cursor-pointer text-xs"
                                 data-i18n="editor.styles.cancel_btn"
                             >
                                 Anuluj
@@ -5154,7 +5154,7 @@
                             <button
                                 type="submit"
                                 id="btn-save-custom-style"
-                                class="px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition-colors cursor-pointer text-xs shadow-lg shadow-blue-600/20"
+                                class="px-3.5 py-1.5 rounded-lg bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white font-medium transition-colors cursor-pointer text-xs shadow-sm"
                                 data-i18n="editor.styles.save_btn"
                             >
                                 Zapisz styl
@@ -5171,16 +5171,16 @@
             class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3"
         >
             <div
-                class="bg-[#18181b] border border-zinc-700/80 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-zinc-200"
+                class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-zinc-200"
             >
                 <!-- Modal Header -->
                 <div
-                    class="px-5 py-3.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/60 shrink-0"
+                    class="px-5 py-3.5 border-b border-[#2e3037] flex items-center justify-between bg-[#212226] shrink-0"
                 >
                     <div class="flex items-center gap-2.5">
                         <app-icon
                             name="globe"
-                            class="w-5 h-5 text-blue-400 inline-block"
+                            class="w-5 h-5 text-[#9bb7d4] inline-block"
                         ></app-icon>
                         <div>
                             <h3 class="text-sm font-semibold text-zinc-100 flex items-center gap-2">
@@ -5291,7 +5291,7 @@
                             <button
                                 type="button"
                                 data-font-category="all"
-                                class="font-cat-pill active px-2.5 py-1 rounded-full text-xs font-medium bg-blue-600 text-white cursor-pointer transition-colors"
+                                class="font-cat-pill active px-2.5 py-1 rounded-full text-xs font-medium bg-[#3d4e61] border border-[#4a5e74] text-white cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_all"
                             >
                                 Wszystkie
@@ -5299,7 +5299,7 @@
                             <button
                                 type="button"
                                 data-font-category="fantasy"
-                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e1f24] text-zinc-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_fantasy"
                             >
                                 Klimatyczne & Fantasy
@@ -5307,7 +5307,7 @@
                             <button
                                 type="button"
                                 data-font-category="serif"
-                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e1f24] text-zinc-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_serif"
                             >
                                 Szeryfowe (Książka)
@@ -5315,7 +5315,7 @@
                             <button
                                 type="button"
                                 data-font-category="sans-serif"
-                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e1f24] text-zinc-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_sans"
                             >
                                 Bezszeryfowe (Nowoczesne)
@@ -5323,7 +5323,7 @@
                             <button
                                 type="button"
                                 data-font-category="handwriting"
-                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e1f24] text-zinc-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_handwriting"
                             >
                                 Pismo ręczne / Listy
@@ -5331,7 +5331,7 @@
                             <button
                                 type="button"
                                 data-font-category="display"
-                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e1f24] text-zinc-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_display"
                             >
                                 Ozdobne / Nagłówki
@@ -5339,7 +5339,7 @@
                             <button
                                 type="button"
                                 data-font-category="monospace"
-                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                                class="font-cat-pill px-2.5 py-1 rounded-full text-xs font-medium bg-[#1e1f24] text-zinc-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                                 data-i18n="editor.font_browser.cat_mono"
                             >
                                 Maszynopis / Kod
@@ -5405,15 +5405,15 @@
         <!-- Entity Link / Alias Popover (Kompaktowe okno kontekstowe) -->
         <div
             id="entity-link-modal"
-            class="hidden fixed z-50 w-80 max-h-[440px] bg-[#1c1c21] border border-zinc-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-zinc-200"
+            class="hidden fixed z-50 w-80 max-h-[440px] bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl flex flex-col overflow-hidden text-zinc-200"
             style="top: 0; left: 0"
         >
             <!-- Header: compact with title and close icon -->
             <div
-                class="px-3.5 py-2.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80 shrink-0"
+                class="px-3.5 py-2.5 border-b border-[#2e3037] flex items-center justify-between bg-[#212226] shrink-0"
             >
                 <div class="flex items-center gap-2">
-                    <app-icon name="link" class="w-4 h-4 text-blue-400 inline-block"></app-icon>
+                    <app-icon name="link" class="w-4 h-4 text-[#9bb7d4] inline-block"></app-icon>
                     <div>
                         <h3
                             class="text-xs font-semibold text-zinc-100"
@@ -5483,7 +5483,7 @@
                         <button
                             type="button"
                             data-filter-type="all"
-                            class="entity-type-pill active px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-600 text-white cursor-pointer transition-colors"
+                            class="entity-type-pill active px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#3d4e61] border border-[#4a5e74] text-white cursor-pointer transition-colors"
                             data-i18n="editor.entity_modal.all"
                         >
                             Wszystkie
@@ -5491,7 +5491,7 @@
                         <button
                             type="button"
                             data-filter-type="character"
-                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-amber-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e1f24] text-amber-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                             data-i18n="editor.toolbar.entity_character"
                         >
                             Postacie
@@ -5499,7 +5499,7 @@
                         <button
                             type="button"
                             data-filter-type="location"
-                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-blue-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e1f24] text-[#9bb7d4] hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                             data-i18n="editor.toolbar.entity_location"
                         >
                             Lokacje
@@ -5507,7 +5507,7 @@
                         <button
                             type="button"
                             data-filter-type="tag"
-                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-purple-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e1f24] text-purple-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                             data-i18n="editor.toolbar.entity_tag"
                         >
                             Tagi
@@ -5515,7 +5515,7 @@
                         <button
                             type="button"
                             data-filter-type="item"
-                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-800 text-emerald-300 hover:bg-zinc-700 cursor-pointer transition-colors"
+                            class="entity-type-pill px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e1f24] text-emerald-300 hover:bg-[#25272e] border border-[#2e3037] cursor-pointer transition-colors"
                             data-i18n="editor.entity_modal.items"
                         >
                             Przedmioty
@@ -5526,7 +5526,7 @@
                 <!-- Lista dostępnych obiektów -->
                 <div
                     id="entity-link-items-list"
-                    class="max-h-36 overflow-y-auto rounded-lg border border-zinc-700/60 bg-[#1a1a20] divide-y divide-zinc-800/60"
+                    class="max-h-36 overflow-y-auto rounded-lg border border-[#2e3037] bg-[#17181b] divide-y divide-[#2e3037]"
                 >
                     <!-- Dynamic items -->
                 </div>
@@ -5534,7 +5534,7 @@
                 <!-- Podgląd wybranego powiązania -->
                 <div
                     id="entity-link-selected-preview"
-                    class="p-1.5 rounded-lg bg-zinc-800/40 border border-zinc-700/40 text-[11px] flex items-center justify-between"
+                    class="p-1.5 rounded-lg bg-[#1a1b1e] border border-[#2e3037] text-[11px] flex items-center justify-between"
                 >
                     <span
                         class="text-zinc-400 text-[10px]"
@@ -5553,7 +5553,7 @@
 
             <!-- Footer -->
             <div
-                class="px-3 py-2 border-t border-zinc-800 flex items-center justify-between bg-zinc-900/80 shrink-0 text-xs"
+                class="px-3 py-2 border-t border-[#2e3037] flex items-center justify-between bg-[#141517] shrink-0 text-xs"
             >
                 <button
                     type="button"
@@ -5567,7 +5567,7 @@
                     <button
                         type="button"
                         id="btn-cancel-entity-link"
-                        class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 cursor-pointer border border-zinc-700 text-xs"
+                        class="px-2.5 py-1 rounded bg-[#222429] hover:bg-[#2c2e35] text-zinc-300 cursor-pointer border border-[#2e3037] text-xs transition-colors"
                         data-i18n="buttons.cancel"
                     >
                         Anuluj
@@ -5576,7 +5576,7 @@
                         type="button"
                         id="btn-confirm-entity-link"
                         disabled
-                        class="px-3 py-1 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium cursor-pointer text-xs transition-colors shadow-md"
+                        class="px-3 py-1 rounded bg-[#3d4e61] hover:bg-[#485c72] disabled:opacity-50 disabled:cursor-not-allowed border border-[#4a5e74] text-white font-medium cursor-pointer text-xs transition-colors shadow-sm"
                         data-i18n="editor.entity_modal.confirm"
                     >
                         Zastosuj
@@ -5588,15 +5588,15 @@
         <!-- Description Embed Modal (Wstawka opisu encji przy eksporcie) -->
         <div
             id="description-embed-modal"
-            class="hidden fixed z-50 w-96 max-h-[520px] bg-[#1c1c21] border border-zinc-700/80 rounded-xl shadow-2xl flex flex-col overflow-hidden text-zinc-200"
+            class="hidden fixed z-50 w-96 max-h-[520px] bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl flex flex-col overflow-hidden text-zinc-200"
             style="top: 0; left: 0"
         >
             <!-- Header -->
             <div
-                class="px-3.5 py-2.5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/80 shrink-0"
+                class="px-3.5 py-2.5 border-b border-[#2e3037] flex items-center justify-between bg-[#212226] shrink-0"
             >
                 <div class="flex items-center gap-2">
-                    <app-icon name="paragraph" class="w-4 h-4 text-emerald-400 inline-block"></app-icon>
+                    <app-icon name="paragraph" class="w-4 h-4 text-[#8ec8ad] inline-block"></app-icon>
                     <div>
                         <h3
                             class="text-xs font-semibold text-zinc-100"
@@ -5747,7 +5747,7 @@
 
             <!-- Footer -->
             <div
-                class="px-3 py-2 border-t border-zinc-800 flex items-center justify-between bg-zinc-900/80 shrink-0 text-xs"
+                class="px-3 py-2 border-t border-[#2e3037] flex items-center justify-between bg-[#141517] shrink-0 text-xs"
             >
                 <button
                     type="button"
@@ -5761,7 +5761,7 @@
                     <button
                         type="button"
                         id="btn-cancel-description-embed"
-                        class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 cursor-pointer border border-zinc-700 text-xs"
+                        class="px-2.5 py-1 rounded bg-[#222429] hover:bg-[#2c2e35] text-zinc-300 cursor-pointer border border-[#2e3037] text-xs transition-colors"
                         data-i18n="buttons.cancel"
                     >
                         Anuluj
@@ -5770,7 +5770,7 @@
                         type="button"
                         id="btn-confirm-description-embed"
                         disabled
-                        class="px-3 py-1 rounded bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium cursor-pointer text-xs transition-colors shadow-md"
+                        class="px-3 py-1 rounded bg-[#245842] hover:bg-[#2c6b50] disabled:opacity-50 disabled:cursor-not-allowed border border-[#357357] text-white font-medium cursor-pointer text-xs transition-colors shadow-sm"
                         data-i18n="editor.embed_modal.confirm"
                     >
                         Wstaw opis
@@ -5786,12 +5786,12 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1c1c20] border border-[#333338] rounded-xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden">
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
-                            <app-icon name="check" class="w-4 h-4 text-blue-400"></app-icon>
+                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
+                            <app-icon name="check" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
                         </div>
                         <div>
                             <h3 class="text-sm font-semibold text-zinc-100">Raport Walidacji Grafu</h3>
@@ -5812,12 +5812,12 @@
                     <!-- Dynamic issues or clean state rendered here -->
                 </div>
                 <!-- Footer -->
-                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#18181b] flex items-center justify-between">
+                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between">
                     <span id="validation-summary-text" class="text-xs text-zinc-400">Podsumowanie</span>
                     <button
                         type="button"
                         id="btn-validation-ok"
-                        class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 transition-colors cursor-pointer"
+                        class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] transition-colors cursor-pointer shadow-sm"
                     >
                         Zamknij
                     </button>
@@ -5832,12 +5832,12 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1c1c20] border border-[#333338] rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
+            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
-                            <app-icon name="export" class="w-4 h-4 text-blue-400"></app-icon>
+                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
+                            <app-icon name="export" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
                         </div>
                         <div>
                             <h3 class="text-sm font-semibold text-zinc-100">Eksport Gry Paragrafowej</h3>
@@ -5857,8 +5857,8 @@
                     <div class="space-y-2">
                         <label class="block text-zinc-300 font-medium">Format eksportu:</label>
                         <div class="grid grid-cols-2 gap-2.5" id="export-format-options">
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-blue-500/60 bg-blue-950/20 cursor-pointer transition-colors export-opt active">
-                                <input type="radio" name="export-format" value="html" checked class="mt-0.5 accent-blue-500" />
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#4a5e74] bg-[#2a3543]/40 cursor-pointer transition-colors export-opt active">
+                                <input type="radio" name="export-format" value="html" checked class="mt-0.5 accent-[#4f6b8a]" />
                                 <div>
                                     <div class="font-semibold text-zinc-100 flex items-center gap-1.5">
                                         <span>Web Player (HTML)</span>
@@ -5866,22 +5866,22 @@
                                     <p class="text-[11px] text-zinc-400 mt-0.5">Samodzielna gra w przeglądarce</p>
                                 </div>
                             </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2d2d32] bg-[#18181b] hover:border-zinc-600 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="json" class="mt-0.5 accent-blue-500" />
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
+                                <input type="radio" name="export-format" value="json" class="mt-0.5 accent-[#4f6b8a]" />
                                 <div>
                                     <div class="font-semibold text-zinc-100">Baza danych (JSON)</div>
                                     <p class="text-[11px] text-zinc-400 mt-0.5">Kompletne dane strukturalne</p>
                                 </div>
                             </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2d2d32] bg-[#18181b] hover:border-zinc-600 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="pdf" class="mt-0.5 accent-blue-500" />
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
+                                <input type="radio" name="export-format" value="pdf" class="mt-0.5 accent-[#4f6b8a]" />
                                 <div>
                                     <div class="font-semibold text-zinc-100">Książka PDF</div>
                                     <p class="text-[11px] text-zinc-400 mt-0.5">Układ gotowy do wydruku</p>
                                 </div>
                             </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2d2d32] bg-[#18181b] hover:border-zinc-600 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="docx" class="mt-0.5 accent-blue-500" />
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
+                                <input type="radio" name="export-format" value="docx" class="mt-0.5 accent-[#4f6b8a]" />
                                 <div>
                                     <div class="font-semibold text-zinc-100">Dokument Word</div>
                                     <p class="text-[11px] text-zinc-400 mt-0.5">Do dalszej redakcji tekstu</p>
@@ -5890,33 +5890,33 @@
                         </div>
                     </div>
 
-                    <div class="pt-3 border-t border-[#2d2d32] space-y-2">
+                    <div class="pt-3 border-t border-[#2e3037] space-y-2">
                         <label class="block text-zinc-300 font-medium">Opcje publikacji:</label>
                         <div class="space-y-1.5">
                             <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" id="export-opt-shuffle" checked class="rounded accent-blue-500" />
+                                <input type="checkbox" id="export-opt-shuffle" checked class="rounded accent-[#4f6b8a]" />
                                 <span>Losowe wymieszanie numeracji paragrafów</span>
                             </label>
                             <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" id="export-opt-images" checked class="rounded accent-blue-500" />
+                                <input type="checkbox" id="export-opt-images" checked class="rounded accent-[#4f6b8a]" />
                                 <span>Dołącz grafiki i portrety postaci</span>
                             </label>
                         </div>
                     </div>
                 </div>
                 <!-- Footer -->
-                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#18181b] flex items-center justify-between">
+                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between">
                     <button
                         type="button"
                         id="btn-cancel-export"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
                     >
                         Anuluj
                     </button>
                     <button
                         type="button"
                         id="btn-confirm-export"
-                        class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors cursor-pointer shadow-md shadow-blue-900/30 flex items-center gap-1.5"
+                        class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
                     >
                         <app-icon name="export" class="w-3.5 h-3.5"></app-icon>
                         <span>Pobierz / Zapisz</span>
@@ -5932,12 +5932,12 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1c1c20] border border-[#333338] rounded-xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden">
+            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden">
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
-                            <app-icon name="help" class="w-4 h-4 text-blue-400"></app-icon>
+                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
+                            <app-icon name="help" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
                         </div>
                         <div>
                             <h3 class="text-sm font-semibold text-zinc-100">Skróty Klawiszowe i Pomoc</h3>
@@ -5955,77 +5955,77 @@
                 <!-- Body -->
                 <div class="p-5 overflow-y-auto max-h-[65vh] space-y-4 text-xs">
                     <div>
-                        <h4 class="font-semibold text-blue-400 uppercase tracking-wider text-[11px] mb-2">Projekt i Edycja</h4>
+                        <h4 class="font-semibold text-[#9bb7d4] uppercase tracking-wider text-[11px] mb-2">Projekt i Edycja</h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Zapisz projekt</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + S</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + S</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Otwórz projekt</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + O</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + O</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Cofnij</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + Z</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + Z</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Ponów</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + Y</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + Y</kbd>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="font-semibold text-emerald-400 uppercase tracking-wider text-[11px] mb-2">Obszar Roboczy i Panele</h4>
+                        <h4 class="font-semibold text-[#8ec8ad] uppercase tracking-wider text-[11px] mb-2">Obszar Roboczy i Panele</h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Widok: Graf historii</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + 1</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + 1</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Widok: Edytor tekstu</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + 2</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + 2</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Panel lewy (Eksplorator)</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + B</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + B</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Panel prawy (Szczegóły)</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + Alt + B</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + Alt + B</kbd>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="font-semibold text-amber-400 uppercase tracking-wider text-[11px] mb-2">Narzędzia i Gra</h4>
+                        <h4 class="font-semibold text-[#d6a86c] uppercase tracking-wider text-[11px] mb-2">Narzędzia i Gra</h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Testuj grę (Playtest)</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">F5</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">F5</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Waliduj graf</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">F7</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">F7</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Szukaj w projekcie</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + P</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + P</kbd>
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
                                 <span>Pomoc i skróty</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">F1</kbd>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">F1</kbd>
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Footer -->
-                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#18181b] flex justify-end">
+                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex justify-end">
                     <button
                         type="button"
                         id="btn-help-ok"
-                        class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 transition-colors cursor-pointer"
+                        class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] transition-colors cursor-pointer shadow-sm"
                     >
                         Rozumiem
                     </button>
@@ -6040,19 +6040,19 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1a1a1e] border border-[#333338] rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
                 <!-- Header -->
-                <div class="px-5 py-3.5 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                <div class="px-5 py-3.5 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <app-icon name="play" class="w-4 h-4 text-emerald-400"></app-icon>
+                        <app-icon name="play" class="w-4 h-4 text-[#8ec8ad]"></app-icon>
                         <span class="font-semibold text-sm text-zinc-100">Playtest — Podgląd Rozgrywki</span>
-                        <span id="playtest-paragraph-badge" class="px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[11px] text-zinc-300 font-mono ml-2">Paragraf 1</span>
+                        <span id="playtest-paragraph-badge" class="px-2 py-0.5 rounded bg-[#245842]/30 border border-[#357357]/60 text-[11px] text-[#8ec8ad] font-mono ml-2">Paragraf 1</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <button
                             type="button"
                             id="btn-playtest-restart"
-                            class="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700 flex items-center gap-1"
+                            class="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700/60 flex items-center gap-1"
                             title="Zacznij od początku"
                         >
                             <app-icon name="undo" class="w-3 h-3"></app-icon>
@@ -6068,13 +6068,13 @@
                     </div>
                 </div>
                 <!-- Body: Story Content -->
-                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#161619]">
+                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#17181b]">
                     <div id="playtest-content" class="text-zinc-200 leading-relaxed space-y-3">
                         <!-- Dynamic paragraph story content rendered here -->
                     </div>
 
                     <!-- Choices container -->
-                    <div class="pt-4 border-t border-[#2d2d32] space-y-2.5">
+                    <div class="pt-4 border-t border-[#2e3037] space-y-2.5">
                         <h4 class="text-xs uppercase font-bold tracking-wider text-zinc-400">Twoje wybory:</h4>
                         <div id="playtest-choices-container" class="space-y-2">
                             <!-- Dynamic choices buttons rendered here -->
@@ -6093,10 +6093,10 @@
             aria-labelledby="quick-search-input"
         >
             <div
-                class="bg-[#141417] border border-[#2d2d34] rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100"
+                class="bg-[#1b1c20] border border-[#2e3037] rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100"
             >
                 <!-- Search Input Bar -->
-                <div class="p-3.5 border-b border-[#24242a] flex items-center gap-3 bg-[#18181c]">
+                <div class="p-3.5 border-b border-[#2e3037] flex items-center gap-3 bg-[#212226]">
                     <div class="text-zinc-400 shrink-0 pl-1">
                         <app-icon name="search" class="w-5 h-5 text-zinc-400"></app-icon>
                     </div>
@@ -6129,7 +6129,7 @@
                 <!-- Category Chips Filter Bar -->
                 <div
                     id="quick-search-category-filters"
-                    class="flex items-center gap-1.5 px-4 py-2 border-b border-[#24242a] bg-[#111113] overflow-x-auto text-xs no-scrollbar"
+                    class="flex items-center gap-1.5 px-4 py-2 border-b border-[#2e3037] bg-[#17181b] overflow-x-auto text-xs no-scrollbar"
                 >
                     <!-- Rendered dynamically by quickSearch.js -->
                 </div>
@@ -6144,7 +6144,7 @@
 
                 <!-- Footer with Status and Keyboard Navigation Hints -->
                 <div
-                    class="px-4 py-2.5 bg-[#101012] border-t border-[#24242a] flex items-center justify-between text-[11px] text-zinc-400 select-none"
+                    class="px-4 py-2.5 bg-[#141517] border-t border-[#2e3037] flex items-center justify-between text-[11px] text-zinc-400 select-none"
                 >
                     <span id="quick-search-stats" class="text-zinc-500 font-medium">Wszystkie obiekty</span>
                     <div class="flex items-center gap-3 text-zinc-500">
@@ -6165,11 +6165,11 @@
             aria-labelledby="unsaved-changes-title"
         >
             <div
-                class="bg-zinc-900 border border-zinc-700/80 rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col scale-100 transition-transform"
+                class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col scale-100 transition-transform"
             >
                 <!-- Header -->
                 <div
-                    class="px-5 py-4 border-b border-zinc-800 flex items-center gap-3 bg-zinc-900/90"
+                    class="px-5 py-4 border-b border-[#2e3037] flex items-center gap-3 bg-[#212226]"
                 >
                     <div
                         class="w-9 h-9 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0"
@@ -6204,7 +6204,7 @@
                 </div>
 
                 <!-- Body -->
-                <div class="p-5 text-xs text-zinc-300 leading-relaxed bg-[#161619]/90">
+                <div class="p-5 text-xs text-zinc-300 leading-relaxed bg-[#16171a]">
                     <p id="unsaved-changes-message" class="text-zinc-300">
                         Czy na pewno chcesz wyjść? Masz niezapisane zmiany, które zostaną
                         bezpowrotnie utracone.
@@ -6213,12 +6213,12 @@
 
                 <!-- Footer with 3 buttons: Anuluj, Nie zapisuj, Zapisz -->
                 <div
-                    class="px-5 py-3.5 bg-zinc-950/80 border-t border-zinc-800 flex items-center justify-between gap-2"
+                    class="px-5 py-3.5 bg-[#141517] border-t border-[#2e3037] flex items-center justify-between gap-2"
                 >
                     <button
                         type="button"
                         id="btn-unsaved-cancel"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800/80 hover:bg-zinc-700 transition-all cursor-pointer border border-zinc-700/60"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] transition-all cursor-pointer border border-[#2e3037]"
                         data-i18n="unsaved_changes.btn_cancel"
                     >
                         Anuluj
@@ -6235,7 +6235,7 @@
                         <button
                             type="button"
                             id="btn-unsaved-save"
-                            class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all cursor-pointer shadow-md shadow-blue-900/30 hover:shadow-blue-600/30 active:scale-[0.98]"
+                            class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] transition-all cursor-pointer shadow-sm active:scale-[0.98]"
                             data-i18n="unsaved_changes.btn_save"
                         >
                             Zapisz

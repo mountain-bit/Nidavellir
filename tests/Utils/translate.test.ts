@@ -54,7 +54,7 @@ describe('translate — interpolacja i18next', () => {
     beforeEach(resetToPolish)
 
     it('t() przekazuje opcje interpolacji do i18next', () => {
-        expect(t('app.title')).toBe('Silnik Gier Paragrafowych')
+        expect(t('app.title')).toBe('Nidavelir')
     })
 
     it('t() akceptuje opcje bez rzucania błędu', () => {

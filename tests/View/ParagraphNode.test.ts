@@ -147,16 +147,18 @@ describe('ParagraphNode Web Component', () => {
         node.paragraph = startP
 
         expect(node.classList.contains('is-start-node')).toBe(true)
-        expect(node.style.getPropertyValue('--node-theme-color')).toBe('#10b981')
+        expect(node.style.getPropertyValue('--node-theme-color')).toBe('#245842')
         expect(node.style.getPropertyValue('--node-header-text-color')).toBe('#ffffff')
 
         const titleEl = node.querySelector('.paragraph-node-title')
-        expect(titleEl?.textContent).toBe('▶ START')
+        expect(titleEl?.textContent).toBe('START')
+        expect(titleEl?.querySelector('svg')).not.toBeNull()
 
-        // Title remains fixed ▶ START even if title is changed
+        // Title remains fixed START with icon even if title is changed
         startP.setTitle('Początek drogi')
         node.render()
-        expect(titleEl?.textContent).toBe('▶ START')
+        expect(titleEl?.textContent).toBe('START')
+        expect(titleEl?.querySelector('svg')).not.toBeNull()
 
         // Tags and summary containers are hidden for START node
         const tagsContainer = node.querySelector('.paragraph-node-tags')

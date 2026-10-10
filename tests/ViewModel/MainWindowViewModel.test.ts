@@ -478,7 +478,7 @@ describe('MainWindowViewModel', () => {
 
         it('aktualizuje kolor dla wybranej sceny', () => {
             const scene = vm.createScene('Testowa Scena')
-            expect(scene.getColor()).toBe('#3b82f6')
+            expect(scene.getColor()).toBe('#4a5b6d')
 
             vm.selectElement(scene, 'scene')
             const updated = vm.updateColor('#ef4444')

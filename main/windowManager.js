@@ -21,7 +21,7 @@ function createStartWindow() {
             nodeIntegration: false,
             contextIsolation: true,
         },
-        title: 'Silnik Gier Paragrafowych',
+        title: 'Nidavelir',
         backgroundColor: '#00000000',
     })
 
@@ -48,8 +48,8 @@ function createMainWindow() {
             nodeIntegration: false,
             contextIsolation: true,
         },
-        title: 'Silnik Gier Paragrafowych',
-        backgroundColor: '#18181b',
+        title: 'Nidavelir',
+        backgroundColor: '#141517',
     })
 
     mainWindow.maximize()

@@ -12,7 +12,7 @@ describe('Scene Model', () => {
         expect(scene.getPosition()).toBeNull()
         expect(scene.getWidth()).toBe(400)
         expect(scene.getHeight()).toBe(280)
-        expect(scene.getColor()).toBe('#3b82f6')
+        expect(scene.getColor()).toBe('#4a5b6d')
         expect(scene.getIsMovementLocked()).toBe(true)
         expect(scene.getParagraphs()).toEqual([])
     })

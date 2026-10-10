@@ -1,9 +1,11 @@
+import { DEFAULT_TAG_COLOR } from './constants'
+
 export class Tag {
     private id: string = ''
     private name: string = ''
-    private color: string = '#3b82f6'
+    private color: string = DEFAULT_TAG_COLOR
 
-    constructor(id: string = '', name: string = '', color: string = '#3b82f6') {
+    constructor(id: string = '', name: string = '', color: string = DEFAULT_TAG_COLOR) {
         this.id = id
         this.name = name || id
         this.color = color
@@ -43,7 +45,7 @@ export class Tag {
         return new Tag(
             json.id || json.name || '',
             json.name || json.id || '',
-            json.color || '#3b82f6'
+            json.color || DEFAULT_TAG_COLOR
         )
     }
 

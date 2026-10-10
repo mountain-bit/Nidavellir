@@ -397,7 +397,7 @@ export function updateModalModeUI(mode = 'character') {
                 : 'np. Strażnik miejski, Bandyta leśny, Kultysta...'
             : typeof t === 'function'
               ? t('npc.name_placeholder')
-              : 'np. Strażnik miejski, Mistrz Elion...'
+              : 'Wpisz nazwę postaci...'
     }
 
     const nameLabel = document.querySelector('label[for="npc-name-input"]')
@@ -443,10 +443,10 @@ export function updateModalModeUI(mode = 'character') {
         }
         if (isTemplate) {
             saveBtn.className =
-                'flex items-center gap-1.5 px-5 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-purple-900/30 hover:shadow-purple-600/30 active:scale-[0.98]'
+                'flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#53406b] hover:bg-[#624c7d] border border-[#6b5387] text-xs text-white font-semibold transition-all cursor-pointer shadow-sm active:scale-[0.98]'
         } else {
             saveBtn.className =
-                'flex items-center gap-1.5 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs text-white font-semibold transition-all cursor-pointer shadow-md shadow-blue-900/30 hover:shadow-blue-600/30 active:scale-[0.98]'
+                'flex items-center gap-1.5 px-5 py-2 rounded-lg bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-xs text-white font-semibold transition-all cursor-pointer shadow-sm active:scale-[0.98]'
         }
     }
 }

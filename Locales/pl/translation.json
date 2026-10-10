@@ -7,7 +7,7 @@
         "project_not_found": "Ścieżka projektu nie istnieje"
     },
     "app": {
-        "title": "Silnik Gier Paragrafowych",
+        "title": "Nidavelir",
         "version": "Wersja"
     },
     "project": {
@@ -54,7 +54,7 @@
         "badge": "Protagonista",
         "drag_title": "Przeciągnij, aby przesunąć kartę bohatera gracza",
         "name_label": "Imię i miano bohatera",
-        "name_placeholder": "np. Artur Pendragon, Elion Gwiazdozbieg...",
+        "name_placeholder": "Wpisz imię bohatera...",
         "independent_hero": "Główny Bohater Gracza",
         "class_label": "Klasa postaci",
         "select_class": "-- Wybierz klasę postaci --",
@@ -117,7 +117,7 @@
         "template_summary_placeholder": "Krótkie streszczenie archetypu (np. przeznaczenie szablonu, typowe zachowanie)...",
         "drag_template_title": "Przeciągnij, aby przesunąć kartę szablonu",
         "name_label": "Nazwa postaci",
-        "name_placeholder": "np. Strażnik miejski, Mistrz Elion...",
+        "name_placeholder": "Wpisz nazwę postaci...",
         "summary_label": "Streszczenie",
         "summary_hint": "Krótkie podsumowanie postaci",
         "summary_placeholder": "Krótkie streszczenie (np. kim jest postać, jej cel lub rola w fabule)...",

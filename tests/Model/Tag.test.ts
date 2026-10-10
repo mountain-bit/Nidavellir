@@ -7,7 +7,7 @@ describe('Tag Model', () => {
         const tag = new Tag()
         expect(tag.getId()).toBe('')
         expect(tag.getName()).toBe('')
-        expect(tag.getColor()).toBe('#3b82f6')
+        expect(tag.getColor()).toBe('#4a5b6d')
     })
 
     it('tworzy tag z podanymi parametrami', () => {
@@ -36,7 +36,7 @@ describe('Tag Model', () => {
         const tag = Tag.fromJSON('Important')
         expect(tag.getId()).toBe('Important')
         expect(tag.getName()).toBe('Important')
-        expect(tag.getColor()).toBe('#3b82f6')
+        expect(tag.getColor()).toBe('#4a5b6d')
     })
 
     it('serializuje do obiektu JSON', () => {

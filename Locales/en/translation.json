@@ -7,7 +7,7 @@
         "project_not_found": "Project path does not exist"
     },
     "app": {
-        "title": "Paragraph Game Engine",
+        "title": "Nidavelir",
         "version": "Version"
     },
     "project": {
@@ -54,7 +54,7 @@
         "badge": "Protagonist",
         "drag_title": "Drag to move player character folio",
         "name_label": "Hero Name and Title",
-        "name_placeholder": "e.g. Arthur Pendragon, Elion Starfall...",
+        "name_placeholder": "Enter hero name...",
         "independent_hero": "Main Player Protagonist",
         "class_label": "Character Class",
         "select_class": "-- Select character class --",
@@ -117,7 +117,7 @@
         "template_summary_placeholder": "Short summary of the archetype (e.g. purpose, typical behavior)...",
         "drag_template_title": "Drag to move template sheet",
         "name_label": "Character Name",
-        "name_placeholder": "e.g. City Guard, Archmage Elion...",
+        "name_placeholder": "Enter character name...",
         "summary_label": "Summary",
         "summary_hint": "Brief character overview",
         "summary_placeholder": "Short summary (e.g. who the character is, their goal or role in the story)...",

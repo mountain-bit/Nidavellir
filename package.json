@@ -32,7 +32,7 @@
     "keywords": [],
     "author": "",
     "license": "ISC",
-    "description": "Silnik do tworzenia gier paragrafowych",
+    "description": "Nidavelir — zaawansowane środowisko do tworzenia gier paragrafowych",
     "dependencies": {
         "@tiptap/core": "^3.31.4",
         "@tiptap/extension-mention": "^3.31.4",

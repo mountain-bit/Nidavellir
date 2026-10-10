@@ -31,18 +31,18 @@ export function getTypeIconSvg(type, extraClasses = 'w-3.5 h-3.5 shrink-0') {
  * Color palette presets for tags and scenes.
  */
 export const PRESET_COLORS = [
-    '#3b82f6', // Niebieski
-    '#6366f1', // Indygo
-    '#8b5cf6', // Fioletowy
-    '#ec4899', // Różowy
-    '#ef4444', // Czerwony
-    '#f97316', // Pomarańczowy
-    '#f59e0b', // Bursztynowy
-    '#10b981', // Szmaragdowy
-    '#14b8a6', // Morski
-    '#06b6d4', // Cyjan
-    '#64748b', // Łupkowy
-    '#71717a', // Cynkowy
+    '#4a5b6d', // Stal grafitowa
+    '#3f5263', // Ciemny łupek
+    '#3e5445', // Szałwia leśna
+    '#4c573f', // Ciemna oliwka
+    '#69563c', // Zgaszona ochra
+    '#69453b', // Zgaszona terakota
+    '#643c42', // Stonowany burgund
+    '#55425a', // Zgaszona śliwka
+    '#41455a', // Grafit indygo
+    '#4f545c', // Chłodny popiel
+    '#57524c', // Kamienny taupe
+    '#3b3d42', // Neutralny antracyt
 ]
 
 /**

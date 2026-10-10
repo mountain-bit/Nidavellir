@@ -7,7 +7,7 @@
         "project_not_found": "Projektpfad existiert nicht"
     },
     "app": {
-        "title": "Paragraphen-Spielmotor",
+        "title": "Nidavelir",
         "version": "Version"
     },
     "project": {
@@ -54,7 +54,7 @@
         "badge": "Protagonist",
         "drag_title": "Ziehen, um den Spielercharakter-Bogen zu verschieben",
         "name_label": "Name und Titel des Helden",
-        "name_placeholder": "z. B. Arthur Pendragon, Elion Sternenfall...",
+        "name_placeholder": "Heldenname eingeben...",
         "independent_hero": "Hauptcharakter des Spielers",
         "class_label": "Charakterklasse",
         "select_class": "-- Charakterklasse auswählen --",
@@ -117,7 +117,7 @@
         "template_summary_placeholder": "Kurze Zusammenfassung des Archetyps (z.B. Zweck, Verhalten)...",
         "drag_template_title": "Ziehen, um Vorlagenbogen zu verschieben",
         "name_label": "Charaktername",
-        "name_placeholder": "z.B. Stadtwache, Meister Elion...",
+        "name_placeholder": "Charaktername eingeben...",
         "summary_label": "Zusammenfassung",
         "summary_hint": "Kurze Charakterübersicht",
         "summary_placeholder": "Kurze Zusammenfassung (z.B. wer der Charakter ist, seine Rolle in der Geschichte)...",

@@ -1,7 +1,6 @@
-import '../../Utils/icons'
-
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
+import { getIconSvg } from '../../Utils/icons'
 import { t } from '../../Utils/translate'
 import {
     createCharacterPill,
@@ -376,7 +375,7 @@ export class ParagraphNode extends HTMLElement {
             this.style.setProperty('--node-theme-color', GRAPH_THEME.colors.startNode || '#10b981')
             this.style.setProperty('--node-header-text-color', '#ffffff')
 
-            this._elements.title.textContent = '▶ START'
+            this._elements.title.innerHTML = `${getIconSvg('play', 'w-3.5 h-3.5 inline-block shrink-0')}<span>START</span>`
             this._elements.title.title = `START - ${t('graph.start_node_entry_point') || 'Punkt startowy opowieści'}`
             this._elements.socketBtn.title =
                 t('graph.start_node_socket_title') ||
