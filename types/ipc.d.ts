@@ -85,3 +85,20 @@ export interface ISaveEntityResult {
     error?: string
 }
 export type SaveEntityResult = ISaveEntityResult
+
+export interface ISaveFullProjectPayload {
+    project?: Record<string, unknown>
+    paragraphs?: unknown[]
+    scenes?: unknown[]
+    entities?: Record<string, unknown[]>
+    files?: Record<string, string>
+    graph?: Record<string, unknown>
+}
+export type SaveFullProjectPayload = ISaveFullProjectPayload
+
+export interface ISaveFullProjectResult {
+    success: boolean
+    path?: string
+    error?: string
+}
+export type SaveFullProjectResult = ISaveFullProjectResult

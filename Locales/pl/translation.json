@@ -507,6 +507,33 @@
         "np_create_error": "Błąd podczas tworzenia projektu:",
         "np_unexpected_error": "Wystąpił nieoczekiwany błąd:"
     },
+    "topbar": {
+        "project_placeholder": "Brak projektu",
+        "saved": "Zapisano",
+        "unsaved_changes": "Niezapisane zmiany",
+        "buttons": {
+            "save": "Zapisz",
+            "save_as": "Zapisz jako...",
+            "close_project": "Zamknij projekt",
+            "open_project": "Otwórz projekt",
+            "new_file": "Nowy plik",
+            "undo": "Cofnij (Ctrl+Z)",
+            "redo": "Ponów (Ctrl+Y)",
+            "search": "Szybkie szukanie (Ctrl+P)",
+            "view_graph": "Graf historii",
+            "view_editor": "Edytor tekstu",
+            "validate_graph": "Waliduj graf",
+            "validation_clean": "0 błędów",
+            "zoom_fit": "Dopasuj widok grafu",
+            "playtest": "Testuj grę",
+            "export": "Eksportuj",
+            "left_panel": "Panel lewy (Ctrl+B)",
+            "right_panel": "Panel prawy (Ctrl+Alt+B)",
+            "assets": "Zasoby graficzne",
+            "settings": "Ustawienia",
+            "help": "Pomoc i skróty"
+        }
+    },
     "ribbon": {
         "tabs": {
             "main": "Główne",
@@ -641,6 +668,7 @@
         "title": "Ustawienia Edytora",
         "language": "Język interfejsu",
         "auto_save": "Automatyczny zapis",
+        "auto_save_help": "Automatycznie zapisuje projekt w tle, gdy występują niezapisane zmiany.",
         "show_grid": "Pokazuj siatkę w grafie",
         "zoom_sensitivity": "Krok powiększenia kółkiem myszy",
         "zoom_sensitivity_help": "Czułość zmiany skali widoku grafu przy obrocie rolki myszy."
@@ -734,7 +762,11 @@
         "file_locked_warning": "Ostrzeżenie: Plik jest zablokowany przez inny proces. Zmiany zachowano w pamięci.",
         "meta_sync_warning": "Ostrzeżenie: Wykryto niespójność w strukturze projektu i zaktualizowano metadane.",
         "save_success": "Zapisano zmiany pomyślnie.",
-        "save_error": "Wystąpił błąd podczas zapisu: {{error}}"
+        "save_error": "Wystąpił błąd podczas zapisu: {{error}}",
+        "auto_save_title": "Automatyczny zapis",
+        "auto_saved": "Projekt został automatycznie zapisany.",
+        "auto_save_enabled": "Włączono automatyczny zapis w tle.",
+        "auto_save_disabled": "Wyłączono automatyczny zapis w tle."
     },
     "condition": {
         "type_text": "Warunek Autora"

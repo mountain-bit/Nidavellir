@@ -16,231 +16,245 @@
     <body
         class="m-0 h-screen w-screen overflow-hidden bg-[#18181b] text-[#e4e4e7] flex flex-col font-sans select-none"
     >
-        <!-- Top Ribbon Toolbar (MS Word style) -->
-        <div
-            class="flex flex-col border-b border-[#333338] bg-[#202023] shrink-0"
-            aria-label="Pasek narzędzi Ribbon"
-        >
-            <!-- Ribbon Tabs Header with App Title & Project Name -->
-            <nav
-                class="flex items-center border-b border-[#2d2d32] px-3 gap-2 text-xs"
-                aria-label="Zakładki wstążki"
-            >
-                <!-- App & Project Title Branding -->
-                <div
-                    class="flex items-center gap-2 pr-3 py-1 font-medium border-r border-[#333338] text-xs shrink-0"
-                >
-                    <span class="text-blue-500 font-bold text-sm">§ </span>
-                    <span class="text-[#a1a1aa] font-normal" id="project-name-display"
-                        >Moja Gra</span
+        <!-- Top Navigation Bar (Modern Top Bar) -->
+        <header
+            id="main-topbar"
+            class="topbar-header shrink-0 flex items-center justify-between px-3 h-11 bg-[#202023] border-b border-[#333338] text-xs select-none z-30"
+            aria-label="Pasek górny narzędzi"
+        >            <!-- LEWA STRONA: Brand, Projekt & Operacje na Plikach & Historia -->
+            <div class="flex items-center gap-1.5 min-w-0">
+                <!-- App Brand & Project Name Display -->
+                <div class="flex items-center gap-2 pr-2 py-0.5 border-r border-[#333338] shrink-0">
+                    <span class="text-blue-500 font-bold text-sm tracking-wider">§</span>
+                    <span
+                        class="text-zinc-200 font-semibold truncate max-w-[140px] md:max-w-[200px]"
+                        id="project-name-display"
+                        data-i18n="topbar.project_placeholder"
+                    >Moja Gra</span>
+                    <span
+                        id="project-dirty-indicator"
+                        class="hidden w-2 h-2 rounded-full bg-amber-400 shrink-0"
+                        title="Niezapisane zmiany"
+                    ></span>
+                </div>
+
+                <!-- Grupa 1: Projekt i Pliki -->
+                <div class="topbar-group">
+                    <button
+                        class="topbar-btn"
+                        type="button"
+                        data-action="save"
+                        data-i18n-title="topbar.buttons.save"
+                        title="Zapisz projekt (Ctrl+S)"
                     >
+                        <app-icon name="save" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                        <span class="hidden sm:inline" data-i18n="topbar.buttons.save">Zapisz</span>
+                    </button>
+
+                    <button
+                        class="topbar-btn"
+                        type="button"
+                        data-action="open-project"
+                        data-i18n-title="topbar.buttons.open_project"
+                        title="Otwórz projekt (Ctrl+O)"
+                    >
+                        <app-icon name="open" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.open_project">Otwórz</span>
+                    </button>
+
+                    <button
+                        class="topbar-btn"
+                        type="button"
+                        data-action="close-project"
+                        data-i18n-title="topbar.buttons.close_project"
+                        title="Zamknij projekt"
+                    >
+                        <app-icon name="close" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.close_project">Zamknij</span>
+                    </button>
                 </div>
 
-                <!-- Ribbon Tabs -->
-                <button
-                    class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-blue-500 text-white hover:text-white bg-[#28282c]"
-                    type="button"
-                    data-ribbon-tab="glowna"
-                    data-i18n="ribbon.tabs.main"
-                >
-                    Główne
-                </button>
-                <button
-                    class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-transparent text-[#a1a1aa] hover:text-white hover:bg-[#252528]"
-                    type="button"
-                    data-ribbon-tab="sceny"
-                    data-i18n="ribbon.tabs.scenes"
-                >
-                    Edycja Scen
-                </button>
-                <button
-                    class="ribbon-tab-btn px-3 py-1.5 font-medium border-b-2 border-transparent text-[#a1a1aa] hover:text-white hover:bg-[#252528]"
-                    type="button"
-                    data-ribbon-tab="widok"
-                    data-i18n="ribbon.tabs.view"
-                >
-                    Widok
-                </button>
-            </nav>
+                <div class="topbar-divider"></div>
 
-            <!-- Ribbon Content Panels -->
-            <div class="h-16 flex items-center px-2 py-1 overflow-x-auto gap-1">
-                <!-- Ribbon Panel: Główne -->
-                <div
-                    class="ribbon-tab-content flex items-center gap-1 h-full"
-                    id="ribbon-panel-glowna"
-                >
-                    <!-- Group: Plik -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button class="ribbon-btn" type="button" data-action="new-file">
-                                <app-icon name="new-file" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.new_file">Nowy plik</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="save">
-                                <app-icon name="save" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.save">Zapisz</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="open-project">
-                                <app-icon name="open" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.open">Otwórz</span>
-                            </button>
-                            <button
-                                class="ribbon-btn"
-                                type="button"
-                                data-action="close-project"
-                                title="Zamknij projekt"
-                            >
-                                <app-icon name="close" class="w-4 h-4"></app-icon>
-                                <span data-i18n="project.close">Zamknij</span>
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.file"
-                            >Plik</span
-                        >
-                    </div>
-
-                    <!-- Group: Gra -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button class="ribbon-btn" type="button" data-action="run-game">
-                                <app-icon
-                                    name="arrow-right"
-                                    class="w-4 h-4 text-emerald-400"
-                                ></app-icon>
-                                <span data-i18n="ribbon.buttons.run_game">Testuj grę</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="export-game">
-                                <app-icon name="export" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.export_game">Eksportuj</span>
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.game">Gra</span>
-                    </div>
-
-                    <!-- Group: Widok główny -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button class="ribbon-btn" type="button" data-action="show-graph">
-                                <app-icon name="graph" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="switch-markdown">
-                                <app-icon name="markdown" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.markdown_editor"
-                                    >Edytor tekstu</span
-                                >
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.workspace"
-                            >Obszar roboczy</span
-                        >
-                    </div>
-                </div>
-
-                <!-- Ribbon Panel: Edycja Scen -->
-                <div
-                    class="ribbon-tab-content hidden flex items-center gap-1 h-full"
-                    id="ribbon-panel-sceny"
-                >
-                    <!-- Group: Tworzenie -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button class="ribbon-btn" type="button" data-action="new-scene">
-                                <app-icon name="scene" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.add_scene">Dodaj scenę</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="link-scenes">
-                                <app-icon name="choice" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.link_scenes">Połącz sceny</span>
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.scenes"
-                            >Sceny</span
-                        >
-                    </div>
-
-                    <!-- Group: Elementy Świata -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button
-                                class="ribbon-btn"
-                                type="button"
-                                data-action="open-main-character"
-                            >
-                                <app-icon name="character" class="w-4 h-4 text-blue-400"></app-icon>
-                                <span data-i18n="ribbon.buttons.hero">Bohater</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="open-npcs">
-                                <app-icon name="character" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.npcs">Postacie NPC</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="open-items">
-                                <app-icon name="item" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.items">Przedmioty</span>
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="open-locations">
-                                <app-icon name="location" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.locations">Lokacje</span>
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.world_elements"
-                            >Elementy świata</span
-                        >
-                    </div>
-                </div>
-
-                <!-- Ribbon Panel: Widok -->
-                <div
-                    class="ribbon-tab-content hidden flex items-center gap-1 h-full"
-                    id="ribbon-panel-widok"
-                >
-                    <!-- Group: Widok główny -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button class="ribbon-btn" type="button" data-action="switch-markdown">
-                                <app-icon name="markdown" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.markdown_editor"
-                                    >Edytor Markdown</span
-                                >
-                            </button>
-                            <button class="ribbon-btn" type="button" data-action="show-graph">
-                                <app-icon name="graph" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.story_graph">Graf historii</span>
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.workspace"
-                            >Obszar roboczy</span
-                        >
-                    </div>
-
-                    <!-- Group: Panele boczne -->
-                    <div class="ribbon-section">
-                        <div class="flex items-center gap-1">
-                            <button
-                                class="ribbon-btn"
-                                type="button"
-                                data-action="toggle-left-drawer"
-                            >
-                                <app-icon name="open" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.left_panel">Panel lewy</span>
-                            </button>
-                            <button
-                                class="ribbon-btn"
-                                type="button"
-                                data-action="toggle-right-sidebar"
-                            >
-                                <app-icon name="settings" class="w-4 h-4"></app-icon>
-                                <span data-i18n="ribbon.buttons.right_panel">Panel prawy</span>
-                            </button>
-                        </div>
-                        <span class="ribbon-section-title" data-i18n="ribbon.groups.side_panels"
-                            >Panele boczne</span
-                        >
-                    </div>
+                <!-- Grupa 2: Historia & Szukanie -->
+                <div class="topbar-group">
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="undo"
+                        data-i18n-title="topbar.buttons.undo"
+                        title="Cofnij (Ctrl+Z)"
+                    >
+                        <app-icon name="undo" class="w-3.5 h-3.5 text-zinc-300"></app-icon>
+                    </button>
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="redo"
+                        data-i18n-title="topbar.buttons.redo"
+                        title="Ponów (Ctrl+Y)"
+                    >
+                        <app-icon name="redo" class="w-3.5 h-3.5 text-zinc-300"></app-icon>
+                    </button>
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="quick-search"
+                        data-i18n-title="topbar.buttons.search"
+                        title="Szybkie szukanie (Ctrl+P)"
+                    >
+                        <app-icon name="search" class="w-3.5 h-3.5 text-zinc-300"></app-icon>
+                    </button>
                 </div>
             </div>
-        </div>
+
+            <!-- ŚRODEK: Przełącznik Widoków (Segmented), Walidacja & Testowanie Gry -->
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- Grupa 3: Przełącznik Widoków (Graf / Edytor) -->
+                <div class="topbar-segmented" role="tablist" aria-label="Główny widok">
+                    <button
+                        class="topbar-segmented-btn active"
+                        type="button"
+                        data-action="show-graph"
+                        role="tab"
+                        data-i18n-title="topbar.buttons.view_graph"
+                        title="Graf historii (Ctrl+1)"
+                    >
+                        <app-icon name="graph" class="w-3.5 h-3.5"></app-icon>
+                        <span data-i18n="topbar.buttons.view_graph">Graf historii</span>
+                    </button>
+                    <button
+                        class="topbar-segmented-btn"
+                        type="button"
+                        data-action="switch-markdown"
+                        role="tab"
+                        data-i18n-title="topbar.buttons.view_editor"
+                        title="Edytor tekstu (Ctrl+2)"
+                    >
+                        <app-icon name="markdown" class="w-3.5 h-3.5"></app-icon>
+                        <span data-i18n="topbar.buttons.view_editor">Edytor tekstu</span>
+                    </button>
+                </div>
+
+                <!-- Grupa 4: Walidacja Grafu & Narzędzia -->
+                <div class="topbar-group">
+                    <button
+                        class="topbar-btn"
+                        type="button"
+                        data-action="validate-graph"
+                        data-i18n-title="topbar.buttons.validate_graph"
+                        title="Waliduj graf"
+                    >
+                        <app-icon name="check" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
+                        <span class="hidden sm:inline" data-i18n="topbar.buttons.validate_graph">Waliduj graf</span>
+                        <span
+                            id="topbar-validation-badge"
+                            class="topbar-badge topbar-badge-ok ml-0.5"
+                            data-i18n="topbar.buttons.validation_clean"
+                        >0 błędów</span>
+                    </button>
+
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="zoom-fit"
+                        data-i18n-title="topbar.buttons.zoom_fit"
+                        title="Dopasuj widok grafu"
+                    >
+                        <app-icon name="zoom-reset" class="w-3.5 h-3.5 text-zinc-300"></app-icon>
+                    </button>
+                </div>
+
+                <div class="topbar-divider hidden sm:block"></div>
+
+                <!-- Grupa 5: Testowanie Gry (Playtest) -->
+                <div class="topbar-group">
+                    <button
+                        class="topbar-btn hover:text-emerald-400"
+                        type="button"
+                        data-action="run-game"
+                        data-i18n-title="topbar.buttons.playtest"
+                        title="Testuj grę (F5)"
+                    >
+                        <app-icon name="play" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
+                        <span class="hidden lg:inline" data-i18n="topbar.buttons.playtest">Testuj grę</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PRAWA STRONA: Panele Boczne, Eksport, Narzędzia & Ustawienia -->
+            <div class="flex items-center gap-1.5 shrink-0">
+                <!-- Grupa 6: Przełączniki Paneli Bocznych (Lewy / Prawy) -->
+                <div class="topbar-group">
+                    <button
+                        class="topbar-btn topbar-btn-icon-only active"
+                        type="button"
+                        data-action="toggle-left-drawer"
+                        data-i18n-title="topbar.buttons.left_panel"
+                        title="Panel lewy (Ctrl+B)"
+                    >
+                        <app-icon name="sidebar-left" class="w-3.5 h-3.5 text-zinc-300"></app-icon>
+                    </button>
+                    <button
+                        class="topbar-btn topbar-btn-icon-only active"
+                        type="button"
+                        data-action="toggle-right-sidebar"
+                        data-i18n-title="topbar.buttons.right_panel"
+                        title="Panel prawy (Ctrl+Alt+B)"
+                    >
+                        <app-icon name="sidebar-right" class="w-3.5 h-3.5 text-zinc-300"></app-icon>
+                    </button>
+                </div>
+
+                <div class="topbar-divider"></div>
+
+                <!-- Eksport -->
+                <button
+                    class="topbar-btn topbar-btn-primary"
+                    type="button"
+                    data-action="export-game"
+                    data-i18n-title="topbar.buttons.export"
+                    title="Eksportuj projekt"
+                >
+                    <app-icon name="export" class="w-3.5 h-3.5 text-white"></app-icon>
+                    <span class="hidden sm:inline" data-i18n="topbar.buttons.export">Eksportuj</span>
+                </button>
+
+                <div class="topbar-divider"></div>
+
+                <!-- Narzędzia: Multimedia, Ustawienia, Pomoc -->
+                <div class="topbar-group">
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="open-assets"
+                        data-i18n-title="topbar.buttons.assets"
+                        title="Zasoby graficzne"
+                    >
+                        <app-icon name="image" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                    </button>
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="open-settings"
+                        data-i18n-title="topbar.buttons.settings"
+                        title="Ustawienia"
+                    >
+                        <app-icon name="settings" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                    </button>
+                    <button
+                        class="topbar-btn topbar-btn-icon-only"
+                        type="button"
+                        data-action="open-help"
+                        data-i18n-title="topbar.buttons.help"
+                        title="Pomoc i skróty"
+                    >
+                        <app-icon name="help" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                    </button>
+                </div>
+            </div>
+        </header>
+
 
         <!-- Main Workspace Container (Icon Bar + Left Drawer + Center View + Right Details Panel) -->
         <div class="flex flex-1 min-h-0 overflow-hidden relative">
@@ -1071,16 +1085,25 @@
                                 </div>
 
                                 <div class="pt-1 space-y-2 border-t border-[#2d2d32]">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked
-                                            class="rounded accent-blue-500"
-                                        />
-                                        <span data-i18n="settings.auto_save"
-                                            >Automatyczny zapis</span
+                                    <div class="space-y-1">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                id="settings-auto-save"
+                                                checked
+                                                class="rounded accent-blue-500 cursor-pointer"
+                                            />
+                                            <span data-i18n="settings.auto_save"
+                                                >Automatyczny zapis</span
+                                            >
+                                        </label>
+                                        <p
+                                            class="text-[10px] text-[#71717a] leading-tight ml-5"
+                                            data-i18n="settings.auto_save_help"
                                         >
-                                    </label>
+                                            Automatycznie zapisuje projekt w tle, gdy występują niezapisane zmiany.
+                                        </p>
+                                    </div>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
@@ -5380,6 +5403,311 @@
                     >
                         Wstaw opis
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Raport Walidacji Grafu -->
+        <div
+            id="modal-validation-report"
+            class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="bg-[#1c1c20] border border-[#333338] rounded-xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+                <!-- Header -->
+                <div class="px-5 py-4 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
+                            <app-icon name="check" class="w-4 h-4 text-blue-400"></app-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-zinc-100">Raport Walidacji Grafu</h3>
+                            <p class="text-[11px] text-zinc-400" id="validation-report-subtitle">Weryfikacja spójności fabuły i przeskoków</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-close-validation-modal"
+                        class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                    >
+                        <app-icon name="close" class="w-4 h-4"></app-icon>
+                    </button>
+                </div>
+                <!-- Body: Issues List -->
+                <div id="validation-issues-container" class="p-5 overflow-y-auto space-y-2.5 flex-1 text-xs">
+                    <!-- Dynamic issues or clean state rendered here -->
+                </div>
+                <!-- Footer -->
+                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#18181b] flex items-center justify-between">
+                    <span id="validation-summary-text" class="text-xs text-zinc-400">Podsumowanie</span>
+                    <button
+                        type="button"
+                        id="btn-validation-ok"
+                        class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 transition-colors cursor-pointer"
+                    >
+                        Zamknij
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Eksport Projektu -->
+        <div
+            id="modal-export-project"
+            class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="bg-[#1c1c20] border border-[#333338] rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
+                <!-- Header -->
+                <div class="px-5 py-4 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
+                            <app-icon name="export" class="w-4 h-4 text-blue-400"></app-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-zinc-100">Eksport Gry Paragrafowej</h3>
+                            <p class="text-[11px] text-zinc-400">Wybierz docelowy format publikacji</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-close-export-modal"
+                        class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                    >
+                        <app-icon name="close" class="w-4 h-4"></app-icon>
+                    </button>
+                </div>
+                <!-- Body -->
+                <div class="p-5 space-y-4 text-xs">
+                    <div class="space-y-2">
+                        <label class="block text-zinc-300 font-medium">Format eksportu:</label>
+                        <div class="grid grid-cols-2 gap-2.5" id="export-format-options">
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-blue-500/60 bg-blue-950/20 cursor-pointer transition-colors export-opt active">
+                                <input type="radio" name="export-format" value="html" checked class="mt-0.5 accent-blue-500" />
+                                <div>
+                                    <div class="font-semibold text-zinc-100 flex items-center gap-1.5">
+                                        <span>Web Player (HTML)</span>
+                                    </div>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Samodzielna gra w przeglądarce</p>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2d2d32] bg-[#18181b] hover:border-zinc-600 cursor-pointer transition-colors export-opt">
+                                <input type="radio" name="export-format" value="json" class="mt-0.5 accent-blue-500" />
+                                <div>
+                                    <div class="font-semibold text-zinc-100">Baza danych (JSON)</div>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Kompletne dane strukturalne</p>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2d2d32] bg-[#18181b] hover:border-zinc-600 cursor-pointer transition-colors export-opt">
+                                <input type="radio" name="export-format" value="pdf" class="mt-0.5 accent-blue-500" />
+                                <div>
+                                    <div class="font-semibold text-zinc-100">Książka PDF</div>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Układ gotowy do wydruku</p>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2d2d32] bg-[#18181b] hover:border-zinc-600 cursor-pointer transition-colors export-opt">
+                                <input type="radio" name="export-format" value="docx" class="mt-0.5 accent-blue-500" />
+                                <div>
+                                    <div class="font-semibold text-zinc-100">Dokument Word</div>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Do dalszej redakcji tekstu</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-[#2d2d32] space-y-2">
+                        <label class="block text-zinc-300 font-medium">Opcje publikacji:</label>
+                        <div class="space-y-1.5">
+                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                <input type="checkbox" id="export-opt-shuffle" checked class="rounded accent-blue-500" />
+                                <span>Losowe wymieszanie numeracji paragrafów</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                <input type="checkbox" id="export-opt-images" checked class="rounded accent-blue-500" />
+                                <span>Dołącz grafiki i portrety postaci</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#18181b] flex items-center justify-between">
+                    <button
+                        type="button"
+                        id="btn-cancel-export"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-zinc-800 hover:bg-zinc-700 transition-colors cursor-pointer"
+                    >
+                        Anuluj
+                    </button>
+                    <button
+                        type="button"
+                        id="btn-confirm-export"
+                        class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors cursor-pointer shadow-md shadow-blue-900/30 flex items-center gap-1.5"
+                    >
+                        <app-icon name="export" class="w-3.5 h-3.5"></app-icon>
+                        <span>Pobierz / Zapisz</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Pomoc i Skróty Klawiszowe -->
+        <div
+            id="modal-help-shortcuts"
+            class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="bg-[#1c1c20] border border-[#333338] rounded-xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden">
+                <!-- Header -->
+                <div class="px-5 py-4 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center shrink-0">
+                            <app-icon name="help" class="w-4 h-4 text-blue-400"></app-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-zinc-100">Skróty Klawiszowe i Pomoc</h3>
+                            <p class="text-[11px] text-zinc-400">Szybka nawigacja i obsługa silnika gier</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-close-help-modal"
+                        class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                    >
+                        <app-icon name="close" class="w-4 h-4"></app-icon>
+                    </button>
+                </div>
+                <!-- Body -->
+                <div class="p-5 overflow-y-auto max-h-[65vh] space-y-4 text-xs">
+                    <div>
+                        <h4 class="font-semibold text-blue-400 uppercase tracking-wider text-[11px] mb-2">Projekt i Edycja</h4>
+                        <div class="grid grid-cols-2 gap-2 text-zinc-300">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Zapisz projekt</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + S</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Otwórz projekt</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + O</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Cofnij</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + Z</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Ponów</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + Y</kbd>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-emerald-400 uppercase tracking-wider text-[11px] mb-2">Obszar Roboczy i Panele</h4>
+                        <div class="grid grid-cols-2 gap-2 text-zinc-300">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Widok: Graf historii</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + 1</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Widok: Edytor tekstu</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + 2</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Panel lewy (Eksplorator)</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + B</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Panel prawy (Szczegóły)</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + Alt + B</kbd>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-semibold text-amber-400 uppercase tracking-wider text-[11px] mb-2">Narzędzia i Gra</h4>
+                        <div class="grid grid-cols-2 gap-2 text-zinc-300">
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Testuj grę (Playtest)</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">F5</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Waliduj graf</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">F7</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Szukaj w projekcie</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">Ctrl + P</kbd>
+                            </div>
+                            <div class="flex items-center justify-between p-2 rounded bg-[#18181b] border border-[#2d2d32]">
+                                <span>Pomoc i skróty</span>
+                                <kbd class="px-1.5 py-0.5 rounded bg-[#28282c] border border-zinc-700 font-mono text-[10px] text-zinc-200">F1</kbd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div class="px-5 py-3 border-t border-[#2d2d32] bg-[#18181b] flex justify-end">
+                    <button
+                        type="button"
+                        id="btn-help-ok"
+                        class="px-4 py-1.5 rounded-lg text-xs font-medium text-white bg-blue-600 hover:bg-blue-500 transition-colors cursor-pointer"
+                    >
+                        Rozumiem
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Symulator Gry / Playtest -->
+        <div
+            id="modal-playtest"
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="bg-[#1a1a1e] border border-[#333338] rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+                <!-- Header -->
+                <div class="px-5 py-3.5 border-b border-[#2d2d32] bg-[#222226] flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <app-icon name="play" class="w-4 h-4 text-emerald-400"></app-icon>
+                        <span class="font-semibold text-sm text-zinc-100">Playtest — Podgląd Rozgrywki</span>
+                        <span id="playtest-paragraph-badge" class="px-2 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-[11px] text-zinc-300 font-mono ml-2">Paragraf 1</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            id="btn-playtest-restart"
+                            class="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700 flex items-center gap-1"
+                            title="Zacznij od początku"
+                        >
+                            <app-icon name="undo" class="w-3 h-3"></app-icon>
+                            <span>Od nowa</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="btn-close-playtest-modal"
+                            class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        >
+                            <app-icon name="close" class="w-4 h-4"></app-icon>
+                        </button>
+                    </div>
+                </div>
+                <!-- Body: Story Content -->
+                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#161619]">
+                    <div id="playtest-content" class="text-zinc-200 leading-relaxed space-y-3">
+                        <!-- Dynamic paragraph story content rendered here -->
+                    </div>
+
+                    <!-- Choices container -->
+                    <div class="pt-4 border-t border-[#2d2d32] space-y-2.5">
+                        <h4 class="text-xs uppercase font-bold tracking-wider text-zinc-400">Twoje wybory:</h4>
+                        <div id="playtest-choices-container" class="space-y-2">
+                            <!-- Dynamic choices buttons rendered here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

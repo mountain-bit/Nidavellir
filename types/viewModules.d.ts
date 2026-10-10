@@ -624,6 +624,9 @@ declare module '*/View/ui/confirmModal.js' {
             hasUnsavedNpc?: () => boolean
             saveNpc?: () => Promise<void> | void
             saveFiles?: (ctx: unknown) => Promise<void> | void
+            isProjectDirty?: () => boolean
+            saveFullProject?: (ctx: unknown) => Promise<unknown> | unknown
+            markProjectClean?: () => void
         }
     ): Promise<boolean>
 }
@@ -667,4 +670,63 @@ declare module '*/View/ui/heroModal/heroSectionControllers.js' {
     export function renderHeroSkills(): void
     export function updateHeroSkillStatDropdowns(): void
     export function addHeroSkill(name?: string, statName?: string, value?: string): void
+}
+
+declare module '*/View/ui/projectStateTracker.js' {
+    export function isProjectDirty(): boolean
+    export function markProjectDirty(): void
+    export function markProjectClean(): void
+    export function setProjectSaving(): void
+    export function setProjectSaved(): void
+    export function updateProjectSaveIndicatorUI(
+        state: 'dirty' | 'saving' | 'saved' | 'clean',
+        customProjectName?: string
+    ): void
+}
+
+declare module '*/View/ui/projectSaver.js' {
+    export function saveFullProject(
+        ctx: unknown,
+        options?: { isAutoSave?: boolean }
+    ): Promise<{ success: boolean; canceled?: boolean; skipped?: boolean; error?: string }>
+}
+
+declare module '*/View/ui/autoSaveService.js' {
+    export const DEFAULT_AUTOSAVE_INTERVAL_MS: number
+    export function isAutoSaveEnabled(): boolean
+    export function setAutoSaveEnabled(enabled: boolean, ctx?: unknown): void
+    export function triggerAutoSaveCycle(
+        ctx: unknown
+    ): Promise<{ success: boolean; skipped?: boolean; error?: string }>
+    export function startAutoSave(ctx: unknown, intervalMs?: number): void
+    export function stopAutoSave(): void
+    export function isAutoSaveRunningStatus(): boolean
+}
+
+declare module '*/View/ui/graphValidator.js' {
+    export interface IGraphValidationIssue {
+        id: string
+        type: 'error' | 'warning'
+        title: string
+        description: string
+        paragraphId?: string
+    }
+
+    export interface IGraphValidationReport {
+        isValid: boolean
+        errorCount: number
+        warningCount: number
+        issuesCount: number
+        issues: IGraphValidationIssue[]
+    }
+
+    export function validateStoryGraph(ctx: unknown): IGraphValidationReport
+}
+
+declare module '*/View/ui/topBar.js' {
+    export function updateTopBarUI(ctx: unknown): void
+    export function runGraphValidation(ctx: unknown): unknown
+    export function openPlaytestSimulator(ctx: unknown): void
+    export function openExportModal(ctx: unknown): void
+    export function initTopBar(ctx: unknown): void
 }

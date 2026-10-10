@@ -6,9 +6,15 @@ const {
     isPathInsideBase,
     validateProjectData,
     atomicWriteJsonSync,
+    atomicWriteStringSync,
 } = require('../../Utils/fsSecurity')
 const { t } = require('../../Utils/i18n')
 const { ASSETS_IMAGES_DIR } = require('../../Utils/assetConstants')
+const {
+    slugifyEntityName,
+    generateUniqueSlug,
+    formatDescriptionFileName,
+} = require('../../Utils/pathSanitizer')
 const RecentProjectsService = require('./RecentProjectsService')
 
 const DEFAULT_PROJECT_FOLDERS = [
@@ -400,6 +406,220 @@ class ProjectService {
             return {
                 success: false,
                 error: err.message || 'An error occurred while saving project.json.',
+            }
+        }
+    }
+
+    /**
+     * Atomically saves the entire project state including paragraphs, scenes,
+     * worldbuilding entities, markdown files, and project.json manifest.
+     *
+     * @param {string} projectPath - Path to project folder or project.json
+     * @param {Object} payload - Complete project data payload to persist
+     * @returns {Promise<{ success: boolean, path?: string, error?: string }>}
+     */
+    static async saveFullProject(projectPath, payload) {
+        if (!projectPath) {
+            return { success: false, error: 'No project path specified.' }
+        }
+
+        if (!payload || typeof payload !== 'object') {
+            return { success: false, error: 'Invalid project payload.' }
+        }
+
+        const projectDir = resolveProjectDir(projectPath)
+        if (!projectDir) {
+            return { success: false, error: 'Project folder not found.' }
+        }
+
+        try {
+            const projectFile = path.join(projectDir, 'project.json')
+            let existingProject = {}
+            if (fs.existsSync(projectFile)) {
+                try {
+                    existingProject = JSON.parse(fs.readFileSync(projectFile, 'utf8'))
+                } catch {
+                    existingProject = {}
+                }
+            }
+
+            const incomingProject = payload?.project || {}
+            const updatedProject = {
+                ...existingProject,
+                ...incomingProject,
+                id: incomingProject.id || existingProject.id || 'project',
+                name: incomingProject.name || existingProject.name || path.basename(projectDir),
+                author: incomingProject.author ?? existingProject.author ?? '',
+                version: incomingProject.version ?? existingProject.version ?? '1.0.0',
+                descriptionPaths:
+                    incomingProject.descriptionPaths ?? existingProject.descriptionPaths ?? [],
+                dataPaths: [...(incomingProject.dataPaths ?? existingProject.dataPaths ?? [])],
+            }
+
+            // Sync Editor settings
+            if (incomingProject.editor) {
+                updatedProject.editor = incomingProject.editor
+            } else if (incomingProject.customStyles || incomingProject.customFonts) {
+                updatedProject.editor = {
+                    customStyles: incomingProject.customStyles || [],
+                    customFonts: incomingProject.customFonts || [],
+                }
+            }
+
+            // Sync Graph & Scenes in project.json
+            const incomingScenes = payload?.scenes || incomingProject.scenes || []
+            const incomingGraph = payload?.graph || incomingProject.graph || {}
+            updatedProject.graph = {
+                ...incomingGraph,
+                scenes: Array.isArray(incomingScenes) ? incomingScenes : incomingGraph.scenes || [],
+            }
+
+            // Helper to persist an entity array into a category folder
+            const persistCategoryEntities = (category, items) => {
+                if (!Array.isArray(items)) return
+
+                const categoryDir = path.join(projectDir, category)
+                if (!isPathInsideBase(projectDir, categoryDir)) return
+                if (!fs.existsSync(categoryDir)) {
+                    fs.mkdirSync(categoryDir, { recursive: true })
+                }
+
+                const metaPath = path.join(categoryDir, 'meta.json')
+                let metaData = {
+                    description: `Folder for ${category}`,
+                    path: `./${category}`,
+                    descriptionPaths: [],
+                    imagePaths: [],
+                    elements: [],
+                }
+
+                if (fs.existsSync(metaPath)) {
+                    try {
+                        metaData = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
+                        if (!Array.isArray(metaData.elements)) metaData.elements = []
+                    } catch {
+                        // ignore and use default
+                    }
+                }
+
+                const elementPaths = []
+                const existingFolderNames = new Set()
+
+                for (const item of items) {
+                    if (!item || typeof item !== 'object') continue
+
+                    // Determine folder name
+                    let folderSlug = ''
+                    if (item.description && typeof item.description.filePath === 'string') {
+                        const parts = item.description.filePath.replace(/\\/g, '/').split('/')
+                        const catIdx = parts.findIndex(
+                            p => p.toLowerCase() === category.toLowerCase()
+                        )
+                        if (catIdx !== -1 && parts[catIdx + 1]) {
+                            folderSlug = parts[catIdx + 1]
+                        }
+                    }
+
+                    if (!folderSlug) {
+                        const nameSource =
+                            item.id || item.title || item.name || `${category.toLowerCase()}_item`
+                        const base = slugifyEntityName(String(nameSource))
+                        folderSlug = generateUniqueSlug(
+                            base,
+                            cand =>
+                                existingFolderNames.has(cand) ||
+                                (fs.existsSync(path.join(categoryDir, cand)) &&
+                                    !existingFolderNames.has(cand))
+                        )
+                    }
+
+                    existingFolderNames.add(folderSlug)
+
+                    const entityDir = path.join(categoryDir, folderSlug)
+                    if (!isPathInsideBase(projectDir, entityDir)) continue
+                    if (!fs.existsSync(entityDir)) {
+                        fs.mkdirSync(entityDir, { recursive: true })
+                    }
+
+                    // Format description path
+                    const entityTitle = item.title || item.name || folderSlug
+                    const descFileName = formatDescriptionFileName(category, entityTitle)
+                    const descRelPath = `./${category}/${folderSlug}/${descFileName}`
+                    const descFullPath = path.join(entityDir, descFileName)
+
+                    let descText = ''
+                    if (typeof item.description === 'string') {
+                        descText = item.description
+                        item.description = { text: descText }
+                    } else if (item.description && typeof item.description === 'object') {
+                        descText = item.description.text || item.description.summary || ''
+                    } else if (item.content && typeof item.content === 'object') {
+                        descText = item.content.text || item.content.summary || ''
+                        if (!item.description) item.description = { ...item.content }
+                    }
+
+                    if (!item.description || typeof item.description !== 'object') {
+                        item.description = {}
+                    }
+                    item.description.filePath = descRelPath
+                    item.description.textPath = descRelPath
+
+                    // If markdown prose text is provided, write to .md file
+                    if (typeof descText === 'string' && descText.length > 0) {
+                        atomicWriteStringSync(descFullPath, descText)
+                    }
+
+                    // Write element.json
+                    const elementJsonPath = path.join(entityDir, 'element.json')
+                    atomicWriteJsonSync(elementJsonPath, item)
+
+                    elementPaths.push(`./${folderSlug}/element.json`)
+                }
+
+                metaData.elements = elementPaths
+                atomicWriteJsonSync(metaPath, metaData)
+
+                const relMetaPath = `./${category}/meta.json`
+                if (!updatedProject.dataPaths.includes(relMetaPath)) {
+                    updatedProject.dataPaths.push(relMetaPath)
+                }
+            }
+
+            // Persist Paragraphs
+            if (Array.isArray(payload?.paragraphs)) {
+                persistCategoryEntities('Paragraphs', payload.paragraphs)
+            }
+
+            // Persist Entities
+            if (payload?.entities && typeof payload.entities === 'object') {
+                for (const [category, items] of Object.entries(payload.entities)) {
+                    persistCategoryEntities(category, items)
+                }
+            }
+
+            // Persist Markdown files
+            if (payload?.files && typeof payload.files === 'object') {
+                for (const [relPath, content] of Object.entries(payload.files)) {
+                    if (typeof relPath === 'string' && typeof content === 'string') {
+                        const fullPath = path.resolve(projectDir, relPath)
+                        if (isPathInsideBase(projectDir, fullPath)) {
+                            atomicWriteStringSync(fullPath, content)
+                        }
+                    }
+                }
+            }
+
+            // Write updated project.json
+            atomicWriteJsonSync(projectFile, updatedProject)
+            RecentProjectsService.saveRecentProject(projectFile, updatedProject.name)
+            this.setCurrentProjectDir(projectDir)
+
+            return { success: true, path: projectFile }
+        } catch (err) {
+            console.error('Error in saveFullProject:', err)
+            return {
+                success: false,
+                error: err.message || 'An error occurred while saving the full project.',
             }
         }
     }

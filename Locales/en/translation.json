@@ -507,6 +507,33 @@
         "np_create_error": "Error creating project:",
         "np_unexpected_error": "An unexpected error occurred:"
     },
+    "topbar": {
+        "project_placeholder": "No project",
+        "saved": "Saved",
+        "unsaved_changes": "Unsaved changes",
+        "buttons": {
+            "save": "Save",
+            "save_as": "Save As...",
+            "close_project": "Close Project",
+            "open_project": "Open Project",
+            "new_file": "New File",
+            "undo": "Undo (Ctrl+Z)",
+            "redo": "Redo (Ctrl+Y)",
+            "search": "Quick Search (Ctrl+P)",
+            "view_graph": "Story Graph",
+            "view_editor": "Text Editor",
+            "validate_graph": "Validate Graph",
+            "validation_clean": "0 issues",
+            "zoom_fit": "Fit Graph to View",
+            "playtest": "Playtest Game",
+            "export": "Export",
+            "left_panel": "Left Panel (Ctrl+B)",
+            "right_panel": "Right Panel (Ctrl+Alt+B)",
+            "assets": "Image Assets",
+            "settings": "Settings",
+            "help": "Help & Shortcuts"
+        }
+    },
     "ribbon": {
         "tabs": {
             "main": "Home",
@@ -641,6 +668,7 @@
         "title": "Editor Settings",
         "language": "Interface Language",
         "auto_save": "Auto save",
+        "auto_save_help": "Automatically saves the project in the background when there are unsaved changes.",
         "show_grid": "Show grid in graph",
         "zoom_sensitivity": "Mouse Wheel Zoom Sensitivity",
         "zoom_sensitivity_help": "Sensitivity of graph zoom level change per mouse wheel tick."
@@ -734,7 +762,11 @@
         "file_locked_warning": "Warning: File is locked by another process. Changes kept in memory.",
         "meta_sync_warning": "Warning: Inconsistency detected in project structure and metadata was updated.",
         "save_success": "Changes saved successfully.",
-        "save_error": "An error occurred while saving: {{error}}"
+        "save_error": "An error occurred while saving: {{error}}",
+        "auto_save_title": "Auto-save",
+        "auto_saved": "Project automatically saved.",
+        "auto_save_enabled": "Background auto-save enabled.",
+        "auto_save_disabled": "Background auto-save disabled."
     },
     "condition": {
         "type_text": "Author Condition"

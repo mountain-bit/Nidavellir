@@ -9,6 +9,7 @@ import {
 } from '../dist/Utils/translate.js'
 import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
 import { extractProjectData, loadProjectData } from './projectData.js'
+import { isAutoSaveEnabled, setAutoSaveEnabled, startAutoSave } from './ui/autoSaveService.js'
 import { confirmApplicationClose, markFileDirty } from './ui/confirmModal.js'
 import {
     handleColorSelection,
@@ -41,6 +42,14 @@ import {
     setupNpcModal,
     updateTraitsCounterUI,
 } from './ui/npcModal.js'
+import { saveFullProject } from './ui/projectSaver.js'
+import {
+    isProjectDirty,
+    markProjectClean,
+    markProjectDirty,
+    updateProjectSaveIndicatorUI,
+} from './ui/projectStateTracker.js'
+import { initTopBar, updateTopBarUI } from './ui/topBar.js'
 import {
     renderEditorTabs,
     saveActiveFile,
@@ -103,6 +112,9 @@ const appContext = {
     get projectTemplates() {
         return projectData.projectTemplates || []
     },
+    get projectItems() {
+        return projectData.projectItems || projectData.items || []
+    },
     get projectLocations() {
         return projectData.projectLocations
     },
@@ -137,9 +149,6 @@ const appContext = {
     get storyGraphInstance() {
         return storyGraphInstance
     },
-    get projectItems() {
-        return projectData.projectItems || projectData.items || []
-    },
     saveActiveFile: () => saveActiveFile(appContext),
     selectEntity,
     refreshActiveSection,
@@ -165,6 +174,8 @@ const appContext = {
     openColorPicker,
     handleColorSelection: color => handleColorSelection(color, appContext),
     showGraph: (force = false) => showGraph(force),
+    markProjectDirty: () => markProjectDirty(),
+    markProjectClean: () => markProjectClean(),
 }
 
 // Left Drawer Title Mapping
@@ -254,9 +265,11 @@ function updateLeftDrawerUI() {
         leftDrawer.classList.add('collapsed')
         if (leftResizer) leftResizer.classList.add('collapsed')
     }
+    updateTopBarUI(appContext)
 }
 
 function refreshActiveSection(type) {
+    markProjectDirty()
     if (type === 'tag') {
         renderTagsList(appContext)
         renderFilterTags(appContext)
@@ -333,7 +346,9 @@ function showGraph(forceRebuild = false) {
             getTags: () => projectData.projectTags,
             getCharacters: () => projectData.projectCharacters,
             getLocations: () => projectData.projectLocations,
+            onGraphModified: () => markProjectDirty(),
             onItemAssigned: () => {
+                markProjectDirty()
                 renderParagraphsList(appContext)
                 renderScenesList(appContext)
                 renderTagsList(appContext)
@@ -379,6 +394,7 @@ function showGraph(forceRebuild = false) {
                 selectEntity(choice, 'choice', fromP)
             },
             onSceneAssignmentChange: () => {
+                markProjectDirty()
                 renderScenesList(appContext)
                 renderParagraphsList(appContext)
                 populateFilterSelects(appContext)
@@ -386,11 +402,13 @@ function showGraph(forceRebuild = false) {
             onCreateParagraph: title => {
                 const newP = vm.createParagraph(title)
                 projectData.projectParagraphs.push(newP)
+                markProjectDirty()
                 renderParagraphsList(appContext)
                 return newP
             },
             onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
                 const choice = vm.createChoice(fromParagraph, toParagraph, choiceName)
+                markProjectDirty()
                 renderConnectionsList(appContext)
                 renderParagraphsList(appContext)
                 return choice
@@ -438,6 +456,7 @@ function showGraph(forceRebuild = false) {
                     }
                 }
                 storyGraphInstance.addSceneToGraph(scene, graphPos)
+                markProjectDirty()
                 toast.success(
                     t('toast.scene_placed_on_graph', { name: scene.getName() }),
                     t('toast.scene_placed_title')
@@ -528,6 +547,7 @@ if (toggleRightSidebarBtn) {
     toggleRightSidebarBtn.addEventListener('click', () => {
         vm.toggleRightSidebar()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -535,6 +555,7 @@ if (reopenRightSidebarBtn) {
     reopenRightSidebarBtn.addEventListener('click', () => {
         vm.setRightSidebarCollapsed(false)
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -552,6 +573,7 @@ if (viewMarkdownBtn) {
     viewMarkdownBtn.addEventListener('click', () => {
         vm.setActiveMainView('markdown')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -559,6 +581,7 @@ if (viewGraphBtn) {
     viewGraphBtn.addEventListener('click', () => {
         vm.setActiveMainView('graph')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 }
 
@@ -566,6 +589,7 @@ document.querySelectorAll('[data-action="show-graph"]').forEach(btn => {
     btn.addEventListener('click', () => {
         vm.setActiveMainView('graph')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 })
 
@@ -573,6 +597,7 @@ document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
     btn.addEventListener('click', () => {
         vm.setActiveMainView('markdown')
         updateMainWorkspaceUI(appContext)
+        updateTopBarUI(appContext)
     })
 })
 
@@ -620,6 +645,7 @@ document.querySelectorAll('[data-action="toggle-left-drawer"]').forEach(btn => {
             vm.toggleLeftTab(vm.getActiveLeftTab() || 'paragraphs')
         }
         updateLeftDrawerUI()
+        updateTopBarUI(appContext)
     })
 })
 
@@ -627,6 +653,7 @@ document.querySelectorAll('[data-action="toggle-right-sidebar"]').forEach(btn =>
     btn.addEventListener('click', () => {
         vm.toggleRightSidebar()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
+        updateTopBarUI(appContext)
     })
 })
 
@@ -655,7 +682,7 @@ document.querySelectorAll('[data-action="link-scenes"]').forEach(btn => {
 })
 
 document.querySelectorAll('[data-action="save"]').forEach(btn => {
-    btn.addEventListener('click', () => saveActiveFile(appContext))
+    btn.addEventListener('click', () => saveFullProject(appContext))
 })
 
 function updateProjectNameUI(name) {
@@ -663,9 +690,7 @@ function updateProjectNameUI(name) {
     if (titleEl) {
         titleEl.textContent = name || 'Projekt'
     }
-    if (name) {
-        document.title = `${name} - Silnik Gier Paragrafowych`
-    }
+    updateProjectSaveIndicatorUI(isProjectDirty() ? 'dirty' : 'clean', name || 'Projekt')
 }
 
 function applyLoadedProject(projectInstance, projectPath) {
@@ -677,6 +702,7 @@ function applyLoadedProject(projectInstance, projectPath) {
     appContext.projectPath = projectPath || ''
     window.currentProjectPath = projectPath || ''
 
+    markProjectClean()
     updateProjectNameUI(projectInstance.getName())
 
     if (typeof vm.clearSelection === 'function') {
@@ -736,6 +762,9 @@ document.querySelectorAll('[data-action="close-project"]').forEach(btn => {
             hasUnsavedNpc: hasUnsavedNpcChanges,
             saveNpc: () => executeNpcModalSave(appContext),
             saveFiles: ctx => saveAllUnsavedFiles(ctx),
+            isProjectDirty: () => isProjectDirty(),
+            saveFullProject: ctx => saveFullProject(ctx),
+            markProjectClean: () => markProjectClean(),
         })
         if (
             canClose &&
@@ -753,6 +782,9 @@ if (window.electronAPI && typeof window.electronAPI.onAppCloseRequested === 'fun
             hasUnsavedNpc: hasUnsavedNpcChanges,
             saveNpc: () => executeNpcModalSave(appContext),
             saveFiles: ctx => saveAllUnsavedFiles(ctx),
+            isProjectDirty: () => isProjectDirty(),
+            saveFullProject: ctx => saveFullProject(ctx),
+            markProjectClean: () => markProjectClean(),
         })
         if (canClose && typeof window.electronAPI.forceCloseApp === 'function') {
             window.electronAPI.forceCloseApp()
@@ -771,7 +803,7 @@ window.addEventListener('drop', e => {
 document.addEventListener('keydown', e => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault()
-        saveActiveFile(appContext)
+        saveFullProject(appContext)
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
         const activeEl = document.activeElement
         const isInput =
@@ -802,6 +834,7 @@ document.addEventListener('keydown', e => {
                     projectData.projectScenes
                 )
                 if (deleted) {
+                    markProjectDirty()
                     vm.clearSelection()
                     refreshActiveSection('paragraph')
                     if (storyGraphInstance) storyGraphInstance.render(true)
@@ -817,6 +850,7 @@ if (fileEditor) {
         const active = vm.getActiveFile()
         if (active) {
             markFileDirty(active)
+            markProjectDirty()
             projectData.files[active] = fileEditor.value
             if (saveStatus) saveStatus.textContent = t('editor.unsaved_changes')
         }
@@ -842,6 +876,7 @@ async function initApp() {
                             )
                             projectData = extractProjectData(projectInstance, {})
                             vm.ensureStartParagraph(projectData.projectParagraphs)
+                            markProjectClean()
                             updateProjectNameUI(projectInstance.getName() || openRes.project.name)
                         }
                     }
@@ -853,6 +888,7 @@ async function initApp() {
             const existingProj = ProjectManager.getInstance().getProject()
             projectData = extractProjectData(existingProj, {})
             vm.ensureStartParagraph(projectData.projectParagraphs)
+            markProjectClean()
             updateProjectNameUI(existingProj.getName())
         }
 
@@ -890,6 +926,8 @@ async function initApp() {
         populateFilterSelects(appContext)
 
         updateRibbonUI()
+        initTopBar(appContext)
+        updateTopBarUI(appContext)
         updateLeftDrawerUI()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
         renderHistoryBar(appContext)
@@ -938,6 +976,34 @@ async function initApp() {
                     zoomSensValue.textContent = `${Math.round(val * 100)}%`
                 }
             })
+        }
+
+        const autoSaveCheckbox = document.getElementById('settings-auto-save')
+        if (autoSaveCheckbox) {
+            autoSaveCheckbox.checked = isAutoSaveEnabled()
+            autoSaveCheckbox.addEventListener('change', () => {
+                const enabled = autoSaveCheckbox.checked
+                setAutoSaveEnabled(enabled, appContext)
+                const title =
+                    typeof t === 'function' &&
+                    t('toast.auto_save_title') !== 'toast.auto_save_title'
+                        ? t('toast.auto_save_title')
+                        : 'Auto-zapis'
+                const msg = enabled
+                    ? typeof t === 'function' &&
+                      t('toast.auto_save_enabled') !== 'toast.auto_save_enabled'
+                        ? t('toast.auto_save_enabled')
+                        : 'Włączono automatyczny zapis w tle.'
+                    : typeof t === 'function' &&
+                        t('toast.auto_save_disabled') !== 'toast.auto_save_disabled'
+                      ? t('toast.auto_save_disabled')
+                      : 'Wyłączono automatyczny zapis w tle.'
+                toast.info(msg, title)
+            })
+        }
+
+        if (isAutoSaveEnabled()) {
+            startAutoSave(appContext)
         }
     } catch (err) {
         console.error('Fatal initialization error in MainWindow:', err)

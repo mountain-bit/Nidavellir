@@ -57,6 +57,10 @@ export class Choice {
         return this.toParagraphId
     }
 
+    public getTargetId(): string {
+        return this.toParagraphId
+    }
+
     public setToParagraphId(id: string): void {
         this.toParagraphId = id
     }
@@ -92,7 +96,9 @@ export class Choice {
                 ? json.toParagraphId
                 : typeof json.targetParagraphId === 'string'
                   ? json.targetParagraphId
-                  : id
+                  : typeof json.targetId === 'string'
+                    ? json.targetId
+                    : id
 
         const choice = new Choice(id, name, fromParagraphId, toParagraphId)
         if (json.condition && typeof json.condition === 'object') {

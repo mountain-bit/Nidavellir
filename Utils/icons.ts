@@ -69,6 +69,9 @@ export type IconName =
     | 'sliders'
     | 'play'
     | 'flag'
+    | 'sidebar-left'
+    | 'sidebar-right'
+    | 'help'
 
 export interface IIconConfig {
     viewBox?: string
@@ -319,6 +322,18 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
     flag: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zm0 0v7"></path>',
+    },
+    'sidebar-left': {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><line x1="9" y1="3" x2="9" y2="21" stroke-width="1.8"></line>',
+    },
+    'sidebar-right': {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><line x1="15" y1="3" x2="15" y2="21" stroke-width="1.8"></line>',
+    },
+    help: {
+        viewBox: '0 0 24 24',
+        path: '<circle cx="12" cy="12" r="10" stroke-width="1.8"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3m.08 4h.01"></path>',
     },
 }
 
