@@ -135,6 +135,38 @@ describe('AssetService', () => {
         expect(fs.readFileSync(destination, 'utf8')).toBe('dragged image binary content')
     })
 
+    it('deletes an asset file from project', async () => {
+        const imagesDir = path.join(tempDir, 'Assets', 'Images')
+        fs.mkdirSync(imagesDir, { recursive: true })
+        const target = path.join(imagesDir, 'to_delete.png')
+        fs.writeFileSync(target, 'data')
+
+        const res = await AssetService.deleteAsset({
+            projectPath: tempDir,
+            relativePath: 'Assets/Images/to_delete.png',
+        })
+        expect(res.success).toBe(true)
+        expect(fs.existsSync(target)).toBe(false)
+    })
+
+    it('renames an asset file properly', async () => {
+        const imagesDir = path.join(tempDir, 'Assets', 'Images')
+        fs.mkdirSync(imagesDir, { recursive: true })
+        const target = path.join(imagesDir, 'old_name.png')
+        fs.writeFileSync(target, 'data')
+
+        const res = await AssetService.renameAsset({
+            projectPath: tempDir,
+            oldRelativePath: 'Assets/Images/old_name.png',
+            newName: 'new_shiny_name',
+        })
+        expect(res.success).toBe(true)
+        expect(res.newFileName).toBe('new_shiny_name.png')
+        expect(res.newRelativePath).toBe('Assets/Images/new_shiny_name.png')
+        expect(fs.existsSync(path.join(imagesDir, 'new_shiny_name.png'))).toBe(true)
+        expect(fs.existsSync(target)).toBe(false)
+    })
+
     it('getCurrentProjectDir provides a valid workspace directory when none was set', () => {
         const current = ProjectService.getCurrentProjectDir()
         expect(current).toBeTruthy()

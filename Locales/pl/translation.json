@@ -941,7 +941,8 @@
             "import_failed": "Wystąpił błąd podczas importowania pliku graficznego",
             "list_failed": "Wystąpił błąd podczas pobierania listy grafik projektu",
             "save_failed": "Wystąpił błąd podczas zapisywania zmodyfikowanej grafiki",
-            "invalid_data": "Nieprawidłowe dane obrazu lub format danych"
+            "invalid_data": "Nieprawidłowe dane obrazu lub format danych",
+            "file_already_exists": "Plik o tej nazwie już istnieje"
         },
         "drop_image_here": "Upuść grafikę tutaj",
         "image_inserted": "Grafika została pomyślnie wstawiona"
@@ -990,5 +991,25 @@
         "btn_save": "Zapisz",
         "btn_dont_save": "Nie zapisuj",
         "btn_cancel": "Anuluj"
+    },
+    "asset_manager": {
+        "title": "Menedżer zasobów",
+        "add_assets": "Dodaj pliki",
+        "search_placeholder": "Szukaj w zasobach...",
+        "filter": "Filtruj:",
+        "filter_all": "Wszystkie formaty",
+        "sort_newest": "Najnowsze",
+        "sort_name_asc": "Nazwa A-Z",
+        "sort_name_desc": "Nazwa Z-A",
+        "sort_size_desc": "Największe",
+        "empty_title": "Brak grafik w projekcie",
+        "empty_desc": "Przeciągnij pliki tutaj lub kliknij \"Dodaj pliki\" u góry.",
+        "drop_here": "Upuść pliki tutaj, aby zaimportować",
+        "select_to_preview": "Wybierz plik, aby zobaczyć szczegóły i powiązania"
+    },
+    "asset_picker": {
+        "title": "Wybierz grafikę z projektu",
+        "upload_new": "Wgraj nowy z dysku",
+        "none_selected": "Nie wybrano grafiki"
     }
 }

@@ -1,7 +1,7 @@
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
-import { pickProjectImage } from './assetPicker.js'
+import { openAssetManager } from './assetManagerModal.js'
 import { validateStoryGraph } from './graphValidator.js'
 import { saveFullProject } from './projectSaver.js'
 import { openQuickSearch } from './quickSearch.js'
@@ -829,13 +829,10 @@ export function initTopBar(ctx) {
         })
     })
 
-    // Assets button -> Launches image picker
+    // Assets button -> Launches Asset Manager
     document.querySelectorAll('[data-action="open-assets"]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const res = await pickProjectImage(ctx, 'asset')
-            if (res && res.fileName) {
-                toast.success(`Zaimportowano plik do zasobów: ${res.fileName}`, 'Zasoby graficzne')
-            }
+        btn.addEventListener('click', () => {
+            openAssetManager(ctx)
         })
     })
 

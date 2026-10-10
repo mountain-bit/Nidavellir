@@ -24,7 +24,7 @@ declare module '*/View/mockData.js' {
         projectParagraphs: Paragraph[]
         projectScenes: Scene[]
         projectTemplates: NPC_Template[]
-        playerCharacter?: any
+        playerCharacter?: unknown
     }
 
     export const mockFiles: Record<string, string>
@@ -71,16 +71,16 @@ declare module '*/View/ui/npcModal.js' {
 
     export function openNpcModal(options?: {
         mode?: 'character' | 'template'
-        applyTemplate?: any
+        applyTemplate?: NPC_Template | boolean | unknown
         preserveState?: boolean
-        editEntity?: NPC | NPC_Template | any
-        editingEntity?: NPC | NPC_Template | any
+        editEntity?: NPC | NPC_Template | unknown
+        editingEntity?: NPC | NPC_Template | unknown
     }): void
     export function openNpcTemplateModal(options?: {
-        applyTemplate?: any
+        applyTemplate?: NPC_Template | boolean | unknown
         preserveState?: boolean
-        editEntity?: NPC | NPC_Template | any
-        editingEntity?: NPC | NPC_Template | any
+        editEntity?: NPC | NPC_Template | unknown
+        editingEntity?: NPC | NPC_Template | unknown
     }): void
     export function getModalMode(): 'character' | 'template'
     export function setModalMode(mode: 'character' | 'template'): void
@@ -229,93 +229,7 @@ declare module '*/View/ui/npcModal.js' {
     export function getTraitsCounts(ctx?: unknown): ITraitsCounts
     export function updateTraitsCounterUI(ctx?: unknown): ITraitsCounts
     export function renderDynamicSuggestions(ctx?: unknown): void
-    export function applyTemplate(templateIdOrInstance: any, ctx?: any): any
-    export function removeAppliedTemplate(templateId: string, ctx?: any): void
-    export function renderAppliedTemplates(): void
-    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
-    export function setAppliedTemplates(
-        templates: Array<{ id: string; name: string; avatar?: string }>
-    ): void
-    export function clearAppliedTemplates(): void
-    export function openTemplateDropdown(ctx?: any): void
-    export function closeTemplateDropdown(): void
-    export function toggleTemplateDropdown(ctx?: any): void
-    export function isTemplateDropdownOpen(): boolean
-    export function getAvailableTemplates(ctx?: any): any[]
-    export function renderTemplateDropdownList(ctx?: any, filterQuery?: string): void
-}
-
-declare module '*/View/ui/npcModal/npcState.js' {
-    export function getModalMode(): 'character' | 'template'
-    export function setModalMode(mode: 'character' | 'template'): void
-    export function resetState(): void
-    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
-    export function setAppliedTemplates(
-        templates: Array<{ id: string; name: string; avatar?: string }>
-    ): void
-    export function addAppliedTemplateState(tpl: {
-        id?: string
-        name?: string
-        avatar?: string
-    }): void
-    export function removeAppliedTemplateState(id: string): void
-    export function clearAppliedTemplates(): void
-    export function getNpcStats(): Array<{ name: string; value: string }>
-    export function getNpcStatsArray(): any[]
-    export function getNpcSkillsArray(): any[]
-    export function getNpcVitalsArray(): any[]
-    export function getCustomAttributesArray(): any[]
-    export function getNpcTagsArray(): any[]
-    export function addNpcStatState(
-        name?: string,
-        value?: string | number,
-        isEditing?: boolean
-    ): any
-    export function addNpcSkillState(
-        name?: string,
-        mode?: string,
-        value?: string,
-        statName?: string,
-        modifier?: string,
-        isEditing?: boolean
-    ): any
-    export function addNpcVitalState(
-        name?: string,
-        mode?: string,
-        value?: string | number,
-        formula?: string,
-        isEditing?: boolean
-    ): any
-    export function addCustomAttributeState(name?: string, value?: string, isEditing?: boolean): any
-    export function addNpcTagState(tagOrName: any, color?: string): any
-    export function getCurrentAvatarId(): string
-    export function setCurrentAvatarId(id: string): void
-    export function getActiveModal(): HTMLElement | null
-    export function setActiveModal(el: HTMLElement | null): void
-    export function getActiveCtx(): any
-    export function setActiveCtx(ctx: any): void
-}
-
-declare module '*/View/ui/npcModal/templateMerger.js' {
-    export function extractTemplateStats(tpl: any): Array<{ name: string; value: string }>
-    export function extractTemplateSkills(tpl: any): Array<{
-        name: string
-        mode: 'direct' | 'stat_mod'
-        value: string
-        statName: string
-        modifier: string
-    }>
-    export function extractTemplateVitals(
-        tpl: any
-    ): Array<{ name: string; mode: 'direct' | 'formula'; value: string; formula: string }>
-    export function extractTemplateAttributes(tpl: any): Array<{ name: string; value: string }>
-    export function extractTemplateTags(
-        tpl: any
-    ): Array<{ id: string; name: string; color: string }>
-    export function mergeTemplateIntoModalState(
-        tpl: any,
-        options?: any
-    ): {
+    export interface ITemplateMergeReport {
         templateId: string
         templateName: string
         addedStats: string[]
@@ -334,6 +248,134 @@ declare module '*/View/ui/npcModal/templateMerger.js' {
         totalAdded: number
         totalSkipped: number
     }
+
+    export function applyTemplate(
+        templateIdOrInstance: unknown,
+        ctx?: unknown
+    ): ITemplateMergeReport
+    export function removeAppliedTemplate(templateId: string, ctx?: unknown): void
+    export function renderAppliedTemplates(): void
+    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
+    export function setAppliedTemplates(
+        templates: Array<{ id: string; name: string; avatar?: string }>
+    ): void
+    export function clearAppliedTemplates(): void
+    export function openTemplateDropdown(ctx?: unknown): void
+    export function closeTemplateDropdown(): void
+    export function toggleTemplateDropdown(ctx?: unknown): void
+    export function isTemplateDropdownOpen(): boolean
+    export function getAvailableTemplates(ctx?: unknown): unknown[]
+    export function renderTemplateDropdownList(ctx?: unknown, filterQuery?: string): void
+}
+
+declare module '*/View/ui/npcModal/npcState.js' {
+    export interface INpcStateStat {
+        name: string
+        value: string
+        isEditing?: boolean
+    }
+    export interface INpcStateSkill {
+        name: string
+        mode: string
+        value: string
+        statName?: string
+        modifier?: string
+        isEditing?: boolean
+    }
+    export interface INpcStateVital {
+        name: string
+        mode: string
+        value: string | number
+        formula?: string
+        isEditing?: boolean
+    }
+    export interface INpcStateAttribute {
+        name: string
+        value: string
+        isEditing?: boolean
+    }
+    export interface INpcStateTag {
+        id?: string
+        name: string
+        color?: string
+    }
+
+    export function getModalMode(): 'character' | 'template'
+    export function setModalMode(mode: 'character' | 'template'): void
+    export function resetState(): void
+    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
+    export function setAppliedTemplates(
+        templates: Array<{ id: string; name: string; avatar?: string }>
+    ): void
+    export function addAppliedTemplateState(tpl: {
+        id?: string
+        name?: string
+        avatar?: string
+    }): void
+    export function removeAppliedTemplateState(id: string): void
+    export function clearAppliedTemplates(): void
+    export function getNpcStats(): Array<{ name: string; value: string }>
+    export function getNpcStatsArray(): INpcStateStat[]
+    export function getNpcSkillsArray(): INpcStateSkill[]
+    export function getNpcVitalsArray(): INpcStateVital[]
+    export function getCustomAttributesArray(): INpcStateAttribute[]
+    export function getNpcTagsArray(): INpcStateTag[]
+    export function addNpcStatState(
+        name?: string,
+        value?: string | number,
+        isEditing?: boolean
+    ): unknown
+    export function addNpcSkillState(
+        name?: string,
+        mode?: string,
+        value?: string,
+        statName?: string,
+        modifier?: string,
+        isEditing?: boolean
+    ): unknown
+    export function addNpcVitalState(
+        name?: string,
+        mode?: string,
+        value?: string | number,
+        formula?: string,
+        isEditing?: boolean
+    ): unknown
+    export function addCustomAttributeState(
+        name?: string,
+        value?: string,
+        isEditing?: boolean
+    ): unknown
+    export function addNpcTagState(tagOrName: unknown, color?: string): unknown
+    export function getCurrentAvatarId(): string
+    export function setCurrentAvatarId(id: string): void
+    export function getActiveModal(): HTMLElement | null
+    export function setActiveModal(el: HTMLElement | null): void
+    export function getActiveCtx(): unknown
+    export function setActiveCtx(ctx: unknown): void
+}
+
+declare module '*/View/ui/npcModal/templateMerger.js' {
+    export { ITemplateMergeReport } from '*/View/ui/npcModal/npcTraitsCounter.js'
+
+    export function extractTemplateStats(tpl: unknown): Array<{ name: string; value: string }>
+    export function extractTemplateSkills(tpl: unknown): Array<{
+        name: string
+        mode: 'direct' | 'stat_mod'
+        value: string
+        statName: string
+        modifier: string
+    }>
+    export function extractTemplateVitals(
+        tpl: unknown
+    ): Array<{ name: string; mode: 'direct' | 'formula'; value: string; formula: string }>
+    export function extractTemplateAttributes(tpl: unknown): Array<{ name: string; value: string }>
+    export function extractTemplateTags(
+        tpl: unknown
+    ): Array<{ id: string; name: string; color: string }>
+    export function mergeTemplateIntoModalState(
+        tpl: unknown,
+        options?: unknown
+    ): import('*/View/ui/npcModal/npcTraitsCounter.js').ITemplateMergeReport
 }
 
 declare module '*/View/ui/npcModal/npcTraitsCounter.js' {
@@ -770,4 +812,41 @@ declare module '*/View/ui/quickSearch.js' {
     export function openQuickSearch(ctx: unknown): void
     export function closeQuickSearch(): void
     export function initQuickSearch(ctx: unknown): void
+}
+
+declare module '*/View/ui/assetManagerModal.js' {
+    export function openAssetManager(ctx: unknown): Promise<void>
+    export function closeAssetManager(): void
+    export function refreshAssetList(): Promise<void>
+}
+
+declare module '*/View/ui/assetPicker.js' {
+    export function getActiveProjectPath(ctx?: unknown): string
+    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
+    export function importImageNative(
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function openAssetPickerModal(
+        ctx?: unknown,
+        options?: { prefix?: string; title?: string; currentRelativePath?: string }
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function pickProjectImage(
+        ctx?: unknown,
+        prefix?: string,
+        options?: { directNativeDialog?: boolean; title?: string; currentRelativePath?: string }
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function importDroppedImage(
+        file: File,
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function setupElementDropZone(
+        element: HTMLElement,
+        options?: {
+            highlightClass?: string
+            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
+            overlayElement?: HTMLElement | null
+        }
+    ): void
 }

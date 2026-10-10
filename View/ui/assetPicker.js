@@ -3,6 +3,7 @@
  * Single place that resolves the project path, handles file drops, and reports import errors.
  */
 
+import { toAssetUrl } from '../../dist/Utils/assetUtils.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
 
@@ -56,14 +57,13 @@ export async function ensureActiveProjectPath(ctx) {
 }
 
 /**
- * Opens the native image picker, imports the file into the project and returns the result.
- * Shows an error toast on failure; user cancellation is silent.
+ * Directly opens the native image picker and imports the file into the project.
  *
  * @param {object} [ctx] Application UI Context
  * @param {string} [prefix='img'] File name prefix (e.g. 'img', 'npc')
  * @returns {Promise<{ relativePath: string, fileName: string, assetUrl: string } | null>}
  */
-export async function pickProjectImage(ctx, prefix = 'img') {
+export async function importImageNative(ctx, prefix = 'img') {
     const api = typeof window !== 'undefined' ? window.electronAPI : null
     if (!api || typeof api.importImage !== 'function') return null
 
@@ -85,6 +85,178 @@ export async function pickProjectImage(ctx, prefix = 'img') {
         toast.error(t('asset.error.import_failed'), t('asset.error.title'))
     }
     return null
+}
+
+/**
+ * Opens the asset picker modal displaying all available project images
+ * with search and upload options.
+ *
+ * @param {object} [ctx] Application UI Context
+ * @param {object} [options]
+ * @param {string} [options.prefix='img']
+ * @param {string} [options.title]
+ * @param {string} [options.currentRelativePath]
+ * @returns {Promise<{ relativePath: string, fileName: string, assetUrl: string } | null>}
+ */
+export async function openAssetPickerModal(ctx, options = {}) {
+    const modal = document.getElementById('asset-picker-modal')
+    if (!modal) {
+        return importImageNative(ctx, options.prefix || 'img')
+    }
+
+    const {
+        prefix = 'img',
+        title = t('asset_picker.title') || 'Wybierz grafikę z projektu',
+        currentRelativePath = '',
+    } = options
+
+    const titleEl = document.getElementById('asset-picker-title')
+    if (titleEl) titleEl.textContent = title
+
+    const closeBtn = document.getElementById('btn-close-asset-picker-modal')
+    const cancelBtn = document.getElementById('btn-asset-picker-cancel')
+    const selectBtn = document.getElementById('btn-asset-picker-select')
+    const uploadNewBtn = document.getElementById('btn-asset-picker-upload-new')
+    const searchInput = document.getElementById('asset-picker-search')
+    const grid = document.getElementById('asset-picker-grid')
+    const emptyState = document.getElementById('asset-picker-empty')
+    const selectedLabel = document.getElementById('asset-picker-selected-label')
+
+    if (searchInput) searchInput.value = ''
+    if (selectBtn) selectBtn.disabled = true
+    if (selectedLabel) selectedLabel.textContent = 'Nie wybrano grafiki'
+
+    const projectPath = await ensureActiveProjectPath(ctx)
+    let assets = []
+    const api = typeof window !== 'undefined' ? window.electronAPI : null
+    if (api && typeof api.listImages === 'function') {
+        try {
+            const res = await api.listImages(projectPath || null)
+            if (res && res.success && Array.isArray(res.assets)) {
+                assets = res.assets
+            }
+        } catch (err) {
+            console.error('Error listing images in asset picker:', err)
+        }
+    }
+
+    let selectedAsset = null
+    if (currentRelativePath) {
+        selectedAsset = assets.find(a => a.relativePath === currentRelativePath) || null
+    }
+
+    return new Promise(resolve => {
+        let isDone = false
+
+        const cleanup = () => {
+            modal.classList.add('hidden')
+            if (closeBtn) closeBtn.onclick = null
+            if (cancelBtn) cancelBtn.onclick = null
+            if (selectBtn) selectBtn.onclick = null
+            if (uploadNewBtn) uploadNewBtn.onclick = null
+            if (searchInput) searchInput.oninput = null
+            modal.onclick = null
+        }
+
+        const finish = result => {
+            if (isDone) return
+            isDone = true
+            cleanup()
+            resolve(result)
+        }
+
+        const renderGrid = () => {
+            if (!grid) return
+            grid.innerHTML = ''
+            const q = (searchInput?.value || '').trim().toLowerCase()
+            const filtered = assets.filter(a => !q || a.fileName.toLowerCase().includes(q))
+
+            if (filtered.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden')
+            } else {
+                if (emptyState) emptyState.classList.add('hidden')
+            }
+
+            filtered.forEach(asset => {
+                const isSel = selectedAsset && selectedAsset.relativePath === asset.relativePath
+                const card = document.createElement('div')
+                card.className = `group flex flex-col bg-[#202024] border ${
+                    isSel ? 'border-blue-500 ring-2 ring-blue-500/30' : 'border-[#2d2d32]'
+                } hover:border-zinc-500 rounded-lg p-2 transition-all cursor-pointer select-none overflow-hidden shadow-sm`
+
+                const url = asset.assetUrl || toAssetUrl(asset.relativePath)
+                card.innerHTML = `
+                    <div class="w-full h-24 rounded bg-black/40 overflow-hidden flex items-center justify-center mb-1.5 relative">
+                        <img src="${url}" alt="${asset.fileName}" loading="lazy" class="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                    </div>
+                    <span class="text-xs font-medium text-zinc-200 truncate" title="${asset.fileName}">${asset.fileName}</span>
+                `
+
+                card.addEventListener('click', () => {
+                    selectedAsset = asset
+                    renderGrid()
+                })
+
+                card.addEventListener('dblclick', () => {
+                    selectedAsset = asset
+                    finish(asset)
+                })
+
+                grid.appendChild(card)
+            })
+
+            if (selectedAsset) {
+                if (selectedLabel) selectedLabel.textContent = `Wybrano: ${selectedAsset.fileName}`
+                if (selectBtn) selectBtn.disabled = false
+            } else {
+                if (selectedLabel) selectedLabel.textContent = 'Nie wybrano grafiki'
+                if (selectBtn) selectBtn.disabled = true
+            }
+        }
+
+        if (closeBtn) closeBtn.onclick = () => finish(null)
+        if (cancelBtn) cancelBtn.onclick = () => finish(null)
+        modal.onclick = e => {
+            if (e.target === modal) finish(null)
+        }
+
+        if (selectBtn) {
+            selectBtn.onclick = () => {
+                if (selectedAsset) finish(selectedAsset)
+            }
+        }
+
+        if (uploadNewBtn) {
+            uploadNewBtn.onclick = async () => {
+                const imported = await importImageNative(ctx, prefix)
+                if (imported && imported.relativePath) {
+                    finish(imported)
+                }
+            }
+        }
+
+        if (searchInput) {
+            searchInput.oninput = () => renderGrid()
+        }
+
+        renderGrid()
+        modal.classList.remove('hidden')
+    })
+}
+
+/**
+ * Opens the asset picker gallery with available project images and upload capability.
+ *
+ * @param {object} [ctx] Application UI Context
+ * @param {string} [prefix='img'] File name prefix (e.g. 'img', 'npc')
+ * @param {object} [options] Additional picker options
+ * @returns {Promise<{ relativePath: string, fileName: string, assetUrl: string } | null>}
+ */
+export async function pickProjectImage(ctx, prefix = 'img', options = {}) {
+    if (options && options.directNativeDialog) {
+        return importImageNative(ctx, prefix)
+    }
+    return openAssetPickerModal(ctx, { prefix, ...options })
 }
 
 /**

@@ -1,6 +1,6 @@
 const fs = require('fs')
 const path = require('path')
-const { dialog } = require('electron')
+const { dialog, shell } = require('electron')
 const { resolveProjectDir, isPathInsideBase } = require('../../Utils/fsSecurity')
 const { slugifyEntityName, generateUniqueSlug } = require('../../Utils/pathSanitizer')
 const { t } = require('../../Utils/i18n')
@@ -27,6 +27,7 @@ const ASSET_ERRORS = Object.freeze({
     LIST_FAILED: 'LIST_FAILED',
     SAVE_FAILED: 'SAVE_FAILED',
     INVALID_DATA: 'INVALID_DATA',
+    FILE_ALREADY_EXISTS: 'FILE_ALREADY_EXISTS',
 })
 
 const ERROR_I18N_KEYS = Object.freeze({
@@ -39,6 +40,7 @@ const ERROR_I18N_KEYS = Object.freeze({
     [ASSET_ERRORS.LIST_FAILED]: 'asset.error.list_failed',
     [ASSET_ERRORS.SAVE_FAILED]: 'asset.error.save_failed',
     [ASSET_ERRORS.INVALID_DATA]: 'asset.error.invalid_data',
+    [ASSET_ERRORS.FILE_ALREADY_EXISTS]: 'asset.error.file_already_exists',
 })
 
 /**
@@ -175,11 +177,11 @@ class AssetService {
     }
 
     /**
-     * Lists all image assets in the project's images directory.
+     * Lists all image assets in the project's images directory with file metadata.
      *
      * @param {Object} [payload]
      * @param {string|null} [payload.projectPath]
-     * @returns {Promise<{ success: boolean, assets?: Array<{ relativePath: string, fileName: string, assetUrl: string }>, errorCode?: string, error?: string }>}
+     * @returns {Promise<{ success: boolean, assets?: Array<{ relativePath: string, fileName: string, assetUrl: string, size: number, modifiedAt: number, extension: string }>, errorCode?: string, error?: string }>}
      */
     static async listProjectAssets(payload = {}) {
         const { projectPath } = payload || {}
@@ -195,18 +197,168 @@ class AssetService {
 
         try {
             const files = await fs.promises.readdir(imagesDir)
-            const assets = files
-                .filter(file => isAllowedImageExtension(path.extname(file)))
-                .map(fileName => {
-                    const relativePath = buildRelativeImagePath(fileName)
-                    return { fileName, relativePath, assetUrl: buildAssetUrl(relativePath) }
+            const assets = []
+            for (const fileName of files) {
+                const ext = path.extname(fileName)
+                if (!isAllowedImageExtension(ext)) continue
+
+                const fullPath = path.join(imagesDir, fileName)
+                const relativePath = buildRelativeImagePath(fileName)
+                let size = 0
+                let modifiedAt = 0
+
+                try {
+                    const st = await fs.promises.stat(fullPath)
+                    size = st.size
+                    modifiedAt = st.mtimeMs
+                } catch {
+                    // Ignore stat errors
+                }
+
+                assets.push({
+                    fileName,
+                    relativePath,
+                    assetUrl: buildAssetUrl(relativePath),
+                    size,
+                    modifiedAt,
+                    extension: ext.replace('.', '').toLowerCase(),
                 })
+            }
 
             return { success: true, assets }
         } catch (err) {
             console.error('Error listing assets:', err)
             return failure(ASSET_ERRORS.LIST_FAILED)
         }
+    }
+
+    /**
+     * Deletes an image asset from the project's images directory.
+     *
+     * @param {Object} [payload]
+     * @param {string|null} [payload.projectPath]
+     * @param {string} payload.relativePath
+     * @returns {Promise<{ success: boolean, relativePath?: string, errorCode?: string, error?: string }>}
+     */
+    static async deleteAsset(payload = {}) {
+        const { projectPath, relativePath } = payload || {}
+        const projectDir = resolveTargetProjectDir(projectPath)
+        if (!projectDir) {
+            return failure(ASSET_ERRORS.NO_PROJECT)
+        }
+        if (!relativePath || typeof relativePath !== 'string') {
+            return failure(ASSET_ERRORS.INVALID_DATA)
+        }
+
+        const fullPath = path.resolve(projectDir, relativePath)
+        const imagesDir = path.join(projectDir, ...ASSETS_IMAGES_DIR.split('/'))
+
+        if (!isPathInsideBase(imagesDir, fullPath)) {
+            return failure(ASSET_ERRORS.FORBIDDEN_PATH)
+        }
+        if (!fs.existsSync(fullPath)) {
+            return failure(ASSET_ERRORS.FILE_NOT_FOUND)
+        }
+
+        try {
+            await fs.promises.unlink(fullPath)
+            return { success: true, relativePath }
+        } catch (err) {
+            console.error('Error deleting asset:', err)
+            return failure(ASSET_ERRORS.SAVE_FAILED)
+        }
+    }
+
+    /**
+     * Renames an existing image asset in the project.
+     *
+     * @param {Object} [payload]
+     * @param {string|null} [payload.projectPath]
+     * @param {string} payload.oldRelativePath
+     * @param {string} payload.newName
+     * @returns {Promise<{ success: boolean, oldRelativePath?: string, newRelativePath?: string, newFileName?: string, assetUrl?: string, errorCode?: string, error?: string }>}
+     */
+    static async renameAsset(payload = {}) {
+        const { projectPath, oldRelativePath, newName } = payload || {}
+        const projectDir = resolveTargetProjectDir(projectPath)
+        if (!projectDir) {
+            return failure(ASSET_ERRORS.NO_PROJECT)
+        }
+        if (
+            !oldRelativePath ||
+            !newName ||
+            typeof oldRelativePath !== 'string' ||
+            typeof newName !== 'string'
+        ) {
+            return failure(ASSET_ERRORS.INVALID_DATA)
+        }
+
+        const oldFullPath = path.resolve(projectDir, oldRelativePath)
+        const imagesDir = path.join(projectDir, ...ASSETS_IMAGES_DIR.split('/'))
+
+        if (!isPathInsideBase(imagesDir, oldFullPath)) {
+            return failure(ASSET_ERRORS.FORBIDDEN_PATH)
+        }
+        if (!fs.existsSync(oldFullPath)) {
+            return failure(ASSET_ERRORS.FILE_NOT_FOUND)
+        }
+
+        const originalExt = path.extname(oldFullPath).toLowerCase()
+        let targetBase = newName.trim()
+        if (targetBase.toLowerCase().endsWith(originalExt)) {
+            targetBase = targetBase.slice(0, -originalExt.length)
+        }
+        const cleanBase = slugifyEntityName(targetBase, 'asset')
+        const newFileName = `${cleanBase}${originalExt}`
+        const newFullPath = path.join(imagesDir, newFileName)
+
+        if (!isPathInsideBase(imagesDir, newFullPath)) {
+            return failure(ASSET_ERRORS.FORBIDDEN_PATH)
+        }
+        if (newFullPath.toLowerCase() !== oldFullPath.toLowerCase() && fs.existsSync(newFullPath)) {
+            return failure(ASSET_ERRORS.FILE_ALREADY_EXISTS)
+        }
+
+        try {
+            await fs.promises.rename(oldFullPath, newFullPath)
+            const newRelativePath = buildRelativeImagePath(newFileName)
+            return {
+                success: true,
+                oldRelativePath,
+                newRelativePath,
+                newFileName,
+                assetUrl: buildAssetUrl(newRelativePath),
+            }
+        } catch (err) {
+            console.error('Error renaming asset:', err)
+            return failure(ASSET_ERRORS.SAVE_FAILED)
+        }
+    }
+
+    /**
+     * Reveals the asset file in the operating system's native file explorer.
+     *
+     * @param {Object} [payload]
+     * @param {string|null} [payload.projectPath]
+     * @param {string} [payload.relativePath]
+     * @returns {Promise<{ success: boolean, errorCode?: string, error?: string }>}
+     */
+    static async openAssetInFolder(payload = {}) {
+        const { projectPath, relativePath } = payload || {}
+        const projectDir = resolveTargetProjectDir(projectPath)
+        if (!projectDir) {
+            return failure(ASSET_ERRORS.NO_PROJECT)
+        }
+
+        const targetPath = relativePath
+            ? path.resolve(projectDir, relativePath)
+            : path.join(projectDir, ...ASSETS_IMAGES_DIR.split('/'))
+
+        if (fs.existsSync(targetPath)) {
+            shell.showItemInFolder(targetPath)
+            return { success: true }
+        }
+        return failure(ASSET_ERRORS.FILE_NOT_FOUND)
     }
 
     /**

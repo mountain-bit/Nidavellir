@@ -925,7 +925,8 @@
             "import_failed": "Fehler beim Importieren der Bilddatei",
             "list_failed": "Fehler beim Abrufen der Liste der Projektbilder",
             "save_failed": "Fehler beim Speichern des bearbeiteten Bildes",
-            "invalid_data": "Ungültige Bilddaten oder ungültiges Format"
+            "invalid_data": "Ungültige Bilddaten oder ungültiges Format",
+            "file_already_exists": "Eine Datei mit diesem Namen existiert bereits"
         },
         "drop_image_here": "Bild hier ablegen",
         "image_inserted": "Bild erfolgreich eingefügt"
@@ -974,5 +975,25 @@
         "btn_save": "Speichern",
         "btn_dont_save": "Nicht speichern",
         "btn_cancel": "Abbrechen"
+    },
+    "asset_manager": {
+        "title": "Asset-Manager",
+        "add_assets": "Dateien hinzufügen",
+        "search_placeholder": "In Assets suchen...",
+        "filter": "Filter:",
+        "filter_all": "Alle Formate",
+        "sort_newest": "Neueste",
+        "sort_name_asc": "Name A-Z",
+        "sort_name_desc": "Name Z-A",
+        "sort_size_desc": "Größte",
+        "empty_title": "Keine Bilder im Projekt",
+        "empty_desc": "Dateien hierher ziehen oder oben auf \"Dateien hinzufügen\" klicken.",
+        "drop_here": "Dateien hier ablegen zum Importieren",
+        "select_to_preview": "Wählen Sie eine Datei aus, um Details und Verweise anzuzeigen"
+    },
+    "asset_picker": {
+        "title": "Projektbild auswählen",
+        "upload_new": "Vom Computer hochladen",
+        "none_selected": "Kein Bild ausgewählt"
     }
 }

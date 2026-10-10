@@ -90,8 +90,16 @@ declare global {
             }>
             listImages: (projectPath?: string | null) => Promise<{
                 success: boolean
-                assets?: Array<{ relativePath: string; fileName: string; assetUrl: string }>
+                assets?: Array<{
+                    relativePath: string
+                    fileName: string
+                    assetUrl: string
+                    size?: number
+                    modifiedAt?: number
+                    extension?: string
+                }>
                 error?: string
+                errorCode?: string
             }>
             saveEditedImage: (payload: {
                 projectPath?: string | null
@@ -104,6 +112,36 @@ declare global {
                 relativePath?: string
                 assetUrl?: string
                 fileName?: string
+                error?: string
+                errorCode?: string
+            }>
+            deleteAsset: (
+                relativePath: string,
+                projectPath?: string | null
+            ) => Promise<{
+                success: boolean
+                relativePath?: string
+                error?: string
+                errorCode?: string
+            }>
+            renameAsset: (
+                oldRelativePath: string,
+                newName: string,
+                projectPath?: string | null
+            ) => Promise<{
+                success: boolean
+                oldRelativePath?: string
+                newRelativePath?: string
+                newFileName?: string
+                assetUrl?: string
+                error?: string
+                errorCode?: string
+            }>
+            openAssetInFolder: (
+                relativePath?: string,
+                projectPath?: string | null
+            ) => Promise<{
+                success: boolean
                 error?: string
                 errorCode?: string
             }>

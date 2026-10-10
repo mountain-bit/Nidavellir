@@ -3846,6 +3846,297 @@
             </div>
         </div>
 
+        <!-- Modal: Zarządzanie Assetami (Asset Manager) -->
+        <div
+            id="asset-manager-modal"
+            class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+        >
+            <div
+                class="w-full max-w-6xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px]"
+            >
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0">
+                    <div class="flex items-center gap-2">
+                        <app-icon name="image" class="w-4 h-4 text-blue-400 inline-block"></app-icon>
+                        <h3 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.title">
+                            Menedżer zasobów
+                        </h3>
+                        <span id="asset-manager-count-badge" class="ml-2 text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700/60">0 plików</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            id="btn-asset-manager-upload"
+                            class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-medium transition-colors shadow-sm cursor-pointer"
+                        >
+                            <app-icon name="plus" class="w-3.5 h-3.5 text-white"></app-icon>
+                            <span data-i18n="asset_manager.add_assets">Dodaj pliki</span>
+                        </button>
+                        <button
+                            type="button"
+                            id="btn-close-asset-manager-modal"
+                            class="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer text-xs"
+                        >
+                            <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter & Search Toolbar -->
+                <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2d2d32] bg-[#1a1a1d] shrink-0">
+                    <div class="flex items-center gap-2 flex-1 max-w-md">
+                        <div class="relative w-full">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400">
+                                <app-icon name="search" class="w-3.5 h-3.5"></app-icon>
+                            </span>
+                            <input
+                                type="text"
+                                id="asset-manager-search"
+                                placeholder="Szukaj w zasobach..."
+                                data-i18n-placeholder="asset_manager.search_placeholder"
+                                class="w-full pl-8 pr-3 py-1.5 bg-[#26262a] border border-[#38383e] focus:border-blue-500 rounded-md text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                            />
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1 text-xs text-zinc-400">
+                            <app-icon name="filter" class="w-3.5 h-3.5"></app-icon>
+                            <span data-i18n="asset_manager.filter">Filtruj:</span>
+                        </div>
+                        <select
+                            id="asset-manager-filter-type"
+                            class="bg-[#26262a] border border-[#38383e] rounded-md text-xs text-zinc-200 px-2.5 py-1 focus:outline-none"
+                        >
+                            <option value="all" data-i18n="asset_manager.filter_all">Wszystkie formaty</option>
+                            <option value="png">PNG</option>
+                            <option value="jpg">JPG / JPEG</option>
+                            <option value="webp">WebP</option>
+                            <option value="svg">SVG</option>
+                            <option value="gif">GIF</option>
+                        </select>
+                        <select
+                            id="asset-manager-sort"
+                            class="bg-[#26262a] border border-[#38383e] rounded-md text-xs text-zinc-200 px-2.5 py-1 focus:outline-none"
+                        >
+                            <option value="newest" data-i18n="asset_manager.sort_newest">Najnowsze</option>
+                            <option value="name_asc" data-i18n="asset_manager.sort_name_asc">Nazwa A-Z</option>
+                            <option value="name_desc" data-i18n="asset_manager.sort_name_desc">Nazwa Z-A</option>
+                            <option value="size_desc" data-i18n="asset_manager.sort_size_desc">Największe</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Main Body: Gallery Grid + Detail Sidebar -->
+                <div class="flex flex-1 overflow-hidden min-h-0 bg-[#141417]">
+                    <!-- Gallery Grid with Dropzone -->
+                    <div
+                        id="asset-manager-dropzone"
+                        class="flex-1 overflow-y-auto p-4 custom-scrollbar relative"
+                    >
+                        <!-- Empty state -->
+                        <div id="asset-manager-empty" class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500">
+                            <app-icon name="image" class="w-12 h-12 text-zinc-600 mb-3"></app-icon>
+                            <p class="text-sm font-medium text-zinc-400" data-i18n="asset_manager.empty_title">Brak grafik w projekcie</p>
+                            <p class="text-xs text-zinc-500 mt-1 max-w-sm" data-i18n="asset_manager.empty_desc">Przeciągnij pliki tutaj lub kliknij "Dodaj pliki" u góry.</p>
+                        </div>
+
+                        <!-- Cards Grid -->
+                        <div
+                            id="asset-manager-grid"
+                            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
+                        ></div>
+
+                        <!-- Drag Overlay -->
+                        <div
+                            id="asset-manager-drag-overlay"
+                            class="hidden absolute inset-0 bg-blue-600/20 border-2 border-dashed border-blue-500 rounded-lg flex flex-col items-center justify-center pointer-events-none z-20 backdrop-blur-xs"
+                        >
+                            <app-icon name="upload" class="w-12 h-12 text-blue-400 mb-2"></app-icon>
+                            <span class="text-sm font-medium text-blue-200" data-i18n="asset_manager.drop_here">Upuść pliki tutaj, aby zaimportować</span>
+                        </div>
+                    </div>
+
+                    <!-- Detail Sidebar -->
+                    <div
+                        id="asset-manager-sidebar"
+                        class="w-80 border-l border-[#2d2d32] bg-[#1a1a1e] flex flex-col shrink-0 overflow-y-auto p-4 custom-scrollbar text-xs"
+                    >
+                        <div id="asset-detail-placeholder" class="h-full flex flex-col items-center justify-center text-center text-zinc-500">
+                            <app-icon name="image" class="w-8 h-8 text-zinc-600 mb-2"></app-icon>
+                            <p data-i18n="asset_manager.select_to_preview">Wybierz plik, aby zobaczyć szczegóły i powiązania</p>
+                        </div>
+
+                        <div id="asset-detail-content" class="hidden flex flex-col gap-4">
+                            <!-- Preview Box -->
+                            <div class="w-full h-48 rounded-lg overflow-hidden bg-black/40 border border-zinc-800 flex items-center justify-center p-2 relative group">
+                                <img id="asset-detail-img" src="" alt="Podgląd" class="max-w-full max-h-full object-contain rounded" />
+                            </div>
+
+                            <!-- File Info -->
+                            <div class="flex flex-col gap-1.5 bg-[#222226] p-3 rounded-lg border border-[#303036]">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-400 font-medium">Nazwa:</span>
+                                    <span id="asset-detail-name" class="font-semibold text-zinc-100 truncate max-w-[170px]" title=""></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-400">Rozmiar:</span>
+                                    <span id="asset-detail-size" class="text-zinc-300"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-400">Wymiary:</span>
+                                    <span id="asset-detail-dimensions" class="text-zinc-300">Wczytywanie...</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-400">Ścieżka:</span>
+                                    <span id="asset-detail-path" class="text-zinc-400 truncate max-w-[170px]" title=""></span>
+                                </div>
+                            </div>
+
+                            <!-- Usage Section (Gdzie użyto) -->
+                            <div class="flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
+                                        <app-icon name="link" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                                        Gdzie użyto
+                                    </span>
+                                    <span id="asset-detail-usage-badge" class="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">0 miejsc</span>
+                                </div>
+                                <div id="asset-detail-usage-list" class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar">
+                                    <!-- Injected usage items -->
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex flex-col gap-2 pt-2 border-t border-[#2d2d32]">
+                                <button
+                                    type="button"
+                                    id="btn-asset-action-edit-image"
+                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium transition-colors cursor-pointer"
+                                >
+                                    <app-icon name="crop" class="w-3.5 h-3.5"></app-icon>
+                                    <span>Edytuj w edytorze grafik</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    id="btn-asset-action-rename"
+                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
+                                >
+                                    <app-icon name="edit" class="w-3.5 h-3.5"></app-icon>
+                                    <span>Zmień nazwę</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    id="btn-asset-action-copy-markdown"
+                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
+                                >
+                                    <app-icon name="markdown" class="w-3.5 h-3.5"></app-icon>
+                                    <span>Kopiuj znacznik Markdown</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    id="btn-asset-action-open-folder"
+                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
+                                >
+                                    <app-icon name="open" class="w-3.5 h-3.5"></app-icon>
+                                    <span>Pokaż w folderze</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    id="btn-asset-action-delete"
+                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-900/30 hover:bg-red-900/60 text-red-300 rounded-md font-medium transition-colors cursor-pointer border border-red-700/40"
+                                >
+                                    <app-icon name="trash" class="w-3.5 h-3.5"></app-icon>
+                                    <span>Usuń plik</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Selektor Assetów (Asset Picker Dialog) -->
+        <div
+            id="asset-picker-modal"
+            class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
+        >
+            <div
+                class="w-full max-w-4xl bg-[#1c1c20] border border-[#2d2d32] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[80vh] max-h-[720px]"
+            >
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2d2d32] bg-[#222226] shrink-0">
+                    <div class="flex items-center gap-2">
+                        <app-icon name="image" class="w-4 h-4 text-blue-400 inline-block"></app-icon>
+                        <h3 id="asset-picker-title" class="text-sm font-semibold text-zinc-100" data-i18n="asset_picker.title">
+                            Wybierz grafikę z projektu
+                        </h3>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-close-asset-picker-modal"
+                        class="p-1 rounded-md text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer text-xs"
+                    >
+                        <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                    </button>
+                </div>
+
+                <!-- Filter bar -->
+                <div class="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2d2d32] bg-[#1a1a1d] shrink-0">
+                    <div class="relative flex-1 max-w-sm">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400">
+                            <app-icon name="search" class="w-3.5 h-3.5"></app-icon>
+                        </span>
+                        <input
+                            type="text"
+                            id="asset-picker-search"
+                            placeholder="Filtruj grafiki..."
+                            class="w-full pl-8 pr-3 py-1.5 bg-[#26262a] border border-[#38383e] focus:border-blue-500 rounded-md text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-asset-picker-upload-new"
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-md text-xs font-medium border border-zinc-700 transition-colors cursor-pointer"
+                    >
+                        <app-icon name="upload" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                        <span data-i18n="asset_picker.upload_new">Wgraj nowy z dysku</span>
+                    </button>
+                </div>
+
+                <!-- Picker Grid -->
+                <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-[#141417]">
+                    <div id="asset-picker-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+                    <div id="asset-picker-empty" class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500">
+                        <app-icon name="image" class="w-12 h-12 text-zinc-600 mb-2"></app-icon>
+                        <p class="text-sm font-medium text-zinc-400">Brak pasujących grafik</p>
+                        <p class="text-xs text-zinc-500 mt-1">Użyj przycisku "Wgraj nowy z dysku", aby dodać plik do projektu.</p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-between px-5 py-3 border-t border-[#2d2d32] bg-[#222226] shrink-0">
+                    <span id="asset-picker-selected-label" class="text-xs text-zinc-400 truncate max-w-md">Nie wybrano grafiki</span>
+                    <div class="flex items-center gap-2">
+                        <button
+                            type="button"
+                            id="btn-asset-picker-cancel"
+                            class="px-4 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer"
+                        >
+                            Anuluj
+                        </button>
+                        <button
+                            type="button"
+                            id="btn-asset-picker-select"
+                            disabled
+                            class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-xs font-medium transition-colors cursor-pointer"
+                        >
+                            Wybierz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal: Zaawansowany Edytor Grafik (Image Editor) -->
         <div
             id="image-editor-modal"

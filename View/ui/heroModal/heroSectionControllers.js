@@ -7,6 +7,7 @@
 import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
+import { pickProjectImage } from '../assetPicker.js'
 import { escapeHtml } from '../htmlTemplates.js'
 import { evaluateFormula, parseStatValueAsNumber } from '../npcModal/formulaEvaluator.js'
 import * as state from './heroState.js'
@@ -24,20 +25,18 @@ export function initHeroAvatarGrid() {
         triggerBtn.onclick = async e => {
             e.preventDefault()
             e.stopPropagation()
-            if (window.electronAPI && typeof window.electronAPI.importImage === 'function') {
-                try {
-                    const res = await window.electronAPI.importImage()
-                    if (res && res.success && res.relativePath) {
-                        updateHeroSelectedAvatarPreview(res.relativePath)
-                        toast.success(
-                            t('hero.avatar_updated') ||
-                                t('npc.avatar_updated') ||
-                                'Portret został zaktualizowany'
-                        )
-                    }
-                } catch (err) {
-                    console.error('Failed to import avatar:', err)
+            try {
+                const res = await pickProjectImage(null, 'hero')
+                if (res && res.relativePath) {
+                    updateHeroSelectedAvatarPreview(res.relativePath)
+                    toast.success(
+                        t('hero.avatar_updated') ||
+                            t('npc.avatar_updated') ||
+                            'Portret został zaktualizowany'
+                    )
                 }
+            } catch (err) {
+                console.error('Failed to import avatar:', err)
             }
         }
     }

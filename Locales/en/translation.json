@@ -941,7 +941,8 @@
             "import_failed": "An error occurred while importing the image file",
             "list_failed": "An error occurred while retrieving the project images list",
             "save_failed": "An error occurred while saving the edited image",
-            "invalid_data": "Invalid image data or format"
+            "invalid_data": "Invalid image data or format",
+            "file_already_exists": "A file with this name already exists"
         },
         "drop_image_here": "Drop image here",
         "image_inserted": "Image successfully inserted"
@@ -990,5 +991,25 @@
         "btn_save": "Save",
         "btn_dont_save": "Don't save",
         "btn_cancel": "Cancel"
+    },
+    "asset_manager": {
+        "title": "Asset Manager",
+        "add_assets": "Add Files",
+        "search_placeholder": "Search assets...",
+        "filter": "Filter:",
+        "filter_all": "All formats",
+        "sort_newest": "Newest",
+        "sort_name_asc": "Name A-Z",
+        "sort_name_desc": "Name Z-A",
+        "sort_size_desc": "Largest",
+        "empty_title": "No images in project",
+        "empty_desc": "Drag files here or click \"Add Files\" above.",
+        "drop_here": "Drop files here to import",
+        "select_to_preview": "Select a file to inspect details and references"
+    },
+    "asset_picker": {
+        "title": "Select Project Image",
+        "upload_new": "Upload from Computer",
+        "none_selected": "No image selected"
     }
 }

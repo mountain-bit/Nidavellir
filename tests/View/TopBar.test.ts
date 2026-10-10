@@ -136,10 +136,10 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         `
 
         const mockParagraph = {
-            getId: () => 'p1',
-            getTitle: () => 'Start',
-            getIsStart: () => true,
-            getChoices: () => [],
+            getId: (): string => 'p1',
+            getTitle: (): string => 'Start',
+            getIsStart: (): boolean => true,
+            getChoices: (): unknown[] => [],
         }
 
         const mockCtx = {
@@ -176,24 +176,31 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         `
 
         const p2 = {
-            getId: () => 'p2',
-            getNumber: () => 2,
-            getTitle: () => 'Mroczny Las',
-            getIsStart: () => false,
-            getContent: () => ({ getSummary: () => 'Dotarłeś do mrocznego lasu.' }),
-            getChoices: () => [],
+            getId: (): string => 'p2',
+            getNumber: (): number => 2,
+            getTitle: (): string => 'Mroczny Las',
+            getIsStart: (): boolean => false,
+            getContent: (): { getSummary: () => string } => ({
+                getSummary: (): string => 'Dotarłeś do mrocznego lasu.',
+            }),
+            getChoices: (): unknown[] => [],
         }
 
         const p1 = {
-            getId: () => 'p1',
-            getNumber: () => 1,
-            getTitle: () => 'Rozstaje Dróg',
-            getIsStart: () => true,
-            getContent: () => ({ getSummary: () => 'Stoisz na rozstajach.' }),
-            getChoices: () => [
+            getId: (): string => 'p1',
+            getNumber: (): number => 1,
+            getTitle: (): string => 'Rozstaje Dróg',
+            getIsStart: (): boolean => true,
+            getContent: (): { getSummary: () => string } => ({
+                getSummary: (): string => 'Stoisz na rozstajach.',
+            }),
+            getChoices: (): Array<{
+                getTitle: () => string
+                getTargetParagraphId: () => string
+            }> => [
                 {
-                    getTitle: () => 'Idź do lasu',
-                    getTargetParagraphId: () => 'p2',
+                    getTitle: (): string => 'Idź do lasu',
+                    getTargetParagraphId: (): string => 'p2',
                 },
             ],
         }
@@ -281,5 +288,23 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
 
         expect(setActiveLeftTabSpy).toHaveBeenCalledWith('settings')
         expect(updateLeftDrawerSpy).toHaveBeenCalled()
+    })
+
+    it('opens asset manager modal when "open-assets" is clicked', async () => {
+        document.body.innerHTML += `
+            <div id="asset-manager-modal" class="hidden"></div>
+        `
+        const mockCtx = {
+            projectPath: 'C:/fake/path',
+            vm: {},
+        }
+        initTopBar(mockCtx)
+
+        const assetBtn = document.querySelector('[data-action="open-assets"]') as HTMLButtonElement
+        expect(assetBtn).toBeTruthy()
+        assetBtn.click()
+
+        const modal = document.getElementById('asset-manager-modal')
+        expect(modal?.classList.contains('hidden')).toBe(false)
     })
 })
