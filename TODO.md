@@ -23,6 +23,33 @@ This document serves as a comprehensive registry of planned features, enhancemen
 
 ---
 
+## 2. Player Character Creation & Configuration System
+- [x] **Player Character Domain Model (`Model/PlayerCharacter.ts`)**
+  - [x] Full model with `id`, `name`, `description` (`Description`), `avatar` (preset or custom), `characterClass` (`CharacterClass`), `stats` (`Stat[]`), `parameters` (`Parameter[]`), `skills` (`Skill[]`), `tags` (`Tag[]`), and `customAttributes`.
+  - [x] Accessors for `summary`, serialization (`toJSON`, `fromJSON`), and persistence synchronization.
+  - [x] Project integration in `Model/Project.ts` (`getPlayerCharacter`, `setPlayerCharacter`).
+- [x] **Dedicated Player Character Creation & Editing Modal (`View/ui/heroModal/`)**
+  - [x] Floating draggable and resizable modal window (`#hero-create-modal`) matching the visual design and capabilities of the NPC Folio.
+  - [x] Strictly omitted templates (no template dropdown, chips, or template apply action) as specified in requirements.
+  - [x] Character portrait & avatar selector with presets (`FANTASY_AVATARS`) and custom image uploads.
+  - [x] Character class selector (`hero-class-select`) with predefined archetypes.
+  - [x] Identity attributes section with suggestions chip bar (Rasa, Pochodzenie, Wiek, Bóstwo, Miano).
+  - [x] Base RPG stats section with suggestion chips from project pool.
+  - [x] Dynamic vital parameters (HP, Mana, Kondycja) with live mathematical formula evaluator (`evaluateFormula`).
+  - [x] Skills system with direct bonuses and stat modifiers (`stat_mod`).
+  - [x] Tags management with color-coded chip pickers.
+  - [x] Expandable Narrative Chronicle drawer with dedicated TipTap Markdown editor (`View/ui/editor/heroEditor.js`).
+  - [x] Form dirty-checking, unsaved changes protection on ESC/close, and validation.
+- [x] **Left Drawer & Details Panel Integration**
+  - [x] Left drawer tab (`main-character` / `#main-character-container`) with empty state prompt and populated hero preview card with edit button (`#btn-drawer-edit-hero`).
+  - [x] Ribbon toolbar integration (`data-action="open-hero-modal"`).
+  - [x] Read-only inspector panel (`View/ui/detailsPanel/heroReadOnlyDetails.js`) for the protagonist in the right sidebar.
+- [x] **Multilingual Support & Test Suite**
+  - [x] Complete localization strings in `Locales/pl/translation.json`, `Locales/en/translation.json`, and `Locales/de/translation.json`.
+  - [x] Vitest unit & integration test coverage (`tests/Model/PlayerCharacter.test.ts`, `tests/View/HeroModal.test.ts`).
+
+---
+
 ## 3. Rich Markdown Editing System
 - [x] **Core TipTap Markdown Editor (`Modules/Editor/MarkdownEditor.ts`)**
   - [x] Headings 1–5, bold, italic, underline (`<u>`), strikethrough (`~~`), lists, blockquotes

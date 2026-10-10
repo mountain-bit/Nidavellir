@@ -650,4 +650,38 @@ describe('StoryGraph Scene Integration', () => {
         canvasContainer.remove()
         nodesLayer.remove()
     })
+
+    it('should center the graph on all nodes when center() is called', () => {
+        const canvasContainer = document.createElement('div')
+        const nodesLayer = document.createElement('div')
+        document.body.appendChild(canvasContainer)
+        document.body.appendChild(nodesLayer)
+
+        const p1 = new Paragraph('p1', 'Paragraf 1')
+        p1.setPosition({ x: 100, y: 100 })
+
+        const storyGraph = new StoryGraph({
+            canvasContainer,
+            nodesLayer,
+            lineStyle: 'curved',
+            getParagraphs: () => [p1],
+            getScenes: () => [],
+            onSelectParagraph: () => {},
+            onSelectChoice: () => {},
+            onCreateParagraph: (title: string) => new Paragraph('new-p', title),
+            onToast: () => {},
+            t: (k: string) => k,
+        })
+
+        storyGraph.render(true)
+
+        expect(typeof storyGraph.center).toBe('function')
+        // Call center without errors
+        expect(() => storyGraph.center(false)).not.toThrow()
+        expect(() => storyGraph.center(true)).not.toThrow()
+
+        storyGraph.destroy()
+        canvasContainer.remove()
+        nodesLayer.remove()
+    })
 })

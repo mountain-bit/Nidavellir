@@ -306,4 +306,74 @@ describe('MarkdownEditor', () => {
 
         editor.destroy()
     })
+
+    it('parses markdown embed link [Label](embed://...) into interactive description embed badge', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent:
+                'Wchodzisz do sali. [Opis: Miecz](embed://item/sword_01) Widzisz strażnika.',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const embedBadge = container.querySelector('.description-embed-badge')
+        expect(embedBadge).not.toBeNull()
+        expect(embedBadge?.getAttribute('data-id')).toBe('sword_01')
+        expect(embedBadge?.getAttribute('data-type')).toBe('item')
+        expect(embedBadge?.getAttribute('data-variant')).toBe('text')
+
+        const md = editor.getMarkdown()
+        expect(md).toContain('[Opis: Miecz](embed://item/sword_01)')
+
+        editor.destroy()
+    })
+
+    it('inserts description embed and serializes back to markdown link format', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Rozdział pierwszy.',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const inserted = editor.insertDescriptionEmbed({
+            id: 'npc_gandalf',
+            type: 'character',
+            variant: 'summary',
+            name: 'Gandalf Szary',
+        })
+
+        expect(inserted).toBe(true)
+
+        const embedBadge = container.querySelector('.description-embed-badge')
+        expect(embedBadge).not.toBeNull()
+        expect(embedBadge?.getAttribute('data-id')).toBe('npc_gandalf')
+        expect(embedBadge?.getAttribute('data-type')).toBe('character')
+        expect(embedBadge?.getAttribute('data-variant')).toBe('summary')
+
+        const md = editor.getMarkdown()
+        expect(md).toContain('[Opis: Gandalf Szary](embed://character/npc_gandalf/summary)')
+
+        editor.destroy()
+    })
+
+    it('supports custom alias label in description embed link', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Wchodzisz do sali.',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const inserted = editor.insertDescriptionEmbed({
+            id: 'item_sword',
+            type: 'item',
+            name: 'Miecz',
+            label: 'Ostrze Króla',
+        })
+
+        expect(inserted).toBe(true)
+
+        const md = editor.getMarkdown()
+        expect(md).toContain('[Ostrze Króla](embed://item/item_sword)')
+
+        editor.destroy()
+    })
 })

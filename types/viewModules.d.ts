@@ -24,6 +24,7 @@ declare module '*/View/mockData.js' {
         projectParagraphs: Paragraph[]
         projectScenes: Scene[]
         projectTemplates: NPC_Template[]
+        playerCharacter?: unknown
     }
 
     export const mockFiles: Record<string, string>
@@ -70,16 +71,16 @@ declare module '*/View/ui/npcModal.js' {
 
     export function openNpcModal(options?: {
         mode?: 'character' | 'template'
-        applyTemplate?: any
+        applyTemplate?: NPC_Template | boolean | unknown
         preserveState?: boolean
-        editEntity?: NPC | NPC_Template | any
-        editingEntity?: NPC | NPC_Template | any
+        editEntity?: NPC | NPC_Template | unknown
+        editingEntity?: NPC | NPC_Template | unknown
     }): void
     export function openNpcTemplateModal(options?: {
-        applyTemplate?: any
+        applyTemplate?: NPC_Template | boolean | unknown
         preserveState?: boolean
-        editEntity?: NPC | NPC_Template | any
-        editingEntity?: NPC | NPC_Template | any
+        editEntity?: NPC | NPC_Template | unknown
+        editingEntity?: NPC | NPC_Template | unknown
     }): void
     export function getModalMode(): 'character' | 'template'
     export function setModalMode(mode: 'character' | 'template'): void
@@ -228,93 +229,7 @@ declare module '*/View/ui/npcModal.js' {
     export function getTraitsCounts(ctx?: unknown): ITraitsCounts
     export function updateTraitsCounterUI(ctx?: unknown): ITraitsCounts
     export function renderDynamicSuggestions(ctx?: unknown): void
-    export function applyTemplate(templateIdOrInstance: any, ctx?: any): any
-    export function removeAppliedTemplate(templateId: string, ctx?: any): void
-    export function renderAppliedTemplates(): void
-    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
-    export function setAppliedTemplates(
-        templates: Array<{ id: string; name: string; avatar?: string }>
-    ): void
-    export function clearAppliedTemplates(): void
-    export function openTemplateDropdown(ctx?: any): void
-    export function closeTemplateDropdown(): void
-    export function toggleTemplateDropdown(ctx?: any): void
-    export function isTemplateDropdownOpen(): boolean
-    export function getAvailableTemplates(ctx?: any): any[]
-    export function renderTemplateDropdownList(ctx?: any, filterQuery?: string): void
-}
-
-declare module '*/View/ui/npcModal/npcState.js' {
-    export function getModalMode(): 'character' | 'template'
-    export function setModalMode(mode: 'character' | 'template'): void
-    export function resetState(): void
-    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
-    export function setAppliedTemplates(
-        templates: Array<{ id: string; name: string; avatar?: string }>
-    ): void
-    export function addAppliedTemplateState(tpl: {
-        id?: string
-        name?: string
-        avatar?: string
-    }): void
-    export function removeAppliedTemplateState(id: string): void
-    export function clearAppliedTemplates(): void
-    export function getNpcStats(): Array<{ name: string; value: string }>
-    export function getNpcStatsArray(): any[]
-    export function getNpcSkillsArray(): any[]
-    export function getNpcVitalsArray(): any[]
-    export function getCustomAttributesArray(): any[]
-    export function getNpcTagsArray(): any[]
-    export function addNpcStatState(
-        name?: string,
-        value?: string | number,
-        isEditing?: boolean
-    ): any
-    export function addNpcSkillState(
-        name?: string,
-        mode?: string,
-        value?: string,
-        statName?: string,
-        modifier?: string,
-        isEditing?: boolean
-    ): any
-    export function addNpcVitalState(
-        name?: string,
-        mode?: string,
-        value?: string | number,
-        formula?: string,
-        isEditing?: boolean
-    ): any
-    export function addCustomAttributeState(name?: string, value?: string, isEditing?: boolean): any
-    export function addNpcTagState(tagOrName: any, color?: string): any
-    export function getCurrentAvatarId(): string
-    export function setCurrentAvatarId(id: string): void
-    export function getActiveModal(): HTMLElement | null
-    export function setActiveModal(el: HTMLElement | null): void
-    export function getActiveCtx(): any
-    export function setActiveCtx(ctx: any): void
-}
-
-declare module '*/View/ui/npcModal/templateMerger.js' {
-    export function extractTemplateStats(tpl: any): Array<{ name: string; value: string }>
-    export function extractTemplateSkills(tpl: any): Array<{
-        name: string
-        mode: 'direct' | 'stat_mod'
-        value: string
-        statName: string
-        modifier: string
-    }>
-    export function extractTemplateVitals(
-        tpl: any
-    ): Array<{ name: string; mode: 'direct' | 'formula'; value: string; formula: string }>
-    export function extractTemplateAttributes(tpl: any): Array<{ name: string; value: string }>
-    export function extractTemplateTags(
-        tpl: any
-    ): Array<{ id: string; name: string; color: string }>
-    export function mergeTemplateIntoModalState(
-        tpl: any,
-        options?: any
-    ): {
+    export interface ITemplateMergeReport {
         templateId: string
         templateName: string
         addedStats: string[]
@@ -333,6 +248,134 @@ declare module '*/View/ui/npcModal/templateMerger.js' {
         totalAdded: number
         totalSkipped: number
     }
+
+    export function applyTemplate(
+        templateIdOrInstance: unknown,
+        ctx?: unknown
+    ): ITemplateMergeReport
+    export function removeAppliedTemplate(templateId: string, ctx?: unknown): void
+    export function renderAppliedTemplates(): void
+    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
+    export function setAppliedTemplates(
+        templates: Array<{ id: string; name: string; avatar?: string }>
+    ): void
+    export function clearAppliedTemplates(): void
+    export function openTemplateDropdown(ctx?: unknown): void
+    export function closeTemplateDropdown(): void
+    export function toggleTemplateDropdown(ctx?: unknown): void
+    export function isTemplateDropdownOpen(): boolean
+    export function getAvailableTemplates(ctx?: unknown): unknown[]
+    export function renderTemplateDropdownList(ctx?: unknown, filterQuery?: string): void
+}
+
+declare module '*/View/ui/npcModal/npcState.js' {
+    export interface INpcStateStat {
+        name: string
+        value: string
+        isEditing?: boolean
+    }
+    export interface INpcStateSkill {
+        name: string
+        mode: string
+        value: string
+        statName?: string
+        modifier?: string
+        isEditing?: boolean
+    }
+    export interface INpcStateVital {
+        name: string
+        mode: string
+        value: string | number
+        formula?: string
+        isEditing?: boolean
+    }
+    export interface INpcStateAttribute {
+        name: string
+        value: string
+        isEditing?: boolean
+    }
+    export interface INpcStateTag {
+        id?: string
+        name: string
+        color?: string
+    }
+
+    export function getModalMode(): 'character' | 'template'
+    export function setModalMode(mode: 'character' | 'template'): void
+    export function resetState(): void
+    export function getAppliedTemplates(): Array<{ id: string; name: string; avatar?: string }>
+    export function setAppliedTemplates(
+        templates: Array<{ id: string; name: string; avatar?: string }>
+    ): void
+    export function addAppliedTemplateState(tpl: {
+        id?: string
+        name?: string
+        avatar?: string
+    }): void
+    export function removeAppliedTemplateState(id: string): void
+    export function clearAppliedTemplates(): void
+    export function getNpcStats(): Array<{ name: string; value: string }>
+    export function getNpcStatsArray(): INpcStateStat[]
+    export function getNpcSkillsArray(): INpcStateSkill[]
+    export function getNpcVitalsArray(): INpcStateVital[]
+    export function getCustomAttributesArray(): INpcStateAttribute[]
+    export function getNpcTagsArray(): INpcStateTag[]
+    export function addNpcStatState(
+        name?: string,
+        value?: string | number,
+        isEditing?: boolean
+    ): unknown
+    export function addNpcSkillState(
+        name?: string,
+        mode?: string,
+        value?: string,
+        statName?: string,
+        modifier?: string,
+        isEditing?: boolean
+    ): unknown
+    export function addNpcVitalState(
+        name?: string,
+        mode?: string,
+        value?: string | number,
+        formula?: string,
+        isEditing?: boolean
+    ): unknown
+    export function addCustomAttributeState(
+        name?: string,
+        value?: string,
+        isEditing?: boolean
+    ): unknown
+    export function addNpcTagState(tagOrName: unknown, color?: string): unknown
+    export function getCurrentAvatarId(): string
+    export function setCurrentAvatarId(id: string): void
+    export function getActiveModal(): HTMLElement | null
+    export function setActiveModal(el: HTMLElement | null): void
+    export function getActiveCtx(): unknown
+    export function setActiveCtx(ctx: unknown): void
+}
+
+declare module '*/View/ui/npcModal/templateMerger.js' {
+    export { ITemplateMergeReport } from '*/View/ui/npcModal/npcTraitsCounter.js'
+
+    export function extractTemplateStats(tpl: unknown): Array<{ name: string; value: string }>
+    export function extractTemplateSkills(tpl: unknown): Array<{
+        name: string
+        mode: 'direct' | 'stat_mod'
+        value: string
+        statName: string
+        modifier: string
+    }>
+    export function extractTemplateVitals(
+        tpl: unknown
+    ): Array<{ name: string; mode: 'direct' | 'formula'; value: string; formula: string }>
+    export function extractTemplateAttributes(tpl: unknown): Array<{ name: string; value: string }>
+    export function extractTemplateTags(
+        tpl: unknown
+    ): Array<{ id: string; name: string; color: string }>
+    export function mergeTemplateIntoModalState(
+        tpl: unknown,
+        options?: unknown
+    ): import('*/View/ui/npcModal/npcTraitsCounter.js').ITemplateMergeReport
 }
 
 declare module '*/View/ui/npcModal/npcTraitsCounter.js' {
@@ -368,6 +411,7 @@ declare module '*/View/ui/drawerLists.js' {
     export function renderScenesList(ctx?: unknown): void
     export function renderConnectionsList(ctx?: unknown): void
     export function renderCharactersList(ctx?: unknown): void
+    export function renderMainCharacter(ctx?: unknown): void
     export function getCharactersSectionCollapsed(): boolean
     export function setCharactersSectionCollapsed(collapsed: boolean): void
     export function getTemplatesSectionCollapsed(): boolean
@@ -393,6 +437,16 @@ declare module '*/View/ui/drawerLists.js' {
         targetArray: unknown[],
         ctx: unknown
     ): void
+}
+
+declare module '*/View/ui/heroModal.js' {
+    export function setupHeroModal(ctx?: unknown): {
+        open: (options?: unknown) => void
+        close: (options?: unknown) => void
+    }
+    export function openHeroModal(options?: unknown): void
+    export function closeHeroModal(options?: unknown): void
+    export function hasUnsavedHeroChanges(): boolean
 }
 
 declare module '*/View/ui/detailsPanel.js' {
@@ -462,6 +516,31 @@ declare module '*/View/ui/editor/entityLinkModal.js' {
         }
     ): void
     export function closeEntityLinkModal(): void
+}
+
+declare module '*/View/ui/editor/descriptionEmbedModal.js' {
+    export function extractEmbeddableEntities(source?: unknown): Array<{
+        id: string
+        name: string
+        type: 'item' | 'character' | 'location'
+        descriptionText: string
+        summaryText: string
+    }>
+    export function positionDescriptionEmbedPopover(targetRectOrPoint?: unknown): void
+    export function openDescriptionEmbedModal(
+        editor: unknown,
+        ctx: unknown,
+        options?: {
+            initialEntityId?: string
+            initialType?: string
+            initialVariant?: 'text' | 'summary'
+            embedPos?: number | null
+            targetRect?: unknown
+            point?: { x: number; y: number }
+        }
+    ): void
+    export function closeDescriptionEmbedModal(): void
+    export function setupDescriptionEmbedModalEvents(ctx?: unknown): void
 }
 
 declare module '*/View/ui/editor/mainEditor.js' {
@@ -544,28 +623,6 @@ declare module '*/dist/Modules/ImageEditor/index.js' {
     export * from '../Modules/ImageEditor/index'
 }
 
-declare module '*/View/ui/assetPicker.js' {
-    export function getActiveProjectPath(ctx?: unknown): string
-    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
-    export function pickProjectImage(
-        ctx?: unknown,
-        prefix?: string
-    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
-    export function importDroppedImage(
-        file: unknown,
-        ctx?: unknown,
-        prefix?: string
-    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
-    export function setupElementDropZone(
-        element: HTMLElement | null,
-        options?: {
-            highlightClass?: string
-            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
-            overlayElement?: HTMLElement | null
-        }
-    ): void
-}
-
 declare module '*/View/ui/confirmModal.js' {
     export function markFileDirty(fileName: string): void
     export function markFileClean(fileName: string): void
@@ -609,6 +666,32 @@ declare module '*/View/ui/workspace.js' {
     export function updateZoomToolbarUI(storyGraphInstance?: unknown, zoomLevel?: number): void
 }
 
+declare module '*/View/ui/heroModal/heroSectionControllers.js' {
+    export function initHeroAvatarGrid(): void
+    export function updateHeroSelectedAvatarPreview(avatarId?: string): void
+    export function openHeroAvatarPopover(): void
+    export function closeHeroAvatarPopover(): void
+    export function toggleHeroAvatarPopover(): void
+    export function renderHeroCustomAttributes(): void
+    export function addHeroCustomAttribute(name?: string, value?: string): void
+    export function renderHeroTags(): void
+    export function addHeroTag(tag: unknown): void
+    export function initHeroTagsController(ctx?: unknown): void
+    export function renderHeroStats(): void
+    export function addHeroStat(name?: string, value?: number): void
+    export function renderHeroVitals(): void
+    export function updateHeroVitalFormulasPreview(): void
+    export function addHeroVital(
+        name?: string,
+        mode?: string,
+        value?: number,
+        formula?: string
+    ): void
+    export function renderHeroSkills(): void
+    export function updateHeroSkillStatDropdowns(): void
+    export function addHeroSkill(name?: string, statName?: string, value?: string): void
+}
+
 declare module '*/View/ui/projectStateTracker.js' {
     export function isProjectDirty(): boolean
     export function markProjectDirty(): void
@@ -619,6 +702,7 @@ declare module '*/View/ui/projectStateTracker.js' {
         state: 'dirty' | 'saving' | 'saved' | 'clean',
         customProjectName?: string
     ): void
+    export function updateProjectNameUI(name?: string): void
 }
 
 declare module '*/View/ui/projectSaver.js' {
@@ -666,4 +750,82 @@ declare module '*/View/ui/topBar.js' {
     export function openPlaytestSimulator(ctx: unknown): void
     export function openExportModal(ctx: unknown): void
     export function initTopBar(ctx: unknown): void
+    export function openQuickSearch(ctx: unknown): void
+    export function centerGraphView(ctx: unknown): void
+    export function openSettingsView(ctx: unknown): void
+}
+
+declare module '*/View/ui/quickSearch.js' {
+    export interface ISearchCandidate {
+        id: string
+        title: string
+        description?: string
+        category: string
+        type: string
+        typeLabel: string
+        icon: string
+        badgeColor: string
+        actionText: string
+        tags?: string[]
+        locationName?: string
+        charNames?: string[]
+        entity: unknown
+        number?: number
+    }
+
+    export function getEntityText(desc: unknown): string
+    export function highlightMatch(text: string, query: string): string
+    export function getAllProjectObjects(ctx: unknown): ISearchCandidate[]
+    export function scoreCandidate(
+        candidate: ISearchCandidate,
+        query: string
+    ): { matched: boolean; tier: number; score: number }
+    export function searchProjectObjects(
+        ctx: unknown,
+        query: string,
+        categoryFilter?: string
+    ): ISearchCandidate[]
+    export function executeQuickSearchAction(item: ISearchCandidate, ctx: unknown): void
+    export function renderQuickSearchResults(ctx: unknown, query: string): void
+    export function openQuickSearch(ctx: unknown): void
+    export function closeQuickSearch(): void
+    export function initQuickSearch(ctx: unknown): void
+}
+
+declare module '*/View/ui/assetManagerModal.js' {
+    export function openAssetManager(ctx: unknown): Promise<void>
+    export function closeAssetManager(): void
+    export function refreshAssetList(): Promise<void>
+}
+
+declare module '*/View/ui/assetPicker.js' {
+    export function getActiveProjectPath(ctx?: unknown): string
+    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
+    export function importImageNative(
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function openAssetPickerModal(
+        ctx?: unknown,
+        options?: { prefix?: string; title?: string; currentRelativePath?: string }
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function pickProjectImage(
+        ctx?: unknown,
+        prefix?: string,
+        options?: { directNativeDialog?: boolean; title?: string; currentRelativePath?: string }
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function importDroppedImage(
+        file: File | unknown,
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function setupElementDropZone(
+        element: HTMLElement | null,
+        options?: {
+            highlightClass?: string
+            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
+            onFilesDrop?: (files: File[], event: DragEvent) => Promise<void> | void
+            overlayElement?: HTMLElement | null
+        }
+    ): void
 }

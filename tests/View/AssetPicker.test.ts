@@ -141,5 +141,29 @@ describe('AssetPicker and DropZone', () => {
 
             expect(onFileDrop).toHaveBeenCalledWith(fakeFile, dropEvent)
         })
+
+        it('supports onFilesDrop batch callback with multiple files', async () => {
+            const dropEl = document.createElement('div')
+            const onFilesDrop = vi.fn()
+
+            setupElementDropZone(dropEl, {
+                highlightClass: 'drag-active',
+                onFilesDrop,
+            })
+
+            const file1 = new File(['1'], 'pic1.png', { type: 'image/png' })
+            const file2 = new File(['2'], 'pic2.jpg', { type: 'image/jpeg' })
+            const dropEvent = new Event('drop') as any
+            dropEvent.dataTransfer = {
+                types: ['Files'],
+                files: [file1, file2],
+            }
+            dropEvent.preventDefault = vi.fn()
+            dropEvent.stopPropagation = vi.fn()
+
+            dropEl.dispatchEvent(dropEvent)
+
+            expect(onFilesDrop).toHaveBeenCalledWith([file1, file2], dropEvent)
+        })
     })
 })

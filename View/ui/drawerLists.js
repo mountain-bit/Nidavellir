@@ -1,7 +1,10 @@
+import { isCustomAvatarPath, toAssetUrl } from '../../dist/Utils/assetUtils.js'
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
+import { openHeroModal } from './heroModal.js'
 import { escapeHtml } from './htmlTemplates.js'
+import { getAvatarById } from './npcAvatars.js'
 
 /**
  * Renders the list of Paragraphs in the Left Drawer.
@@ -887,4 +890,143 @@ export function attachColorPickerListeners(container, ctx) {
             }
         })
     })
+}
+
+/**
+ * Renders the Main Character (Player Protagonist) card in the Left Drawer.
+ *
+ * @param {object} ctx Application UI Context
+ */
+export function renderMainCharacter(ctx) {
+    const container = document.getElementById('main-character-container')
+    if (!container) return
+
+    const hero =
+        ctx?.playerCharacter ||
+        ctx?.projectData?.playerCharacter ||
+        (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null)
+
+    const hasConfiguredHero =
+        hero && typeof hero.getName === 'function' && hero.getName().trim() !== ''
+
+    if (!hasConfiguredHero) {
+        container.innerHTML = `
+            <div class="p-3 rounded-xl bg-[#18181b] border border-[#27272a] text-center flex flex-col items-center gap-2.5">
+                <div class="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    ${getIconSvg('character', 'w-5 h-5')}
+                </div>
+                <div>
+                    <div class="text-xs font-semibold text-zinc-200">
+                        ${t('hero.modal_title') || 'Karta Postaci Gracza'}
+                    </div>
+                    <p class="text-[11px] text-zinc-400 mt-1">
+                        ${t('hero.no_hero_configured') || 'Brak skonfigurowanego bohatera gracza.'}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    id="btn-drawer-create-hero"
+                    class="w-full py-1.5 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                    <span class="font-bold">+</span>
+                    <span>${t('hero.create_hero_btn') || 'Stwórz Postać Gracza'}</span>
+                </button>
+            </div>
+        `
+
+        const btnCreate = container.querySelector('#btn-drawer-create-hero')
+        if (btnCreate) {
+            btnCreate.onclick = () => {
+                openHeroModal({ ctx })
+            }
+        }
+        return
+    }
+
+    const heroName = hero.getName()
+    const heroAvatar = hero.getAvatar ? hero.getAvatar() : ''
+    const summary = hero.getSummary ? hero.getSummary() : ''
+
+    let avatarPreviewHtml = getIconSvg('character', 'w-5 h-5')
+    if (
+        heroAvatar &&
+        (isCustomAvatarPath(heroAvatar) ||
+            heroAvatar.startsWith('data:') ||
+            heroAvatar.startsWith('http') ||
+            heroAvatar.startsWith('blob:'))
+    ) {
+        const assetUrl = toAssetUrl(heroAvatar)
+        avatarPreviewHtml = `<img src="${assetUrl}" alt="Avatar" class="w-full h-full object-cover rounded" />`
+    } else if (heroAvatar) {
+        const avatarObj = getAvatarById(heroAvatar)
+        if (avatarObj?.svg) {
+            avatarPreviewHtml = avatarObj.svg
+        }
+    }
+
+    const statsList = (hero.getStats ? hero.getStats() : [])
+        .slice(0, 4)
+        .map(s => {
+            const sName = s.getName ? s.getName() : s.name || ''
+            const sVal = s.getValue ? s.getValue() : (s.value ?? 10)
+            return `<span class="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 font-mono"><strong class="text-amber-400 font-semibold">${escapeHtml(sName)}:</strong> ${sVal}</span>`
+        })
+        .join(' ')
+
+    const tagsBadges = (hero.getTags ? hero.getTags() : [])
+        .map(tObj => {
+            const color = tObj.getColor ? tObj.getColor() : '#3b82f6'
+            const name = tObj.getName ? tObj.getName() : tObj.name || ''
+            return `<span class="px-1.5 py-0.2 rounded text-[9px] text-white" style="background-color: ${escapeHtml(color)}">${escapeHtml(name)}</span>`
+        })
+        .join(' ')
+
+    container.innerHTML = `
+        <div class="drawer-item p-3 rounded-xl bg-[#18181b] border border-[#27272a] hover:border-amber-500/50 transition-all flex flex-col gap-2.5 shadow-sm" data-item-type="player_character">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-14 rounded-lg bg-black/40 border border-amber-500/30 flex items-center justify-center p-1 shrink-0 text-amber-400 shadow-inner overflow-hidden">
+                    ${avatarPreviewHtml}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-white text-xs truncate">${escapeHtml(heroName)}</span>
+                    </div>
+                    <div class="text-[10px] text-zinc-500 italic truncate mt-0.5">${t('hero.badge') || 'Protagonista'}</div>
+                    ${tagsBadges ? `<div class="flex flex-wrap gap-1 mt-1.5">${tagsBadges}</div>` : ''}
+                </div>
+            </div>
+
+            ${summary ? `<p class="text-[11px] text-zinc-400 italic line-clamp-2 leading-relaxed border-t border-zinc-800/80 pt-2 m-0">${escapeHtml(summary)}</p>` : ''}
+
+            ${statsList ? `<div class="flex flex-wrap gap-1 border-t border-zinc-800/80 pt-2">${statsList}</div>` : ''}
+
+            <div class="flex items-center gap-2 pt-1 border-t border-zinc-800/80">
+                <button
+                    type="button"
+                    id="btn-drawer-edit-hero"
+                    class="flex-1 py-1 px-2.5 bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 rounded-lg text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                    <app-icon name="edit" class="w-3 h-3 text-amber-400"></app-icon>
+                    <span>${t('hero.edit_hero_btn') || 'Edytuj Kartę Bohatera'}</span>
+                </button>
+            </div>
+        </div>
+    `
+
+    const btnEdit = container.querySelector('#btn-drawer-edit-hero')
+    if (btnEdit) {
+        btnEdit.onclick = e => {
+            e.stopPropagation()
+            openHeroModal({ ctx, editEntity: hero })
+        }
+    }
+
+    const card = container.querySelector('.drawer-item')
+    if (card) {
+        card.onclick = () => {
+            if (ctx.selectEntity) {
+                ctx.selectEntity(hero, 'player_character')
+            }
+        }
+    }
 }

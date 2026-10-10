@@ -550,7 +550,18 @@ export function setupImageEditorModal(ctx) {
                 adjustments: state.adjustments,
             })
 
-            const dataUrl = processedCanvas.toDataURL('image/png', 0.95)
+            const origExt = (state.originalRelativePath || '').split('.').pop()?.toLowerCase() || ''
+            let mimeType = 'image/png'
+            let quality = 0.95
+            if (origExt === 'jpg' || origExt === 'jpeg') {
+                mimeType = 'image/jpeg'
+                quality = 0.92
+            } else if (origExt === 'webp') {
+                mimeType = 'image/webp'
+                quality = 0.92
+            }
+
+            const dataUrl = processedCanvas.toDataURL(mimeType, quality)
             const projectPath = getActiveProjectPath(ctx)
 
             const res = await api.saveEditedImage({

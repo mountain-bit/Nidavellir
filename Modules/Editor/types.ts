@@ -16,11 +16,26 @@ export interface IEntityMentionItem {
     clientPoint?: { x: number; y: number }
 }
 
+export type DescriptionEmbedType = 'item' | 'character' | 'location'
+export type DescriptionEmbedVariant = 'text' | 'summary'
+
+export interface IDescriptionEmbedAttrs {
+    id: string
+    type: DescriptionEmbedType
+    variant?: DescriptionEmbedVariant
+    name?: string
+    label?: string
+    pos?: number
+    rect?: DOMRect
+    clientPoint?: { x: number; y: number }
+}
+
 export interface IDocumentEntities {
     locations: { id: string; name: string }[]
     characters: { id: string; name: string }[]
     tags: { id?: string; name: string }[]
     traits: { id?: string; name: string }[]
+    embeds?: IDescriptionEmbedAttrs[]
 }
 
 export type IProjectEntityCandidate = {
@@ -79,6 +94,7 @@ export interface IMarkdownEditorOptions {
     getCustomStyles?: () => ICustomTextStyle[]
     onUpdate?: (markdown: string, entities: IDocumentEntities) => void
     onEntityClick?: (entity: IEntityMentionItem) => void
+    onDescriptionEmbedClick?: (embed: IDescriptionEmbedAttrs) => void
     onSelectionUpdate?: (activeStates: IActiveFormatting) => void
 }
 

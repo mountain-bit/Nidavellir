@@ -63,6 +63,24 @@ export function createMockProjectData(vm) {
         vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
     ]
     const projectFeatures = [vm.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
+    const projectItems = [
+        {
+            id: 'item_sword',
+            name: 'Miecz żelazny',
+            description: {
+                text: 'Ostrze wykute w krasnoludzkiej kuźni, niezastąpione w boju.',
+                summary: 'Solidny miecz żelazny.',
+            },
+        },
+        {
+            id: 'item_potion',
+            name: 'Mikstura leczenia',
+            description: {
+                text: 'Czerwony eliksir przywracający siły witalne rannemu wędrowcowi.',
+                summary: 'Leczniczy wywar ziołowy.',
+            },
+        },
+    ]
 
     const p1 = new Paragraph(
         'p1',
@@ -164,16 +182,57 @@ export function createMockProjectData(vm) {
         ),
     ]
 
+    const playerCharacter = {
+        id: 'hero_player',
+        name: 'Geralt z Rivii',
+        avatar: 'wizard',
+        characterClass: 'Wędrowiec / Tropiciel',
+        summary: 'Doświadczony wędrowiec przemierzający nieznane krainy.',
+        description: {
+            summary: 'Doświadczony wędrowiec przemierzający nieznane krainy.',
+            text: '# Kronika Bohatera\n\nWędrowiec przemierzający niebezpieczne szlaki w poszukiwaniu wiedzy i przygód.',
+        },
+        tags: [projectTags[0]],
+        stats: [projectStats[0], projectStats[1]],
+        parameters: [projectParameters[0], projectParameters[1]],
+        skills: [projectSkills[0], projectSkills[1]],
+        customAttributes: [
+            { id: 'attr_origin', name: 'Pochodzenie', value: 'Północne Królestwa' },
+            { id: 'attr_destiny', name: 'Status', value: 'Wolny strzelec' },
+        ],
+        files: [],
+        getId: () => 'hero_player',
+        getName: () => 'Geralt z Rivii',
+        getAvatar: () => 'wizard',
+        getCharacterClass: () => 'Wędrowiec / Tropiciel',
+        getContent: () => ({
+            getSummary: () => 'Doświadczony wędrowiec przemierzający nieznane krainy.',
+            getText: () =>
+                '# Kronika Bohatera\n\nWędrowiec przemierzający niebezpieczne szlaki w poszukiwaniu wiedzy i przygód.',
+        }),
+        getTags: () => [projectTags[0]],
+        getStats: () => [projectStats[0], projectStats[1]],
+        getParameters: () => [projectParameters[0], projectParameters[1]],
+        getSkills: () => [projectSkills[0], projectSkills[1]],
+        getCustomAttributes: () => [
+            { id: 'attr_origin', name: 'Pochodzenie', value: 'Północne Królestwa' },
+            { id: 'attr_destiny', name: 'Status', value: 'Wolny strzelec' },
+        ],
+    }
+
     return {
         files: { ...mockFiles },
         projectTags,
         projectCharacters,
+        playerCharacter,
         projectTemplates,
         projectLocations,
         projectStats,
         projectSkills,
         projectParameters,
         projectFeatures,
+        projectItems,
+        items: projectItems,
         projectParagraphs,
         projectScenes,
     }
@@ -210,6 +269,7 @@ export function extractProjectData(project, files = {}) {
             files: {},
             projectTags: [],
             projectCharacters: [],
+            playerCharacter: null,
             projectTemplates: [],
             projectLocations: [],
             projectStats: [],
@@ -245,13 +305,21 @@ export function extractProjectData(project, files = {}) {
         typeof project.getGlobalParameters === 'function' ? project.getGlobalParameters() : []
     const features =
         typeof project.getGlobalFeatures === 'function' ? project.getGlobalFeatures() : []
+    const items = typeof project.getItems === 'function' ? project.getItems() : project.items || []
+    const playerCharacter =
+        typeof project.getPlayerCharacter === 'function'
+            ? project.getPlayerCharacter()
+            : project.playerCharacter || null
 
     return {
         files: files || {},
         projectTags: tags,
         projectCharacters: characters,
+        playerCharacter,
         projectTemplates: templates,
         projectLocations: locations,
+        projectItems: items,
+        items,
         projectStats: stats,
         projectSkills: skills,
         projectParameters: parameters,

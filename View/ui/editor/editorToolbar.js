@@ -2,6 +2,7 @@ import { CustomStylesService } from '../../../dist/Modules/Editor/index.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { pickProjectImage } from '../assetPicker.js'
 import { setupCustomStylesUI } from './customStylesMenu.js'
+import { openDescriptionEmbedModal } from './descriptionEmbedModal.js'
 import { openEntityLinkModal } from './entityLinkModal.js'
 
 export const TOOLBAR_BUTTON_STATE_MAP = [
@@ -221,6 +222,35 @@ export function setupToolbarButtons(editor, ctx, options = {}) {
                     initialType: type,
                 })
             })
+        })
+
+        const menuEmbedBtn =
+            document.getElementById(`${prefix}btn-menu-insert-description-embed`) ||
+            (!prefix ? document.getElementById('btn-menu-insert-description-embed') : null)
+        if (menuEmbedBtn) {
+            menuEmbedBtn.addEventListener('click', e => {
+                e.stopPropagation()
+                dropdownMenu.classList.add('hidden')
+                const rect =
+                    typeof menuEmbedBtn.getBoundingClientRect === 'function'
+                        ? menuEmbedBtn.getBoundingClientRect()
+                        : null
+                openDescriptionEmbedModal(editor, ctx, { targetRect: rect })
+            })
+        }
+    }
+
+    const embedBtn =
+        document.getElementById(`${prefix}btn-insert-description-embed`) ||
+        (!prefix ? document.getElementById('btn-insert-description-embed') : null)
+    if (embedBtn) {
+        embedBtn.addEventListener('click', e => {
+            e.preventDefault()
+            const rect =
+                typeof embedBtn.getBoundingClientRect === 'function'
+                    ? embedBtn.getBoundingClientRect()
+                    : null
+            openDescriptionEmbedModal(editor, ctx, { targetRect: rect })
         })
     }
 }

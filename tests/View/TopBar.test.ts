@@ -136,10 +136,10 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         `
 
         const mockParagraph = {
-            getId: () => 'p1',
-            getTitle: () => 'Start',
-            getIsStart: () => true,
-            getChoices: () => [],
+            getId: (): string => 'p1',
+            getTitle: (): string => 'Start',
+            getIsStart: (): boolean => true,
+            getChoices: (): unknown[] => [],
         }
 
         const mockCtx = {
@@ -176,24 +176,31 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         `
 
         const p2 = {
-            getId: () => 'p2',
-            getNumber: () => 2,
-            getTitle: () => 'Mroczny Las',
-            getIsStart: () => false,
-            getContent: () => ({ getSummary: () => 'Dotarłeś do mrocznego lasu.' }),
-            getChoices: () => [],
+            getId: (): string => 'p2',
+            getNumber: (): number => 2,
+            getTitle: (): string => 'Mroczny Las',
+            getIsStart: (): boolean => false,
+            getContent: (): { getSummary: () => string } => ({
+                getSummary: (): string => 'Dotarłeś do mrocznego lasu.',
+            }),
+            getChoices: (): unknown[] => [],
         }
 
         const p1 = {
-            getId: () => 'p1',
-            getNumber: () => 1,
-            getTitle: () => 'Rozstaje Dróg',
-            getIsStart: () => true,
-            getContent: () => ({ getSummary: () => 'Stoisz na rozstajach.' }),
-            getChoices: () => [
+            getId: (): string => 'p1',
+            getNumber: (): number => 1,
+            getTitle: (): string => 'Rozstaje Dróg',
+            getIsStart: (): boolean => true,
+            getContent: (): { getSummary: () => string } => ({
+                getSummary: (): string => 'Stoisz na rozstajach.',
+            }),
+            getChoices: (): Array<{
+                getTitle: () => string
+                getTargetParagraphId: () => string
+            }> => [
                 {
-                    getTitle: () => 'Idź do lasu',
-                    getTargetParagraphId: () => 'p2',
+                    getTitle: (): string => 'Idź do lasu',
+                    getTargetParagraphId: (): string => 'p2',
                 },
             ],
         }
@@ -227,5 +234,77 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
 
         expect(badge?.textContent).toContain('§ 2: Mroczny Las')
         expect(content?.textContent).toContain('Dotarłeś do mrocznego lasu.')
+    })
+
+    it('centers the graph and switches to graph view when "zoom-fit" (Dopasuj widok grafu) is clicked', async () => {
+        const { centerGraphView } = await import('../../View/ui/topBar.js')
+
+        const centerSpy = vi.fn()
+        const showGraphSpy = vi.fn()
+        const updateMainWorkspaceSpy = vi.fn()
+        const updateZoomSpy = vi.fn()
+
+        const mockCtx = {
+            storyGraphInstance: {
+                center: centerSpy,
+                getZoom: vi.fn().mockReturnValue(1),
+            },
+            showGraph: showGraphSpy,
+            updateMainWorkspaceUI: updateMainWorkspaceSpy,
+            updateZoomToolbarUI: updateZoomSpy,
+            vm: {
+                getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                setActiveMainView: vi.fn(),
+                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+            },
+        }
+
+        centerGraphView(mockCtx)
+
+        expect(showGraphSpy).toHaveBeenCalledWith(true)
+        expect(centerSpy).toHaveBeenCalledWith(true)
+        expect(updateZoomSpy).toHaveBeenCalledWith(mockCtx.storyGraphInstance)
+    })
+
+    it('opens settings in the side panel when "open-settings" (Opcje) is clicked', async () => {
+        const { openSettingsView } = await import('../../View/ui/topBar.js')
+
+        const updateLeftDrawerSpy = vi.fn()
+        const setActiveLeftTabSpy = vi.fn()
+
+        const mockCtx = {
+            updateLeftDrawerUI: updateLeftDrawerSpy,
+            vm: {
+                setActiveLeftTab: setActiveLeftTabSpy,
+                getActiveLeftTab: vi.fn().mockReturnValue('paragraphs'),
+                getActiveMainView: vi.fn().mockReturnValue('graph'),
+                isLeftDrawerOpen: vi.fn().mockReturnValue(true),
+                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+            },
+        }
+
+        openSettingsView(mockCtx)
+
+        expect(setActiveLeftTabSpy).toHaveBeenCalledWith('settings')
+        expect(updateLeftDrawerSpy).toHaveBeenCalled()
+    })
+
+    it('opens asset manager modal when "open-assets" is clicked', async () => {
+        document.body.innerHTML += `
+            <div id="asset-manager-modal" class="hidden"></div>
+        `
+        const mockCtx = {
+            projectPath: 'C:/fake/path',
+            vm: {},
+        }
+        initTopBar(mockCtx)
+
+        const assetBtn = document.querySelector('[data-action="open-assets"]') as HTMLButtonElement
+        expect(assetBtn).toBeTruthy()
+        assetBtn.click()
+
+        const modal = document.getElementById('asset-manager-modal')
+        expect(modal?.classList.contains('hidden')).toBe(false)
     })
 })

@@ -47,4 +47,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke('asset-import-file', { projectPath, filePath, prefix }),
     listImages: projectPath => ipcRenderer.invoke('asset-list-images', { projectPath }),
     saveEditedImage: payload => ipcRenderer.invoke('asset-save-edited-image', payload),
+    deleteAsset: (relativePath, projectPath) =>
+        ipcRenderer.invoke('asset-delete', { relativePath, projectPath }),
+    renameAsset: (oldRelativePath, newName, projectPath) =>
+        ipcRenderer.invoke('asset-rename', { oldRelativePath, newName, projectPath }),
+    openAssetInFolder: (relativePath, projectPath) =>
+        ipcRenderer.invoke('asset-open-folder', { relativePath, projectPath }),
 })

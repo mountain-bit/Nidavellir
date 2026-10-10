@@ -112,6 +112,7 @@ describe('mockData and projectData provider', () => {
             const data = extractProjectData(null)
             expect(data).toEqual({
                 files: {},
+                playerCharacter: null,
                 projectTags: [],
                 projectCharacters: [],
                 projectLocations: [],

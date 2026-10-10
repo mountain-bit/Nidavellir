@@ -22,6 +22,7 @@ import {
     renderCharactersList,
     renderConnectionsList,
     renderLocationsList,
+    renderMainCharacter,
     renderParagraphsList,
     renderScenesList,
     renderTagsList,
@@ -33,6 +34,7 @@ import {
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
 } from './ui/filterPopover.js'
+import { openHeroModal, setupHeroModal } from './ui/heroModal.js'
 import {
     executeNpcModalSave,
     hasUnsavedNpcChanges,
@@ -45,11 +47,13 @@ import {
     isProjectDirty,
     markProjectClean,
     markProjectDirty,
-    updateProjectSaveIndicatorUI,
+    updateProjectNameUI,
 } from './ui/projectStateTracker.js'
+import { initQuickSearch, openQuickSearch } from './ui/quickSearch.js'
 import { initTopBar, updateTopBarUI } from './ui/topBar.js'
 import {
     renderEditorTabs,
+    saveActiveFile,
     saveAllUnsavedFiles,
     setupResizers,
     updateMainWorkspaceUI,
@@ -110,7 +114,7 @@ const appContext = {
         return projectData.projectTemplates || []
     },
     get projectItems() {
-        return projectData.projectItems || []
+        return projectData.projectItems || projectData.items || []
     },
     get projectLocations() {
         return projectData.projectLocations
@@ -140,15 +144,20 @@ const appContext = {
     get files() {
         return projectData.files
     },
+    get playerCharacter() {
+        return projectData.playerCharacter || null
+    },
     get storyGraphInstance() {
         return storyGraphInstance
     },
+    saveActiveFile: () => saveActiveFile(appContext),
     selectEntity,
     refreshActiveSection,
     renderParagraphsList: () => renderParagraphsList(appContext),
     renderScenesList: () => renderScenesList(appContext),
     renderTagsList: () => renderTagsList(appContext),
     renderCharactersList: () => renderCharactersList(appContext),
+    renderMainCharacter: () => renderMainCharacter(appContext),
     renderLocationsList: () => renderLocationsList(appContext),
     renderTraitsList: () => renderTraitsList(appContext),
     renderDynamicSuggestions: () => renderDynamicSuggestions(appContext),
@@ -161,10 +170,29 @@ const appContext = {
     renderDetailsPanel: () => renderDetailsPanel(appContext),
     renderEditorTabs: () => renderEditorTabs(appContext),
     updateMainWorkspaceUI: () => updateMainWorkspaceUI(appContext),
+    openHeroModal: opts => openHeroModal(opts),
     openContextMenu,
     openColorPicker,
     handleColorSelection: color => handleColorSelection(color, appContext),
     showGraph: (force = false) => showGraph(force),
+    centerGraph: (animate = true) => {
+        if (storyGraphInstance) {
+            storyGraphInstance.center(animate)
+            updateZoomToolbarUI(storyGraphInstance)
+        }
+    },
+    updateZoomToolbarUI: (sg, lvl) => updateZoomToolbarUI(sg || storyGraphInstance, lvl),
+    updateLeftDrawerUI: () => updateLeftDrawerUI(),
+    openSettings: () => {
+        if (typeof vm.setActiveLeftTab === 'function') {
+            vm.setActiveLeftTab('settings')
+        } else if (vm.getActiveLeftTab() !== 'settings') {
+            vm.toggleLeftTab('settings')
+        }
+        updateLeftDrawerUI()
+        updateTopBarUI(appContext)
+    },
+    openQuickSearch: () => openQuickSearch(appContext),
     markProjectDirty: () => markProjectDirty(),
     markProjectClean: () => markProjectClean(),
 }
@@ -251,6 +279,7 @@ function updateLeftDrawerUI() {
         else if (activeLeftTab === 'locations') renderLocationsList(appContext)
         else if (activeLeftTab === 'traits') renderTraitsList(appContext)
         else if (activeLeftTab === 'tags') renderTagsList(appContext)
+        else if (activeLeftTab === 'main-character') renderMainCharacter(appContext)
     } else if (leftDrawer) {
         leftDrawer.classList.add('collapsed')
         if (leftResizer) leftResizer.classList.add('collapsed')
@@ -266,8 +295,14 @@ function refreshActiveSection(type) {
         renderParagraphsList(appContext)
         renderScenesList(appContext)
     }
-    if (type === 'character') {
+    if (
+        type === 'character' ||
+        type === 'player_character' ||
+        type === 'playerCharacter' ||
+        type === 'main-character'
+    ) {
         renderCharactersList(appContext)
+        renderMainCharacter(appContext)
         populateFilterSelects(appContext)
         renderParagraphsList(appContext)
         renderScenesList(appContext)
@@ -453,6 +488,7 @@ function showGraph(forceRebuild = false) {
     }
 
     storyGraphInstance.render(forceRebuild)
+    window.storyGraphInstance = storyGraphInstance
     updateZoomToolbarUI(storyGraphInstance)
 }
 
@@ -491,7 +527,7 @@ const btnGraphZoomFit = document.getElementById('btn-graph-zoom-fit')
 if (btnGraphZoomFit) {
     btnGraphZoomFit.addEventListener('click', () => {
         if (storyGraphInstance) {
-            storyGraphInstance.fit()
+            storyGraphInstance.center()
             updateZoomToolbarUI(storyGraphInstance)
         }
     })
@@ -585,6 +621,21 @@ document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
     })
 })
 
+document.querySelectorAll('[data-action="open-main-character"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        vm.toggleLeftTab('main-character')
+        updateLeftDrawerUI()
+    })
+})
+
+document.querySelectorAll('[data-action="open-hero-modal"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault()
+        e.stopPropagation()
+        openHeroModal({ ctx: appContext })
+    })
+})
+
 document.querySelectorAll('[data-action="open-npcs"]').forEach(btn => {
     btn.addEventListener('click', () => {
         vm.toggleLeftTab('characters')
@@ -654,14 +705,6 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
     btn.addEventListener('click', () => saveFullProject(appContext))
 })
 
-function updateProjectNameUI(name) {
-    const titleEl = document.getElementById('project-name-display')
-    if (titleEl) {
-        titleEl.textContent = name || 'Projekt'
-    }
-    updateProjectSaveIndicatorUI(isProjectDirty() ? 'dirty' : 'clean', name || 'Projekt')
-}
-
 function applyLoadedProject(projectInstance, projectPath) {
     if (!projectInstance) return
 
@@ -672,7 +715,11 @@ function applyLoadedProject(projectInstance, projectPath) {
     window.currentProjectPath = projectPath || ''
 
     markProjectClean()
-    updateProjectNameUI(projectInstance.getName())
+    const projName =
+        projectInstance.getName() ||
+        (projectPath ? projectPath.split(/[\\/]/).filter(Boolean).pop() : '') ||
+        'Projekt'
+    updateProjectNameUI(projName)
 
     if (typeof vm.clearSelection === 'function') {
         vm.clearSelection()
@@ -829,6 +876,11 @@ if (fileEditor) {
 // Initial Render & i18n setup
 async function initApp() {
     try {
+        await initTranslations()
+        applyTranslations()
+
+        let projectLoaded = false
+
         if (window.electronAPI && typeof window.electronAPI.getCurrentProject === 'function') {
             try {
                 const cur = await window.electronAPI.getCurrentProject()
@@ -846,23 +898,44 @@ async function initApp() {
                             projectData = extractProjectData(projectInstance, {})
                             vm.ensureStartParagraph(projectData.projectParagraphs)
                             markProjectClean()
-                            updateProjectNameUI(projectInstance.getName() || openRes.project.name)
+                            const projName =
+                                projectInstance.getName() ||
+                                openRes.project.name ||
+                                (cur ? cur.split(/[\\/]/).filter(Boolean).pop() : '') ||
+                                'Projekt'
+                            updateProjectNameUI(projName)
+                            projectLoaded = true
                         }
                     }
                 }
             } catch (err) {
                 console.warn('Could not query current project path on startup:', err)
             }
-        } else if (ProjectManager.getInstance().getProject()) {
+        }
+
+        if (!projectLoaded && ProjectManager.getInstance().getProject()) {
             const existingProj = ProjectManager.getInstance().getProject()
             projectData = extractProjectData(existingProj, {})
             vm.ensureStartParagraph(projectData.projectParagraphs)
             markProjectClean()
             updateProjectNameUI(existingProj.getName())
+            projectLoaded = true
         }
 
-        await initTranslations()
-        applyTranslations()
+        if (!projectLoaded) {
+            const curProj = ProjectManager.getInstance().getProject()
+            if (curProj && curProj.getName()) {
+                updateProjectNameUI(curProj.getName())
+            } else if (
+                projectData &&
+                (projectData.name ||
+                    (projectData.projectParagraphs && projectData.projectParagraphs.length > 0))
+            ) {
+                updateProjectNameUI(projectData.name || 'Moja Gra')
+            } else {
+                updateProjectNameUI('')
+            }
+        }
 
         const initialLeftWidth = vm.getLeftDrawerWidth()
         if (leftDrawer) {
@@ -879,6 +952,7 @@ async function initApp() {
         setupParagraphSearchAndFilters(appContext)
         setupSectionControlsAndContextMenu(appContext)
         setupNpcModal(appContext)
+        setupHeroModal(appContext)
         setupResizers(leftDrawer, rightSidebar, vm)
 
         // Initial drawer lists & filters rendering
@@ -886,6 +960,7 @@ async function initApp() {
         renderScenesList(appContext)
         renderConnectionsList(appContext)
         renderCharactersList(appContext)
+        renderMainCharacter(appContext)
         renderLocationsList(appContext)
         renderTraitsList(appContext)
         renderTagsList(appContext)
@@ -894,6 +969,7 @@ async function initApp() {
 
         updateRibbonUI()
         initTopBar(appContext)
+        initQuickSearch(appContext)
         updateTopBarUI(appContext)
         updateLeftDrawerUI()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
@@ -908,6 +984,21 @@ async function initApp() {
                 const newLang = langSelect.value
                 await setLanguage(newLang)
                 applyTranslations()
+                const currentProj = ProjectManager.getInstance().getProject()
+                if (currentProj && currentProj.getName()) {
+                    updateProjectNameUI(currentProj.getName())
+                } else {
+                    const titleEl = document.getElementById('project-name-display')
+                    const currentTitle = titleEl?.textContent?.trim()
+                    if (
+                        !titleEl ||
+                        titleEl.hasAttribute('data-i18n') ||
+                        !currentTitle ||
+                        currentTitle === t('topbar.project_placeholder')
+                    ) {
+                        updateProjectNameUI('')
+                    }
+                }
                 updateLeftDrawerUI()
                 renderFilterTags(appContext)
                 populateFilterSelects(appContext)
@@ -916,6 +1007,7 @@ async function initApp() {
                 renderConnectionsList(appContext)
                 renderTagsList(appContext)
                 renderCharactersList(appContext)
+                renderMainCharacter(appContext)
                 renderLocationsList(appContext)
                 renderTraitsList(appContext)
                 renderHistoryBar(appContext)

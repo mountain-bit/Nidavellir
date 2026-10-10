@@ -20,6 +20,18 @@ function registerAssetIpc() {
     ipcMain.handle('asset-save-edited-image', async (_event, payload) => {
         return await AssetService.saveEditedImage(payload)
     })
+
+    ipcMain.handle('asset-delete', async (_event, payload) => {
+        return await AssetService.deleteAsset(payload)
+    })
+
+    ipcMain.handle('asset-rename', async (_event, payload) => {
+        return await AssetService.renameAsset(payload)
+    })
+
+    ipcMain.handle('asset-open-folder', async (_event, payload) => {
+        return await AssetService.openAssetInFolder(payload)
+    })
 }
 
 module.exports = { registerAssetIpc }

@@ -76,8 +76,16 @@ export async function saveFullProject(ctx, options = {}) {
             ...(ctx.projectFeatures || []),
         ].map(r => (r && typeof r.toJSON === 'function' ? r.toJSON() : r))
 
+        const rawDisplayName = document.getElementById('project-name-display')?.textContent?.trim()
+        const placeholder =
+            (typeof t === 'function' ? t('topbar.project_placeholder') : '') || 'Brak projektu'
         const projectName =
-            document.getElementById('project-name-display')?.textContent?.trim() ||
+            (rawDisplayName &&
+            rawDisplayName !== placeholder &&
+            rawDisplayName !== 'No project' &&
+            rawDisplayName !== 'Kein Projekt'
+                ? rawDisplayName
+                : '') ||
             ctx.vm?.project?.getName?.() ||
             'Projekt'
 

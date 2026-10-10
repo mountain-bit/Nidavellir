@@ -8,6 +8,7 @@ import { t } from '../../../dist/Utils/translate.js'
 import { importDroppedImage, setupElementDropZone } from '../assetPicker.js'
 import { markFileDirty } from '../confirmModal.js'
 import { openImageEditor } from '../imageEditorModal.js'
+import { openDescriptionEmbedModal } from './descriptionEmbedModal.js'
 import { setupToolbarButtons, updateToolbarActiveStates } from './editorToolbar.js'
 import { extractAvailableProjectEntities, openEntityLinkModal } from './entityLinkModal.js'
 
@@ -331,6 +332,16 @@ export function getOrCreateMainEditor(ctx) {
                 badgePos: entity.pos,
                 targetRect: entity.rect,
                 point: entity.clientPoint,
+            })
+        },
+        onDescriptionEmbedClick: embed => {
+            openDescriptionEmbedModal(mainEditorInstance, ctx, {
+                initialEntityId: embed.id,
+                initialType: embed.type,
+                initialVariant: embed.variant,
+                embedPos: embed.pos,
+                targetRect: embed.rect,
+                point: embed.clientPoint,
             })
         },
         onSelectionUpdate: activeStates => {

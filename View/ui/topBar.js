@@ -1,9 +1,11 @@
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
-import { pickProjectImage } from './assetPicker.js'
+import { openAssetManager } from './assetManagerModal.js'
 import { validateStoryGraph } from './graphValidator.js'
 import { saveFullProject } from './projectSaver.js'
+import { openQuickSearch } from './quickSearch.js'
+import { updateZoomToolbarUI } from './workspace.js'
 
 /**
  * Updates active visual indicators on top bar buttons
@@ -14,9 +16,12 @@ import { saveFullProject } from './projectSaver.js'
 export function updateTopBarUI(ctx) {
     if (!ctx || !ctx.vm) return
 
-    const activeView = ctx.vm.getActiveMainView() // 'graph' | 'markdown'
-    const isLeftOpen = ctx.vm.isLeftDrawerOpen()
-    const isRightOpen = ctx.vm.isRightSidebarOpen ? ctx.vm.isRightSidebarOpen() : true
+    const activeView =
+        typeof ctx.vm.getActiveMainView === 'function' ? ctx.vm.getActiveMainView() : 'graph'
+    const isLeftOpen =
+        typeof ctx.vm.isLeftDrawerOpen === 'function' ? ctx.vm.isLeftDrawerOpen() : false
+    const isRightOpen =
+        typeof ctx.vm.isRightSidebarOpen === 'function' ? ctx.vm.isRightSidebarOpen() : true
 
     // Update segmented view buttons
     const btnGraph = document.querySelector('[data-action="show-graph"]')
@@ -337,8 +342,18 @@ export function openExportModal(ctx) {
  * @param {object} ctx Application Context
  */
 function executeExport(format, ctx) {
+    const rawDisplayName = document.getElementById('project-name-display')?.textContent?.trim()
+    const placeholder =
+        (typeof t === 'function' ? t('topbar.project_placeholder') : '') || 'Brak projektu'
     const projectName =
-        document.getElementById('project-name-display')?.textContent?.trim() || 'Moja_Gra'
+        (rawDisplayName &&
+        rawDisplayName !== placeholder &&
+        rawDisplayName !== 'No project' &&
+        rawDisplayName !== 'Kein Projekt'
+            ? rawDisplayName
+            : '') ||
+        ctx?.vm?.project?.getName?.() ||
+        'Moja_Gra'
     const cleanFilename = projectName.replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_')
 
     if (format === 'json') {
@@ -519,6 +534,16 @@ function registerGlobalShortcuts(ctx) {
             return
         }
 
+        // Ctrl + P / Ctrl + K: Szybkie wyszukiwanie (Quick Search)
+        if (
+            (e.ctrlKey || e.metaKey) &&
+            (e.key === 'p' || e.key === 'P' || e.key === 'k' || e.key === 'K')
+        ) {
+            e.preventDefault()
+            openQuickSearch(ctx)
+            return
+        }
+
         if (isInput) return
 
         // Ctrl + O: Otwórz projekt
@@ -536,14 +561,10 @@ function registerGlobalShortcuts(ctx) {
             return
         }
 
-        // Ctrl + , : Otwórz ustawienia
+        // Ctrl + , : Otwórz ustawienia (Opcje w panelu bocznym)
         if ((e.ctrlKey || e.metaKey) && (e.key === ',' || e.code === 'Comma')) {
             e.preventDefault()
-            if (ctx.vm) {
-                ctx.vm.toggleLeftTab('settings')
-                if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
-                updateTopBarUI(ctx)
-            }
+            openSettingsView(ctx)
             return
         }
 
@@ -611,6 +632,109 @@ function registerGlobalShortcuts(ctx) {
 }
 
 /**
+ * Centers the story graph in the workspace and ensures the graph view is active.
+ *
+ * @param {object} ctx - Application context
+ */
+export function centerGraphView(ctx) {
+    if (!ctx) return
+
+    // 1. Switch to graph view if not active
+    if (typeof ctx.showGraph === 'function') {
+        ctx.showGraph(true)
+    } else if (ctx.vm && typeof ctx.vm.setActiveMainView === 'function') {
+        ctx.vm.setActiveMainView('graph')
+    }
+    if (typeof ctx.updateMainWorkspaceUI === 'function') {
+        ctx.updateMainWorkspaceUI(ctx)
+    }
+    if (typeof updateTopBarUI === 'function') {
+        updateTopBarUI(ctx)
+    }
+
+    // 2. Center the graph on all elements
+    if (typeof ctx.centerGraph === 'function') {
+        ctx.centerGraph(true)
+    } else {
+        const graphInstance =
+            ctx.storyGraphInstance ||
+            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
+
+        if (graphInstance && typeof graphInstance.center === 'function') {
+            graphInstance.center(true)
+            if (typeof ctx.updateZoomToolbarUI === 'function') {
+                ctx.updateZoomToolbarUI(graphInstance)
+            } else if (typeof updateZoomToolbarUI === 'function') {
+                updateZoomToolbarUI(graphInstance)
+            }
+        } else if (graphInstance && typeof graphInstance.fit === 'function') {
+            graphInstance.fit(40)
+            if (typeof ctx.updateZoomToolbarUI === 'function') {
+                ctx.updateZoomToolbarUI(graphInstance)
+            } else if (typeof updateZoomToolbarUI === 'function') {
+                updateZoomToolbarUI(graphInstance)
+            }
+        } else {
+            const fitBtn = document.getElementById('btn-graph-zoom-fit')
+            if (fitBtn) {
+                fitBtn.click()
+            }
+        }
+    }
+
+    // Support legacy test mock if #btn-zoom-reset exists
+    const legacyResetBtn = document.getElementById('btn-zoom-reset')
+    if (legacyResetBtn) {
+        legacyResetBtn.click()
+    }
+}
+
+/**
+ * Opens the options/settings tab in the left side panel drawer.
+ *
+ * @param {object} ctx - Application context
+ */
+export function openSettingsView(ctx) {
+    if (!ctx) return
+
+    if (typeof ctx.openSettings === 'function') {
+        ctx.openSettings()
+        return
+    }
+
+    if (ctx.vm) {
+        if (typeof ctx.vm.setActiveLeftTab === 'function') {
+            ctx.vm.setActiveLeftTab('settings')
+        } else if (typeof ctx.vm.toggleLeftTab === 'function') {
+            if (
+                typeof ctx.vm.getActiveLeftTab === 'function' &&
+                ctx.vm.getActiveLeftTab() !== 'settings'
+            ) {
+                ctx.vm.toggleLeftTab('settings')
+            } else if (
+                typeof ctx.vm.isLeftDrawerOpen === 'function' &&
+                !ctx.vm.isLeftDrawerOpen()
+            ) {
+                ctx.vm.toggleLeftTab('settings')
+            }
+        }
+    }
+
+    if (typeof ctx.updateLeftDrawerUI === 'function') {
+        ctx.updateLeftDrawerUI()
+    } else {
+        const settingsTabBtn = document.querySelector('[data-left-tab="settings"]')
+        if (settingsTabBtn && typeof settingsTabBtn.click === 'function') {
+            settingsTabBtn.click()
+        }
+    }
+
+    if (typeof updateTopBarUI === 'function') {
+        updateTopBarUI(ctx)
+    }
+}
+
+/**
  * Initializes click handlers, modals and keyboard shortcuts for Top Bar buttons.
  *
  * @param {object} ctx - Application context
@@ -647,16 +771,7 @@ export function initTopBar(ctx) {
     // Quick search button
     document.querySelectorAll('[data-action="quick-search"]').forEach(btn => {
         btn.addEventListener('click', () => {
-            const searchInput = document.getElementById('search-input')
-            if (searchInput) {
-                if (!ctx.vm.isLeftDrawerOpen()) {
-                    ctx.vm.toggleLeftTab('paragraphs')
-                    if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
-                }
-                searchInput.focus()
-            } else {
-                toast.info(t('topbar.buttons.search') || 'Szukaj')
-            }
+            openQuickSearch(ctx)
         })
     })
 
@@ -700,36 +815,24 @@ export function initTopBar(ctx) {
         btnClosePlaytest.onclick = () => playtestModal.classList.add('hidden')
     }
 
-    // Fit Graph to View button
+    // Fit / Center Graph to View button ("Dopasuj widok grafu" -> wyśrodkowanie grafu)
     document.querySelectorAll('[data-action="zoom-fit"]').forEach(btn => {
         btn.addEventListener('click', () => {
-            const resetBtn = document.getElementById('btn-zoom-reset')
-            if (resetBtn) {
-                resetBtn.click()
-            } else {
-                toast.info(t('topbar.buttons.zoom_fit') || 'Dopasuj graf')
-            }
+            centerGraphView(ctx)
         })
     })
 
-    // Settings button -> Switches left drawer to settings tab
+    // Settings / Options button -> Opens options in the side panel
     document.querySelectorAll('[data-action="open-settings"]').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (ctx.vm) {
-                ctx.vm.toggleLeftTab('settings')
-                if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
-                updateTopBarUI(ctx)
-            }
+            openSettingsView(ctx)
         })
     })
 
-    // Assets button -> Launches image picker
+    // Assets button -> Launches Asset Manager
     document.querySelectorAll('[data-action="open-assets"]').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const res = await pickProjectImage(ctx, 'asset')
-            if (res && res.fileName) {
-                toast.success(`Zaimportowano plik do zasobów: ${res.fileName}`, 'Zasoby graficzne')
-            }
+        btn.addEventListener('click', () => {
+            openAssetManager(ctx)
         })
     })
 

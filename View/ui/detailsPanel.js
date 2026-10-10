@@ -9,6 +9,7 @@ import { t } from '../../dist/Utils/translate.js'
 import { Choice } from '../../dist/ViewModel/MainWindowViewModel.js'
 import { renderChoiceDetails } from './detailsPanel/choiceDetails.js'
 import { renderExitsModule } from './detailsPanel/exitsModule.js'
+import { renderHeroReadOnlyDetails } from './detailsPanel/heroReadOnlyDetails.js'
 import { renderHistoryBar as renderHistoryBarModule } from './detailsPanel/historyBar.js'
 import {
     renderCharactersModule,
@@ -49,6 +50,7 @@ export {
     renderExitsModule,
     renderFeaturesModule,
     renderFilesModule,
+    renderHeroReadOnlyDetails,
     renderLocationsModule,
     renderNameModule,
     renderNpcReadOnlyDetails,
@@ -118,6 +120,11 @@ export function renderDetailsPanel(ctx) {
 
     if (type === 'character' || type === 'template') {
         renderNpcReadOnlyDetails(container, entity, item, type, ctx)
+        return
+    }
+
+    if (type === 'player_character' || type === 'playerCharacter' || type === 'main-character') {
+        renderHeroReadOnlyDetails(container, entity, item, type, ctx)
         return
     }
 

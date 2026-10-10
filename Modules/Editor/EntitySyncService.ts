@@ -63,6 +63,15 @@ export class EntitySyncService {
                         else if (type === 'tag') tagsMap.set(key, label)
                         else if (type === 'trait') traitsMap.set(key, label)
                     }
+                } else if (node.type && node.type.name === 'descriptionEmbed' && node.attrs) {
+                    const id = String(node.attrs.id || '').trim()
+                    const label = String(node.attrs.name || id).trim()
+                    const type = String(node.attrs.type || 'item').toLowerCase()
+                    if (id || label) {
+                        const key = id || label
+                        if (type === 'location') locationsMap.set(key, label)
+                        else if (type === 'character') charactersMap.set(key, label)
+                    }
                 }
             })
         } else if (typeof source === 'string') {
@@ -79,6 +88,28 @@ export class EntitySyncService {
                 else if (type === 'character') charactersMap.set(key, label)
                 else if (type === 'tag') tagsMap.set(key, label)
                 else if (type === 'trait') traitsMap.set(key, label)
+            }
+
+            // Also extract from embed links [Label](embed://type/id/variant)
+            const embedLinkRegex =
+                /\[([^\]]+)\]\(embed:\/\/(item|character|location)\/([^/?#):]+)(?:[/:]?[^)]*)?\)/g
+            let elMatch: RegExpExecArray | null
+            while ((elMatch = embedLinkRegex.exec(source)) !== null) {
+                const type = elMatch[2].trim().toLowerCase()
+                const id = elMatch[3].trim()
+                const label = elMatch[1].trim()
+                if (type === 'location') locationsMap.set(id, label)
+                else if (type === 'character') charactersMap.set(id, label)
+            }
+
+            // Also extract from embed macro {{embed:type:id...}}
+            const embedRegex = /\{\{embed:(item|character|location):([^:}]+)(?::[^}]+)?\}\}/g
+            let embedMatch: RegExpExecArray | null
+            while ((embedMatch = embedRegex.exec(source)) !== null) {
+                const type = embedMatch[1].trim().toLowerCase()
+                const id = embedMatch[2].trim()
+                if (type === 'location') locationsMap.set(id, id)
+                else if (type === 'character') charactersMap.set(id, id)
             }
         }
 
