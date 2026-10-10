@@ -43,6 +43,7 @@ function createMainWindow() {
         minHeight: 600,
         frame: true,
         resizable: true,
+        autoHideMenuBar: true,
         webPreferences: {
             preload: path.join(__dirname, '..', 'preload.js'),
             nodeIntegration: false,
@@ -52,6 +53,7 @@ function createMainWindow() {
         backgroundColor: '#141517',
     })
 
+    mainWindow.setMenu(null)
     mainWindow.maximize()
     mainWindow.loadFile('View/MainWindow.html')
 
