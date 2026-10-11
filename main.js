@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, Menu } = require('electron')
 const { initI18n } = require('./Utils/i18n')
 const { createStartWindow } = require('./main/windowManager')
 const { registerAllIpc } = require('./main/ipc')
@@ -10,6 +10,7 @@ const {
 registerAssetScheme()
 
 app.whenReady().then(async () => {
+    Menu.setApplicationMenu(null)
     registerAssetProtocol()
     await initI18n()
     registerAllIpc()

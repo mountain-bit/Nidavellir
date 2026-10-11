@@ -31,7 +31,7 @@ describe('Project Dirty State and Indicator System', () => {
                 <button id="btn-unsaved-close">X</button>
             </div>
         `
-        document.title = 'Silnik Gier Paragrafowych'
+        document.title = 'Nidavelir'
         markProjectClean()
     })
 
@@ -82,7 +82,7 @@ describe('Project Dirty State and Indicator System', () => {
 
         const saveBtn = document.querySelector('[data-action="save"]')
         expect(saveBtn?.classList.contains('ring-1')).toBe(false)
-        expect(document.title).toBe('Przygoda w Dolinie - Silnik Gier Paragrafowych')
+        expect(document.title).toBe('Przygoda w Dolinie - Nidavelir')
     })
 
     it('markFileDirty automatycznie wywołuje markProjectDirty', () => {

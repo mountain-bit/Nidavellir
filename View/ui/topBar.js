@@ -234,7 +234,7 @@ export function openPlaytestSimulator(ctx) {
                     <button
                         type="button"
                         id="btn-playtest-restart-inline"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer"
+                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#245842] hover:bg-[#2e6d52] border border-[#357357] text-white transition-colors cursor-pointer"
                     >
                         Zacznij od nowa
                     </button>
@@ -264,13 +264,13 @@ export function openPlaytestSimulator(ctx) {
                     return `
                     <button
                         type="button"
-                        class="btn-playtest-choice w-full text-left p-3 rounded-lg bg-[#202024] hover:bg-[#28282e] border border-[#2d2d32] hover:border-blue-500/60 transition-all flex items-center justify-between group cursor-pointer"
+                        class="btn-playtest-choice w-full text-left p-3 rounded-lg bg-[#1e1f23] hover:bg-[#26282e] border border-[#2e3037] hover:border-[#4a5e74]/60 transition-all flex items-center justify-between group cursor-pointer"
                         data-target-id="${targetId}"
                     >
                         <span class="text-zinc-200 group-hover:text-white font-medium text-xs">
                             ${idx + 1}. ${escapeHtml(chTitle)}
                         </span>
-                        <span class="text-blue-400 text-xs transition-transform group-hover:translate-x-1">→</span>
+                        <span class="text-[#9bb7d4] text-xs transition-transform group-hover:translate-x-1">→</span>
                     </button>
                 `
                 })

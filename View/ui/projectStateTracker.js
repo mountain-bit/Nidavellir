@@ -101,7 +101,7 @@ export function updateProjectSaveIndicatorUI(state, customProjectName) {
                 'inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded text-amber-400 bg-amber-500/10 border border-amber-500/25 animate-pulse'
         }
 
-        document.title = `• ${projectName} (${unsavedLabel}) - Silnik Gier Paragrafowych`
+        document.title = `• ${projectName} (${unsavedLabel}) - Nidavelir`
 
         saveBtns.forEach(btn => {
             btn.classList.add('ring-1', 'ring-amber-500/40')
@@ -115,7 +115,7 @@ export function updateProjectSaveIndicatorUI(state, customProjectName) {
                 'inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded text-zinc-400 bg-zinc-800/80 border border-zinc-700/60'
         }
 
-        document.title = `Zapisywanie: ${projectName} - Silnik Gier Paragrafowych`
+        document.title = `Zapisywanie: ${projectName} - Nidavelir`
     } else if (state === 'saved') {
         const savedLabel = resolveText('toast.save_success', 'Zapisano')
 
@@ -125,7 +125,7 @@ export function updateProjectSaveIndicatorUI(state, customProjectName) {
                 'inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded text-emerald-400 bg-emerald-500/10 border border-emerald-500/25'
         }
 
-        document.title = `${projectName} - Silnik Gier Paragrafowych`
+        document.title = `${projectName} - Nidavelir`
 
         saveBtns.forEach(btn => {
             btn.classList.remove('ring-1', 'ring-amber-500/40')
@@ -143,7 +143,7 @@ export function updateProjectSaveIndicatorUI(state, customProjectName) {
             indicatorEl.className = 'hidden'
             indicatorEl.textContent = ''
         }
-        document.title = `${projectName} - Silnik Gier Paragrafowych`
+        document.title = `${projectName} - Nidavelir`
         saveBtns.forEach(btn => {
             btn.classList.remove('ring-1', 'ring-amber-500/40')
         })

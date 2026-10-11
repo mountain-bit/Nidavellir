@@ -679,8 +679,8 @@ function renderCategoryFilters() {
                     type="button"
                     class="quick-search-filter-btn px-2.5 py-1 rounded-lg transition-all shrink-0 cursor-pointer font-medium ${
                         isActive
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-zinc-800/80 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700/80 border border-zinc-700/50'
+                            ? 'bg-[#3d4e61] text-white border border-[#4a5e74] shadow-sm'
+                            : 'bg-[#1e1f24] text-zinc-400 hover:text-zinc-200 hover:bg-[#25272e] border border-[#2e3037]'
                     }"
                     data-filter="${cat.id}"
                 >${cat.label}</button>
@@ -760,8 +760,8 @@ export function renderQuickSearchResults(ctx, query) {
                 <div
                     class="quick-search-item group flex items-center justify-between p-2.5 rounded-xl transition-all cursor-pointer select-none ${
                         isSelected
-                            ? 'bg-blue-600/20 border border-blue-500/40 text-white ring-1 ring-blue-500/30'
-                            : 'bg-[#18181b]/80 border border-[#27272a] hover:bg-[#202025] hover:border-zinc-700 text-zinc-200'
+                            ? 'bg-[#3d4e61]/35 border border-[#4a5e74] text-white ring-1 ring-[#5b738e]/40'
+                            : 'bg-[#1e1f24] border border-[#2e3037] hover:bg-[#25272e] hover:border-[#4a5e74]/50 text-zinc-200'
                     }"
                     data-index="${idx}"
                     data-item-id="${escapeHtml(item.id)}"

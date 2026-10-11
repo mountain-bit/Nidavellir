@@ -3,9 +3,14 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Start - Silnik Gier Paragrafowych</title>
+        <title>Start - Nidavelir</title>
         <link rel="stylesheet" href="MainWindow.generated.css" />
         <style>
+            html,
+            body {
+                background: transparent !important;
+                background-color: transparent !important;
+            }
             .custom-scrollbar::-webkit-scrollbar {
                 width: 6px;
             }
@@ -51,26 +56,20 @@
                 </svg>
             </button>
 
-            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div
-                    class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-blue-900/10 blur-[100px]"
-                ></div>
-            </div>
-
             <div
                 class="relative flex w-1/2 flex-col p-10 border-r border-zinc-800 bg-zinc-950/80 z-10"
                 style="-webkit-app-region: no-drag"
             >
                 <div class="flex items-center gap-4 mb-12">
                     <div
-                        class="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-[#58a6ff] text-2xl font-bold shadow-sm"
+                        class="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 border border-zinc-700 text-[#8fa8c2] text-2xl font-bold shadow-sm"
                     >
                         §
                     </div>
                     <div>
-                        <h1 class="text-2xl font-semibold tracking-tight text-zinc-50">SGP</h1>
-                        <p class="text-sm text-zinc-400" data-i18n="start_window.app_subtitle">
-                            Silnik Gier Paragrafowych
+                        <h1 class="text-2xl font-semibold tracking-tight text-zinc-50">Nidavelir</h1>
+                        <p class="text-xs text-zinc-400" data-i18n="start_window.app_subtitle">
+                            Środowisko gier paragrafowych
                         </p>
                     </div>
                 </div>
@@ -243,7 +242,7 @@
                     <input
                         type="text"
                         id="np-name"
-                        class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 placeholder-zinc-700"
+                        class="w-full bg-zinc-950 border border-zinc-800 rounded px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-slate-500/60 focus:ring-1 focus:ring-slate-500/40 placeholder-zinc-700"
                         data-i18n-placeholder="start_window.np_name_placeholder"
                         style="-webkit-app-region: no-drag"
                     />

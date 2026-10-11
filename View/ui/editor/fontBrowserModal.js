@@ -126,7 +126,7 @@ export function setupFontBrowserUI(ctx, onSelectFont) {
             const pickBtn = document.createElement('button')
             pickBtn.type = 'button'
             pickBtn.className =
-                'px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium cursor-pointer transition-colors shadow-xs ml-auto'
+                'px-3 py-1 rounded-lg bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white text-xs font-medium cursor-pointer transition-colors shadow-xs ml-auto'
             pickBtn.textContent = t('editor.font_browser.pick_btn')
             pickBtn.addEventListener('click', () => {
                 if (typeof onSelectFont === 'function') {
@@ -245,11 +245,11 @@ export function setupFontBrowserUI(ctx, onSelectFont) {
     categoryBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             categoryBtns.forEach(b => {
-                b.classList.remove('bg-blue-600', 'text-white')
-                b.classList.add('bg-zinc-800', 'text-zinc-300')
+                b.classList.remove('bg-[#3d4e61]', 'text-white', 'border-[#4a5e74]')
+                b.classList.add('bg-[#1e1f24]', 'text-zinc-300', 'border-[#2e3037]')
             })
-            btn.classList.remove('bg-zinc-800', 'text-zinc-300')
-            btn.classList.add('bg-blue-600', 'text-white')
+            btn.classList.remove('bg-[#1e1f24]', 'text-zinc-300', 'border-[#2e3037]')
+            btn.classList.add('bg-[#3d4e61]', 'text-white', 'border-[#4a5e74]')
 
             currentCategory = btn.getAttribute('data-font-category') || 'all'
             applyFilters()

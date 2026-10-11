@@ -63,8 +63,8 @@ export function updateSelectedAvatarPreview(avatarId) {
         grid.querySelectorAll('[data-avatar-id]').forEach(card => {
             const isSelected = card.dataset.avatarId === avatar.id
             card.classList.toggle('ring-2', isSelected)
-            card.classList.toggle('ring-blue-400', isSelected)
-            card.classList.toggle('bg-[#27272a]', isSelected)
+            card.classList.toggle('ring-[#5b738e]', isSelected)
+            card.classList.toggle('bg-[#24262b]', isSelected)
         })
     }
 }
@@ -118,7 +118,7 @@ export function initAvatarGrid(ctx) {
 
         // Drag & drop directly onto the portrait trigger frame
         setupElementDropZone(triggerBtn, {
-            highlightClass: 'ring-4 ring-blue-400 bg-blue-500/20 scale-[1.03]',
+            highlightClass: 'ring-2 ring-[#5b738e] bg-[#3d4e61]/25 scale-[1.02]',
             onFileDrop: async file => {
                 const imported = await importDroppedImage(file, ctx, 'npc')
                 if (imported && imported.relativePath) {
@@ -131,7 +131,7 @@ export function initAvatarGrid(ctx) {
 
         // Drag & drop onto the popover
         setupElementDropZone(popover, {
-            highlightClass: 'ring-2 ring-blue-400 bg-blue-500/10',
+            highlightClass: 'ring-2 ring-[#5b738e] bg-[#3d4e61]/20',
             onFileDrop: async file => {
                 const imported = await importDroppedImage(file, ctx, 'npc')
                 if (imported && imported.relativePath) {
@@ -1540,7 +1540,7 @@ export function renderAppliedTemplates() {
                 'text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30'
         } else {
             countBadge.className =
-                'text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                'text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-[#3d4e61]/25 text-[#9bb7d4] border border-[#4a5e74]/40'
         }
     }
 

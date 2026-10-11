@@ -47,15 +47,15 @@ export function renderParagraphsList(ctx) {
 
             const isStart = Boolean(p.getIsStart && p.getIsStart())
             const startBadge = isStart
-                ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 uppercase tracking-wide shrink-0">START</span>`
+                ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#245842]/40 text-[#8ec8ad] border border-[#357357]/60 uppercase tracking-wide shrink-0">START</span>`
                 : ''
             const iconSvg = isStart
-                ? `<span class="text-emerald-400 shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>`
-                : `<span class="text-emerald-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>`
+                ? `<span class="text-[#7ec19f] shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>`
+                : `<span class="text-zinc-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>`
             const titleDisplay = isStart ? 'START' : `§ ${escapeHtml(p.getTitle() || p.getId())}`
 
             return `
-            <div class="drawer-item group p-1.5 rounded ${isStart ? 'bg-[#18181b] border border-emerald-500/60 shadow-[0_0_8px_rgba(16,185,129,0.2)]' : 'bg-[#18181b] border border-[#27272a]'} hover:border-blue-500/50 mb-1 cursor-pointer transition-colors" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
+            <div class="drawer-item group p-1.5 rounded ${isStart ? 'bg-[#18201b] border border-[#357357]/70' : 'bg-[#1a1b1e] border border-[#2e3037]'} hover:border-[#4f6b8a]/60 mb-1 cursor-pointer transition-colors" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
                 <div class="flex items-center justify-between">
                     <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
                         ${iconSvg}
@@ -65,7 +65,7 @@ export function renderParagraphsList(ctx) {
                 </div>
                 ${
                     isStart
-                        ? `<div class="text-[10px] text-emerald-400/80 mt-1 font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span><span>${t('graph.start_node_entry_point') || 'Punkt startowy opowieści'}</span></div>`
+                        ? `<div class="text-[10px] text-[#8ec8ad]/85 mt-1 font-medium flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#357357] inline-block"></span><span>${t('graph.start_node_entry_point') || 'Punkt startowy opowieści'}</span></div>`
                         : locBadge || charsBadges || tagsBadges
                           ? `<div class="flex flex-wrap gap-1 mt-1">${locBadge} ${charsBadges} ${tagsBadges}</div>`
                           : ''

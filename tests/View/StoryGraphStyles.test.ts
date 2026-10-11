@@ -13,15 +13,15 @@ import {
 
 describe('StoryGraphStyles and GRAPH_THEME', () => {
     it('should define consistent theme tokens for colors and dimensions', () => {
-        expect(GRAPH_THEME.colors.defaultScene).toBe('#3b82f6')
-        expect(GRAPH_THEME.colors.edgeLine).toBe('#6366f1')
-        expect(GRAPH_THEME.colors.edgeArrow).toBe('#6366f1')
-        expect(GRAPH_THEME.colors.edgeConditionLine).toBe('#f59e0b')
-        expect(GRAPH_THEME.colors.edgeConditionArrow).toBe('#f59e0b')
-        expect(GRAPH_THEME.colors.edgeSelected).toBe('#38bdf8')
-        expect(GRAPH_THEME.colors.edgeLabel).toBe('#e4e4e7')
-        expect(GRAPH_THEME.colors.edgeLabelBg).toBe('#18181b')
-        expect(GRAPH_THEME.colors.nodeBg).toBe('#18181b')
+        expect(GRAPH_THEME.colors.defaultScene).toBe('#4a5b6d')
+        expect(GRAPH_THEME.colors.edgeLine).toBe('#505c6c')
+        expect(GRAPH_THEME.colors.edgeArrow).toBe('#505c6c')
+        expect(GRAPH_THEME.colors.edgeConditionLine).toBe('#78664b')
+        expect(GRAPH_THEME.colors.edgeConditionArrow).toBe('#78664b')
+        expect(GRAPH_THEME.colors.edgeSelected).toBe('#8fa8c2')
+        expect(GRAPH_THEME.colors.edgeLabel).toBe('#dcdde0')
+        expect(GRAPH_THEME.colors.edgeLabelBg).toBe('#141517')
+        expect(GRAPH_THEME.colors.nodeBg).toBe('#141517')
 
         expect(GRAPH_THEME.dimensions.nodeWidth).toBe(220)
         expect(GRAPH_THEME.dimensions.nodeHeight).toBe(80)
