@@ -430,8 +430,16 @@ export class ParagraphNode extends HTMLElement {
         this.style.setProperty('--node-header-text-color', headerTextColor)
 
         const displayTitle = title || defaultTitle
-        this._elements.title.textContent = `§ ${displayTitle}`
-        this._elements.title.title = displayTitle
+        const isEnd = Boolean(p.getIsEnd && p.getIsEnd())
+        if (isEnd) {
+            this.classList.add('is-end-node')
+            this._elements.title.innerHTML = `<span class="end-node-badge">${getIconSvg('flag', 'w-2.5 h-2.5 inline-block shrink-0')}<span>KONIEC</span></span><span>§ ${displayTitle}</span>`
+            this._elements.title.title = `${displayTitle} (Finał opowieści)`
+        } else {
+            this.classList.remove('is-end-node')
+            this._elements.title.textContent = `§ ${displayTitle}`
+            this._elements.title.title = displayTitle
+        }
 
         // 3. Socket button i18n
         this._elements.socketBtn.title = t('graph.node.socket_title')

@@ -3,19 +3,20 @@
  *
  * Checks gamebook structural integrity:
  * 1. Missing or multiple start paragraphs
- * 2. Orphaned paragraphs (no incoming jumps)
- * 3. Dead-ends (no outgoing choices/jumps)
- * 4. Broken target references (jumps pointing to non-existent paragraph IDs)
- * 5. Self-loops (jumps pointing to the same paragraph)
+ * 2. End paragraphs (isEnd) and dead-ends without exit
+ * 3. General cycles and loops in the story graph (self-loops, multi-node loops)
+ * 4. Orphaned / unreachable paragraphs
+ * 5. Broken target references (jumps pointing to non-existent paragraph IDs)
  */
 
 /**
  * @typedef {object} ValidationIssue
- * @property {'error' | 'warning'} type
+ * @property {'error' | 'warning' | 'info'} type
  * @property {string} title
  * @property {string} description
  * @property {string} [paragraphId]
  * @property {string} [targetId]
+ * @property {string[]} [cycleIds]
  */
 
 /**
@@ -24,6 +25,7 @@
  * @property {number} issuesCount
  * @property {number} errorCount
  * @property {number} warningCount
+ * @property {number} infoCount
  * @property {ValidationIssue[]} issues
  */
 
@@ -51,6 +53,7 @@ export function validateStoryGraph(ctx) {
             issuesCount: 1,
             errorCount: 1,
             warningCount: 0,
+            infoCount: 0,
             issues: [
                 {
                     type: 'error',
@@ -84,28 +87,68 @@ export function validateStoryGraph(ctx) {
         })
     }
 
-    // Zbuduj licznik krawędzi wchodzących (in-degree)
-    const incomingCount = new Map()
-    paragraphs.forEach(p => incomingCount.set(p.getId(), 0))
+    // 2. Sprawdź węzły końcowe (isEnd)
+    const endParagraphs = paragraphs.filter(
+        p => (typeof p.getIsEnd === 'function' && p.getIsEnd()) || p.isEnd === true
+    )
 
-    // 2. Sprawdź przeskoki, błędy celów i martwe zakończenia
+    if (paragraphs.length > 1 && endParagraphs.length === 0) {
+        issues.push({
+            type: 'info',
+            title: 'Brak zdefiniowanego zakończenia',
+            description:
+                'Projekt nie posiada żadnego paragrafu oznaczonego jako koniec opowieści. Możesz oznaczyć paragraf finałowy w panelu właściwości.',
+        })
+    }
+
+    // Zbuduj licznik krawędzi wchodzących (in-degree) oraz listę sąsiedztwa (adjacency list)
+    const incomingCount = new Map()
+    const adj = new Map()
+    paragraphs.forEach(p => {
+        incomingCount.set(p.getId(), 0)
+        adj.set(p.getId(), [])
+    })
+
+    // 3. Sprawdź przeskoki, błędy celów i martwe zakończenia / ślepe zaułki
     paragraphs.forEach(p => {
         const pId = p.getId()
         const pTitle = p.getTitle ? p.getTitle() : p.getName ? p.getName() : pId
         const choices = (p.getChoices ? p.getChoices() : []) || []
+        const isEnd = (typeof p.getIsEnd === 'function' && p.getIsEnd()) || p.isEnd === true
 
         if (choices.length === 0) {
+            if (!isEnd) {
+                issues.push({
+                    type: 'warning',
+                    title: `Martwy zaułek (ślepy zaułek): „${pTitle}”`,
+                    description: `Paragraf nie posiada żadnych wyborów/przeskoków i nie jest oznaczony jako zakończenie gry (finał). Jeśli jest to koniec historii, oznacz go flagą końca.`,
+                    paragraphId: pId,
+                })
+            }
+        } else if (isEnd) {
             issues.push({
-                type: 'warning',
-                title: `Martwy zaułek: „${pTitle}”`,
-                description: `Paragraf nie posiada żadnych wyborów/przeskoków. Jeśli nie jest to finał gry, dodaj przeskoki.`,
+                type: 'info',
+                title: `Zakończenie z wyborami: „${pTitle}”`,
+                description: `Paragraf „${pTitle}” jest oznaczony jako koniec opowieści, ale posiada zdefiniowane wybory wychodzące.`,
                 paragraphId: pId,
             })
         }
 
         choices.forEach(ch => {
-            const targetId = ch.getTargetParagraphId ? ch.getTargetParagraphId() : ''
-            const chTitle = ch.getTitle ? ch.getTitle() : 'Przeskok'
+            const targetId =
+                (typeof ch.getToParagraphId === 'function' && ch.getToParagraphId()) ||
+                (typeof ch.getTargetParagraphId === 'function' && ch.getTargetParagraphId()) ||
+                (typeof ch.getTargetId === 'function' && ch.getTargetId()) ||
+                ch.toParagraphId ||
+                ch.targetParagraphId ||
+                ch.targetId ||
+                ''
+            const chTitle =
+                (typeof ch.getName === 'function' && ch.getName()) ||
+                (typeof ch.getTitle === 'function' && ch.getTitle()) ||
+                ch.name ||
+                ch.title ||
+                'Przeskok'
 
             if (!targetId || !paragraphMap.has(targetId)) {
                 issues.push({
@@ -117,6 +160,7 @@ export function validateStoryGraph(ctx) {
                 })
             } else {
                 incomingCount.set(targetId, (incomingCount.get(targetId) || 0) + 1)
+                adj.get(pId).push(targetId)
 
                 if (targetId === pId) {
                     issues.push({
@@ -124,13 +168,14 @@ export function validateStoryGraph(ctx) {
                         title: `Pętla do samego siebie: „${pTitle}”`,
                         description: `Wybór „${chTitle}” prowadzi do tego samego paragrafu, z którego wychodzi.`,
                         paragraphId: pId,
+                        cycleIds: [pId, pId],
                     })
                 }
             }
         })
     })
 
-    // 3. Osierocone paragrafy (brak wejść)
+    // 4. Osierocone paragrafy (brak wejść)
     const primaryStartId = startParagraphs[0]?.getId() || paragraphs[0]?.getId()
     paragraphs.forEach(p => {
         const pId = p.getId()
@@ -145,14 +190,104 @@ export function validateStoryGraph(ctx) {
         }
     })
 
+    // 5. Wykrywanie pętli i cykli w grafie (DFS cycle detection)
+    const visited = new Set()
+    const onStack = new Set()
+    const stack = []
+    const detectedCycleSignatures = new Set()
+
+    function getCanonicalCycleKey(cycleNodes) {
+        if (cycleNodes.length === 0) return ''
+        let minIdx = 0
+        for (let i = 1; i < cycleNodes.length; i++) {
+            if (cycleNodes[i] < cycleNodes[minIdx]) {
+                minIdx = i
+            }
+        }
+        const rotated = [...cycleNodes.slice(minIdx), ...cycleNodes.slice(0, minIdx)]
+        return rotated.join('->')
+    }
+
+    function detectCycles(nodeId) {
+        visited.add(nodeId)
+        onStack.add(nodeId)
+        stack.push(nodeId)
+
+        const targets = adj.get(nodeId) || []
+        for (const targetId of targets) {
+            if (targetId === nodeId) {
+                // Self-loop is already handled above
+                continue
+            }
+            if (onStack.has(targetId)) {
+                // Detected multi-node cycle!
+                const cycleStartIdx = stack.indexOf(targetId)
+                if (cycleStartIdx !== -1) {
+                    const cycleNodes = stack.slice(cycleStartIdx)
+                    const sig = getCanonicalCycleKey(cycleNodes)
+                    if (!detectedCycleSignatures.has(sig)) {
+                        detectedCycleSignatures.add(sig)
+
+                        const fullCyclePath = [...cycleNodes, targetId]
+                        const cycleTitles = fullCyclePath.map(id => {
+                            const node = paragraphMap.get(id)
+                            return node
+                                ? (node.getTitle
+                                      ? node.getTitle()
+                                      : node.getName
+                                        ? node.getName()
+                                        : id) || id
+                                : id
+                        })
+
+                        // Sprawdź czy cykl posiada wyjście na zewnątrz
+                        const cycleNodeSet = new Set(cycleNodes)
+                        let hasExit = false
+                        for (const cId of cycleNodeSet) {
+                            const outTargets = adj.get(cId) || []
+                            if (outTargets.some(t => !cycleNodeSet.has(t))) {
+                                hasExit = true
+                                break
+                            }
+                        }
+
+                        issues.push({
+                            type: hasExit ? 'info' : 'warning',
+                            title: `Wykryto pętlę w grafie: ${cycleTitles.join(' → ')}`,
+                            description: hasExit
+                                ? `Wykryto obieg fabularny pomiędzy paragrafami: ${cycleTitles.join(' → ')}. Gracze mogą powrócić do wcześniejszego węzła (pętla posiada wyjście).`
+                                : `Wykryto zapętlenie bez wyjścia pomiędzy paragrafami: ${cycleTitles.join(' → ')}. Gracze nie będą mogli opuścić tego cyklu.`,
+                            paragraphId: cycleNodes[0],
+                            cycleIds: fullCyclePath,
+                        })
+                    }
+                }
+            } else if (!visited.has(targetId)) {
+                detectCycles(targetId)
+            }
+        }
+
+        stack.pop()
+        onStack.delete(nodeId)
+    }
+
+    paragraphs.forEach(p => {
+        const id = p.getId()
+        if (!visited.has(id)) {
+            detectCycles(id)
+        }
+    })
+
     const errorCount = issues.filter(i => i.type === 'error').length
     const warningCount = issues.filter(i => i.type === 'warning').length
+    const infoCount = issues.filter(i => i.type === 'info').length
 
     return {
         isValid: errorCount === 0,
         issuesCount: issues.length,
         errorCount,
         warningCount,
+        infoCount,
         issues,
     }
 }

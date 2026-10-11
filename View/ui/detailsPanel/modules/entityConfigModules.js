@@ -14,6 +14,7 @@ import {
     renderColorPresetButtonsHtml,
 } from '../../htmlTemplates.js'
 import { FANTASY_AVATARS, getAvatarById } from '../../npcAvatars.js'
+import { markProjectDirty } from '../../projectStateTracker.js'
 import { createSection } from '../common/domHelpers.js'
 import { renderHistoryBar } from '../historyBar.js'
 
@@ -345,27 +346,39 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
     if (type !== 'paragraph' || !(entity instanceof Paragraph)) return
 
     const isLocked = Boolean(entity.getIsNumberLocked && entity.getIsNumberLocked())
-    const customNum = entity.getCustomNumber ? entity.getCustomNumber() : 0
+    const customNum = entity.getNumber ? entity.getNumber() : 0
+    const activeDispNum = entity.getDisplayNumber ? entity.getDisplayNumber() : customNum || 1
 
     const numMod = createSection(
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.paragraph_number')}</span>
-            <span id="details-number-mode-badge" class="text-[10px] font-medium px-2 py-0.5 rounded ${
-                isLocked
-                    ? 'bg-amber-900/50 text-amber-300 border border-amber-700/50'
-                    : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
-            }">
-                ${isLocked ? `#${customNum || 1} (${t('details.custom_number')})` : t('details.auto_number')}
-            </span>
+            <div class="flex items-center gap-1.5">
+                <span id="details-number-mode-badge" class="text-[10px] font-medium px-2 py-0.5 rounded ${
+                    isLocked
+                        ? 'bg-amber-900/50 text-amber-300 border border-amber-700/50'
+                        : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                }">
+                    ${isLocked ? `#${customNum || 1} (${t('details.custom_number')})` : `#${activeDispNum} (${t('details.auto_number')})`}
+                </span>
+                <button
+                    type="button"
+                    id="btn-details-reroll-number"
+                    class="${isLocked ? 'hidden' : 'flex'} items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#24262c] hover:bg-[#2e313a] text-zinc-300 border border-[#3e424c] transition-colors cursor-pointer"
+                    title="Wylosuj inny unikalny numer dla tego paragrafu"
+                >
+                    <span>🎲</span>
+                    <span>Losuj</span>
+                </button>
+            </div>
         </div>
         <div class="flex items-center gap-2 pt-1">
             <label class="flex items-center gap-1.5 text-xs text-[#d4d4d8] cursor-pointer select-none">
                 <input type="checkbox" id="details-number-lock" ${isLocked ? 'checked' : ''} class="rounded accent-blue-500 cursor-pointer" />
                 <span>${t('details.lock_number')}</span>
             </label>
-            <input id="details-custom-number" type="number" min="1" value="${isLocked && customNum ? customNum : ''}" placeholder="${t('details.custom_number_placeholder')}"
+            <input id="details-custom-number" type="number" min="1" value="${isLocked && customNum ? customNum : ''}" placeholder="${activeDispNum}"
                 ${!isLocked ? 'disabled' : ''}
                 class="w-28 bg-[#18181b] border border-[#3f3f46] disabled:opacity-30 rounded px-2 py-0.5 text-xs text-white text-right focus:outline-none focus:border-blue-500" />
         </div>
@@ -376,6 +389,7 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
     const lockCheckbox = numMod.querySelector('#details-number-lock')
     const customNumInput = numMod.querySelector('#details-custom-number')
     const modeBadge = numMod.querySelector('#details-number-mode-badge')
+    const btnReroll = numMod.querySelector('#btn-details-reroll-number')
     const numberError = numMod.querySelector('#details-number-error')
 
     const validateNumber = val => {
@@ -400,24 +414,43 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
         validateNumber(customNum)
     }
 
+    if (btnReroll) {
+        btnReroll.addEventListener('click', () => {
+            const newNum = ctx.vm.rerollParagraphNumber(entity, ctx.projectParagraphs)
+            if (modeBadge) {
+                modeBadge.textContent = `#${newNum} (${t('details.auto_number')})`
+            }
+            if (customNumInput) {
+                customNumInput.placeholder = String(newNum)
+            }
+            ctx.renderParagraphsList()
+        })
+    }
+
     lockCheckbox.addEventListener('change', () => {
         const locked = lockCheckbox.checked
-        ctx.vm.toggleNumberLock(locked)
         customNumInput.disabled = !locked
         if (!locked) {
-            ctx.vm.updateCustomNumber(0)
+            ctx.vm.toggleNumberLock(false, ctx.projectParagraphs)
+            ctx.vm.updateCustomNumber(0, ctx.projectParagraphs)
             customNumInput.value = ''
             validateNumber(0)
+            if (btnReroll) btnReroll.classList.remove('hidden')
+            const currentDisp = entity.getDisplayNumber ? entity.getDisplayNumber() : 1
             if (modeBadge) {
                 modeBadge.className =
-                    'text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700'
-                modeBadge.textContent = t('details.auto_number')
+                    'text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700'
+                modeBadge.textContent = `#${currentDisp} (${t('details.auto_number')})`
             }
+            customNumInput.placeholder = String(currentDisp)
         } else {
-            const parsed = parseInt(customNumInput.value, 10) || 1
-            ctx.vm.updateCustomNumber(parsed)
+            const currentDisp = entity.getDisplayNumber ? entity.getDisplayNumber() : 1
+            const parsed = parseInt(customNumInput.value, 10) || currentDisp || 1
+            ctx.vm.toggleNumberLock(true, ctx.projectParagraphs)
+            ctx.vm.updateCustomNumber(parsed, ctx.projectParagraphs)
             customNumInput.value = String(parsed)
             validateNumber(parsed)
+            if (btnReroll) btnReroll.classList.add('hidden')
             if (modeBadge) {
                 modeBadge.className =
                     'text-[10px] font-medium px-2 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50'
@@ -430,7 +463,7 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
     customNumInput.addEventListener('input', () => {
         const val = parseInt(customNumInput.value, 10) || 0
         validateNumber(val)
-        ctx.vm.updateCustomNumber(val)
+        ctx.vm.updateCustomNumber(val, ctx.projectParagraphs)
         if (modeBadge && lockCheckbox.checked) {
             modeBadge.textContent = `#${val || 1} (${t('details.custom_number')})`
         }
@@ -438,6 +471,80 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
     })
 
     container.appendChild(numMod)
+}
+
+/**
+ * Renders paragraph narrative role toggle (e.g. End / Finale node).
+ *
+ * @param {HTMLElement} container
+ * @param {object} entity
+ * @param {string} type
+ * @param {object} ctx
+ * @param {Function} [onRefresh]
+ */
+export function renderParagraphRoleModule(container, entity, type, ctx, onRefresh) {
+    if (type !== 'paragraph' || !(entity instanceof Paragraph)) return
+    if (typeof entity.getIsStart === 'function' && entity.getIsStart()) return
+
+    const isEnd = Boolean(typeof entity.getIsEnd === 'function' ? entity.getIsEnd() : entity.isEnd)
+
+    const roleMod = createSection(
+        'border-b border-[#333338] p-3 space-y-2',
+        `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">Rola narracyjna</span>
+            <span id="details-paragraph-role-badge" class="text-[10px] font-semibold px-2 py-0.5 rounded ${
+                isEnd
+                    ? 'bg-rose-950/70 text-rose-300 border border-rose-700/60'
+                    : 'bg-zinc-800 text-zinc-400 border border-zinc-700'
+            }">
+                ${isEnd ? 'FINAŁ (KONIEC)' : 'Zwykły paragraf'}
+            </span>
+        </div>
+        <div class="space-y-1.5 pt-0.5">
+            <label class="flex items-center gap-2 text-xs text-[#d4d4d8] cursor-pointer select-none">
+                <input type="checkbox" id="details-paragraph-is-end" ${isEnd ? 'checked' : ''} class="rounded accent-rose-500 cursor-pointer w-4 h-4" />
+                <span class="font-medium text-zinc-200">Paragraf końcowy (Finał historii)</span>
+            </label>
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+                Oznacza ten węzeł jako oficjalne zakończenie opowieści. Walidator grafu uznaje go za prawidłowy finał i nie zgłasza go jako ślepy zaułek.
+            </p>
+        </div>
+    `
+    )
+
+    const checkbox = roleMod.querySelector('#details-paragraph-is-end')
+    const roleBadge = roleMod.querySelector('#details-paragraph-role-badge')
+
+    if (checkbox) {
+        checkbox.addEventListener('change', () => {
+            const checked = checkbox.checked
+            if (typeof entity.setIsEnd === 'function') {
+                entity.setIsEnd(checked)
+            } else {
+                entity.isEnd = checked
+            }
+            if (typeof markProjectDirty === 'function') {
+                markProjectDirty()
+            }
+            if (roleBadge) {
+                roleBadge.className = checked
+                    ? 'text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-950/70 text-rose-300 border border-rose-700/60'
+                    : 'text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700'
+                roleBadge.textContent = checked ? 'FINAŁ (KONIEC)' : 'Zwykły paragraf'
+            }
+
+            if (typeof ctx.renderParagraphsList === 'function') ctx.renderParagraphsList()
+            if (ctx.storyGraph && typeof ctx.storyGraph.renderGraph === 'function') {
+                ctx.storyGraph.renderGraph()
+            }
+            if (typeof onRefresh === 'function') {
+                onRefresh()
+            }
+        })
+    }
+
+    container.appendChild(roleMod)
 }
 
 /**

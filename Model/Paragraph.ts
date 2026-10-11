@@ -20,6 +20,7 @@ export class Paragraph {
     private combat: Combat = new Combat('', '')
     private position: { x: number; y: number } | null = null
     private isStart: boolean = false
+    private isEnd: boolean = false
 
     constructor(
         id: string = '',
@@ -228,6 +229,24 @@ export class Paragraph {
         this.isNumberLocked = locked
     }
 
+    /**
+     * Returns effective presentation number for the paragraph.
+     * Prioritizes locked manual numbers, followed by randomized numbers,
+     * defaulting to 1 for START or fallback. Never returns 0.
+     */
+    public getDisplayNumber(): number {
+        if (this.isNumberLocked && this.number > 0) {
+            return this.number
+        }
+        if (this.isStart && !this.isNumberLocked && this.randomizedNumber <= 0) {
+            return 1
+        }
+        if (this.randomizedNumber > 0) {
+            return this.randomizedNumber
+        }
+        return 1
+    }
+
     public getChoices(): Choice[] {
         return this.choices
     }
@@ -286,6 +305,7 @@ export class Paragraph {
     public setIsStart(isStart: boolean): void {
         this.isStart = Boolean(isStart)
         if (this.isStart) {
+            this.isEnd = false
             this.tags = []
             this.characters = []
             this.locations = []
@@ -294,6 +314,17 @@ export class Paragraph {
                 if (typeof this.content.setText === 'function') this.content.setText('')
                 if (typeof this.content.setFilePath === 'function') this.content.setFilePath('')
             }
+        }
+    }
+
+    public getIsEnd(): boolean {
+        return this.isEnd
+    }
+
+    public setIsEnd(isEnd: boolean): void {
+        this.isEnd = Boolean(isEnd)
+        if (this.isEnd) {
+            this.isStart = false
         }
     }
 
@@ -352,8 +383,12 @@ export class Paragraph {
         } else if (p.id === 'start' || p.id === 'START') {
             p.isStart = true
         }
+        if (typeof json.isEnd === 'boolean') {
+            p.isEnd = json.isEnd
+        }
 
         if (p.isStart) {
+            p.isEnd = false
             p.tags = []
             p.characters = []
             p.locations = []
@@ -391,6 +426,7 @@ export class Paragraph {
             isNumberLocked: this.isNumberLocked,
             position: this.position,
             isStart: this.isStart,
+            isEnd: this.isEnd,
         }
     }
 }

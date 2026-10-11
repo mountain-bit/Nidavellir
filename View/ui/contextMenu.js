@@ -7,6 +7,7 @@ import {
     Scene,
 } from '../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from './htmlTemplates.js'
+import { openPlaytestSimulator } from './playtestModal.js'
 
 let activeContextMenuTarget = null
 let activeEntityForColor = null
@@ -61,6 +62,15 @@ export function openContextMenu(x, y, target) {
             ctxCreateFromTemplate.classList.remove('hidden')
         } else {
             ctxCreateFromTemplate.classList.add('hidden')
+        }
+    }
+
+    const ctxPlaytest = document.getElementById('ctx-playtest-from-here')
+    if (ctxPlaytest) {
+        if (target.type === 'paragraph') {
+            ctxPlaytest.classList.remove('hidden')
+        } else {
+            ctxPlaytest.classList.add('hidden')
         }
     }
 
@@ -445,6 +455,18 @@ export function setupSectionControlsAndContextMenu(ctx) {
             })
         }
     })
+
+    const ctxPlaytest = document.getElementById('ctx-playtest-from-here')
+    if (ctxPlaytest) {
+        ctxPlaytest.addEventListener('click', () => {
+            if (!activeContextMenuTarget || activeContextMenuTarget.type !== 'paragraph') return
+            const pId = activeContextMenuTarget.item?.getId
+                ? activeContextMenuTarget.item.getId()
+                : activeContextMenuTarget.item?.id
+            openPlaytestSimulator(ctx, pId)
+            if (ctxMenu) ctxMenu.classList.add('hidden')
+        })
+    }
 
     const ctxCreateFromTemplate = document.getElementById('ctx-create-character-from-template')
     if (ctxCreateFromTemplate) {

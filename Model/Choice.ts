@@ -61,6 +61,14 @@ export class Choice {
         return this.toParagraphId
     }
 
+    public getTargetParagraphId(): string {
+        return this.toParagraphId
+    }
+
+    public getTitle(): string {
+        return this.name
+    }
+
     public setToParagraphId(id: string): void {
         this.toParagraphId = id
     }

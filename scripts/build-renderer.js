@@ -25,6 +25,12 @@ const config = {
         'Utils/icons': path.join(__dirname, '..', 'Utils', 'icons.ts'),
         'Utils/assetUtils': path.join(__dirname, '..', 'Utils', 'assetUtils.ts'),
         'Utils/assetUsageTracker': path.join(__dirname, '..', 'Utils', 'assetUsageTracker.ts'),
+        'Services/ParagraphNumberingService': path.join(
+            __dirname,
+            '..',
+            'Services',
+            'ParagraphNumberingService.ts'
+        ),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
         'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
         'Modules/ImageEditor/index': path.join(

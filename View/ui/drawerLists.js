@@ -46,22 +46,27 @@ export function renderParagraphsList(ctx) {
                 .join(' ')
 
             const isStart = Boolean(p.getIsStart && p.getIsStart())
-            const startBadge = isStart
+            const isEnd = Boolean(p.getIsEnd && p.getIsEnd())
+            const roleBadge = isStart
                 ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#245842]/40 text-[#8ec8ad] border border-[#357357]/60 uppercase tracking-wide shrink-0">START</span>`
-                : ''
+                : isEnd
+                  ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#4a1823]/70 text-[#fca5a5] border border-[#9f2a40]/60 uppercase tracking-wide shrink-0">KONIEC</span>`
+                  : ''
             const iconSvg = isStart
                 ? `<span class="text-[#7ec19f] shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>`
-                : `<span class="text-zinc-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>`
+                : isEnd
+                  ? `<span class="text-rose-400 shrink-0">${getIconSvg('flag', 'w-3.5 h-3.5')}</span>`
+                  : `<span class="text-zinc-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>`
             const titleDisplay = isStart ? 'START' : `§ ${escapeHtml(p.getTitle() || p.getId())}`
 
             return `
-            <div class="drawer-item group p-1.5 rounded ${isStart ? 'bg-[#18201b] border border-[#357357]/70' : 'bg-[#1a1b1e] border border-[#2e3037]'} hover:border-[#4f6b8a]/60 mb-1 cursor-pointer transition-colors" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
+            <div class="drawer-item group p-1.5 rounded ${isStart ? 'bg-[#18201b] border border-[#357357]/70' : isEnd ? 'bg-[#201518] border border-[#9f2a40]/60' : 'bg-[#1a1b1e] border border-[#2e3037]'} hover:border-[#4f6b8a]/60 mb-1 cursor-pointer transition-colors" data-item-type="paragraph" data-item-id="${escapeHtml(p.getId())}">
                 <div class="flex items-center justify-between">
                     <span class="font-medium text-white text-xs truncate flex items-center gap-1.5">
                         ${iconSvg}
                         <span>${titleDisplay}</span>
                     </span>
-                    ${startBadge}
+                    ${roleBadge}
                 </div>
                 ${
                     isStart

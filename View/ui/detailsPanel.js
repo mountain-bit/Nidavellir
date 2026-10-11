@@ -28,6 +28,7 @@ import {
     renderFilesModule,
     renderNameModule,
     renderParagraphNumberModule,
+    renderParagraphRoleModule,
     renderSummaryModule,
 } from './detailsPanel/modules/entityConfigModules.js'
 import {
@@ -55,6 +56,7 @@ export {
     renderNameModule,
     renderNpcReadOnlyDetails,
     renderParagraphNumberModule,
+    renderParagraphRoleModule,
     renderParameterConfigModule,
     renderQuickActionsModule,
     renderSkillConfigModule,
@@ -144,6 +146,7 @@ export function renderDetailsPanel(ctx) {
     renderNameModule(container, item, entityScope, ctx, renderDetailsPanel)
     renderColorModule(container, entity, type, ctx)
     renderParagraphNumberModule(container, entity, type, ctx)
+    renderParagraphRoleModule(container, entity, type, ctx, () => renderDetailsPanel(ctx))
     renderStatValueModule(container, entity, type, ctx, renderDetailsPanel)
     renderParameterConfigModule(container, entity, type, ctx, renderDetailsPanel)
     renderSkillConfigModule(container, entity, type, ctx, renderDetailsPanel)

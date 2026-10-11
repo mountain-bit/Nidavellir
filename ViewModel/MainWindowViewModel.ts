@@ -17,6 +17,7 @@ import { Skill } from '../Model/Skill'
 import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
+import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
 import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
 import { formatDescriptionFileName } from '../Utils/pathSanitizer'
@@ -36,6 +37,7 @@ export {
     NPC,
     NPC_Template,
     Paragraph,
+    ParagraphNumberingService,
     Parameter,
     PlayerCharacter,
     Project,
@@ -401,23 +403,32 @@ export class MainWindowViewModel {
         }
     }
 
-    public toggleNumberLock(locked: boolean): void {
+    public toggleNumberLock(locked: boolean, paragraphs?: Paragraph[]): void {
         if (
             this.selectedItem?.type === 'paragraph' &&
             this.selectedItem.entity &&
             this.selectedItem.entity.setIsNumberLocked
         ) {
             this.selectedItem.entity.setIsNumberLocked(locked)
+            if (paragraphs && paragraphs.length > 0) {
+                this.ensureParagraphNumbers(paragraphs)
+            }
         }
     }
 
-    public updateCustomNumber(numberVal: number): void {
+    public updateCustomNumber(numberVal: number, paragraphs?: Paragraph[]): void {
         if (
             this.selectedItem?.type === 'paragraph' &&
             this.selectedItem.entity &&
             this.selectedItem.entity.setNumber
         ) {
             this.selectedItem.entity.setNumber(numberVal)
+            const isLocked =
+                typeof this.selectedItem.entity.getIsNumberLocked === 'function' &&
+                this.selectedItem.entity.getIsNumberLocked()
+            if (isLocked && paragraphs && paragraphs.length > 0) {
+                this.ensureParagraphNumbers(paragraphs)
+            }
         }
     }
 
@@ -443,6 +454,25 @@ export class MainWindowViewModel {
         }
 
         return { valid: true }
+    }
+
+    public ensureParagraphNumbers(paragraphs?: Paragraph[]): void {
+        const list = paragraphs || []
+        ParagraphNumberingService.ensureUniqueNumbers(list)
+    }
+
+    public reshuffleParagraphNumbers(paragraphs?: Paragraph[]): void {
+        const list = paragraphs || []
+        ParagraphNumberingService.reshuffleAllNumbers(list)
+    }
+
+    public rerollParagraphNumber(paragraph: Paragraph, paragraphs?: Paragraph[]): number {
+        const list = paragraphs || []
+        return ParagraphNumberingService.rerollSingleParagraph(paragraph, list)
+    }
+
+    public getParagraphDisplayNumber(paragraph: Paragraph | null | undefined): number {
+        return ParagraphNumberingService.getDisplayNumber(paragraph)
     }
 
     public updateColor(color: string): boolean {
@@ -1272,7 +1302,10 @@ export class MainWindowViewModel {
         result = result.filter(p => {
             const titleMatch = p.getTitle().toLowerCase().includes(query)
             const contentMatch = p.getContent().getText().toLowerCase().includes(query)
-            const numberMatch = p.getNumber().toString().includes(query)
+            const dispNum = (
+                typeof p.getDisplayNumber === 'function' ? p.getDisplayNumber() : p.getNumber()
+            ).toString()
+            const numberMatch = dispNum.includes(query)
             return titleMatch || contentMatch || numberMatch
         })
 
