@@ -455,10 +455,24 @@ function initPlaytestUI(ctx) {
             if (ctx.vm) {
                 ctx.vm.setActiveMainView('graph')
                 if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
-                if (typeof ctx.selectEntity === 'function') {
-                    ctx.selectEntity({ type: 'paragraph', id: pId })
+                if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
+                    ctx.vm.setRightSidebarCollapsed(false)
                 }
-                toast.info(`Wybrano paragraf ${pId} w edytorze.`, 'Edytor')
+                const scene = playtestEngineInstance.findSceneForParagraph(pId)
+                if (typeof ctx.selectEntity === 'function') {
+                    ctx.selectEntity(currentP, 'paragraph', scene)
+                }
+                const graph =
+                    ctx.storyGraphInstance ||
+                    (typeof window !== 'undefined' ? window.storyGraphInstance : null)
+                if (graph && typeof graph.focusOnElement === 'function') {
+                    graph.focusOnElement(pId, true)
+                }
+                const pTitle =
+                    typeof currentP.getTitle === 'function'
+                        ? currentP.getTitle()
+                        : currentP.title || pId
+                toast.info(`Wybrano paragraf „${pTitle}” w edytorze.`, 'Edytor')
             }
         }
     }

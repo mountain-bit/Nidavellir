@@ -127,24 +127,39 @@ export function runGraphValidation(ctx) {
                       : 'text-amber-400'
                 const iconName = isError ? 'alert-triangle' : isInfo ? 'info' : 'alert-triangle'
 
+                const paragraphsList =
+                    ctx.projectData?.projectParagraphs || ctx.projectParagraphs || []
+
                 const cycleTrace =
                     issue.cycleIds && issue.cycleIds.length > 0
                         ? `
                         <div class="flex items-center flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-zinc-800/80">
                             <span class="text-[10px] text-zinc-500 mr-1 font-medium">Ścieżka pętli:</span>
                             ${issue.cycleIds
-                                .map(
-                                    (cId, idx) => `
-                                <button type="button" class="btn-goto-paragraph text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono transition-colors border border-zinc-700 cursor-pointer" data-paragraph-id="${cId}" title="Pokaż ten węzeł na grafie">
-                                    ${escapeHtml(cId)}
+                                .map((cId, idx) => {
+                                    const node = paragraphsList.find(
+                                        p =>
+                                            (typeof p.getId === 'function' ? p.getId() : p.id) ===
+                                            cId
+                                    )
+                                    const title = node
+                                        ? (typeof node.getTitle === 'function'
+                                              ? node.getTitle()
+                                              : node.title) || cId
+                                        : cId
+                                    return `
+                                <button type="button" class="btn-goto-paragraph text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono transition-colors border border-zinc-700 cursor-pointer" data-paragraph-id="${cId}" title="Pokaż ${escapeHtml(title)} na grafie">
+                                    ${escapeHtml(title)}
                                 </button>
                                 ${idx < issue.cycleIds.length - 1 ? '<span class="text-zinc-600 text-[10px]">→</span>' : ''}
                             `
-                                )
+                                })
                                 .join('')}
                         </div>
                     `
                         : ''
+
+                const targetEntityId = issue.paragraphId || issue.sceneId || ''
 
                 return `
                 <div class="p-3.5 rounded-lg border ${borderClass} flex items-start justify-between gap-3">
@@ -157,12 +172,14 @@ export function runGraphValidation(ctx) {
                         </div>
                     </div>
                     ${
-                        issue.paragraphId
+                        targetEntityId
                             ? `
                         <button
                             type="button"
                             class="btn-goto-paragraph shrink-0 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-medium transition-colors border border-zinc-700 cursor-pointer"
-                            data-paragraph-id="${issue.paragraphId}"
+                            data-paragraph-id="${issue.paragraphId || ''}"
+                            data-scene-id="${issue.sceneId || ''}"
+                            title="Przejdź do źródła błędu"
                         >
                             Pokaż
                         </button>
@@ -176,14 +193,83 @@ export function runGraphValidation(ctx) {
 
         container.querySelectorAll('.btn-goto-paragraph').forEach(btn => {
             btn.addEventListener('click', () => {
-                const pId = btn.dataset.paragraphId
+                const pId = btn.dataset.paragraphId || ''
+                const sId = btn.dataset.sceneId || ''
                 modal.classList.add('hidden')
+
                 if (ctx.vm) {
                     ctx.vm.setActiveMainView('graph')
                     if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
                     updateTopBarUI(ctx)
-                    if (typeof ctx.selectEntity === 'function') {
-                        ctx.selectEntity({ type: 'paragraph', id: pId })
+
+                    const paragraphs =
+                        ctx.projectData?.projectParagraphs ||
+                        ctx.projectParagraphs ||
+                        (typeof ctx.getParagraphs === 'function' ? ctx.getParagraphs() : []) ||
+                        []
+                    const scenes =
+                        ctx.projectData?.projectScenes ||
+                        ctx.projectScenes ||
+                        (typeof ctx.getScenes === 'function' ? ctx.getScenes() : []) ||
+                        []
+
+                    if (pId) {
+                        const targetParagraph = paragraphs.find(
+                            p => (typeof p.getId === 'function' ? p.getId() : p.id) === pId
+                        )
+                        const parentScene = scenes.find(s => {
+                            const sParagraphs =
+                                typeof s.getParagraphs === 'function'
+                                    ? s.getParagraphs()
+                                    : s.paragraphs || []
+                            return sParagraphs.some(
+                                p => (typeof p.getId === 'function' ? p.getId() : p.id) === pId
+                            )
+                        })
+
+                        // Upewnij się, że prawy panel właściwości jest rozwinięty
+                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
+                            ctx.vm.setRightSidebarCollapsed(false)
+                        }
+
+                        if (targetParagraph && typeof ctx.selectEntity === 'function') {
+                            ctx.selectEntity(targetParagraph, 'paragraph', parentScene)
+                        } else if (typeof ctx.selectEntity === 'function') {
+                            ctx.selectEntity(
+                                {
+                                    getId: () => pId,
+                                    getTitle: () => pId,
+                                    getName: () => pId,
+                                    id: pId,
+                                },
+                                'paragraph',
+                                parentScene
+                            )
+                        }
+
+                        // Wycentruj i zaznacz węzeł na kanwie grafu
+                        const graph =
+                            ctx.storyGraphInstance ||
+                            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
+                        if (graph && typeof graph.focusOnElement === 'function') {
+                            graph.focusOnElement(pId, true)
+                        }
+                    } else if (sId) {
+                        const targetScene = scenes.find(
+                            s => (typeof s.getId === 'function' ? s.getId() : s.id) === sId
+                        )
+                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
+                            ctx.vm.setRightSidebarCollapsed(false)
+                        }
+                        if (targetScene && typeof ctx.selectEntity === 'function') {
+                            ctx.selectEntity(targetScene, 'scene')
+                        }
+                        const graph =
+                            ctx.storyGraphInstance ||
+                            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
+                        if (graph && typeof graph.focusOnElement === 'function') {
+                            graph.focusOnElement(sId, true)
+                        }
                     }
                 }
             })
