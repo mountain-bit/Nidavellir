@@ -81,6 +81,7 @@ export function getAllProjectObjects(ctx) {
     paragraphs.forEach(p => {
         if (!p) return
         const isStart = Boolean(p.getIsStart && p.getIsStart())
+        const isEnd = Boolean(p.getIsEnd && p.getIsEnd())
         const title = isStart
             ? 'START'
             : (p.getTitle && p.getTitle()) ||
@@ -101,7 +102,11 @@ export function getAllProjectObjects(ctx) {
         const charNames = (p.getCharacters ? p.getCharacters() : [])
             .map(c => (c.getName ? c.getName() : c.name))
             .filter(Boolean)
-        const num = p.getNumber ? p.getNumber() : p.number
+        const num = p.getDisplayNumber
+            ? p.getDisplayNumber()
+            : p.getNumber && p.getNumber() > 0
+              ? p.getNumber()
+              : p.number || 1
 
         items.push({
             id: p.getId ? p.getId() : String(p.id || ''),
@@ -110,11 +115,17 @@ export function getAllProjectObjects(ctx) {
             description: desc,
             category: 'paragraphs',
             type: 'paragraph',
-            typeLabel: isStart ? 'Węzeł START' : resolveText('left_panel.paragraphs', 'Paragraf'),
-            icon: isStart ? 'play' : 'paragraph',
+            typeLabel: isStart
+                ? 'Węzeł START'
+                : isEnd
+                  ? 'Zakończenie (Koniec)'
+                  : resolveText('left_panel.paragraphs', 'Paragraf'),
+            icon: isStart ? 'play' : isEnd ? 'flag' : 'paragraph',
             badgeColor: isStart
                 ? 'text-emerald-300 bg-emerald-500/20 border-emerald-500/40'
-                : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
+                : isEnd
+                  ? 'text-rose-300 bg-rose-500/20 border-rose-500/40'
+                  : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
             actionText: 'Przejdź na grafie',
             tags,
             locationName,

@@ -582,6 +582,44 @@ paragraph-node,
     font-family: inherit;
 }
 
+/* Special END Node on Story Graph */
+.paragraph-node.is-end-node {
+    border-color: #8b263e !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.paragraph-node.is-end-node:hover {
+    border-color: #b33956 !important;
+    box-shadow: 0 5px 14px rgba(139, 38, 62, 0.3);
+}
+
+.paragraph-node.is-end-node.is-selected {
+    box-shadow:
+        0 0 0 1.5px #fca5a5,
+        0 6px 18px rgba(0, 0, 0, 0.65);
+}
+
+.paragraph-node.is-end-node .paragraph-node-header {
+    background: linear-gradient(135deg, #5c1827 0%, #3e121b 100%) !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid rgba(226, 91, 116, 0.35);
+}
+
+.end-node-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background-color: rgba(226, 91, 116, 0.25);
+    border: 1px solid rgba(226, 91, 116, 0.45);
+    color: #fca5a5;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+}
+
 /* Header with identical background to border */
 .paragraph-node-header {
     display: flex;

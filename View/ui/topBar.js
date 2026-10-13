@@ -3,6 +3,7 @@ import { toast } from '../../dist/Utils/toast.js'
 import { t } from '../../dist/Utils/translate.js'
 import { openAssetManager } from './assetManagerModal.js'
 import { validateStoryGraph } from './graphValidator.js'
+import { openPlaytestSimulator as openAdvancedPlaytestSimulator } from './playtestModal.js'
 import { saveFullProject } from './projectSaver.js'
 import { openQuickSearch } from './quickSearch.js'
 import { updateZoomToolbarUI } from './workspace.js'
@@ -95,7 +96,8 @@ export function runGraphValidation(ctx) {
     }
 
     if (summaryText) {
-        summaryText.textContent = `Błędy: ${report.errorCount} · Ostrzeżenia: ${report.warningCount}`
+        const infoPart = report.infoCount ? ` · Informacje: ${report.infoCount}` : ''
+        summaryText.textContent = `Błędy: ${report.errorCount} · Ostrzeżenia: ${report.warningCount}${infoPart}`
     }
 
     if (report.issuesCount === 0) {
@@ -105,35 +107,79 @@ export function runGraphValidation(ctx) {
                     ${getIconSvg('check', 'w-6 h-6')}
                 </div>
                 <h4 class="font-bold text-base text-zinc-100">Graf jest w 100% poprawny!</h4>
-                <p class="text-xs text-zinc-400 max-w-sm">Wszystkie paragrafy posiadają prawidłowe przeskoki, węzeł startowy jest wyznaczony, a w fabule nie występują martwe zakończenia ani błędne linki.</p>
+                <p class="text-xs text-zinc-400 max-w-sm">Wszystkie paragrafy posiadają prawidłowe przeskoki, węzeł startowy oraz zakończenia są wyznaczone, a w fabule nie występują martwe zakończenia ani błędne linki.</p>
             </div>
         `
     } else {
         container.innerHTML = report.issues
             .map(issue => {
                 const isError = issue.type === 'error'
+                const isInfo = issue.type === 'info'
                 const borderClass = isError
                     ? 'border-rose-500/40 bg-rose-950/20'
-                    : 'border-amber-500/40 bg-amber-950/20'
-                const textClass = isError ? 'text-rose-400' : 'text-amber-400'
-                const iconName = isError ? 'alert-triangle' : 'alert-triangle'
+                    : isInfo
+                      ? 'border-sky-500/40 bg-sky-950/20'
+                      : 'border-amber-500/40 bg-amber-950/20'
+                const textClass = isError
+                    ? 'text-rose-400'
+                    : isInfo
+                      ? 'text-sky-400'
+                      : 'text-amber-400'
+                const iconName = isError ? 'alert-triangle' : isInfo ? 'info' : 'alert-triangle'
+
+                const paragraphsList =
+                    ctx.projectData?.projectParagraphs || ctx.projectParagraphs || []
+
+                const cycleTrace =
+                    issue.cycleIds && issue.cycleIds.length > 0
+                        ? `
+                        <div class="flex items-center flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-zinc-800/80">
+                            <span class="text-[10px] text-zinc-500 mr-1 font-medium">Ścieżka pętli:</span>
+                            ${issue.cycleIds
+                                .map((cId, idx) => {
+                                    const node = paragraphsList.find(
+                                        p =>
+                                            (typeof p.getId === 'function' ? p.getId() : p.id) ===
+                                            cId
+                                    )
+                                    const title = node
+                                        ? (typeof node.getTitle === 'function'
+                                              ? node.getTitle()
+                                              : node.title) || cId
+                                        : cId
+                                    return `
+                                <button type="button" class="btn-goto-paragraph text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono transition-colors border border-zinc-700 cursor-pointer" data-paragraph-id="${cId}" title="Pokaż ${escapeHtml(title)} na grafie">
+                                    ${escapeHtml(title)}
+                                </button>
+                                ${idx < issue.cycleIds.length - 1 ? '<span class="text-zinc-600 text-[10px]">→</span>' : ''}
+                            `
+                                })
+                                .join('')}
+                        </div>
+                    `
+                        : ''
+
+                const targetEntityId = issue.paragraphId || issue.sceneId || ''
 
                 return `
                 <div class="p-3.5 rounded-lg border ${borderClass} flex items-start justify-between gap-3">
-                    <div class="flex items-start gap-2.5 min-w-0">
+                    <div class="flex items-start gap-2.5 min-w-0 flex-1">
                         <span class="${textClass} shrink-0 mt-0.5">${getIconSvg(iconName, 'w-4 h-4')}</span>
-                        <div>
+                        <div class="min-w-0 flex-1">
                             <div class="font-semibold text-zinc-100 text-xs">${escapeHtml(issue.title)}</div>
                             <div class="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">${escapeHtml(issue.description)}</div>
+                            ${cycleTrace}
                         </div>
                     </div>
                     ${
-                        issue.paragraphId
+                        targetEntityId
                             ? `
                         <button
                             type="button"
                             class="btn-goto-paragraph shrink-0 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-medium transition-colors border border-zinc-700 cursor-pointer"
-                            data-paragraph-id="${issue.paragraphId}"
+                            data-paragraph-id="${issue.paragraphId || ''}"
+                            data-scene-id="${issue.sceneId || ''}"
+                            title="Przejdź do źródła błędu"
                         >
                             Pokaż
                         </button>
@@ -147,14 +193,83 @@ export function runGraphValidation(ctx) {
 
         container.querySelectorAll('.btn-goto-paragraph').forEach(btn => {
             btn.addEventListener('click', () => {
-                const pId = btn.dataset.paragraphId
+                const pId = btn.dataset.paragraphId || ''
+                const sId = btn.dataset.sceneId || ''
                 modal.classList.add('hidden')
+
                 if (ctx.vm) {
                     ctx.vm.setActiveMainView('graph')
                     if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
                     updateTopBarUI(ctx)
-                    if (typeof ctx.selectEntity === 'function') {
-                        ctx.selectEntity({ type: 'paragraph', id: pId })
+
+                    const paragraphs =
+                        ctx.projectData?.projectParagraphs ||
+                        ctx.projectParagraphs ||
+                        (typeof ctx.getParagraphs === 'function' ? ctx.getParagraphs() : []) ||
+                        []
+                    const scenes =
+                        ctx.projectData?.projectScenes ||
+                        ctx.projectScenes ||
+                        (typeof ctx.getScenes === 'function' ? ctx.getScenes() : []) ||
+                        []
+
+                    if (pId) {
+                        const targetParagraph = paragraphs.find(
+                            p => (typeof p.getId === 'function' ? p.getId() : p.id) === pId
+                        )
+                        const parentScene = scenes.find(s => {
+                            const sParagraphs =
+                                typeof s.getParagraphs === 'function'
+                                    ? s.getParagraphs()
+                                    : s.paragraphs || []
+                            return sParagraphs.some(
+                                p => (typeof p.getId === 'function' ? p.getId() : p.id) === pId
+                            )
+                        })
+
+                        // Upewnij się, że prawy panel właściwości jest rozwinięty
+                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
+                            ctx.vm.setRightSidebarCollapsed(false)
+                        }
+
+                        if (targetParagraph && typeof ctx.selectEntity === 'function') {
+                            ctx.selectEntity(targetParagraph, 'paragraph', parentScene)
+                        } else if (typeof ctx.selectEntity === 'function') {
+                            ctx.selectEntity(
+                                {
+                                    getId: () => pId,
+                                    getTitle: () => pId,
+                                    getName: () => pId,
+                                    id: pId,
+                                },
+                                'paragraph',
+                                parentScene
+                            )
+                        }
+
+                        // Wycentruj i zaznacz węzeł na kanwie grafu
+                        const graph =
+                            ctx.storyGraphInstance ||
+                            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
+                        if (graph && typeof graph.focusOnElement === 'function') {
+                            graph.focusOnElement(pId, true)
+                        }
+                    } else if (sId) {
+                        const targetScene = scenes.find(
+                            s => (typeof s.getId === 'function' ? s.getId() : s.id) === sId
+                        )
+                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
+                            ctx.vm.setRightSidebarCollapsed(false)
+                        }
+                        if (targetScene && typeof ctx.selectEntity === 'function') {
+                            ctx.selectEntity(targetScene, 'scene')
+                        }
+                        const graph =
+                            ctx.storyGraphInstance ||
+                            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
+                        if (graph && typeof graph.focusOnElement === 'function') {
+                            graph.focusOnElement(sId, true)
+                        }
                     }
                 }
             })
@@ -171,129 +286,7 @@ export function runGraphValidation(ctx) {
  * @param {object} ctx - Application context
  */
 export function openPlaytestSimulator(ctx) {
-    const modal = document.getElementById('modal-playtest')
-    const contentEl = document.getElementById('playtest-content')
-    const choicesEl = document.getElementById('playtest-choices-container')
-    const badgeEl = document.getElementById('playtest-paragraph-badge')
-    if (!modal || !contentEl || !choicesEl) return
-
-    const paragraphs = ctx?.projectData?.projectParagraphs || []
-    if (paragraphs.length === 0) {
-        toast.warning('Brak paragrafów do testowania. Utwórz pierwszy paragraf.', 'Playtest')
-        return
-    }
-
-    // Znajdź początkowy paragraf: preferuj zaznaczony paragraf, w przeciwnym razie węzeł START
-    const trueStartP =
-        paragraphs.find(
-            p => (typeof p.getIsStart === 'function' && p.getIsStart()) || p.isStart === true
-        ) || paragraphs[0]
-
-    const selectedItem = ctx.vm?.getSelectedItem ? ctx.vm.getSelectedItem() : null
-    let initialP = null
-    if (selectedItem && selectedItem.type === 'paragraph' && selectedItem.id) {
-        initialP = paragraphs.find(p => (p.getId ? p.getId() : p.id) === selectedItem.id)
-    }
-    if (!initialP) {
-        initialP = trueStartP
-    }
-
-    function renderParagraph(p) {
-        if (!p) {
-            contentEl.innerHTML = '<p class="text-zinc-400 italic">Koniec opowieści.</p>'
-            choicesEl.innerHTML = ''
-            return
-        }
-
-        const pNum = typeof p.getNumber === 'function' ? p.getNumber() : p.number || 1
-        const pTitle = p.getTitle ? p.getTitle() : p.getName ? p.getName() : `Paragraf ${pNum}`
-        if (badgeEl) badgeEl.textContent = `§ ${pNum}: ${pTitle}`
-
-        let text = ''
-        if (p.getContent && typeof p.getContent === 'function') {
-            const desc = p.getContent()
-            text = (desc && desc.getSummary && desc.getSummary()) || ''
-        } else if (p.content && p.content.summary) {
-            text = p.content.summary
-        }
-
-        if (!text) {
-            text = `Jesteś w paragrafie: **${pTitle}**.`
-        }
-
-        contentEl.innerHTML = `
-            <div class="text-base font-semibold text-zinc-100 mb-2">${escapeHtml(pTitle)}</div>
-            <div class="text-zinc-300 leading-relaxed whitespace-pre-line">${escapeHtml(text)}</div>
-        `
-
-        const choices = (p.getChoices ? p.getChoices() : p.choices) || []
-        if (choices.length === 0) {
-            choicesEl.innerHTML = `
-                <div class="p-3.5 rounded-lg bg-zinc-900 border border-zinc-800 text-center space-y-2">
-                    <p class="text-zinc-400 text-xs italic">Dotarłeś do końca tej ścieżki fabularnej.</p>
-                    <button
-                        type="button"
-                        id="btn-playtest-restart-inline"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#245842] hover:bg-[#2e6d52] border border-[#357357] text-white transition-colors cursor-pointer"
-                    >
-                        Zacznij od nowa
-                    </button>
-                </div>
-            `
-            const restartInline = document.getElementById('btn-playtest-restart-inline')
-            if (restartInline)
-                restartInline.addEventListener('click', () => renderParagraph(trueStartP))
-        } else {
-            choicesEl.innerHTML = choices
-                .map((ch, idx) => {
-                    const targetId = ch.getTargetParagraphId
-                        ? ch.getTargetParagraphId()
-                        : ch.targetId
-                    const targetP = paragraphs.find(item => item.getId && item.getId() === targetId)
-                    const targetTitle = targetP
-                        ? targetP.getTitle
-                            ? targetP.getTitle()
-                            : targetP.getName
-                              ? targetP.getName()
-                              : targetId
-                        : `Paragraf ${targetId}`
-                    const chTitle = ch.getTitle
-                        ? ch.getTitle()
-                        : ch.title || `Przejdź do: ${targetTitle}`
-
-                    return `
-                    <button
-                        type="button"
-                        class="btn-playtest-choice w-full text-left p-3 rounded-lg bg-[#1e1f23] hover:bg-[#26282e] border border-[#2e3037] hover:border-[#4a5e74]/60 transition-all flex items-center justify-between group cursor-pointer"
-                        data-target-id="${targetId}"
-                    >
-                        <span class="text-zinc-200 group-hover:text-white font-medium text-xs">
-                            ${idx + 1}. ${escapeHtml(chTitle)}
-                        </span>
-                        <span class="text-[#9bb7d4] text-xs transition-transform group-hover:translate-x-1">→</span>
-                    </button>
-                `
-                })
-                .join('')
-
-            choicesEl.querySelectorAll('.btn-playtest-choice').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const targetId = btn.dataset.targetId
-                    const targetP = paragraphs.find(item => item.getId && item.getId() === targetId)
-                    renderParagraph(targetP)
-                })
-            })
-        }
-    }
-
-    renderParagraph(initialP)
-
-    const restartBtn = document.getElementById('btn-playtest-restart')
-    if (restartBtn) {
-        restartBtn.onclick = () => renderParagraph(trueStartP)
-    }
-
-    modal.classList.remove('hidden')
+    openAdvancedPlaytestSimulator(ctx)
 }
 
 /**
@@ -409,7 +402,11 @@ function downloadFile(url, filename) {
 function generateWebPlayerHtml(title, paragraphs) {
     const serializedParagraphs = paragraphs.map(p => {
         const id = p.getId ? p.getId() : p.id
-        const num = p.getNumber ? p.getNumber() : p.number || 1
+        const num = p.getDisplayNumber
+            ? p.getDisplayNumber()
+            : p.getNumber && p.getNumber() > 0
+              ? p.getNumber()
+              : p.number || 1
         const pTitle = p.getTitle ? p.getTitle() : p.getName ? p.getName() : `Paragraf ${num}`
         const isStart = (p.getIsStart ? p.getIsStart() : p.isStart) || false
         let text = ''
@@ -420,8 +417,20 @@ function generateWebPlayerHtml(title, paragraphs) {
             text = p.content.summary
         }
         const choices = ((p.getChoices ? p.getChoices() : p.choices) || []).map(ch => ({
-            title: ch.getTitle ? ch.getTitle() : ch.title,
-            targetId: ch.getTargetParagraphId ? ch.getTargetParagraphId() : ch.targetId,
+            title:
+                (typeof ch.getName === 'function' && ch.getName()) ||
+                (typeof ch.getTitle === 'function' && ch.getTitle()) ||
+                ch.name ||
+                ch.title ||
+                'Wybór',
+            targetId:
+                (typeof ch.getToParagraphId === 'function' && ch.getToParagraphId()) ||
+                (typeof ch.getTargetParagraphId === 'function' && ch.getTargetParagraphId()) ||
+                (typeof ch.getTargetId === 'function' && ch.getTargetId()) ||
+                ch.toParagraphId ||
+                ch.targetParagraphId ||
+                ch.targetId ||
+                '',
         }))
         return { id, num, title: pTitle, isStart, text, choices }
     })

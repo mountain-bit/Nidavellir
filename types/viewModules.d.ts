@@ -726,17 +726,20 @@ declare module '*/View/ui/autoSaveService.js' {
 
 declare module '*/View/ui/graphValidator.js' {
     export interface IGraphValidationIssue {
-        id: string
-        type: 'error' | 'warning'
+        id?: string
+        type: 'error' | 'warning' | 'info'
         title: string
         description: string
         paragraphId?: string
+        targetId?: string
+        cycleIds?: string[]
     }
 
     export interface IGraphValidationReport {
         isValid: boolean
         errorCount: number
         warningCount: number
+        infoCount?: number
         issuesCount: number
         issues: IGraphValidationIssue[]
     }
@@ -828,4 +831,73 @@ declare module '*/View/ui/assetPicker.js' {
             overlayElement?: HTMLElement | null
         }
     ): void
+}
+
+declare module '*/View/ui/playtestModal.js' {
+    export class PlaytestEngine {
+        godMode: boolean
+        constructor(ctx: unknown)
+        start(startParagraphId?: string): unknown
+        goTo(targetParagraphId: string, choiceTitle?: string): unknown
+        teleportTo(sceneId?: string, targetParagraphId?: string, resetHistory?: boolean): unknown
+        stepBack(): unknown
+        stepToIndex(index: number): unknown
+        canStepBack(): boolean
+        getCurrentParagraph(): unknown
+        getCurrentEntry(): {
+            paragraphId: string
+            paragraphNumber: number
+            paragraphTitle: string
+            sceneId?: string
+            sceneName?: string
+            choiceTakenTitle?: string
+            isTeleport: boolean
+            timestamp: number
+        } | null
+        getHistoryTrail(): Array<{
+            paragraphId: string
+            paragraphNumber: number
+            paragraphTitle: string
+            sceneId?: string
+            sceneName?: string
+            choiceTakenTitle?: string
+            isTeleport: boolean
+            timestamp: number
+        }>
+        getVisitedCount(): number
+        getStepCount(): number
+        toggleGodMode(): boolean
+    }
+
+    export function formatMarkdown(text: string): string
+    export function openPlaytestSimulator(ctx: unknown, startParagraphId?: string): void
+    export function closePlaytestSimulator(): void
+    export function renderPlaytestView(): void
+}
+
+declare module '*/Services/ParagraphNumberingService.js' {
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export interface INumberingOptions {
+        minNumber?: number
+        maxNumber?: number
+        startNodeAsOne?: boolean
+    }
+
+    export class ParagraphNumberingService {
+        public static getLockedNumbers(paragraphs: Paragraph[]): Set<number>
+        public static getDisplayNumber(p: Paragraph | null | undefined): number
+        public static ensureUniqueNumbers(
+            paragraphs: Paragraph[],
+            options?: INumberingOptions
+        ): void
+        public static reshuffleAllNumbers(
+            paragraphs: Paragraph[],
+            options?: INumberingOptions
+        ): void
+        public static rerollSingleParagraph(
+            paragraph: Paragraph,
+            allParagraphs: Paragraph[]
+        ): number
+    }
 }

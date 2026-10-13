@@ -375,4 +375,31 @@ describe('Paragraph Model', () => {
         expect(restored.getContent().getSummary()).toBe('')
         expect(restored.getContent().getText()).toBe('')
     })
+
+    it('manages isEnd flag and serializes it correctly with mutual exclusion', () => {
+        const p = new Paragraph('p_end', 'End Paragraph')
+        expect(p.getIsEnd()).toBe(false)
+
+        p.setIsEnd(true)
+        expect(p.getIsEnd()).toBe(true)
+        expect(p.getIsStart()).toBe(false)
+
+        const json = p.toJSON() as { isEnd?: boolean; isStart?: boolean }
+        expect(json.isEnd).toBe(true)
+        expect(json.isStart).toBe(false)
+
+        const restored = Paragraph.fromJSON(json as unknown as Record<string, unknown>)
+        expect(restored.getIsEnd()).toBe(true)
+        expect(restored.getIsStart()).toBe(false)
+
+        // Setting isStart = true resets isEnd = false
+        p.setIsStart(true)
+        expect(p.getIsStart()).toBe(true)
+        expect(p.getIsEnd()).toBe(false)
+
+        // Setting isEnd = true resets isStart = false
+        p.setIsEnd(true)
+        expect(p.getIsStart()).toBe(false)
+        expect(p.getIsEnd()).toBe(true)
+    })
 })

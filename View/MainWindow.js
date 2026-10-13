@@ -340,6 +340,26 @@ function refreshActiveSection(type) {
 }
 
 function selectEntity(entity, type, parent) {
+    if (entity && typeof entity === 'object' && typeof entity.getId !== 'function' && entity.id) {
+        const effType = type || entity.type
+        if (effType === 'paragraph' && Array.isArray(projectData?.projectParagraphs)) {
+            const found = projectData.projectParagraphs.find(
+                p => (typeof p.getId === 'function' ? p.getId() : p.id) === entity.id
+            )
+            if (found) {
+                entity = found
+                type = 'paragraph'
+            }
+        } else if (effType === 'scene' && Array.isArray(projectData?.projectScenes)) {
+            const found = projectData.projectScenes.find(
+                s => (typeof s.getId === 'function' ? s.getId() : s.id) === entity.id
+            )
+            if (found) {
+                entity = found
+                type = 'scene'
+            }
+        }
+    }
     vm.selectElement(entity, type, parent)
     updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
     renderHistoryBar(appContext)

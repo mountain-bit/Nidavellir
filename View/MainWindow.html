@@ -1784,6 +1784,18 @@
             id="custom-context-menu"
             class="hidden fixed bg-[#1b1c20] border border-[#2e3037] shadow-2xl rounded-md py-1 text-xs text-white z-50 min-w-[180px]"
         >
+            <!-- Rozpocznij test od tego paragrafu -->
+            <button
+                id="ctx-playtest-from-here"
+                type="button"
+                class="hidden w-full px-3 py-1.5 text-left hover:bg-emerald-950/60 flex items-center gap-2 cursor-pointer text-emerald-300 hover:text-white"
+            >
+                <app-icon
+                    name="play"
+                    class="w-3.5 h-3.5 text-emerald-400 shrink-0"
+                ></app-icon>
+                <span>Rozpocznij test stąd</span>
+            </button>
             <button
                 id="ctx-edit-title"
                 type="button"
@@ -6036,50 +6048,179 @@
         <!-- Modal: Symulator Gry / Playtest -->
         <div
             id="modal-playtest"
-            class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-3 sm:p-5 transition-opacity duration-150"
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                 <!-- Header -->
-                <div class="px-5 py-3.5 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <app-icon name="play" class="w-4 h-4 text-[#8ec8ad]"></app-icon>
-                        <span class="font-semibold text-sm text-zinc-100">Playtest — Podgląd Rozgrywki</span>
-                        <span id="playtest-paragraph-badge" class="px-2 py-0.5 rounded bg-[#245842]/30 border border-[#357357]/60 text-[11px] text-[#8ec8ad] font-mono ml-2">Paragraf 1</span>
+                <div class="px-5 py-3 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <app-icon name="play" class="w-4 h-4 text-[#8ec8ad] shrink-0"></app-icon>
+                        <span class="font-semibold text-sm text-zinc-100 truncate">Playtest — Symulator Gry</span>
+                        <span id="playtest-scene-badge" class="hidden px-2 py-0.5 rounded bg-[#202733] border border-[#3b4c61] text-[11px] text-[#9bb7d4] font-medium truncate max-w-[140px]">Scena</span>
+                        <span id="playtest-paragraph-badge" class="px-2 py-0.5 rounded bg-[#1d2b23] border border-[#2d4d3c] text-[11px] text-[#8ec8ad] font-mono shrink-0">§ 1: Początek</span>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 shrink-0">
                         <button
                             type="button"
-                            id="btn-playtest-restart"
-                            class="px-2.5 py-1 rounded text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors cursor-pointer border border-zinc-700/60 flex items-center gap-1"
-                            title="Zacznij od początku"
+                            id="btn-playtest-edit-node"
+                            class="px-2.5 py-1 rounded-lg text-xs bg-[#212226] hover:bg-[#2a2c33] text-zinc-300 hover:text-white transition-colors cursor-pointer border border-[#2e3037] hover:border-[#4a5e74] flex items-center gap-1.5"
+                            title="Zamknij test i zaznacz ten paragraf w edytorze"
                         >
-                            <app-icon name="undo" class="w-3 h-3"></app-icon>
-                            <span>Od nowa</span>
+                            <app-icon name="edit" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                            <span class="hidden sm:inline">Pokaż w edytorze</span>
                         </button>
                         <button
                             type="button"
                             id="btn-close-playtest-modal"
-                            class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                            class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-[#2a2c33] transition-colors cursor-pointer"
+                            title="Zamknij (Esc)"
                         >
                             <app-icon name="close" class="w-4 h-4"></app-icon>
                         </button>
                     </div>
                 </div>
+
+                <!-- Secondary Toolbar: Navigation & Controls -->
+                <div class="px-5 py-2.5 border-b border-[#2e3037] bg-[#1c1d22] flex items-center flex-wrap gap-2 text-xs">
+                    <!-- Step Back -->
+                    <button
+                        type="button"
+                        id="btn-playtest-back"
+                        class="px-2.5 py-1 rounded-lg bg-[#212226] hover:bg-[#2a2c33] text-zinc-200 border border-[#2e3037] hover:border-[#4a5e74] transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                        title="Cofnij do poprzedniego paragrafu (Backspace)"
+                    >
+                        <app-icon name="arrow-left" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                        <span>Cofnij</span>
+                        <kbd class="text-[9px] bg-[#141517] px-1 py-0.2 rounded border border-[#2e3037] font-mono text-zinc-400">⌫</kbd>
+                    </button>
+
+                    <!-- Restart -->
+                    <button
+                        type="button"
+                        id="btn-playtest-restart"
+                        class="px-2.5 py-1 rounded-lg bg-[#212226] hover:bg-[#2a2c33] text-zinc-200 border border-[#2e3037] hover:border-[#4a5e74] transition-colors cursor-pointer flex items-center gap-1.5"
+                        title="Zacznij od początku (R)"
+                    >
+                        <app-icon name="undo" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
+                        <span>Od nowa</span>
+                        <kbd class="text-[9px] bg-[#141517] px-1 py-0.2 rounded border border-[#2e3037] font-mono text-zinc-400">R</kbd>
+                    </button>
+
+                    <!-- Teleport Toggle -->
+                    <button
+                        type="button"
+                        id="btn-playtest-teleport-toggle"
+                        class="px-2.5 py-1 rounded-lg bg-[#262f3a] hover:bg-[#313c4a] text-[#c0d4ea] border border-[#3d4e61] hover:border-[#536c88] transition-colors cursor-pointer flex items-center gap-1.5"
+                        title="Otwórz menu teleportacji do sceny lub grafu (T)"
+                    >
+                        <app-icon name="flag" class="w-3.5 h-3.5 text-[#8fa8c2]"></app-icon>
+                        <span class="font-medium">Teleportacja</span>
+                        <kbd class="text-[9px] bg-[#1a212a] px-1 py-0.2 rounded border border-[#3d4e61] font-mono text-[#9bb7d4]">T</kbd>
+                    </button>
+
+                    <!-- Step Counter -->
+                    <div id="playtest-step-counter" class="text-[11px] text-zinc-400 font-mono ml-auto">
+                        Krok: 1 · Odwiedzono: 1
+                    </div>
+                </div>
+
+                <!-- Breadcrumbs History Trail -->
+                <div id="playtest-breadcrumbs-bar" class="px-5 py-2 border-b border-[#2e3037] bg-[#18191d] flex items-center gap-2 overflow-x-auto text-xs custom-scrollbar">
+                    <span class="text-zinc-500 text-[10px] uppercase font-bold tracking-wider shrink-0 select-none">Ścieżka:</span>
+                    <div id="playtest-breadcrumbs-container" class="flex items-center gap-1.5 flex-nowrap">
+                        <!-- Dynamic interactive breadcrumbs rendered here -->
+                    </div>
+                </div>
+
+                <!-- Collapsible Teleportation Drawer Panel -->
+                <div id="playtest-teleport-panel" class="hidden px-5 py-3.5 border-b border-[#3b4c61]/40 bg-[#1c1d22] space-y-3">
+                    <div class="flex items-center justify-between pb-1 border-b border-[#2e3037]">
+                        <div class="flex items-center gap-2 text-[#9bb7d4] text-xs font-semibold">
+                            <app-icon name="flag" class="w-4 h-4 text-[#8fa8c2]"></app-icon>
+                            <span>Teleportacja w fabule — Wybierz Scenę lub Paragraf docelowy</span>
+                        </div>
+                        <span class="text-[10px] text-zinc-400">Skok nie usuwa poprzedniej historii kroków</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label class="block text-zinc-400 font-medium mb-1">1. Filtruj wg Sceny / Grafu:</label>
+                            <select
+                                id="playtest-teleport-scene-select"
+                                class="w-full px-2.5 py-1.5 rounded-lg bg-[#141517] border border-[#2e3037] text-zinc-200 focus:outline-none focus:border-[#4f6b8a]"
+                            >
+                                <option value="">-- Wszystkie sceny / Cały projekt --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-zinc-400 font-medium mb-1">2. Szukaj paragrafu:</label>
+                            <input
+                                type="text"
+                                id="playtest-teleport-search-input"
+                                placeholder="Wpisz numer lub fragment tytułu..."
+                                class="w-full px-2.5 py-1.5 rounded-lg bg-[#141517] border border-[#2e3037] text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#4f6b8a]"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-zinc-400 font-medium text-xs mb-1">3. Wybierz punkt docelowy:</label>
+                        <select
+                            id="playtest-teleport-paragraph-select"
+                            class="w-full px-2.5 py-1.5 rounded-lg bg-[#141517] border border-[#2e3037] text-zinc-200 focus:outline-none focus:border-[#4f6b8a] text-xs"
+                        >
+                            <option value="">Wybierz węzeł...</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-2 pt-1">
+                        <button
+                            type="button"
+                            id="btn-playtest-teleport-cancel"
+                            class="px-3 py-1.5 rounded-lg text-xs bg-[#212226] hover:bg-[#2a2c33] text-zinc-300 border border-[#2e3037] transition-colors cursor-pointer"
+                        >
+                            Anuluj
+                        </button>
+                        <button
+                            type="button"
+                            id="btn-playtest-teleport-submit"
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-sm"
+                        >
+                            <span>Teleportuj teraz</span>
+                            <span class="text-xs">➔</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Body: Story Content -->
-                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#17181b]">
+                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#141517] custom-scrollbar">
                     <div id="playtest-content" class="text-zinc-200 leading-relaxed space-y-3">
                         <!-- Dynamic paragraph story content rendered here -->
                     </div>
 
                     <!-- Choices container -->
                     <div class="pt-4 border-t border-[#2e3037] space-y-2.5">
-                        <h4 class="text-xs uppercase font-bold tracking-wider text-zinc-400">Twoje wybory:</h4>
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs uppercase font-bold tracking-wider text-zinc-400">Twoje wybory:</h4>
+                            <span class="text-[10px] text-zinc-500 font-mono">Wybierz klikając lub klawiszami 1–9</span>
+                        </div>
                         <div id="playtest-choices-container" class="space-y-2">
                             <!-- Dynamic choices buttons rendered here -->
                         </div>
                     </div>
+                </div>
+
+                <!-- Footer Hint -->
+                <div class="px-5 py-2.5 border-t border-[#2e3037] bg-[#18191d] flex items-center justify-between text-[11px] text-zinc-500">
+                    <div class="flex items-center gap-3">
+                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">1–9</kbd> Wybór</span>
+                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">⌫</kbd> Cofnij</span>
+                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">T</kbd> Teleportacja</span>
+                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">R</kbd> Od nowa</span>
+                    </div>
+                    <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">Esc</kbd> Zamknij</span>
                 </div>
             </div>
         </div>
