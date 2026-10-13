@@ -62,6 +62,7 @@ describe('Skill Model', () => {
             value: '',
             statName: 'Inteligencja',
             modifier: '+3',
+            type: 'skill',
         })
 
         const fromJson = Skill.fromJSON(json)

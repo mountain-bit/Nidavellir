@@ -70,11 +70,23 @@ export async function saveFullProject(ctx, options = {}) {
         )
 
         const allRules = [
-            ...(ctx.projectStats || []),
-            ...(ctx.projectSkills || []),
-            ...(ctx.projectParameters || []),
-            ...(ctx.projectFeatures || []),
-        ].map(r => (r && typeof r.toJSON === 'function' ? r.toJSON() : r))
+            ...(ctx.projectStats || []).map(r => ({
+                ...(r && typeof r.toJSON === 'function' ? r.toJSON() : r),
+                type: 'stat',
+            })),
+            ...(ctx.projectSkills || []).map(r => ({
+                ...(r && typeof r.toJSON === 'function' ? r.toJSON() : r),
+                type: 'skill',
+            })),
+            ...(ctx.projectParameters || []).map(r => ({
+                ...(r && typeof r.toJSON === 'function' ? r.toJSON() : r),
+                type: 'parameter',
+            })),
+            ...(ctx.projectFeatures || []).map(r => ({
+                ...(r && typeof r.toJSON === 'function' ? r.toJSON() : r),
+                type: 'feature',
+            })),
+        ]
 
         const rawDisplayName = document.getElementById('project-name-display')?.textContent?.trim()
         const placeholder =

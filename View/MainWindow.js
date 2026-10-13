@@ -105,31 +105,86 @@ const appContext = {
         projectData = newData
     },
     get projectTags() {
+        if (!Array.isArray(projectData.projectTags)) {
+            projectData.projectTags = []
+        }
         return projectData.projectTags
     },
+    set projectTags(val) {
+        projectData.projectTags = val
+    },
     get projectCharacters() {
+        if (!Array.isArray(projectData.projectCharacters)) {
+            projectData.projectCharacters = []
+        }
         return projectData.projectCharacters
     },
+    set projectCharacters(val) {
+        projectData.projectCharacters = val
+    },
     get projectTemplates() {
-        return projectData.projectTemplates || []
+        if (!Array.isArray(projectData.projectTemplates)) {
+            projectData.projectTemplates = []
+        }
+        return projectData.projectTemplates
+    },
+    set projectTemplates(val) {
+        projectData.projectTemplates = val
     },
     get projectItems() {
-        return projectData.projectItems || projectData.items || []
+        if (!Array.isArray(projectData.projectItems)) {
+            projectData.projectItems = Array.isArray(projectData.items) ? projectData.items : []
+        }
+        return projectData.projectItems
+    },
+    set projectItems(val) {
+        projectData.projectItems = val
+        projectData.items = val
     },
     get projectLocations() {
+        if (!Array.isArray(projectData.projectLocations)) {
+            projectData.projectLocations = []
+        }
         return projectData.projectLocations
     },
+    set projectLocations(val) {
+        projectData.projectLocations = val
+    },
     get projectStats() {
+        if (!Array.isArray(projectData.projectStats)) {
+            projectData.projectStats = []
+        }
         return projectData.projectStats
     },
+    set projectStats(val) {
+        projectData.projectStats = val
+    },
     get projectSkills() {
-        return projectData.projectSkills || []
+        if (!Array.isArray(projectData.projectSkills)) {
+            projectData.projectSkills = []
+        }
+        return projectData.projectSkills
+    },
+    set projectSkills(val) {
+        projectData.projectSkills = val
     },
     get projectParameters() {
-        return projectData.projectParameters || []
+        if (!Array.isArray(projectData.projectParameters)) {
+            projectData.projectParameters = []
+        }
+        return projectData.projectParameters
+    },
+    set projectParameters(val) {
+        projectData.projectParameters = val
     },
     get projectFeatures() {
-        return projectData.projectFeatures || []
+        if (!Array.isArray(projectData.projectFeatures)) {
+            projectData.projectFeatures = []
+        }
+        return projectData.projectFeatures
+    },
+    set projectFeatures(val) {
+        projectData.projectFeatures = val
     },
     get projectParagraphs() {
         if (!Array.isArray(projectData.projectParagraphs)) {

@@ -307,6 +307,24 @@ export class Project {
         this.globalStats.push(stat)
     }
 
+    public getStats(): Stat[] {
+        return this.getGlobalStats()
+    }
+
+    public addStat(stat: Stat): void {
+        this.addGlobalStat(stat)
+    }
+
+    public removeStat(idOrName: string): void {
+        this.removeGlobalStat(idOrName)
+    }
+
+    public removeGlobalStat(idOrName: string): void {
+        this.globalStats = this.globalStats.filter(
+            s => s.getId() !== idOrName && s.getName() !== idOrName
+        )
+    }
+
     public getGlobalSkills(): Skill[] {
         return this.globalSkills
     }
@@ -319,6 +337,24 @@ export class Project {
         this.globalSkills.push(skill)
     }
 
+    public getSkills(): Skill[] {
+        return this.getGlobalSkills()
+    }
+
+    public addSkill(skill: Skill): void {
+        this.addGlobalSkill(skill)
+    }
+
+    public removeSkill(idOrName: string): void {
+        this.removeGlobalSkill(idOrName)
+    }
+
+    public removeGlobalSkill(idOrName: string): void {
+        this.globalSkills = this.globalSkills.filter(
+            s => s.getId() !== idOrName && s.getName() !== idOrName
+        )
+    }
+
     public getGlobalFeatures(): Feature[] {
         return this.globalFeatures
     }
@@ -329,6 +365,24 @@ export class Project {
 
     public addGlobalFeature(feature: Feature): void {
         this.globalFeatures.push(feature)
+    }
+
+    public getFeatures(): Feature[] {
+        return this.getGlobalFeatures()
+    }
+
+    public addFeature(feature: Feature): void {
+        this.addGlobalFeature(feature)
+    }
+
+    public removeFeature(idOrName: string): void {
+        this.removeGlobalFeature(idOrName)
+    }
+
+    public removeGlobalFeature(idOrName: string): void {
+        this.globalFeatures = this.globalFeatures.filter(
+            f => f.getId() !== idOrName && f.getName() !== idOrName
+        )
     }
 
     public getGlobalParameters(): Parameter[] {
@@ -347,6 +401,18 @@ export class Project {
         ) {
             this.globalParameters.push(parameter)
         }
+    }
+
+    public getParameters(): Parameter[] {
+        return this.getGlobalParameters()
+    }
+
+    public addParameter(parameter: Parameter): void {
+        this.addGlobalParameter(parameter)
+    }
+
+    public removeParameter(idOrName: string): void {
+        this.removeGlobalParameter(idOrName)
     }
 
     public removeGlobalParameter(idOrName: string): void {
@@ -456,18 +522,54 @@ export class Project {
             : new PlayerCharacter()
 
         const rules = entities.Rules ?? entities.Zasady ?? []
-        const globalStats = rules
-            .filter(z => z.type === 'stat' || z.type === 'trait' || z.typ === 'cecha')
-            .map(z => Stat.fromJSON(z))
-        const globalSkills = rules
-            .filter(z => z.type === 'skill' || z.typ === 'umiejetnosc')
-            .map(z => Skill.fromJSON(z))
-        const globalFeatures = rules
-            .filter(z => z.type === 'feature' || z.type === 'quality' || z.typ === 'przymiot')
-            .map(z => Feature.fromJSON(z))
-        const globalParameters = rules
-            .filter(z => z.type === 'parameter' || z.type === 'vital' || z.typ === 'parametr')
-            .map(z => Parameter.fromJSON(z))
+
+        const isStat = (z: any): boolean => {
+            const t = String(z?.type || z?.typ || '').toLowerCase()
+            if (t === 'stat' || t === 'trait' || t === 'cecha') return true
+            if (t) return false
+            // Fallback inference if type is missing:
+            if (
+                z?.formula !== undefined ||
+                z?.calculatedValue !== undefined ||
+                z?.mode === 'formula'
+            ) {
+                return false
+            }
+            if (z?.statName !== undefined || z?.modifier !== undefined || z?.mode === 'stat_mod') {
+                return false
+            }
+            return z?.value !== undefined && z?.value !== null
+        }
+
+        const isSkill = (z: any): boolean => {
+            const t = String(z?.type || z?.typ || '').toLowerCase()
+            if (t === 'skill' || t === 'umiejetnosc') return true
+            if (t) return false
+            return z?.statName !== undefined || z?.modifier !== undefined || z?.mode === 'stat_mod'
+        }
+
+        const isParameter = (z: any): boolean => {
+            const t = String(z?.type || z?.typ || '').toLowerCase()
+            if (t === 'parameter' || t === 'vital' || t === 'parametr') return true
+            if (t) return false
+            return (
+                z?.formula !== undefined ||
+                z?.calculatedValue !== undefined ||
+                z?.mode === 'formula'
+            )
+        }
+
+        const isFeature = (z: any): boolean => {
+            const t = String(z?.type || z?.typ || '').toLowerCase()
+            if (t === 'feature' || t === 'quality' || t === 'przymiot') return true
+            if (t) return false
+            return !isParameter(z) && !isSkill(z) && !isStat(z)
+        }
+
+        const globalStats = rules.filter(isStat).map(z => Stat.fromJSON(z))
+        const globalSkills = rules.filter(isSkill).map(z => Skill.fromJSON(z))
+        const globalFeatures = rules.filter(isFeature).map(z => Feature.fromJSON(z))
+        const globalParameters = rules.filter(isParameter).map(z => Parameter.fromJSON(z))
 
         const name = projectData.name ?? ''
         const author = projectData.author ?? ''

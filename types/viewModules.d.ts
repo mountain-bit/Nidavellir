@@ -867,9 +867,31 @@ declare module '*/View/ui/playtestModal.js' {
         getVisitedCount(): number
         getStepCount(): number
         toggleGodMode(): boolean
+        getCharacters(): Array<{
+            getId?: () => string
+            getName?: () => string
+            id?: string
+            name?: string
+        }>
+        getTemplates(): Array<{
+            getId?: () => string
+            getName?: () => string
+            id?: string
+            name?: string
+        }>
+        getNpcs(): Array<{
+            getId?: () => string
+            getName?: () => string
+            id?: string
+            name?: string
+        }>
+        getStats(): unknown[]
+        getParameters(): unknown[]
+        getTraits(): Array<{ id: string; name: string; kind: 'stat' | 'parameter' }>
     }
 
     export function formatMarkdown(text: string): string
+    export function formatInlineMarkdown(text: string): string
     export function openPlaytestSimulator(ctx: unknown, startParagraphId?: string): void
     export function closePlaytestSimulator(): void
     export function renderPlaytestView(): void
@@ -900,4 +922,18 @@ declare module '*/Services/ParagraphNumberingService.js' {
             allParagraphs: Paragraph[]
         ): number
     }
+}
+
+declare module '*/View/ui/detailsPanel/combatModule.js' {
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export function generateCombatMarkdown(entity: Paragraph, ctx: unknown): string
+    export function syncCombatToParagraphDescription(entity: Paragraph, ctx: unknown): void
+    export function renderCombatModule(
+        container: HTMLElement,
+        entity: unknown,
+        type: string,
+        ctx: unknown,
+        onRefreshDetails?: (ctx: unknown) => void
+    ): void
 }

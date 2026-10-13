@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import { Combat } from '../../Model/Combat'
 import { Description } from '../../Model/Description'
 import { Paragraph } from '../../Model/Paragraph'
-// @ts-expect-error JS module imported in TS test
 import {
     generateCombatMarkdown,
     syncCombatToParagraphDescription,

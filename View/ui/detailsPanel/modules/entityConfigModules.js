@@ -582,10 +582,17 @@ export function renderSummaryModule(container, entity, ctx) {
     summaryInput.addEventListener('input', () => {
         if (typeof ctx.vm.updateSummary === 'function') {
             ctx.vm.updateSummary(summaryInput.value)
-        } else if (typeof desc.setSummary === 'function') {
+        }
+        if (typeof desc.setSummary === 'function') {
             desc.setSummary(summaryInput.value)
-        } else if (typeof desc.setText === 'function') {
+        }
+        if (typeof desc.setText === 'function') {
             desc.setText(summaryInput.value)
+        }
+        markProjectDirty()
+        const selectedType = ctx.vm?.getSelectedItem?.()?.type
+        if (selectedType && typeof ctx.refreshActiveSection === 'function') {
+            ctx.refreshActiveSection(selectedType)
         }
     })
 

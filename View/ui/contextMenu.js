@@ -4,10 +4,12 @@ import { t } from '../../dist/Utils/translate.js'
 import {
     DEFAULT_TAG_COLOR,
     ENTITY_CATEGORIES,
+    ProjectManager,
     Scene,
 } from '../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from './htmlTemplates.js'
 import { openPlaytestSimulator } from './playtestModal.js'
+import { markProjectDirty } from './projectStateTracker.js'
 
 let activeContextMenuTarget = null
 let activeEntityForColor = null
@@ -283,17 +285,20 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     ctx.projectTags.push(createdItem)
                     ctx.renderTagsList()
                     if (ctx.renderFilterTags) ctx.renderFilterTags()
+                    markProjectDirty()
                 } else if (sec.type === 'scene') {
                     createdItem = ctx.vm.createScene(name, defaultName)
                     category = ENTITY_CATEGORIES.SCENES
                     ctx.projectScenes.push(createdItem)
                     ctx.renderScenesList()
                     if (ctx.populateFilterSelects) ctx.populateFilterSelects()
+                    markProjectDirty()
                 } else if (sec.type === 'location') {
                     createdItem = ctx.vm.createLocation(name, defaultName)
                     category = ENTITY_CATEGORIES.LOCATIONS
                     ctx.projectLocations.push(createdItem)
                     ctx.renderLocationsList()
+                    markProjectDirty()
                 } else if (sec.type === 'trait') {
                     const typeSelect = document.getElementById('trait-create-type')
                     const selectedType = typeSelect ? typeSelect.value : 'stat'
@@ -302,6 +307,25 @@ export function setupSectionControlsAndContextMenu(ctx) {
 
                     category = ENTITY_CATEGORIES.RULES
 
+                    let defaultTraitName = defaultName
+                    if (selectedType === 'parameter') {
+                        defaultTraitName = t('left_panel.default_parameter_name') || 'Nowy parametr'
+                    } else if (selectedType === 'skill') {
+                        defaultTraitName = t('left_panel.default_skill_name') || 'Nowa umiejętność'
+                    } else if (selectedType === 'feature') {
+                        defaultTraitName = t('left_panel.default_feature_name') || 'Nowy przymiot'
+                    } else {
+                        defaultTraitName =
+                            t('left_panel.default_stat_name') || defaultName || 'Nowa cecha'
+                    }
+                    const traitName = input.value.trim() || defaultTraitName
+
+                    const projectModel =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+
                     if (selectedType === 'parameter') {
                         const isFormula =
                             customVal.includes('+') ||
@@ -309,49 +333,59 @@ export function setupSectionControlsAndContextMenu(ctx) {
                             customVal.includes('*') ||
                             customVal.includes('/')
                         createdItem = ctx.vm.createParameter(
-                            name,
-                            defaultName,
+                            traitName,
+                            defaultTraitName,
                             isFormula ? 'formula' : 'direct',
                             isFormula ? '' : customVal || 10,
                             isFormula ? customVal : ''
                         )
                         if (!Array.isArray(ctx.projectParameters)) ctx.projectParameters = []
                         ctx.projectParameters.push(createdItem)
-                        if (ctx.vm.project?.addGlobalParameter) {
-                            ctx.vm.project.addGlobalParameter(createdItem)
+                        if (projectModel?.addGlobalParameter) {
+                            projectModel.addGlobalParameter(createdItem)
+                        } else if (projectModel?.addParameter) {
+                            projectModel.addParameter(createdItem)
                         }
                     } else if (selectedType === 'skill') {
                         createdItem = ctx.vm.createSkill(
-                            name,
-                            defaultName,
+                            traitName,
+                            defaultTraitName,
                             'direct',
                             customVal || '+1'
                         )
                         if (!Array.isArray(ctx.projectSkills)) ctx.projectSkills = []
                         ctx.projectSkills.push(createdItem)
-                        if (ctx.vm.project?.addGlobalSkill) {
-                            ctx.vm.project.addGlobalSkill(createdItem)
+                        if (projectModel?.addGlobalSkill) {
+                            projectModel.addGlobalSkill(createdItem)
+                        } else if (projectModel?.addSkill) {
+                            projectModel.addSkill(createdItem)
                         }
                     } else if (selectedType === 'feature') {
-                        createdItem = ctx.vm.createFeature(name, defaultName)
+                        createdItem = ctx.vm.createFeature(traitName, defaultTraitName)
                         if (customVal && createdItem.getDescription) {
                             createdItem.getDescription().setText(customVal)
                         }
                         if (!Array.isArray(ctx.projectFeatures)) ctx.projectFeatures = []
                         ctx.projectFeatures.push(createdItem)
-                        if (ctx.vm.project?.addGlobalFeature) {
-                            ctx.vm.project.addGlobalFeature(createdItem)
+                        if (projectModel?.addGlobalFeature) {
+                            projectModel.addGlobalFeature(createdItem)
+                        } else if (projectModel?.addFeature) {
+                            projectModel.addFeature(createdItem)
                         }
                     } else {
-                        createdItem = ctx.vm.createStat(name, defaultName)
+                        createdItem = ctx.vm.createStat(traitName, defaultTraitName)
                         if (customVal) createdItem.setValue(customVal)
+                        if (!Array.isArray(ctx.projectStats)) ctx.projectStats = []
                         ctx.projectStats.push(createdItem)
-                        if (ctx.vm.project?.addStat) {
-                            ctx.vm.project.addStat(createdItem)
+                        if (projectModel?.addGlobalStat) {
+                            projectModel.addGlobalStat(createdItem)
+                        } else if (projectModel?.addStat) {
+                            projectModel.addStat(createdItem)
                         }
                     }
                     if (valInput) valInput.value = ''
                     ctx.renderTraitsList()
+                    markProjectDirty()
                 }
 
                 let persistSuccess = true
@@ -362,15 +396,25 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     category &&
                     createdItem
                 ) {
-                    const currentPath = window.currentProjectPath || ''
+                    const currentPath =
+                        (typeof ctx.getProjectPath === 'function'
+                            ? ctx.getProjectPath()
+                            : ctx.projectPath) ||
+                        window.currentProjectPath ||
+                        ''
                     if (currentPath) {
                         try {
+                            const entityData = createdItem.toJSON
+                                ? createdItem.toJSON()
+                                : { ...createdItem }
+                            if (sec.type === 'trait') {
+                                const typeSelect = document.getElementById('trait-create-type')
+                                entityData.type = typeSelect ? typeSelect.value : 'stat'
+                            }
                             const res = await window.electronAPI.createEntity({
                                 projectPath: currentPath,
                                 category: category,
-                                entityData: createdItem.toJSON
-                                    ? createdItem.toJSON()
-                                    : { ...createdItem },
+                                entityData,
                             })
                             if (res && !res.success) {
                                 persistSuccess = false
@@ -571,15 +615,43 @@ export function setupSectionControlsAndContextMenu(ctx) {
                 ) {
                     const idx = ctx.projectStats.findIndex(tr => tr.getId() === id)
                     if (idx !== -1) ctx.projectStats.splice(idx, 1)
+                    const proj =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+                    if (proj?.removeGlobalStat) proj.removeGlobalStat(id)
+                    else if (proj?.removeStat) proj.removeStat(id)
                 } else if (activeContextMenuTarget.type === 'parameter') {
                     const idx = (ctx.projectParameters || []).findIndex(p => p.getId() === id)
                     if (idx !== -1) ctx.projectParameters.splice(idx, 1)
+                    const proj =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+                    if (proj?.removeGlobalParameter) proj.removeGlobalParameter(id)
+                    else if (proj?.removeParameter) proj.removeParameter(id)
                 } else if (activeContextMenuTarget.type === 'skill') {
                     const idx = (ctx.projectSkills || []).findIndex(sk => sk.getId() === id)
                     if (idx !== -1) ctx.projectSkills.splice(idx, 1)
+                    const proj =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+                    if (proj?.removeGlobalSkill) proj.removeGlobalSkill(id)
+                    else if (proj?.removeSkill) proj.removeSkill(id)
                 } else if (activeContextMenuTarget.type === 'feature') {
                     const idx = (ctx.projectFeatures || []).findIndex(f => f.getId() === id)
                     if (idx !== -1) ctx.projectFeatures.splice(idx, 1)
+                    const proj =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+                    if (proj?.removeGlobalFeature) proj.removeGlobalFeature(id)
+                    else if (proj?.removeFeature) proj.removeFeature(id)
                 }
                 ctx.refreshActiveSection(activeContextMenuTarget.type)
             }

@@ -68,6 +68,7 @@ export class Stat {
             name: this.name,
             description: this.description,
             value: this.value,
+            type: 'stat',
         }
     }
 }

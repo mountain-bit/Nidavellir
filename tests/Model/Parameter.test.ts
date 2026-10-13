@@ -62,6 +62,7 @@ describe('Parameter Model', () => {
             value: '',
             formula: 'Inteligencja * 2',
             calculatedValue: 20,
+            type: 'parameter',
         })
 
         const fromJson = Parameter.fromJSON(json)

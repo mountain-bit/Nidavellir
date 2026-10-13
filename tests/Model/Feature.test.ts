@@ -22,6 +22,7 @@ describe('Feature Model', () => {
             id: 'f2',
             name: 'Eagle Eye',
             description: feature.getDescription(),
+            type: 'feature',
         })
 
         const fromJson = Feature.fromJSON(json)

@@ -117,6 +117,7 @@ export class Parameter {
             value: this.value,
             formula: this.formula,
             calculatedValue: this.calculatedValue,
+            type: 'parameter',
         }
     }
 }
