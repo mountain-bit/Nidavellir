@@ -15,6 +15,7 @@ import {
 } from '../../htmlTemplates.js'
 import { FANTASY_AVATARS, getAvatarById } from '../../npcAvatars.js'
 import { markProjectDirty } from '../../projectStateTracker.js'
+import { syncCombatToParagraphDescription } from '../combatModule.js'
 import { createSection } from '../common/domHelpers.js'
 import { renderHistoryBar } from '../historyBar.js'
 
@@ -618,6 +619,9 @@ export function renderFilesModule(container, entity, ctx) {
     )
 
     filesMod.querySelector('#btn-open-player-text').addEventListener('click', () => {
+        if (entity && typeof entity.getHasCombat === 'function' && entity.getHasCombat()) {
+            syncCombatToParagraphDescription(entity, ctx)
+        }
         const { fileName, content } = ctx.vm.openOrCreateDescriptionFile()
         if (fileName) {
             ctx.files[fileName] = content

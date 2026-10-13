@@ -173,11 +173,32 @@ export function getStoryGraphStylesheet(
             },
         },
         {
+            selector: 'edge.combat-outcome',
+            style: {
+                'line-color': '#d97706',
+                'target-arrow-color': '#d97706',
+                'line-style': 'solid',
+                width: 2.5,
+                color: '#fef3c7',
+                'text-background-color': '#2a1a08',
+                'text-border-color': '#d97706',
+            },
+        },
+        {
             selector: 'edge:selected, edge.is-selected',
             style: {
                 width: GRAPH_THEME.dimensions.edgeSelectedWidth,
                 'line-color': GRAPH_THEME.colors.edgeSelected,
                 'target-arrow-color': GRAPH_THEME.colors.edgeSelected,
+                'z-index': 999,
+            },
+        },
+        {
+            selector: 'edge.combat-outcome:selected, edge.combat-outcome.is-selected',
+            style: {
+                width: GRAPH_THEME.dimensions.edgeSelectedWidth,
+                'line-color': '#fbbf24',
+                'target-arrow-color': '#fbbf24',
                 'z-index': 999,
             },
         },

@@ -214,4 +214,92 @@ describe('GraphValidationService (Services/GraphValidationService.ts)', () => {
             expect(p1Severities).toContain('warning')
         })
     })
+
+    describe('Combat Outcomes Transitions & Validation', () => {
+        it('recognizes combat outcomes as valid transitions preventing false DEAD_END', () => {
+            const p1 = new Paragraph('p1', 'Arena')
+            p1.setIsStart(true)
+            p1.setHasCombat(true)
+
+            const combat = p1.getCombat()
+            combat.setOutcomes([
+                { id: 'o_win', name: 'Zwycięstwo', targetParagraphId: 'pEnd' },
+                { id: 'o_flee', name: 'Ucieczka', targetParagraphId: 'pEnd' },
+            ])
+
+            const pEnd = new Paragraph('pEnd', 'Finał')
+            pEnd.setIsEnd(true)
+
+            const report = GraphValidationService.validateStoryGraph([p1, pEnd])
+            expect(report.issues.some(i => i.code === 'DEAD_END')).toBe(false)
+            expect(
+                report.issues.some(i => i.code === 'ORPHAN_NODE' && i.paragraphId === 'pEnd')
+            ).toBe(false)
+            expect(report.issues.some(i => i.code === 'UNREACHABLE_ISLAND')).toBe(false)
+        })
+
+        it('detects broken links in combat outcomes', () => {
+            const p1 = new Paragraph('p1', 'Las')
+            p1.setIsStart(true)
+            p1.setHasCombat(true)
+
+            const combat = p1.getCombat()
+            combat.setOutcomes([
+                { id: 'o_bad', name: 'Zwycięstwo', targetParagraphId: 'non_existent_target_404' },
+            ])
+
+            const report = GraphValidationService.validateStoryGraph([p1])
+            expect(report.isValid).toBe(false)
+            expect(report.errorCount).toBe(1)
+            const brokenIssue = report.issues.find(i => i.code === 'BROKEN_LINK')
+            expect(brokenIssue).toBeDefined()
+            expect(brokenIssue?.title).toContain('Błędny cel')
+            expect(brokenIssue?.description).toContain('Wynik walki')
+        })
+
+        it('detects self-loops in combat outcomes', () => {
+            const p1 = new Paragraph('p1', 'Pułapka')
+            p1.setIsStart(true)
+            p1.setHasCombat(true)
+
+            const combat = p1.getCombat()
+            combat.setOutcomes([{ id: 'o_self', name: 'Ponowna próba', targetParagraphId: 'p1' }])
+
+            const report = GraphValidationService.validateStoryGraph([p1])
+            const loopIssue = report.issues.find(i => i.code === 'SELF_LOOP')
+            expect(loopIssue).toBeDefined()
+            expect(loopIssue?.description).toContain('Wynik walki')
+        })
+
+        it('correctly traverses combat outcomes in BFS reachability analysis', () => {
+            const pStart = new Paragraph('pStart', 'Start')
+            pStart.setIsStart(true)
+            pStart.setHasCombat(true)
+            pStart
+                .getCombat()
+                .setOutcomes([{ id: 'o_next', name: 'Zwycięstwo', targetParagraphId: 'pMid' }])
+
+            const pMid = new Paragraph('pMid', 'Środek')
+            pMid.setChoices([new Choice('c_end', 'Do końca', 'pMid', 'pEnd')])
+
+            const pEnd = new Paragraph('pEnd', 'Koniec')
+            pEnd.setIsEnd(true)
+
+            const report = GraphValidationService.validateStoryGraph([pStart, pMid, pEnd])
+            expect(report.issues.some(i => i.code === 'ORPHAN_NODE')).toBe(false)
+            expect(report.issues.some(i => i.code === 'UNREACHABLE_ISLAND')).toBe(false)
+        })
+
+        it('warns about dead-end when combat has no outcomes and no choices', () => {
+            const pCombat = new Paragraph('pCombat', 'Ślepa walka')
+            pCombat.setIsStart(true)
+            pCombat.setHasCombat(true)
+            pCombat.getCombat().setOutcomes([])
+
+            const report = GraphValidationService.validateStoryGraph([pCombat])
+            const deadEnd = report.issues.find(i => i.code === 'DEAD_END')
+            expect(deadEnd).toBeDefined()
+            expect(deadEnd?.description).toContain('walkę')
+        })
+    })
 })

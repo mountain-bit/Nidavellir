@@ -8,6 +8,7 @@ import { getIconSvg } from '../../dist/Utils/icons.js'
 import { t } from '../../dist/Utils/translate.js'
 import { Choice } from '../../dist/ViewModel/MainWindowViewModel.js'
 import { renderChoiceDetails } from './detailsPanel/choiceDetails.js'
+import { renderCombatModule } from './detailsPanel/combatModule.js'
 import { renderExitsModule } from './detailsPanel/exitsModule.js'
 import { renderHeroReadOnlyDetails } from './detailsPanel/heroReadOnlyDetails.js'
 import { renderHistoryBar as renderHistoryBarModule } from './detailsPanel/historyBar.js'
@@ -46,6 +47,7 @@ export {
     renderCharactersModule,
     renderChoiceDetails,
     renderColorModule,
+    renderCombatModule,
     renderCustomAttributesModule,
     renderEntityHeaderModule,
     renderExitsModule,
@@ -161,6 +163,7 @@ export function renderDetailsPanel(ctx) {
     renderFeaturesModule(container, entity, type, ctx, renderDetailsPanel)
     renderCustomAttributesModule(container, entity, type, ctx, renderDetailsPanel)
     renderExitsModule(container, entity, type, ctx, renderDetailsPanel)
+    renderCombatModule(container, entity, type, ctx, renderDetailsPanel)
     renderQuickActionsModule(container, item, type, ctx)
 }
 

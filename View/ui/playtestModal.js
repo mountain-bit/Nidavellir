@@ -14,6 +14,7 @@
 import { getIconSvg } from '../../dist/Utils/icons.js'
 import { toast } from '../../dist/Utils/toast.js'
 import { escapeHtml, getTypeIconSvg } from './htmlTemplates.js'
+import { getAvatarById } from './npcAvatars.js'
 
 /**
  * @typedef {object} PlaytestHistoryEntry
@@ -916,7 +917,7 @@ export function renderPlaytestView() {
 
     if (hasCombat) {
         metaBadgesHtml.push(
-            `<span class="px-2 py-0.5 rounded bg-[#331e23] border border-[#592731] text-[#e698a2] text-[11px] font-semibold flex items-center gap-1">${getIconSvg('alert-triangle', 'w-3 h-3')} Walka / Starcie</span>`
+            `<span class="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-600/60 text-amber-300 text-[11px] font-semibold flex items-center gap-1">${getIconSvg('combat', 'w-3 h-3') || getIconSvg('swords', 'w-3 h-3')} Walka / Starcie</span>`
         )
     }
 
@@ -954,12 +955,111 @@ export function renderPlaytestView() {
             ? `<div class="flex items-center flex-wrap gap-1.5 pb-2 border-b border-[#2e3037] mb-3">${metaBadgesHtml.join('')}</div>`
             : ''
 
+    let combatCardHtml = ''
+    if (hasCombat) {
+        const combat = currentP.getCombat ? currentP.getCombat() : currentP.combat
+        const opponents = combat && combat.getCombatOpponents ? combat.getCombatOpponents() : []
+        const visibleStatIds = combat && combat.getVisibleStatIds ? combat.getVisibleStatIds() : []
+        const allNpcs = [
+            ...(playtestEngineInstance.ctx?.projectCharacters || []),
+            ...(playtestEngineInstance.ctx?.projectTemplates || []),
+        ]
+        const allTraits = [
+            ...(playtestEngineInstance.ctx?.projectStats || []),
+            ...(playtestEngineInstance.ctx?.projectParameters || []),
+        ]
+
+        if (opponents.length > 0) {
+            const opponentCards = opponents
+                .map(opp => {
+                    const avatarObj = getAvatarById(opp.avatar || 'warrior')
+                    const avatarSvg = avatarObj ? avatarObj.svg : getIconSvg('character', 'w-4 h-4')
+                    const originalNpc = allNpcs.find(
+                        n => (typeof n.getId === 'function' ? n.getId() : n.id) === opp.npcId
+                    )
+
+                    const statsBadges = visibleStatIds
+                        .map(traitId => {
+                            const traitDef = allTraits.find(
+                                t => (typeof t.getId === 'function' ? t.getId() : t.id) === traitId
+                            )
+                            const traitName = traitDef
+                                ? typeof traitDef.getName === 'function'
+                                    ? traitDef.getName()
+                                    : traitDef.name
+                                : traitId
+
+                            let val =
+                                opp.overriddenStats && opp.overriddenStats[traitId] !== undefined
+                                    ? opp.overriddenStats[traitId]
+                                    : ''
+                            if (val === '' && originalNpc) {
+                                if (typeof originalNpc.getStat === 'function')
+                                    val = originalNpc.getStat(traitId) ?? ''
+                                if (val === '' && typeof originalNpc.getParameter === 'function') {
+                                    const p = originalNpc.getParameter(traitId)
+                                    val = p
+                                        ? typeof p.getValue === 'function'
+                                            ? p.getValue()
+                                            : (p.value ?? '')
+                                        : ''
+                                }
+                            }
+
+                            return `
+                            <div class="px-2 py-0.5 rounded bg-[#1e2025] border border-zinc-700/60 text-[11px] flex items-center gap-1.5 font-mono">
+                                <span class="text-zinc-400 font-sans">${escapeHtml(traitName)}:</span>
+                                <span class="text-amber-300 font-bold">${escapeHtml(String(val || '-'))}</span>
+                            </div>
+                        `
+                        })
+                        .join('')
+
+                    return `
+                    <div class="p-2.5 bg-[#1b1c20] border border-[#2e3037] rounded-lg flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-lg bg-zinc-800 p-1 border border-zinc-700/60 shrink-0 text-amber-400 flex items-center justify-center">
+                                ${avatarSvg}
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-zinc-100 truncate">${escapeHtml(opp.name)}</div>
+                                <div class="text-[10px] text-zinc-400">Przeciwnik</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center flex-wrap gap-1.5 justify-end">
+                            ${statsBadges}
+                        </div>
+                    </div>
+                `
+                })
+                .join('')
+
+            combatCardHtml = `
+                <div class="my-4 p-3.5 rounded-xl bg-gradient-to-b from-[#241a1c]/80 to-[#18191d] border border-amber-600/40 shadow-sm space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="text-amber-400">${getIconSvg('combat', 'w-4 h-4') || '⚔️'}</span>
+                            <span class="text-xs font-bold text-amber-200 uppercase tracking-wider">Starcie z przeciwnikami</span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-amber-950/80 text-amber-300 border border-amber-500/50 font-bold uppercase font-mono">
+                            ${opponents.length} ${opponents.length === 1 ? 'Wróg' : 'Wrogów'}
+                        </span>
+                    </div>
+                    <div class="space-y-1.5">
+                        ${opponentCards}
+                    </div>
+                </div>
+            `
+        }
+    }
+
     contentEl.innerHTML = `
         ${metaSection}
         <h2 class="text-base font-bold text-zinc-100 mb-3 tracking-wide">§ ${pNum}: ${escapeHtml(pTitle)}</h2>
         <div class="prose prose-invert max-w-none text-sm text-zinc-200">
             ${formatMarkdown(text)}
         </div>
+        ${combatCardHtml}
     `
 
     // Render Choices
@@ -1066,12 +1166,33 @@ export function renderPlaytestView() {
                 `
                 }
 
+                const combatObj = currentP.getCombat ? currentP.getCombat() : currentP.combat
+                const outcomesList =
+                    combatObj && combatObj.getOutcomes ? combatObj.getOutcomes() : []
+                const chId = typeof ch.getId === 'function' ? ch.getId() : ch.id
+                const isCombatOutcome = Boolean(
+                    hasCombat && outcomesList.some(o => o.id === chId || o.name === chTitle)
+                )
+
+                let outcomeBadge = ''
+                if (isCombatOutcome) {
+                    outcomeBadge = `
+                    <span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-950/80 border border-amber-500/60 text-amber-300 font-bold uppercase tracking-wider font-mono flex items-center gap-1 shrink-0">
+                        ${getIconSvg('combat', 'w-2.5 h-2.5') || '⚔️'} WYNIK WALKI
+                    </span>
+                    `
+                }
+
                 const targetLabel = targetNum ? `§ ${targetNum}: ${targetTitle}` : targetTitle
 
                 return `
                 <button
                     type="button"
-                    class="btn-playtest-choice w-full text-left p-3 rounded-lg bg-[#1b1c20] hover:bg-[#22242a] border border-[#2e3037] hover:border-[#4a5e74] transition-all flex items-center justify-between group cursor-pointer shadow-xs"
+                    class="btn-playtest-choice w-full text-left p-3 rounded-lg bg-[#1b1c20] hover:bg-[#22242a] border transition-all flex items-center justify-between group cursor-pointer shadow-xs ${
+                        isCombatOutcome
+                            ? 'border-amber-600/40 hover:border-amber-500/70 bg-gradient-to-r from-amber-950/20 to-[#1b1c20]'
+                            : 'border-[#2e3037] hover:border-[#4a5e74]'
+                    }"
                     data-target-id="${escapeHtml(targetId)}"
                     data-choice-title="${escapeHtml(chTitle)}"
                 >
@@ -1080,8 +1201,9 @@ export function renderPlaytestView() {
                             ${idx + 1}
                         </span>
                         <div class="min-w-0 flex-1">
-                            <div class="text-zinc-200 group-hover:text-white font-medium text-xs sm:text-sm">
-                                ${escapeHtml(chTitle)}
+                            <div class="text-zinc-200 group-hover:text-white font-medium text-xs sm:text-sm flex items-center gap-2 flex-wrap">
+                                <span>${escapeHtml(chTitle)}</span>
+                                ${outcomeBadge}
                             </div>
                             <div class="text-[11px] text-zinc-500 group-hover:text-zinc-400 mt-0.5 flex items-center gap-2">
                                 <span>(cel: ${escapeHtml(targetLabel)})</span>

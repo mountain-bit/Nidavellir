@@ -37,6 +37,18 @@ const config = {
             'Services',
             'GraphValidationService.ts'
         ),
+        'Services/CombatMarkdownService': path.join(
+            __dirname,
+            '..',
+            'Services',
+            'CombatMarkdownService.ts'
+        ),
+        'Services/CombatSyncService': path.join(
+            __dirname,
+            '..',
+            'Services',
+            'CombatSyncService.ts'
+        ),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
         'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
         'Modules/ImageEditor/index': path.join(
