@@ -4,6 +4,7 @@ import { getIconSvg } from '../../Utils/icons'
 import { t } from '../../Utils/translate'
 import {
     createCharacterPill,
+    createCombatPill,
     createLocationPill,
     createNoSummaryPlaceholder,
     createNoTagsPlaceholder,
@@ -445,9 +446,17 @@ export class ParagraphNode extends HTMLElement {
         this._elements.socketBtn.title = t('graph.node.socket_title')
         this._elements.socketBtn.setAttribute('aria-label', t('graph.node.socket_aria_label'))
 
-        // 4. Badges (Locations, Characters, Tags)
+        // 4. Badges (Combat, Locations, Characters, Tags)
         this._elements.tagsContainer.replaceChildren()
         const badgesFragment = document.createDocumentFragment()
+
+        const hasCombat = Boolean(p.getHasCombat && p.getHasCombat())
+        if (hasCombat) {
+            const combat = p.getCombat ? p.getCombat() : null
+            const oppCount =
+                combat && combat.getCombatOpponents ? combat.getCombatOpponents().length : 0
+            badgesFragment.appendChild(createCombatPill(oppCount))
+        }
 
         if (locations && locations.length > 0) {
             locations.forEach(loc => {

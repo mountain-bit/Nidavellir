@@ -67,7 +67,7 @@ import {
     toggleDescriptionDrawer,
     updateSkillStatDropdowns,
     updateVitalFormulasPreview,
-} from '../../View/ui/npcModal.js'
+} from '../../View/ui/npcModal/npcModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('NpcModal Floating Window Controller', () => {

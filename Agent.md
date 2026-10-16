@@ -52,16 +52,16 @@ Model (pure TS)  ←→  ViewModel (TS)  ←→  View (HTML + JS controllers)
 
 The View layer is split into focused controller modules in `View/ui/`:
 
-| Module                    | Responsibility                                               |
-| ------------------------- | ------------------------------------------------------------ |
-| `detailsPanel.js`         | Right-sidebar property inspector, entity details, history bar |
-| `drawerLists.js`          | Left-drawer entity lists (paragraphs, scenes, characters, locations, tags, traits, skills, parameters, features, connections) |
-| `contextMenu.js`          | Right-click context menus, section controls, color palette    |
-| `filterPopover.js`        | Faceted search & filter popover for paragraphs                |
-| `htmlTemplates.js`        | Shared HTML template builder functions                        |
-| `workspace.js`            | Main workspace tabs, resizers, zoom toolbar, file editor      |
-| `npcModal.js`             | NPC creation/edit modal (orchestrator)                        |
-| `npcModal/*.js`           | NPC modal sub-modules: `npcState`, `npcTemplates`, `npcSectionControllers`, `npcCharacterSaver`, `npcDraggable`, `formulaEvaluator` |
+| Module                              | Responsibility                                               |
+| ----------------------------------- | ------------------------------------------------------------ |
+| `detailsPanel/detailsPanel.js`      | Right-sidebar property inspector, entity details, history bar |
+| `drawer/drawerLists.js`             | Left-drawer entity lists (paragraphs, scenes, characters, locations, tags, traits, skills, parameters, features, connections) |
+| `workspace/contextMenu.js`          | Right-click context menus, section controls, color palette    |
+| `drawer/filterPopover.js`           | Faceted search & filter popover for paragraphs                |
+| `common/htmlTemplates.js`           | Shared HTML template builder functions                        |
+| `workspace/workspace.js`            | Main workspace tabs, resizers, zoom toolbar, file editor      |
+| `npcModal/npcModal.js`              | NPC creation/edit modal (orchestrator)                        |
+| `npcModal/*.js`                     | NPC modal sub-modules: `npcState`, `npcTemplates`, `npcSectionControllers`, `npcCharacterSaver`, `npcDraggable`, `formulaEvaluator` |
 
 **All controllers receive a shared `appContext` object** (defined in `MainWindow.js`) which provides:
 - `vm` — the `MainWindowViewModel` instance

@@ -9,13 +9,13 @@ import {
     startAutoSave,
     stopAutoSave,
     triggerAutoSaveCycle,
-} from '../../View/ui/autoSaveService.js'
-import * as projectSaverModule from '../../View/ui/projectSaver.js'
+} from '../../View/ui/project/autoSaveService.js'
+import * as projectSaverModule from '../../View/ui/project/projectSaver.js'
 import {
     isProjectDirty,
     markProjectClean,
     markProjectDirty,
-} from '../../View/ui/projectStateTracker.js'
+} from '../../View/ui/project/projectStateTracker.js'
 
 describe('AutoSaveService (5-Minute Background Periodic Save)', () => {
     beforeEach(() => {

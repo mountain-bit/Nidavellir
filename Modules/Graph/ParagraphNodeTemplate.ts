@@ -98,6 +98,14 @@ export function createCharacterPill(name: string, title?: string): HTMLSpanEleme
     return pill
 }
 
+export function createCombatPill(opponentsCount: number = 0): HTMLSpanElement {
+    const pill = document.createElement('span')
+    pill.className = 'node-combat-pill'
+    pill.title = 'Starcie z przeciwnikami (Walka)'
+    pill.textContent = opponentsCount > 0 ? `Walka (${opponentsCount})` : 'Walka'
+    return pill
+}
+
 export function createTagPill(name: string, color: string): HTMLSpanElement {
     const pill = document.createElement('span')
     pill.className = 'node-tag-pill'

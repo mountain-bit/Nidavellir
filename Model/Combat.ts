@@ -1,6 +1,23 @@
 import { Description } from './Description'
 import { NPC } from './NPC'
 
+export interface ICombatOutcome {
+    id: string
+    name: string
+    targetParagraphId: string
+    description?: string
+}
+export type CombatOutcome = ICombatOutcome
+
+export interface ICombatOpponent {
+    id: string
+    npcId: string
+    name: string
+    avatar: string
+    overriddenStats: Record<string, string | number>
+}
+export type CombatOpponent = ICombatOpponent
+
 export class Combat {
     private id: string = ''
     private name: string = ''
@@ -8,6 +25,9 @@ export class Combat {
     private defeatDescription: Description = new Description()
     private drawDescription: Description = new Description()
     private opponents: NPC[] = []
+    private combatOpponents: ICombatOpponent[] = []
+    private outcomes: ICombatOutcome[] = []
+    private visibleStatIds: string[] = []
 
     constructor(
         id: string = '',
@@ -15,7 +35,10 @@ export class Combat {
         victoryDescription: Description = new Description(),
         defeatDescription: Description = new Description(),
         drawDescription: Description = new Description(),
-        opponents: NPC[] = []
+        opponents: NPC[] = [],
+        combatOpponents: CombatOpponent[] = [],
+        outcomes: CombatOutcome[] = [],
+        visibleStatIds: string[] = []
     ) {
         this.id = id
         this.name = name
@@ -23,6 +46,9 @@ export class Combat {
         this.defeatDescription = defeatDescription
         this.drawDescription = drawDescription
         this.opponents = opponents
+        this.combatOpponents = combatOpponents
+        this.outcomes = outcomes
+        this.visibleStatIds = visibleStatIds
     }
 
     public getId(): string {
@@ -85,6 +111,78 @@ export class Combat {
         this.opponents = this.opponents.filter(p => p !== opponent)
     }
 
+    public getCombatOpponents(): CombatOpponent[] {
+        return this.combatOpponents
+    }
+
+    public setCombatOpponents(opponents: CombatOpponent[]): void {
+        this.combatOpponents = opponents
+    }
+
+    public addCombatOpponent(opponent: CombatOpponent): void {
+        this.combatOpponents.push(opponent)
+    }
+
+    public removeCombatOpponent(id: string): void {
+        this.combatOpponents = this.combatOpponents.filter(o => o.id !== id)
+    }
+
+    public updateCombatOpponent(id: string, updates: Partial<CombatOpponent>): void {
+        const index = this.combatOpponents.findIndex(o => o.id === id)
+        if (index !== -1) {
+            this.combatOpponents[index] = {
+                ...this.combatOpponents[index],
+                ...updates,
+                overriddenStats: {
+                    ...this.combatOpponents[index].overriddenStats,
+                    ...(updates.overriddenStats || {}),
+                },
+            }
+        }
+    }
+
+    public getOutcomes(): CombatOutcome[] {
+        return this.outcomes
+    }
+
+    public setOutcomes(outcomes: CombatOutcome[]): void {
+        this.outcomes = outcomes
+    }
+
+    public addOutcome(outcome: CombatOutcome): void {
+        this.outcomes.push(outcome)
+    }
+
+    public removeOutcome(id: string): void {
+        this.outcomes = this.outcomes.filter(o => o.id !== id)
+    }
+
+    public updateOutcome(id: string, updates: Partial<CombatOutcome>): void {
+        const index = this.outcomes.findIndex(o => o.id === id)
+        if (index !== -1) {
+            this.outcomes[index] = {
+                ...this.outcomes[index],
+                ...updates,
+            }
+        }
+    }
+
+    public getVisibleStatIds(): string[] {
+        return this.visibleStatIds
+    }
+
+    public setVisibleStatIds(ids: string[]): void {
+        this.visibleStatIds = ids
+    }
+
+    public toggleVisibleStatId(id: string): void {
+        if (this.visibleStatIds.includes(id)) {
+            this.visibleStatIds = this.visibleStatIds.filter(i => i !== id)
+        } else {
+            this.visibleStatIds.push(id)
+        }
+    }
+
     public static fromJSON(json: any): Combat {
         if (!json) return new Combat('', '')
         const name = json.name ?? ''
@@ -101,6 +199,33 @@ export class Combat {
         if (json.opponents && Array.isArray(json.opponents)) {
             json.opponents.forEach((p: any) => w.addOpponent(NPC.fromJSON(p)))
         }
+        if (json.combatOpponents && Array.isArray(json.combatOpponents)) {
+            w.setCombatOpponents(
+                json.combatOpponents.map((o: any) => ({
+                    id: String(o.id || ''),
+                    npcId: String(o.npcId || ''),
+                    name: String(o.name || ''),
+                    avatar: String(o.avatar || 'warrior'),
+                    overriddenStats:
+                        typeof o.overriddenStats === 'object' && o.overriddenStats
+                            ? { ...o.overriddenStats }
+                            : {},
+                }))
+            )
+        }
+        if (json.outcomes && Array.isArray(json.outcomes)) {
+            w.setOutcomes(
+                json.outcomes.map((o: any) => ({
+                    id: String(o.id || ''),
+                    name: String(o.name || ''),
+                    targetParagraphId: String(o.targetParagraphId || ''),
+                    description: typeof o.description === 'string' ? o.description : '',
+                }))
+            )
+        }
+        if (json.visibleStatIds && Array.isArray(json.visibleStatIds)) {
+            w.setVisibleStatIds(json.visibleStatIds.map((s: any) => String(s)))
+        }
         return w
     }
 
@@ -112,6 +237,9 @@ export class Combat {
             defeatDescription: this.defeatDescription,
             drawDescription: this.drawDescription,
             opponents: this.opponents,
+            combatOpponents: this.combatOpponents,
+            outcomes: this.outcomes,
+            visibleStatIds: this.visibleStatIds,
         }
     }
 }

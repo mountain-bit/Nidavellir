@@ -121,6 +121,75 @@ describe('MarkdownEditor', () => {
         editor.destroy()
     })
 
+    it('preserves combat block HTML comment markers through editor lifecycle', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const input =
+            '# Paragraf\n\nTekst opisu.\n\n<!-- COMBAT_START -->\n### ⚔️ Starcie: Zasadzka\n<!-- COMBAT_END -->'
+        editor.setMarkdown(input)
+        const output = editor.getMarkdown()
+
+        expect(output).toContain('<!-- COMBAT_START -->')
+        expect(output).toContain('### ⚔️ Starcie: Zasadzka')
+        expect(output).toContain('<!-- COMBAT_END -->')
+        editor.destroy()
+    })
+
+    it('preserves full combat block with markdown table and outcomes without corruption', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        const input = [
+            '# Paragraf',
+            '',
+            'Wchodzisz do komnaty strażnika.',
+            '',
+            '<!-- COMBAT_START -->',
+            '',
+            '---',
+            '',
+            '### Starcie: zasx',
+            '',
+            '| Przeciwnik | Siła | hp |',
+            '| :--- | :---: | :---: |',
+            '| Strażnik miejski | 5 | 40 |',
+            '',
+            '#### Możliwe wyniki starcia:',
+            '',
+            '- **Zwycięstwo** → [§ 1 koniec](entity://paragraph/p1)',
+            '',
+            '<!-- COMBAT_END -->',
+        ].join('\n')
+
+        editor.setMarkdown(input)
+        const output = editor.getMarkdown()
+
+        expect(output).toContain('<!-- COMBAT_START -->')
+        expect(output).toContain('<!-- COMBAT_END -->')
+        expect(output).toContain('### Starcie: zasx')
+        expect(output).toContain('| Przeciwnik | Siła | hp |')
+        expect(output).toContain('| Strażnik miejski | 5 | 40 |')
+        expect(output).toContain('- **Zwycięstwo** → [§ 1 koniec](entity://paragraph/p1)')
+        expect(output).not.toContain('PrzeciwnikSiłahp')
+        expect(output).not.toContain('{{combat:start}}')
+        expect(output).not.toContain('{{combat:end}}')
+
+        const card = container.querySelector('.combat-block-card')
+        expect(card).not.toBeNull()
+        expect(card?.textContent).toContain('Starcie: zasx')
+        expect(card?.textContent).toContain('Strażnik miejski')
+        expect(card?.textContent).toContain('Zwycięstwo')
+
+        editor.destroy()
+    })
+
     it('inserts entity and serializes to markdown link format', () => {
         const editor = new MarkdownEditor({
             element: container,

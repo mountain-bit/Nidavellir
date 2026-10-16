@@ -1,10 +1,10 @@
 import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { DEFAULT_TAG_COLOR } from '../../../dist/ViewModel/MainWindowViewModel.js'
-import { escapeHtml, getTypeBadgeColor } from '../htmlTemplates.js'
-import { getAvatarById } from '../npcAvatars.js'
-import { openNpcModal } from '../npcModal.js'
+import { escapeHtml, getTypeBadgeColor } from '../common/htmlTemplates.js'
+import { getAvatarById } from '../common/npcAvatars.js'
 import { evaluateFormula } from '../npcModal/formulaEvaluator.js'
+import { openNpcModal } from '../npcModal/npcModal.js'
 import { buildStatsMap, createSection } from './common/domHelpers.js'
 import { renderFilesModule } from './modules/entityConfigModules.js'
 

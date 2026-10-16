@@ -3,9 +3,9 @@
  * Single place that resolves the project path, handles file drops, and reports import errors.
  */
 
-import { toAssetUrl } from '../../dist/Utils/assetUtils.js'
-import { toast } from '../../dist/Utils/toast.js'
-import { t } from '../../dist/Utils/translate.js'
+import { toAssetUrl } from '../../../dist/Utils/assetUtils.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { t } from '../../../dist/Utils/translate.js'
 
 /**
  * Resolves the active project path using the same sources as the rest of the View layer.

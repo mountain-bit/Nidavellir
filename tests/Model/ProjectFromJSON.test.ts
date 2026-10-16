@@ -167,4 +167,60 @@ describe('Project.fromJSON()', () => {
         expect(location?.getDescription().getSummary()).toBe('Location')
         expect(location?.getTags().map(t => t.getId())).toEqual(['underground', 'dark'])
     })
+
+    it('powinien deserializować Rules (Stat, Skill, Parameter, Feature) z różnymi typami i wielkością liter', () => {
+        const entities: EntitiesData = {
+            Rules: [
+                { id: 'st1', name: 'Siła', value: 12, type: 'Stat' },
+                { id: 'sk1', name: 'Miecze', value: '+2', statName: 'Siła', type: 'skill' },
+                {
+                    id: 'pm1',
+                    name: 'Zdrowie',
+                    mode: 'formula',
+                    formula: 'Siła * 5',
+                    type: 'Parameter',
+                },
+                {
+                    id: 'ft1',
+                    name: 'Widzenie w ciemności',
+                    type: 'feature',
+                    description: { text: 'Widzi w nocy' },
+                },
+            ],
+        }
+        const project = Project.fromJSON(minimalProjectDataEN, entities)
+        expect(project.getGlobalStats()).toHaveLength(1)
+        expect(project.getStats()[0].getName()).toBe('Siła')
+        expect(project.getStats()[0].getValue()).toBe(12)
+
+        expect(project.getGlobalSkills()).toHaveLength(1)
+        expect(project.getSkills()[0].getName()).toBe('Miecze')
+
+        expect(project.getGlobalParameters()).toHaveLength(1)
+        expect(project.getParameters()[0].getName()).toBe('Zdrowie')
+        expect(project.getParameters()[0].getFormula()).toBe('Siła * 5')
+
+        expect(project.getGlobalFeatures()).toHaveLength(1)
+        expect(project.getFeatures()[0].getName()).toBe('Widzenie w ciemności')
+    })
+
+    it('powinien poprawnie wywnioskować typy reguł gdy brak pola type (fallback inference)', () => {
+        const entities: EntitiesData = {
+            Rules: [
+                { id: 'st_fallback', name: 'Zręczność', value: 14 },
+                { id: 'pm_fallback', name: 'Kondycja', formula: '100', mode: 'formula' },
+                { id: 'sk_fallback', name: 'Łucznictwo', statName: 'Zręczność', modifier: '+1' },
+                {
+                    id: 'ft_fallback',
+                    name: 'Szczęście',
+                    description: { text: 'Rzadkie szczęście' },
+                },
+            ],
+        }
+        const project = Project.fromJSON(minimalProjectDataEN, entities)
+        expect(project.getGlobalStats().map(s => s.getName())).toContain('Zręczność')
+        expect(project.getGlobalParameters().map(p => p.getName())).toContain('Kondycja')
+        expect(project.getGlobalSkills().map(sk => sk.getName())).toContain('Łucznictwo')
+        expect(project.getGlobalFeatures().map(f => f.getName())).toContain('Szczęście')
+    })
 })

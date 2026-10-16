@@ -9,8 +9,8 @@ import {
     renderCharactersList,
     setCharactersSectionCollapsed,
     setTemplatesSectionCollapsed,
-} from '../../View/ui/drawerLists.js'
-import { setupNpcModal } from '../../View/ui/npcModal.js'
+} from '../../View/ui/drawer/drawerLists.js'
+import { setupNpcModal } from '../../View/ui/npcModal/npcModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('DrawerLists - Characters and Templates Independent Collapsible Sections', () => {

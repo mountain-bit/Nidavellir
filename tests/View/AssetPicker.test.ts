@@ -7,7 +7,7 @@ import {
     importDroppedImage,
     pickProjectImage,
     setupElementDropZone,
-} from '../../View/ui/assetPicker.js'
+} from '../../View/ui/assets/assetPicker.js'
 
 describe('AssetPicker and DropZone', () => {
     beforeEach(() => {

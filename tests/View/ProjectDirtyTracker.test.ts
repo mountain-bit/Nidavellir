@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { confirmApplicationClose, markFileDirty } from '../../View/ui/confirmModal.js'
-import { saveFullProject } from '../../View/ui/projectSaver.js'
+import { confirmApplicationClose, markFileDirty } from '../../View/ui/modals/confirmModal.js'
+import { saveFullProject } from '../../View/ui/project/projectSaver.js'
 import {
     isProjectDirty,
     markProjectClean,
@@ -11,7 +11,7 @@ import {
     setProjectSaving,
     updateProjectNameUI,
     updateProjectSaveIndicatorUI,
-} from '../../View/ui/projectStateTracker.js'
+} from '../../View/ui/project/projectStateTracker.js'
 
 describe('Project Dirty State and Indicator System', () => {
     beforeEach(() => {

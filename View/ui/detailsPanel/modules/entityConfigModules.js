@@ -6,15 +6,20 @@ import {
     DEFAULT_TAG_COLOR,
     Paragraph,
 } from '../../../../dist/ViewModel/MainWindowViewModel.js'
-import { importDroppedImage, pickProjectImage, setupElementDropZone } from '../../assetPicker.js'
+import {
+    importDroppedImage,
+    pickProjectImage,
+    setupElementDropZone,
+} from '../../assets/assetPicker.js'
 import {
     escapeHtml,
     getTypeBadgeColor,
     PRESET_COLORS,
     renderColorPresetButtonsHtml,
-} from '../../htmlTemplates.js'
-import { FANTASY_AVATARS, getAvatarById } from '../../npcAvatars.js'
-import { markProjectDirty } from '../../projectStateTracker.js'
+} from '../../common/htmlTemplates.js'
+import { FANTASY_AVATARS, getAvatarById } from '../../common/npcAvatars.js'
+import { markProjectDirty } from '../../project/projectStateTracker.js'
+import { syncCombatToParagraphDescription } from '../combatModule.js'
 import { createSection } from '../common/domHelpers.js'
 import { renderHistoryBar } from '../historyBar.js'
 
@@ -581,10 +586,17 @@ export function renderSummaryModule(container, entity, ctx) {
     summaryInput.addEventListener('input', () => {
         if (typeof ctx.vm.updateSummary === 'function') {
             ctx.vm.updateSummary(summaryInput.value)
-        } else if (typeof desc.setSummary === 'function') {
+        }
+        if (typeof desc.setSummary === 'function') {
             desc.setSummary(summaryInput.value)
-        } else if (typeof desc.setText === 'function') {
+        }
+        if (typeof desc.setText === 'function') {
             desc.setText(summaryInput.value)
+        }
+        markProjectDirty()
+        const selectedType = ctx.vm?.getSelectedItem?.()?.type
+        if (selectedType && typeof ctx.refreshActiveSection === 'function') {
+            ctx.refreshActiveSection(selectedType)
         }
     })
 
@@ -618,6 +630,9 @@ export function renderFilesModule(container, entity, ctx) {
     )
 
     filesMod.querySelector('#btn-open-player-text').addEventListener('click', () => {
+        if (entity && typeof entity.getHasCombat === 'function' && entity.getHasCombat()) {
+            syncCombatToParagraphDescription(entity, ctx)
+        }
         const { fileName, content } = ctx.vm.openOrCreateDescriptionFile()
         if (fileName) {
             ctx.files[fileName] = content

@@ -1,15 +1,15 @@
-import { getIconSvg } from '../../dist/Utils/icons.js'
-import { toast } from '../../dist/Utils/toast.js'
-import { t } from '../../dist/Utils/translate.js'
-import { getUnsavedFiles, markFileClean } from './confirmModal.js'
+import { getIconSvg } from '../../../dist/Utils/icons.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { t } from '../../../dist/Utils/translate.js'
+import { escapeHtml } from '../common/htmlTemplates.js'
 import {
     getOrCreateMainEditor,
     setEditorActiveState,
     setupFontBrowserUI,
     updateEditorStats,
     updateToolbarActiveStates,
-} from './editor/index.js'
-import { escapeHtml } from './htmlTemplates.js'
+} from '../editor/index.js'
+import { getUnsavedFiles, markFileClean } from '../modals/confirmModal.js'
 
 export {
     getOrCreateMainEditor,

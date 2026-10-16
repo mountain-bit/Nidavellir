@@ -170,16 +170,61 @@ export class GraphValidationService {
     }
 
     /**
-     * Resolves outgoing choices for a paragraph.
+     * Resolves outgoing choices and combat outcome transitions for a paragraph.
      */
     public static resolveChoices(item: any): any[] {
         if (!item) return []
+        let rawChoices: any[] = []
         if (typeof item.getChoices === 'function') {
             const res = item.getChoices()
-            return Array.isArray(res) ? res : []
+            rawChoices = Array.isArray(res) ? [...res] : []
+        } else if (Array.isArray(item.choices)) {
+            rawChoices = [...item.choices]
         }
-        if (Array.isArray(item.choices)) return item.choices
-        return []
+
+        // Include combat outcomes as transitions if combat is enabled
+        const hasCombat =
+            typeof item.getHasCombat === 'function' ? item.getHasCombat() : item.hasCombat
+        if (hasCombat) {
+            const combat = typeof item.getCombat === 'function' ? item.getCombat() : item.combat
+            const outcomes =
+                combat && typeof combat.getOutcomes === 'function'
+                    ? combat.getOutcomes()
+                    : combat?.outcomes
+            if (Array.isArray(outcomes)) {
+                outcomes.forEach((outcome: any) => {
+                    if (!outcome) return
+                    const outcomeId = outcome.id || ''
+                    const outcomeName = outcome.name || 'Wynik walki'
+                    const targetId =
+                        outcome.targetParagraphId || outcome.targetId || outcome.toParagraphId || ''
+
+                    // Check if a choice already exists with this exact outcome ID
+                    const existingChoice = rawChoices.find((ch: any) => {
+                        const chId = typeof ch.getId === 'function' ? ch.getId() : ch.id
+                        return chId && outcomeId && chId === outcomeId
+                    })
+
+                    if (existingChoice) {
+                        if (typeof existingChoice === 'object') {
+                            existingChoice.isCombatOutcome = true
+                        }
+                    } else {
+                        rawChoices.push({
+                            id: outcomeId || `outcome_${outcomeName}_${targetId}`,
+                            name: outcomeName,
+                            title: outcomeName,
+                            targetParagraphId: targetId,
+                            toParagraphId: targetId,
+                            targetId: targetId,
+                            isCombatOutcome: true,
+                        })
+                    }
+                })
+            }
+        }
+
+        return rawChoices
     }
 
     /**
@@ -347,6 +392,8 @@ export class GraphValidationService {
 
             if (choices.length === 0) {
                 if (!isEnd) {
+                    const hasCombat =
+                        typeof p.getHasCombat === 'function' ? p.getHasCombat() : p.hasCombat
                     issues.push({
                         code: 'DEAD_END',
                         severity: 'warning',
@@ -356,11 +403,13 @@ export class GraphValidationService {
                             { title: pTitle },
                             `Martwy zaułek (ślepy zaułek): „${pTitle}”`
                         ),
-                        description: translateWithFallback(
-                            'validation.dead_end_desc' as TranslationKey,
-                            undefined,
-                            'Paragraf nie posiada żadnych wyborów/przeskoków i nie jest oznaczony jako zakończenie gry (finał). Jeśli jest to koniec historii, oznacz go flagą końca.'
-                        ),
+                        description: hasCombat
+                            ? `Paragraf zawiera walkę, lecz nie zdefiniowano w niej żadnych wyników starcia ani przeskoków prowadzących dalej.`
+                            : translateWithFallback(
+                                  'validation.dead_end_desc' as TranslationKey,
+                                  undefined,
+                                  'Paragraf nie posiada żadnych wyborów/przeskoków i nie jest oznaczony jako zakończenie gry (finał). Jeśli jest to koniec historii, oznacz go flagą końca.'
+                              ),
                         paragraphId: pId,
                     })
                 }
@@ -386,6 +435,7 @@ export class GraphValidationService {
             choices.forEach(ch => {
                 const targetId = this.resolveChoiceTarget(ch)
                 const chTitle = this.resolveChoiceTitle(ch)
+                const isCombatOutcome = Boolean(ch.isCombatOutcome)
 
                 if (!targetId || !paragraphMap.has(targetId)) {
                     issues.push({
@@ -395,13 +445,17 @@ export class GraphValidationService {
                         title: translateWithFallback(
                             'validation.broken_link_title' as TranslationKey,
                             { title: pTitle },
-                            `Błędny cel przeskoku w: „${pTitle}”`
+                            isCombatOutcome
+                                ? `Błędny cel wyniku walki w: „${pTitle}”`
+                                : `Błędny cel przeskoku w: „${pTitle}”`
                         ),
-                        description: translateWithFallback(
-                            'validation.broken_link_desc' as TranslationKey,
-                            { choice: chTitle, targetId: targetId || 'puste' },
-                            `Wybór „${chTitle}” prowadzi do nieistniejącego paragrafu (ID: ${targetId || 'puste'}).`
-                        ),
+                        description: isCombatOutcome
+                            ? `Wynik walki „${chTitle}” prowadzi do nieistniejącego paragrafu (ID: ${targetId || 'puste'}).`
+                            : translateWithFallback(
+                                  'validation.broken_link_desc' as TranslationKey,
+                                  { choice: chTitle, targetId: targetId || 'puste' },
+                                  `Wybór „${chTitle}” prowadzi do nieistniejącego paragrafu (ID: ${targetId || 'puste'}).`
+                              ),
                         paragraphId: pId,
                         targetId,
                     })
@@ -419,11 +473,13 @@ export class GraphValidationService {
                                 { title: pTitle },
                                 `Pętla do samego siebie: „${pTitle}”`
                             ),
-                            description: translateWithFallback(
-                                'validation.self_loop_desc' as TranslationKey,
-                                { choice: chTitle },
-                                `Wybór „${chTitle}” prowadzi do tego samego paragrafu, z którego wychodzi.`
-                            ),
+                            description: isCombatOutcome
+                                ? `Wynik walki „${chTitle}” prowadzi do tego samego paragrafu, z którego wychodzi.`
+                                : translateWithFallback(
+                                      'validation.self_loop_desc' as TranslationKey,
+                                      { choice: chTitle },
+                                      `Wybór „${chTitle}” prowadzi do tego samego paragrafu, z którego wychodzi.`
+                                  ),
                             paragraphId: pId,
                             cycleIds: [pId, pId],
                         })

@@ -1,6 +1,6 @@
 import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
-import { getTypeIconSvg } from '../htmlTemplates.js'
+import { getTypeIconSvg } from '../common/htmlTemplates.js'
 
 /**
  * Renders the top history tabs bar in the right sidebar.

@@ -1,5 +1,6 @@
 import { CharacterClass } from '../Model/CharacterClass'
 import { Choice } from '../Model/Choice'
+import { Combat } from '../Model/Combat'
 import { Condition, TextCondition } from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
@@ -17,6 +18,9 @@ import { Skill } from '../Model/Skill'
 import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
+import { CombatMarkdownService } from '../Services/CombatMarkdownService'
+import { CombatSyncService } from '../Services/CombatSyncService'
+import { DescriptionTransclusionService } from '../Services/DescriptionTransclusionService'
 import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
 import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
@@ -26,10 +30,14 @@ import { t } from '../Utils/translate'
 export {
     CharacterClass,
     Choice,
+    Combat,
+    CombatMarkdownService,
+    CombatSyncService,
     Condition,
     DEFAULT_SCENE_COLOR,
     DEFAULT_TAG_COLOR,
     Description,
+    DescriptionTransclusionService,
     ENTITY_CATEGORIES,
     Feature,
     Item,
@@ -398,8 +406,15 @@ export class MainWindowViewModel {
     public updateSummary(summary: string): void {
         if (!this.selectedItem?.entity) return
         const entity = this.selectedItem.entity
-        if (entity.getContent && entity.getContent()) {
-            entity.getContent().setSummary(summary)
+        const desc =
+            typeof entity.getContent === 'function'
+                ? entity.getContent()
+                : typeof entity.getDescription === 'function'
+                  ? entity.getDescription()
+                  : null
+        if (desc) {
+            if (typeof desc.setSummary === 'function') desc.setSummary(summary)
+            if (typeof desc.setText === 'function') desc.setText(summary)
         }
     }
 

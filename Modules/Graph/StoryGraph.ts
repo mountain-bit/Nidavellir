@@ -165,44 +165,46 @@ export class StoryGraph {
             })
         })
 
-        // Build edges for choices with multi-output vertical offsets and curved control points
+        // Build edges for choices and combat outcomes with multi-output vertical offsets and curved control points
         paragraphs.forEach(sourceP => {
-            const choices = sourceP.getChoices ? sourceP.getChoices() : []
-            if (choices.length === 0) return
+            const transitions = this.getTransitionsForParagraph(sourceP)
+            if (transitions.length === 0) return
 
-            const offsets = calculateEdgeSourceOffsets(choices.length)
+            const offsets = calculateEdgeSourceOffsets(transitions.length)
             const sourcePos = sourceP.getPosition() || { x: 0, y: 0 }
 
-            choices.forEach((choice, i) => {
-                const targetId = choice.getToParagraphId()
-                if (!targetId) return
-
-                const targetP = paragraphs.find(p => p.getId() === targetId)
+            transitions.forEach((trans, i) => {
+                const targetP = paragraphs.find(p => p.getId() === trans.targetId)
                 if (!targetP) return
 
                 const targetPos = targetP.getPosition() || { x: 0, y: 0 }
                 const offsetY = offsets[i] !== undefined ? offsets[i] : 0
-                const hasCondition = Boolean(choice.getCondition())
-                const label = choice.getName() || ''
+                const label = trans.isCombatOutcome ? `[Walka] ${trans.label}` : trans.label
                 const ctrlDist = calculateCurvedEdgeControlPointDistance(
                     sourcePos,
                     targetPos,
                     i,
-                    choices.length
+                    transitions.length
                 )
+
+                const edgeClasses: string[] = []
+                if (trans.isCombatOutcome) edgeClasses.push('combat-outcome')
+                if (trans.hasCondition) edgeClasses.push('has-condition')
 
                 elements.push({
                     data: {
-                        id: choice.getId() || `edge_${sourceP.getId()}_${targetId}_${i}`,
+                        id: trans.id,
                         source: sourceP.getId(),
-                        target: targetId,
+                        target: trans.targetId,
                         label,
-                        choiceObj: choice,
+                        choiceObj: trans.choiceObj,
+                        outcomeObj: trans.outcomeObj,
+                        isCombatOutcome: trans.isCombatOutcome,
                         sourceEndpoint: `${GRAPH_THEME.dimensions.nodeWidth / 2}px ${offsetY}px`,
                         targetEndpoint: `-${GRAPH_THEME.dimensions.nodeWidth / 2}px 0px`,
                         ctrlDist,
                     },
-                    classes: hasCondition ? 'has-condition' : '',
+                    classes: edgeClasses.join(' '),
                 })
             })
         })
@@ -241,15 +243,107 @@ export class StoryGraph {
             const choiceObj = evt.target.data('choiceObj') as Choice
             const sourceId = evt.target.data('source') as string
             const targetId = evt.target.data('target') as string
-            if (choiceObj && this.options.onSelectChoice) {
+            if (this.options.onSelectChoice) {
                 const sourceP = paragraphs.find(p => p.getId() === sourceId)
                 const targetP = paragraphs.find(p => p.getId() === targetId)
-                this.options.onSelectChoice(choiceObj, sourceP, targetP)
+                if (choiceObj) {
+                    this.options.onSelectChoice(choiceObj, sourceP, targetP)
+                } else {
+                    const outcomeObj = evt.target.data('outcomeObj') as any
+                    if (outcomeObj) {
+                        const fallbackChoice = new Choice(
+                            outcomeObj.id,
+                            outcomeObj.name,
+                            sourceId,
+                            targetId
+                        )
+                        this.options.onSelectChoice(fallbackChoice, sourceP, targetP)
+                    }
+                }
             }
         })
 
         this.renderCustomNodes(paragraphs, scenes)
         this.syncTransform()
+    }
+
+    /**
+     * Resolves all outgoing transitions for a paragraph, including choices and combat outcomes.
+     */
+    private getTransitionsForParagraph(sourceP: Paragraph): Array<{
+        id: string
+        targetId: string
+        label: string
+        choiceObj?: Choice
+        outcomeObj?: any
+        isCombatOutcome: boolean
+        hasCondition: boolean
+    }> {
+        const choices = sourceP.getChoices ? sourceP.getChoices() : []
+        const hasCombat = Boolean(sourceP.getHasCombat && sourceP.getHasCombat())
+        const combat = sourceP.getCombat ? sourceP.getCombat() : null
+        const combatOutcomes =
+            hasCombat && combat && typeof combat.getOutcomes === 'function'
+                ? combat.getOutcomes()
+                : []
+
+        const transitions: Array<{
+            id: string
+            targetId: string
+            label: string
+            choiceObj?: Choice
+            outcomeObj?: any
+            isCombatOutcome: boolean
+            hasCondition: boolean
+        }> = []
+
+        choices.forEach((choice, i) => {
+            const targetId = choice.getToParagraphId()
+            if (!targetId) return
+            const chId = choice.getId() || `edge_${sourceP.getId()}_${targetId}_${i}`
+            const matchingOutcome =
+                hasCombat &&
+                combatOutcomes.find(
+                    (o: any) =>
+                        o.id === chId ||
+                        (o.targetParagraphId === targetId && o.name === choice.getName())
+                )
+            const isCombat = Boolean(matchingOutcome)
+
+            transitions.push({
+                id: chId,
+                targetId,
+                label: choice.getName() || '',
+                choiceObj: choice,
+                outcomeObj: matchingOutcome,
+                isCombatOutcome: isCombat,
+                hasCondition: Boolean(choice.getCondition()),
+            })
+        })
+
+        // Also include any combat outcomes not yet present in choices
+        if (hasCombat) {
+            combatOutcomes.forEach((outcome: any, i: number) => {
+                const targetId = outcome.targetParagraphId
+                if (!targetId) return
+                const alreadyExists = transitions.some(
+                    t =>
+                        t.id === outcome.id || (t.targetId === targetId && t.label === outcome.name)
+                )
+                if (!alreadyExists) {
+                    transitions.push({
+                        id: outcome.id || `combat_edge_${sourceP.getId()}_${targetId}_${i}`,
+                        targetId,
+                        label: outcome.name || 'Wynik walki',
+                        outcomeObj: outcome,
+                        isCombatOutcome: true,
+                        hasCondition: false,
+                    })
+                }
+            })
+        }
+
+        return transitions
     }
 
     /**
@@ -993,17 +1087,14 @@ export class StoryGraph {
         const paras = paragraphs || this.options.getParagraphs()
 
         paras.forEach(sourceP => {
-            const choices = sourceP.getChoices ? sourceP.getChoices() : []
-            if (choices.length === 0) return
+            const transitions = this.getTransitionsForParagraph(sourceP)
+            if (transitions.length === 0) return
 
-            const offsets = calculateEdgeSourceOffsets(choices.length)
+            const offsets = calculateEdgeSourceOffsets(transitions.length)
             const sourcePos = sourceP.getPosition() || { x: 0, y: 0 }
 
-            choices.forEach((choice, i) => {
-                const targetId = choice.getToParagraphId()
-                if (!targetId) return
-
-                const targetP = paras.find(p => p.getId() === targetId)
+            transitions.forEach((trans, i) => {
+                const targetP = paras.find(p => p.getId() === trans.targetId)
                 if (!targetP) return
 
                 const targetPos = targetP.getPosition() || { x: 0, y: 0 }
@@ -1012,11 +1103,10 @@ export class StoryGraph {
                     sourcePos,
                     targetPos,
                     i,
-                    choices.length
+                    transitions.length
                 )
 
-                const edgeId = choice.getId() || `edge_${sourceP.getId()}_${targetId}_${i}`
-                const cyEdge = this.cy?.getElementById(edgeId)
+                const cyEdge = this.cy?.getElementById(trans.id)
                 if (cyEdge && cyEdge.data) {
                     cyEdge.data(
                         'sourceEndpoint',

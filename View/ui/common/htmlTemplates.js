@@ -1,4 +1,4 @@
-import { getIconSvg } from '../../dist/Utils/icons.js'
+import { getIconSvg } from '../../../dist/Utils/icons.js'
 
 /**
  * Escapes special HTML characters to prevent XSS vulnerabilities.

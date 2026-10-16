@@ -1,4 +1,3 @@
-import { StoryGraph } from '../dist/Modules/Graph/index.js'
 import { toast } from '../dist/Utils/toast.js'
 import {
     applyTranslations,
@@ -9,15 +8,7 @@ import {
 } from '../dist/Utils/translate.js'
 import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
 import { extractProjectData, loadProjectData } from './projectData.js'
-import { isAutoSaveEnabled, setAutoSaveEnabled, startAutoSave } from './ui/autoSaveService.js'
-import { confirmApplicationClose, markFileDirty } from './ui/confirmModal.js'
-import {
-    handleColorSelection,
-    openColorPicker,
-    openContextMenu,
-    setupSectionControlsAndContextMenu,
-} from './ui/contextMenu.js'
-import { renderDetailsPanel, renderHistoryBar } from './ui/detailsPanel.js'
+import { renderDetailsPanel, renderHistoryBar } from './ui/detailsPanel/detailsPanel.js'
 import {
     renderCharactersList,
     renderConnectionsList,
@@ -27,30 +18,48 @@ import {
     renderScenesList,
     renderTagsList,
     renderTraitsList,
-} from './ui/drawerLists.js'
+} from './ui/drawer/drawerLists.js'
 import {
     populateFilterSelects,
     renderFilterTags,
     setupParagraphSearchAndFilters,
     updateFilterBadgeState,
-} from './ui/filterPopover.js'
-import { openHeroModal, setupHeroModal } from './ui/heroModal.js'
+} from './ui/drawer/filterPopover.js'
+import {
+    centerStoryGraph,
+    getStoryGraphInstance,
+    setupGraphZoomControls,
+    showStoryGraph,
+} from './ui/graph/index.js'
+import { openHeroModal, setupHeroModal } from './ui/heroModal/heroModal.js'
+import { confirmApplicationClose, markFileDirty } from './ui/modals/confirmModal.js'
 import {
     executeNpcModalSave,
     hasUnsavedNpcChanges,
     renderDynamicSuggestions,
     setupNpcModal,
     updateTraitsCounterUI,
-} from './ui/npcModal.js'
-import { saveFullProject } from './ui/projectSaver.js'
+} from './ui/npcModal/npcModal.js'
+import {
+    isAutoSaveEnabled,
+    setAutoSaveEnabled,
+    startAutoSave,
+} from './ui/project/autoSaveService.js'
+import { saveFullProject } from './ui/project/projectSaver.js'
 import {
     isProjectDirty,
     markProjectClean,
     markProjectDirty,
     updateProjectNameUI,
-} from './ui/projectStateTracker.js'
-import { initQuickSearch, openQuickSearch } from './ui/quickSearch.js'
-import { initTopBar, updateTopBarUI } from './ui/topBar.js'
+} from './ui/project/projectStateTracker.js'
+import {
+    handleColorSelection,
+    openColorPicker,
+    openContextMenu,
+    setupSectionControlsAndContextMenu,
+} from './ui/workspace/contextMenu.js'
+import { initQuickSearch, openQuickSearch } from './ui/workspace/quickSearch.js'
+import { initTopBar, updateTopBarUI } from './ui/workspace/topBar.js'
 import {
     renderEditorTabs,
     saveActiveFile,
@@ -59,7 +68,7 @@ import {
     updateMainWorkspaceUI,
     updateRightSidebarUI,
     updateZoomToolbarUI,
-} from './ui/workspace.js'
+} from './ui/workspace/workspace.js'
 
 // ViewModel instance
 const vm = new MainWindowViewModel()
@@ -83,8 +92,6 @@ const saveStatus = document.getElementById('save-status')
 let projectData = loadProjectData(vm)
 vm.ensureStartParagraph(projectData.projectParagraphs)
 
-let storyGraphInstance = null
-
 /**
  * Shared Application Context passed to modular UI renderers.
  */
@@ -105,31 +112,86 @@ const appContext = {
         projectData = newData
     },
     get projectTags() {
+        if (!Array.isArray(projectData.projectTags)) {
+            projectData.projectTags = []
+        }
         return projectData.projectTags
     },
+    set projectTags(val) {
+        projectData.projectTags = val
+    },
     get projectCharacters() {
+        if (!Array.isArray(projectData.projectCharacters)) {
+            projectData.projectCharacters = []
+        }
         return projectData.projectCharacters
     },
+    set projectCharacters(val) {
+        projectData.projectCharacters = val
+    },
     get projectTemplates() {
-        return projectData.projectTemplates || []
+        if (!Array.isArray(projectData.projectTemplates)) {
+            projectData.projectTemplates = []
+        }
+        return projectData.projectTemplates
+    },
+    set projectTemplates(val) {
+        projectData.projectTemplates = val
     },
     get projectItems() {
-        return projectData.projectItems || projectData.items || []
+        if (!Array.isArray(projectData.projectItems)) {
+            projectData.projectItems = Array.isArray(projectData.items) ? projectData.items : []
+        }
+        return projectData.projectItems
+    },
+    set projectItems(val) {
+        projectData.projectItems = val
+        projectData.items = val
     },
     get projectLocations() {
+        if (!Array.isArray(projectData.projectLocations)) {
+            projectData.projectLocations = []
+        }
         return projectData.projectLocations
     },
+    set projectLocations(val) {
+        projectData.projectLocations = val
+    },
     get projectStats() {
+        if (!Array.isArray(projectData.projectStats)) {
+            projectData.projectStats = []
+        }
         return projectData.projectStats
     },
+    set projectStats(val) {
+        projectData.projectStats = val
+    },
     get projectSkills() {
-        return projectData.projectSkills || []
+        if (!Array.isArray(projectData.projectSkills)) {
+            projectData.projectSkills = []
+        }
+        return projectData.projectSkills
+    },
+    set projectSkills(val) {
+        projectData.projectSkills = val
     },
     get projectParameters() {
-        return projectData.projectParameters || []
+        if (!Array.isArray(projectData.projectParameters)) {
+            projectData.projectParameters = []
+        }
+        return projectData.projectParameters
+    },
+    set projectParameters(val) {
+        projectData.projectParameters = val
     },
     get projectFeatures() {
-        return projectData.projectFeatures || []
+        if (!Array.isArray(projectData.projectFeatures)) {
+            projectData.projectFeatures = []
+        }
+        return projectData.projectFeatures
+    },
+    set projectFeatures(val) {
+        projectData.projectFeatures = val
     },
     get projectParagraphs() {
         if (!Array.isArray(projectData.projectParagraphs)) {
@@ -148,8 +210,10 @@ const appContext = {
         return projectData.playerCharacter || null
     },
     get storyGraphInstance() {
-        return storyGraphInstance
+        return getStoryGraphInstance()
     },
+    updateRightSidebarUI: () =>
+        updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn),
     saveActiveFile: () => saveActiveFile(appContext),
     selectEntity,
     refreshActiveSection,
@@ -174,14 +238,9 @@ const appContext = {
     openContextMenu,
     openColorPicker,
     handleColorSelection: color => handleColorSelection(color, appContext),
-    showGraph: (force = false) => showGraph(force),
-    centerGraph: (animate = true) => {
-        if (storyGraphInstance) {
-            storyGraphInstance.center(animate)
-            updateZoomToolbarUI(storyGraphInstance)
-        }
-    },
-    updateZoomToolbarUI: (sg, lvl) => updateZoomToolbarUI(sg || storyGraphInstance, lvl),
+    showGraph: (force = false) => showStoryGraph(appContext, force),
+    centerGraph: (animate = true) => centerStoryGraph(appContext, animate),
+    updateZoomToolbarUI: (sg, lvl) => updateZoomToolbarUI(sg || getStoryGraphInstance(), lvl),
     updateLeftDrawerUI: () => updateLeftDrawerUI(),
     openSettings: () => {
         if (typeof vm.setActiveLeftTab === 'function') {
@@ -365,199 +424,6 @@ function selectEntity(entity, type, parent) {
     renderHistoryBar(appContext)
     renderDetailsPanel(appContext)
 }
-
-function showGraph(forceRebuild = false) {
-    const canvasContainer = document.getElementById('story-graph')
-    const nodesLayer = document.getElementById('graph-nodes-layer')
-    if (!canvasContainer || !nodesLayer) return
-
-    vm.ensureStartParagraph(projectData.projectParagraphs)
-
-    if (!storyGraphInstance) {
-        storyGraphInstance = new StoryGraph({
-            canvasContainer,
-            nodesLayer,
-            lineStyle: vm.getConnectionLineStyle(),
-            wheelSensitivity: vm.getZoomSensitivity(),
-            onZoomChange: lvl => updateZoomToolbarUI(storyGraphInstance, lvl),
-            getParagraphs: () => projectData.projectParagraphs,
-            getScenes: () => projectData.projectScenes,
-            getTags: () => projectData.projectTags,
-            getCharacters: () => projectData.projectCharacters,
-            getLocations: () => projectData.projectLocations,
-            onGraphModified: () => markProjectDirty(),
-            onItemAssigned: () => {
-                markProjectDirty()
-                renderParagraphsList(appContext)
-                renderScenesList(appContext)
-                renderTagsList(appContext)
-                renderCharactersList(appContext)
-                renderLocationsList(appContext)
-                renderDetailsPanel(appContext)
-                if (storyGraphInstance) storyGraphInstance.render(true)
-            },
-            onSelectParagraph: (p, scene) => {
-                if (vm.isRightSidebarCollapsed()) {
-                    vm.setRightSidebarCollapsed(false)
-                    updateRightSidebarUI(
-                        vm,
-                        rightSidebar,
-                        toggleRightSidebarBtn,
-                        reopenRightSidebarBtn
-                    )
-                }
-                selectEntity(p, 'paragraph', scene)
-            },
-            onSelectScene: scene => {
-                if (vm.isRightSidebarCollapsed()) {
-                    vm.setRightSidebarCollapsed(false)
-                    updateRightSidebarUI(
-                        vm,
-                        rightSidebar,
-                        toggleRightSidebarBtn,
-                        reopenRightSidebarBtn
-                    )
-                }
-                selectEntity(scene, 'scene')
-            },
-            onSelectChoice: (choice, fromP) => {
-                if (vm.isRightSidebarCollapsed()) {
-                    vm.setRightSidebarCollapsed(false)
-                    updateRightSidebarUI(
-                        vm,
-                        rightSidebar,
-                        toggleRightSidebarBtn,
-                        reopenRightSidebarBtn
-                    )
-                }
-                selectEntity(choice, 'choice', fromP)
-            },
-            onSceneAssignmentChange: () => {
-                markProjectDirty()
-                renderScenesList(appContext)
-                renderParagraphsList(appContext)
-                populateFilterSelects(appContext)
-            },
-            onCreateParagraph: title => {
-                const newP = vm.createParagraph(title)
-                projectData.projectParagraphs.push(newP)
-                markProjectDirty()
-                renderParagraphsList(appContext)
-                return newP
-            },
-            onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
-                const choice = vm.createChoice(fromParagraph, toParagraph, choiceName)
-                markProjectDirty()
-                renderConnectionsList(appContext)
-                renderParagraphsList(appContext)
-                return choice
-            },
-            onToast: (type, msg, title) => {
-                if (type === 'success') toast.success(msg, title)
-                else if (type === 'error') toast.error(msg, title)
-                else if (type === 'warning') toast.warning(msg, title)
-                else toast.info(msg, title)
-            },
-            t,
-        })
-    }
-
-    if (!canvasContainer.dataset.dropBound) {
-        canvasContainer.dataset.dropBound = 'true'
-        canvasContainer.addEventListener('dragover', e => {
-            e.preventDefault()
-            if (e.dataTransfer) {
-                e.dataTransfer.dropEffect = 'copy'
-            }
-        })
-        canvasContainer.addEventListener('drop', e => {
-            e.preventDefault()
-            const sceneId =
-                (e.dataTransfer && e.dataTransfer.getData('application/x-scene-id')) ||
-                (e.dataTransfer && e.dataTransfer.getData('text/plain'))
-            if (!sceneId) return
-            const scene = projectData.projectScenes.find(s => s.getId() === sceneId)
-            if (!scene) return
-
-            const rect = canvasContainer.getBoundingClientRect()
-            const clientX = e.clientX - rect.left
-            const clientY = e.clientY - rect.top
-
-            if (storyGraphInstance) {
-                const cy = storyGraphInstance.getCyInstance()
-                let graphPos = { x: clientX, y: clientY }
-                if (cy && typeof cy.pan === 'function' && typeof cy.zoom === 'function') {
-                    const pan = cy.pan()
-                    const zoom = cy.zoom() || 1
-                    graphPos = {
-                        x: Math.round((clientX - pan.x) / zoom),
-                        y: Math.round((clientY - pan.y) / zoom),
-                    }
-                }
-                storyGraphInstance.addSceneToGraph(scene, graphPos)
-                markProjectDirty()
-                toast.success(
-                    t('toast.scene_placed_on_graph', { name: scene.getName() }),
-                    t('toast.scene_placed_title')
-                )
-                renderScenesList(appContext)
-                renderParagraphsList(appContext)
-                populateFilterSelects(appContext)
-            }
-        })
-    }
-
-    storyGraphInstance.render(forceRebuild)
-    window.storyGraphInstance = storyGraphInstance
-    updateZoomToolbarUI(storyGraphInstance)
-}
-
-// Graph Zoom Toolbar Controls
-const btnGraphZoomOut = document.getElementById('btn-graph-zoom-out')
-if (btnGraphZoomOut) {
-    btnGraphZoomOut.addEventListener('click', () => {
-        if (storyGraphInstance) {
-            storyGraphInstance.zoomOut()
-            updateZoomToolbarUI(storyGraphInstance)
-        }
-    })
-}
-
-const btnGraphZoomIn = document.getElementById('btn-graph-zoom-in')
-if (btnGraphZoomIn) {
-    btnGraphZoomIn.addEventListener('click', () => {
-        if (storyGraphInstance) {
-            storyGraphInstance.zoomIn()
-            updateZoomToolbarUI(storyGraphInstance)
-        }
-    })
-}
-
-const btnGraphZoomReset = document.getElementById('btn-graph-zoom-reset')
-if (btnGraphZoomReset) {
-    btnGraphZoomReset.addEventListener('click', () => {
-        if (storyGraphInstance) {
-            storyGraphInstance.resetZoom()
-            updateZoomToolbarUI(storyGraphInstance)
-        }
-    })
-}
-
-const btnGraphZoomFit = document.getElementById('btn-graph-zoom-fit')
-if (btnGraphZoomFit) {
-    btnGraphZoomFit.addEventListener('click', () => {
-        if (storyGraphInstance) {
-            storyGraphInstance.center()
-            updateZoomToolbarUI(storyGraphInstance)
-        }
-    })
-}
-
-window.addEventListener('resize', () => {
-    if (storyGraphInstance) {
-        storyGraphInstance.resize()
-    }
-})
 
 // Event Listeners Registration
 document.querySelectorAll('[data-ribbon-tab]').forEach(btn => {
@@ -758,8 +624,9 @@ function applyLoadedProject(projectInstance, projectPath) {
     renderDetailsPanel(appContext)
     updateMainWorkspaceUI(appContext)
 
-    if (storyGraphInstance) {
-        storyGraphInstance.render(true)
+    const sg = getStoryGraphInstance()
+    if (sg) {
+        sg.render(true)
     }
 }
 
@@ -873,7 +740,8 @@ document.addEventListener('keydown', e => {
                     markProjectDirty()
                     vm.clearSelection()
                     refreshActiveSection('paragraph')
-                    if (storyGraphInstance) storyGraphInstance.render(true)
+                    const sg = getStoryGraphInstance()
+                    if (sg) sg.render(true)
                     toast.success(t('toast.paragraph_deleted') || 'Paragraf został usunięty')
                 }
             }
@@ -974,6 +842,7 @@ async function initApp() {
         setupNpcModal(appContext)
         setupHeroModal(appContext)
         setupResizers(leftDrawer, rightSidebar, vm)
+        setupGraphZoomControls(appContext, getStoryGraphInstance)
 
         // Initial drawer lists & filters rendering
         renderParagraphsList(appContext)
@@ -1047,8 +916,9 @@ async function initApp() {
             zoomSensSlider.addEventListener('input', () => {
                 const val = parseFloat(zoomSensSlider.value)
                 vm.setZoomSensitivity(val)
-                if (storyGraphInstance) {
-                    storyGraphInstance.setWheelSensitivity(val)
+                const sg = getStoryGraphInstance()
+                if (sg) {
+                    sg.setWheelSensitivity(val)
                 }
                 if (zoomSensValue) {
                     zoomSensValue.textContent = `${Math.round(val * 100)}%`

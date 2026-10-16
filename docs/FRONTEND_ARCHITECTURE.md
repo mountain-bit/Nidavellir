@@ -183,38 +183,38 @@ Manages the project launcher / welcome screen:
 
 ## 4. Modular UI Controllers (`View/ui/`)
 
-To prevent bloated monolithic scripts, `View/MainWindow.js` acts as an orchestrator delegating functionality to modular controllers in `View/ui/`:
+To prevent bloated monolithic scripts, `View/MainWindow.js` acts as an orchestrator delegating functionality to modular controllers organized into domain folders in `View/ui/`:
 
-### 4.1. `workspace.js` — Workspace Management
+### 4.1. `workspace/workspace.js` — Workspace Management
 - **Dual Workspace View**: Toggles smoothly between the interactive story graph canvas (`#graph-view-container`) and the Markdown document editor (`#markdown-editor-view`).
 - **Resizers (Splitters)**: Handles mouse drag operations to resize the left drawer and right property sidebar, updating `MainWindowViewModel` widths.
 - **Zoom Toolbar**: Controls canvas viewport manipulation (`+`, `-`, fit to screen `fit`, reset `100%`) synchronized with the Cytoscape camera.
 
-### 4.2. `detailsPanel.js` — Property Inspector & History
+### 4.2. `detailsPanel/detailsPanel.js` — Property Inspector & History
 - Dynamically renders editing forms tailored to the selected entity type (`paragraph`, `scene`, `character`, `location`, `item`, `tag`, `stat`, `choice`).
 - Directly updates entity properties (title, prose content, locked numbering, choices, tag attachments, and NPC associations).
 - Renders the interactive breadcrumb history bar (`#history-bar`), enabling immediate navigation back to earlier elements.
 
-### 4.3. `drawerLists.js` — Left Drawer Entity Listings
+### 4.3. `drawer/drawerLists.js` — Left Drawer Entity Listings
 - Renders filtered, searchable lists across all gamebook categories:
   - `renderParagraphsList()`: Paragraph cards with numbers, tag badges, and lock indicators.
   - `renderScenesList()`: Scene cards with color swatches and paragraph counts.
   - `renderCharactersList()`, `renderLocationsList()`, `renderTagsList()`, `renderTraitsList()`, `renderConnectionsList()`.
 - Handles item clicks to inspect entities in `detailsPanel` and automatically center the corresponding node in the graph canvas.
 
-### 4.4. `contextMenu.js` — Context Menus & Color Palette
+### 4.4. `workspace/contextMenu.js` — Context Menus & Color Palette
 - Context menu dispatcher for nodes, scenes, and empty canvas space.
 - Context actions: *Add Paragraph*, *Add Choice*, *Change Scene Color*, *Lock/Unlock Position*, *Duplicate*, *Delete*.
 - Built-in color picker modal (`openColorPicker`) with predefined palettes (`PRESET_ENTITY_COLORS`) and real-time preview.
 
-### 4.5. `filterPopover.js` — Advanced Filtering Popover
+### 4.5. `drawer/filterPopover.js` — Advanced Filtering Popover
 - Dropdown popover interface allowing multidimensional filtering:
   - Filter by Tag.
   - Filter by Scene.
   - Filter by Associated Character.
 - Displays dynamic badge counters indicating the number of active filters.
 
-### 4.6. `htmlTemplates.js` — Reusable HTML Templates
+### 4.6. `common/htmlTemplates.js` — Reusable HTML Templates
 - Generates standardized DOM structures for reusable UI elements: tag pills (`TagPill`), character badges, status pills, and icon buttons.
 
 ---

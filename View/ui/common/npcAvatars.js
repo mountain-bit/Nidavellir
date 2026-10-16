@@ -3,7 +3,7 @@
  * Clean, modern SVG representations of classic tabletop & fantasy RPG archetypes.
  */
 
-import { t } from '../../dist/Utils/translate.js'
+import { t } from '../../../dist/Utils/translate.js'
 
 export const FANTASY_AVATARS = [
     {
@@ -161,7 +161,7 @@ export const FANTASY_AVATARS = [
     },
 ]
 
-import { isCustomAvatarPath, toAssetUrl } from '../../dist/Utils/assetUtils.js'
+import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
 
 export { isCustomAvatarPath }
 

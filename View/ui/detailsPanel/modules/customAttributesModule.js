@@ -1,6 +1,6 @@
 import { getIconSvg } from '../../../../dist/Utils/icons.js'
 import { t } from '../../../../dist/Utils/translate.js'
-import { escapeHtml } from '../../htmlTemplates.js'
+import { escapeHtml } from '../../common/htmlTemplates.js'
 import { createSection } from '../common/domHelpers.js'
 
 /**

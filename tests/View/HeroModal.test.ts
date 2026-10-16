@@ -7,8 +7,8 @@ import { PlayerCharacter } from '../../Model/PlayerCharacter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
-import { renderMainCharacter } from '../../View/ui/drawerLists.js'
-import { closeHeroModal, openHeroModal, setupHeroModal } from '../../View/ui/heroModal.js'
+import { renderMainCharacter } from '../../View/ui/drawer/drawerLists.js'
+import { closeHeroModal, openHeroModal, setupHeroModal } from '../../View/ui/heroModal/heroModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 interface IMockHeroContext {
@@ -273,7 +273,7 @@ describe('HeroModal and renderMainCharacter', () => {
     })
 
     it('closes the modal immediately when unsaved changes confirmation resolves to dont_save', async () => {
-        const confirmModalModule = await import('../../View/ui/confirmModal.js')
+        const confirmModalModule = await import('../../View/ui/modals/confirmModal.js')
         const showUnsavedSpy = vi
             .spyOn(confirmModalModule, 'showUnsavedChangesModal')
             .mockResolvedValue('dont_save')

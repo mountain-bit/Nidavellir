@@ -5,6 +5,7 @@ import { Markdown } from 'tiptap-markdown'
 import { DescriptionTransclusionService } from '../../Services/DescriptionTransclusionService'
 import { CustomStylesService } from './CustomStylesService'
 import { EntitySyncService } from './EntitySyncService'
+import { CombatBlock } from './extensions/CombatBlock'
 import { CustomImage } from './extensions/CustomImage'
 import { CustomStyleMark } from './extensions/CustomStyleMark'
 import { CustomUnderline } from './extensions/CustomUnderline'
@@ -71,6 +72,7 @@ export class MarkdownEditor {
                 DialogBlock,
                 CustomImage,
                 DescriptionEmbed,
+                CombatBlock,
                 Markdown.configure({
                     html: true,
                     tightLists: true,

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { formatMarkdown, PlaytestEngine } from '../../View/ui/playtestModal.js'
+import { formatMarkdown, PlaytestEngine } from '../../View/ui/modals/playtestModal.js'
 
 describe('Playtest & Narrative Simulator Engine (View/ui/playtestModal.js)', () => {
     let mockContext: any
@@ -229,6 +229,34 @@ describe('Playtest & Narrative Simulator Engine (View/ui/playtestModal.js)', () 
             const engine = new PlaytestEngine(mockContext)
             expect(engine.godMode).toBe(true)
         })
+
+        it('resolves project traits and npcs properly even when nested in projectData', () => {
+            const contextWithTraits = {
+                projectData: {
+                    projectParagraphs: [mockP1],
+                    projectScenes: [],
+                    projectStats: [
+                        { getId: (): string => 'stat_hp', getName: (): string => 'Zdrowie' },
+                    ],
+                    projectParameters: [
+                        { getId: (): string => 'param_str', getName: (): string => 'Siła' },
+                    ],
+                    projectCharacters: [
+                        { getId: (): string => 'npc_1', getName: (): string => 'Goblin' },
+                    ],
+                },
+            }
+            const engine = new PlaytestEngine(contextWithTraits)
+            const traits = engine.getTraits()
+            expect(traits).toEqual([
+                { id: 'stat_hp', name: 'Zdrowie', kind: 'stat' },
+                { id: 'param_str', name: 'Siła', kind: 'parameter' },
+            ])
+
+            const npcs = engine.getNpcs()
+            expect(npcs.length).toBe(1)
+            expect(npcs[0].getName?.()).toBe('Goblin')
+        })
     })
 
     describe('formatMarkdown Helper', () => {
@@ -246,6 +274,81 @@ describe('Playtest & Narrative Simulator Engine (View/ui/playtestModal.js)', () 
             // Script tag must be escaped
             expect(html).not.toContain('<script>')
             expect(html).toContain('&lt;script&gt;')
+        })
+
+        it('formats markdown tables with proper alignments and headers', () => {
+            const tableMd = [
+                '| Przeciwnik | Zdrowie | Siła |',
+                '| :--- | :---: | ---: |',
+                '| 👤 Goblin | 15 | 8 |',
+                '| 🐺 Wilk | 20 | 12 |',
+            ].join('\n')
+
+            const html = formatMarkdown(tableMd)
+            expect(html).toContain('<table')
+            expect(html).toContain('<thead')
+            expect(html).toContain('<tbody')
+            expect(html).toContain('Przeciwnik')
+            expect(html).toContain('Zdrowie')
+            expect(html).toContain('Goblin')
+            expect(html).toContain('text-center')
+            expect(html).toContain('text-right')
+        })
+
+        it('formats interactive paragraph links and entity mentions', () => {
+            const text =
+                'Możesz przejść do [§ 2 Skarbiec](entity://paragraph/p2) lub porozmawiać z [Jan](entity://character/npc_1).'
+            const html = formatMarkdown(text)
+
+            expect(html).toContain('btn-playtest-inline-link')
+            expect(html).toContain('data-target-id="p2"')
+            expect(html).toContain('§ 2 Skarbiec')
+            expect(html).toContain('data-entity-type="character"')
+            expect(html).toContain('data-entity-id="npc_1"')
+        })
+
+        it('formats gamebook dialogues and strips technical comments', () => {
+            const text = [
+                '<!-- COMBAT_START -->',
+                '<!-- some internal comment -->',
+                '<p class="gamebook-dialog">Witaj w lochach!</p>',
+                '— Nie zbliżaj się! — krzyknął strażnik.',
+            ].join('\n')
+
+            const html = formatMarkdown(text)
+            expect(html).not.toContain('COMBAT_START')
+            expect(html).not.toContain('<!--')
+            expect(html).not.toContain('&lt;!--')
+            expect(html).toContain('gamebook-dialog')
+            expect(html).toContain('Witaj w lochach!')
+            expect(html).toContain('Nie zbliżaj się!')
+        })
+
+        it('formats lists, horizontal rules and code blocks', () => {
+            const text = [
+                '---',
+                '- Przedmiot A',
+                '- Przedmiot B',
+                '',
+                '1. Pierwszy krok',
+                '2. Drugi krok',
+                '',
+                '```ts',
+                'const gold = 100',
+                '```',
+                'Posiadasz `100` sztuk złota.',
+            ].join('\n')
+
+            const html = formatMarkdown(text)
+            expect(html).toContain('<hr')
+            expect(html).toContain('<ul')
+            expect(html).toContain('<ol')
+            expect(html).toContain('Przedmiot A')
+            expect(html).toContain('Pierwszy krok')
+            expect(html).toContain('<pre')
+            expect(html).toContain('const gold = 100')
+            expect(html).toContain('<code')
+            expect(html).toContain('100')
         })
     })
 })

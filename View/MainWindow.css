@@ -743,6 +743,22 @@ paragraph-node,
     line-height: 1.2;
 }
 
+.node-combat-pill {
+    padding: 1.5px 6px;
+    border-radius: 4px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #fef08a;
+    background-color: rgba(180, 83, 9, 0.55);
+    border: 1px solid rgba(245, 158, 11, 0.6);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+}
+
 .paragraph-node-no-tags {
     font-size: 10px;
     color: #8b8e96;

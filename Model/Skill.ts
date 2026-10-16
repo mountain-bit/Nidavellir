@@ -117,6 +117,7 @@ export class Skill {
             value: this.value,
             statName: this.statName,
             modifier: this.modifier,
+            type: 'skill',
         }
     }
 }

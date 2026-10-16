@@ -1,7 +1,7 @@
-import { getIconSvg } from '../../dist/Utils/icons.js'
-import { toast } from '../../dist/Utils/toast.js'
-import { t } from '../../dist/Utils/translate.js'
-import { escapeHtml } from './htmlTemplates.js'
+import { getIconSvg } from '../../../dist/Utils/icons.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { t } from '../../../dist/Utils/translate.js'
+import { escapeHtml } from '../common/htmlTemplates.js'
 import { updateTopBarUI } from './topBar.js'
 import { updateRightSidebarUI } from './workspace.js'
 

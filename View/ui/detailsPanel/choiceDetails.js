@@ -2,7 +2,7 @@ import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { TextCondition } from '../../../dist/ViewModel/MainWindowViewModel.js'
-import { escapeHtml, getTypeBadgeColor } from '../htmlTemplates.js'
+import { escapeHtml, getTypeBadgeColor } from '../common/htmlTemplates.js'
 import { createSection } from './common/domHelpers.js'
 import { renderHistoryBar } from './historyBar.js'
 

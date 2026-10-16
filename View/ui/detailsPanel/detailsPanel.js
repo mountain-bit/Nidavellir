@@ -4,13 +4,15 @@
  * delegating sub-responsibilities to specialized modules.
  */
 
-import { getIconSvg } from '../../dist/Utils/icons.js'
-import { t } from '../../dist/Utils/translate.js'
-import { Choice } from '../../dist/ViewModel/MainWindowViewModel.js'
-import { renderChoiceDetails } from './detailsPanel/choiceDetails.js'
-import { renderExitsModule } from './detailsPanel/exitsModule.js'
-import { renderHeroReadOnlyDetails } from './detailsPanel/heroReadOnlyDetails.js'
-import { renderHistoryBar as renderHistoryBarModule } from './detailsPanel/historyBar.js'
+import { getIconSvg } from '../../../dist/Utils/icons.js'
+import { t } from '../../../dist/Utils/translate.js'
+import { Choice } from '../../../dist/ViewModel/MainWindowViewModel.js'
+import { escapeHtml, renderEmptyPlaceholderHtml } from '../common/htmlTemplates.js'
+import { renderChoiceDetails } from './choiceDetails.js'
+import { renderCombatModule } from './combatModule.js'
+import { renderExitsModule } from './exitsModule.js'
+import { renderHeroReadOnlyDetails } from './heroReadOnlyDetails.js'
+import { renderHistoryBar as renderHistoryBarModule } from './historyBar.js'
 import {
     renderCharactersModule,
     renderFeaturesModule,
@@ -19,8 +21,8 @@ import {
     renderSkillsModule,
     renderTagsModule,
     renderTraitsModule,
-} from './detailsPanel/modules/associationModules.js'
-import { renderCustomAttributesModule } from './detailsPanel/modules/customAttributesModule.js'
+} from './modules/associationModules.js'
+import { renderCustomAttributesModule } from './modules/customAttributesModule.js'
 import {
     renderAvatarModule,
     renderColorModule,
@@ -30,15 +32,14 @@ import {
     renderParagraphNumberModule,
     renderParagraphRoleModule,
     renderSummaryModule,
-} from './detailsPanel/modules/entityConfigModules.js'
+} from './modules/entityConfigModules.js'
 import {
     renderParameterConfigModule,
     renderSkillConfigModule,
     renderStatValueModule,
-} from './detailsPanel/modules/rpgConfigModules.js'
-import { renderNpcReadOnlyDetails } from './detailsPanel/npcReadOnlyDetails.js'
-import { renderQuickActionsModule } from './detailsPanel/quickActionsModule.js'
-import { escapeHtml, renderEmptyPlaceholderHtml } from './htmlTemplates.js'
+} from './modules/rpgConfigModules.js'
+import { renderNpcReadOnlyDetails } from './npcReadOnlyDetails.js'
+import { renderQuickActionsModule } from './quickActionsModule.js'
 
 // Re-export submodules for full backward compatibility
 export {
@@ -46,6 +47,7 @@ export {
     renderCharactersModule,
     renderChoiceDetails,
     renderColorModule,
+    renderCombatModule,
     renderCustomAttributesModule,
     renderEntityHeaderModule,
     renderExitsModule,
@@ -161,6 +163,7 @@ export function renderDetailsPanel(ctx) {
     renderFeaturesModule(container, entity, type, ctx, renderDetailsPanel)
     renderCustomAttributesModule(container, entity, type, ctx, renderDetailsPanel)
     renderExitsModule(container, entity, type, ctx, renderDetailsPanel)
+    renderCombatModule(container, entity, type, ctx, renderDetailsPanel)
     renderQuickActionsModule(container, item, type, ctx)
 }
 

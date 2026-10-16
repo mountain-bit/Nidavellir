@@ -22,6 +22,7 @@ describe('Stat Model', () => {
             name: 'Magic',
             description: stat.getDescription(),
             value: 5,
+            type: 'stat',
         })
 
         const fromJson = Stat.fromJSON(json)
