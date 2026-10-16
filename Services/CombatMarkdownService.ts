@@ -27,7 +27,10 @@ export type CombatMarkdownContext = ICombatMarkdownContext
 export class CombatMarkdownService {
     public static readonly COMBAT_START_TAG = '<!-- COMBAT_START -->'
     public static readonly COMBAT_END_TAG = '<!-- COMBAT_END -->'
-    public static readonly COMBAT_REGEX = /<!-- COMBAT_START -->[\s\S]*?<!-- COMBAT_END -->/
+    public static readonly COMBAT_REGEX =
+        /(?:<!--\s*COMBAT_START\s*-->|\{\{combat:start\}\})[\s\S]*?(?:<!--\s*COMBAT_END\s*-->|\{\{combat:end\}\})/i
+    public static readonly LEGACY_COMBAT_FALLBACK_REGEX =
+        /(?:---\s*\n+)?###\s*(?:⚔️\s*)?Starcie:[\s\S]*?(?:####\s*Możliwe wyniki starcia:[\s\S]*?)?(?:<!--\s*COMBAT_END\s*-->|\{\{combat:end\}\}|$)/i
 
     /**
      * Extracts available traits (stats and parameters) from the context.
@@ -37,22 +40,34 @@ export class CombatMarkdownService {
         const parameters = ctx.projectParameters || ctx.projectData?.projectParameters || []
 
         const result: TraitItem[] = []
+        const seenIds = new Set<string>()
+        const seenNames = new Set<string>()
 
         stats.forEach((s: any) => {
-            const id =
-                typeof s.getId === 'function' ? s.getId() : s.id || (s.getName ? s.getName() : '')
-            const name = typeof s.getName === 'function' ? s.getName() : s.name || ''
-            if (id && name) {
-                result.push({ id: String(id), name: String(name), kind: 'stat' })
+            const id = String(
+                typeof s.getId === 'function'
+                    ? s.getId()
+                    : s.id || (s.getName ? s.getName() : '') || ''
+            ).trim()
+            const name = String(typeof s.getName === 'function' ? s.getName() : s.name || '').trim()
+            if (id && name && !seenIds.has(id) && !seenNames.has(name.toLowerCase())) {
+                seenIds.add(id)
+                seenNames.add(name.toLowerCase())
+                result.push({ id, name, kind: 'stat' })
             }
         })
 
         parameters.forEach((p: any) => {
-            const id =
-                typeof p.getId === 'function' ? p.getId() : p.id || (p.getName ? p.getName() : '')
-            const name = typeof p.getName === 'function' ? p.getName() : p.name || ''
-            if (id && name) {
-                result.push({ id: String(id), name: String(name), kind: 'parameter' })
+            const id = String(
+                typeof p.getId === 'function'
+                    ? p.getId()
+                    : p.id || (p.getName ? p.getName() : '') || ''
+            ).trim()
+            const name = String(typeof p.getName === 'function' ? p.getName() : p.name || '').trim()
+            if (id && name && !seenIds.has(id) && !seenNames.has(name.toLowerCase())) {
+                seenIds.add(id)
+                seenNames.add(name.toLowerCase())
+                result.push({ id, name, kind: 'parameter' })
             }
         })
 
@@ -90,7 +105,7 @@ export class CombatMarkdownService {
             const alignRow = `| ${alignCols.join(' | ')} |`
 
             const dataRows = opponents.map(opp => {
-                const oppName = `👤 ${opp.name || 'Przeciwnik'}`
+                const oppName = opp.name || 'Przeciwnik'
                 const traitVals = activeVisibleTraits.map(t => {
                     const val =
                         opp.overriddenStats && opp.overriddenStats[t.id] !== undefined
@@ -139,13 +154,17 @@ export class CombatMarkdownService {
 
         return [
             this.COMBAT_START_TAG,
+            '',
             '---',
-            `### ⚔️ Starcie: ${combatTitle}`,
+            '',
+            `### Starcie: ${combatTitle}`,
             '',
             opponentsMd,
             '',
             '#### Możliwe wyniki starcia:',
+            '',
             outcomesMd,
+            '',
             this.COMBAT_END_TAG,
         ].join('\n')
     }
@@ -165,16 +184,29 @@ export class CombatMarkdownService {
             if (!text.trim()) {
                 text = defaultTitle ? `# ${defaultTitle}\n\n` : ''
             }
+            let updated: string
             if (this.COMBAT_REGEX.test(text)) {
-                return text.replace(this.COMBAT_REGEX, combatMarkdown.trim())
+                updated = text.replace(this.COMBAT_REGEX, combatMarkdown.trim())
+            } else if (this.LEGACY_COMBAT_FALLBACK_REGEX.test(text)) {
+                updated = text.replace(this.LEGACY_COMBAT_FALLBACK_REGEX, combatMarkdown.trim())
             } else {
-                return (text.trimEnd() + '\n\n' + combatMarkdown.trim()).trim() + '\n'
+                updated = (text.trimEnd() + '\n\n' + combatMarkdown.trim()).trim() + '\n'
             }
+            // Normalize blank lines: exactly 1 blank line before combat block, no 3+ consecutive newlines
+            return updated
+                .replace(/\n*<!--\s*COMBAT_START\s*-->/gi, '\n\n<!-- COMBAT_START -->')
+                .replace(/\n{3,}/g, '\n\n')
         } else {
             // Combat disabled: remove block if present
             if (this.COMBAT_REGEX.test(text)) {
                 text = text
-                    .replace(this.COMBAT_REGEX, '')
+                    .replace(new RegExp(this.COMBAT_REGEX.source, 'gi'), '')
+                    .replace(/\n{3,}/g, '\n\n')
+                    .trim()
+                if (text) text += '\n'
+            } else if (this.LEGACY_COMBAT_FALLBACK_REGEX.test(text)) {
+                text = text
+                    .replace(new RegExp(this.LEGACY_COMBAT_FALLBACK_REGEX.source, 'gi'), '')
                     .replace(/\n{3,}/g, '\n\n')
                     .trim()
                 if (text) text += '\n'

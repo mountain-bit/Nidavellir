@@ -102,7 +102,7 @@ export function createCombatPill(opponentsCount: number = 0): HTMLSpanElement {
     const pill = document.createElement('span')
     pill.className = 'node-combat-pill'
     pill.title = 'Starcie z przeciwnikami (Walka)'
-    pill.innerHTML = `⚔️ ${opponentsCount > 0 ? opponentsCount : 'WALKA'}`.trim()
+    pill.textContent = opponentsCount > 0 ? `Walka (${opponentsCount})` : 'Walka'
     return pill
 }
 

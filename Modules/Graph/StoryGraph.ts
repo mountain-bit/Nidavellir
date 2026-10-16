@@ -179,7 +179,7 @@ export class StoryGraph {
 
                 const targetPos = targetP.getPosition() || { x: 0, y: 0 }
                 const offsetY = offsets[i] !== undefined ? offsets[i] : 0
-                const label = trans.isCombatOutcome ? `⚔️ ${trans.label}` : trans.label
+                const label = trans.isCombatOutcome ? `[Walka] ${trans.label}` : trans.label
                 const ctrlDist = calculateCurvedEdgeControlPointDistance(
                     sourcePos,
                     targetPos,

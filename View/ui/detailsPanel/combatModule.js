@@ -9,6 +9,7 @@
  * - Generating and synchronizing Markdown representation with paragraph description.
  */
 
+import { formatDescriptionFileName } from '../../../dist/Utils/pathSanitizer.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import {
@@ -52,22 +53,52 @@ export function syncCombatToParagraphDescription(entity, ctx) {
           : null
     if (!desc) return
 
-    let fileName = desc.getFilePath ? desc.getFilePath() : ''
-    if (!fileName) {
+    let rawPath = desc.getFilePath ? desc.getFilePath() : ''
+    let baseFileName = ''
+    if (rawPath) {
+        const parts = rawPath.replace(/\\/g, '/').split('/')
+        baseFileName = parts[parts.length - 1]
+    }
+    if (!baseFileName) {
         const title = (entity.getTitle && entity.getTitle()) || entity.getId() || 'element'
-        const cleanTitle = String(title)
-            .replace(/[\s-]+/g, '_')
-            .replace(/[^a-zA-Z0-9_]/g, '')
-        fileName = `Description_Paragraph_${cleanTitle || 'element'}.md`
+        baseFileName = formatDescriptionFileName('paragraph', title)
+        rawPath = baseFileName
         if (desc.setFilePath) {
-            desc.setFilePath(fileName)
+            desc.setFilePath(baseFileName)
         }
     }
 
     let currentText = ''
-    if (ctx.files && typeof ctx.files[fileName] === 'string') {
-        currentText = ctx.files[fileName]
-    } else if (desc.getText) {
+    // 1. If editor is active for this file, read latest text from editor
+    const activeFile =
+        ctx?.vm && typeof ctx.vm.getActiveFile === 'function' ? ctx.vm.getActiveFile() : null
+    const isEditorActiveForThisFile =
+        Boolean(activeFile) && (activeFile === baseFileName || activeFile === rawPath)
+
+    if (isEditorActiveForThisFile) {
+        const mainEditor =
+            typeof getMainEditorInstance === 'function' ? getMainEditorInstance() : null
+        if (mainEditor && typeof mainEditor.getMarkdown === 'function') {
+            currentText = mainEditor.getMarkdown()
+        } else if (typeof document !== 'undefined') {
+            const fileEditor = document.getElementById('file-editor')
+            if (fileEditor && typeof fileEditor.value === 'string') {
+                currentText = fileEditor.value
+            }
+        }
+    }
+
+    // 2. Check ctx.files
+    if (!currentText && ctx?.files) {
+        if (typeof ctx.files[baseFileName] === 'string') {
+            currentText = ctx.files[baseFileName]
+        } else if (typeof ctx.files[rawPath] === 'string') {
+            currentText = ctx.files[rawPath]
+        }
+    }
+
+    // 3. Fallback to model
+    if (!currentText && desc.getText) {
         currentText = desc.getText() || ''
     }
 
@@ -85,25 +116,27 @@ export function syncCombatToParagraphDescription(entity, ctx) {
         if (desc.setText) {
             desc.setText(updatedText)
         }
-        if (ctx.files) {
-            ctx.files[fileName] = updatedText
+        if (ctx?.files) {
+            ctx.files[baseFileName] = updatedText
+            if (rawPath && rawPath !== baseFileName) {
+                ctx.files[rawPath] = updatedText
+            }
         }
 
         // Update open editor if active
-        if (
-            typeof document !== 'undefined' &&
-            ctx.vm &&
-            typeof ctx.vm.getActiveFile === 'function' &&
-            ctx.vm.getActiveFile() === fileName
-        ) {
+        if (isEditorActiveForThisFile && typeof document !== 'undefined') {
             const fileEditor = document.getElementById('file-editor')
-            if (fileEditor) {
+            if (fileEditor && fileEditor.value !== updatedText) {
                 fileEditor.value = updatedText
             }
             const mainEditor =
                 typeof getMainEditorInstance === 'function' ? getMainEditorInstance() : null
             if (mainEditor && typeof mainEditor.setMarkdown === 'function') {
-                mainEditor.setMarkdown(updatedText)
+                const curMd =
+                    typeof mainEditor.getMarkdown === 'function' ? mainEditor.getMarkdown() : ''
+                if (curMd !== updatedText) {
+                    mainEditor.setMarkdown(updatedText)
+                }
             }
         }
 
@@ -116,12 +149,14 @@ export function syncCombatToParagraphDescription(entity, ctx) {
             typeof window !== 'undefined' &&
             window.electronAPI &&
             typeof window.electronAPI.saveMarkdownFile === 'function' &&
-            currentPath &&
-            fileName
+            currentPath
         ) {
-            window.electronAPI.saveMarkdownFile(currentPath, fileName, updatedText).catch(err => {
-                console.warn('Auto-save combat markdown to disk failed:', err)
-            })
+            const targetSaveFile = baseFileName || rawPath
+            window.electronAPI
+                .saveMarkdownFile(currentPath, targetSaveFile, updatedText)
+                .catch(err => {
+                    console.warn('Auto-save combat markdown to disk failed:', err)
+                })
         }
     }
 }

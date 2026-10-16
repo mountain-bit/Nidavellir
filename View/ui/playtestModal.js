@@ -1270,11 +1270,12 @@ export function renderPlaytestView() {
 
     // Remove technical combat markdown block from narrative view if present,
     // because Playtest displays a rich interactive combat card below.
-    if (narrativeText.includes('<!-- COMBAT_START -->')) {
-        narrativeText = narrativeText
-            .replace(/<!-- COMBAT_START -->[\s\S]*?(?:<!-- COMBAT_END -->|$)/gi, '')
-            .trim()
-    }
+    narrativeText = narrativeText
+        .replace(
+            /(?:<!--\s*COMBAT_START\s*-->|\{\{combat:start\}\})[\s\S]*?(?:<!--\s*COMBAT_END\s*-->|\{\{combat:end\}\}|$)/gi,
+            ''
+        )
+        .trim()
 
     // Paragraph Metadata (Tags, Location, Characters, Combat)
     const tags = (typeof currentP.getTags === 'function' ? currentP.getTags() : currentP.tags) || []

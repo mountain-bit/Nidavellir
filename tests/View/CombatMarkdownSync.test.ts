@@ -46,9 +46,9 @@ describe('CombatMarkdownSync', () => {
 
         expect(md).toContain('<!-- COMBAT_START -->')
         expect(md).toContain('<!-- COMBAT_END -->')
-        expect(md).toContain('### ⚔️ Starcie: Starcie z Goblinami')
+        expect(md).toContain('### Starcie: Starcie z Goblinami')
         expect(md).toContain('| Przeciwnik | Zdrowie | Siła |')
-        expect(md).toContain('| 👤 Goblin Zwiadowca | 12 | 4 |')
+        expect(md).toContain('| Goblin Zwiadowca | 12 | 4 |')
         expect(md).toContain('- **Zwycięstwo** → [§ 2 Skarbiec](entity://paragraph/p2)')
     })
 
@@ -85,7 +85,7 @@ describe('CombatMarkdownSync', () => {
         expect(text).toContain('# Początek')
         expect(text).toContain('Opis narracyjny.')
         expect(text).toContain('<!-- COMBAT_START -->')
-        expect(text).toContain('### ⚔️ Starcie: Walka')
+        expect(text).toContain('### Starcie: Walka')
         expect(text).toContain('- **Wygrana** → [§ 3 Koniec](entity://paragraph/p3)')
 
         // Turn combat OFF
@@ -96,6 +96,49 @@ describe('CombatMarkdownSync', () => {
         expect(cleanedText).toContain('# Początek')
         expect(cleanedText).toContain('Opis narracyjny.')
         expect(cleanedText).not.toContain('<!-- COMBAT_START -->')
-        expect(cleanedText).not.toContain('### ⚔️ Starcie: Walka')
+        expect(cleanedText).not.toContain('### Starcie: Walka')
+    })
+
+    it('syncs correctly with nested relative path and updates active editor and ctx.files on removal', () => {
+        const desc = new Description('# Rozstaje dróg\n\nOpis okolicy.')
+        desc.setFilePath('./Paragraphs/p_crossroads/Description_Paragraph_Rozstaje_drog.md')
+        const paragraph = new Paragraph('p_crossroads', 'Rozstaje dróg', desc)
+        paragraph.setHasCombat(true)
+        const combat = new Combat('c_bandit', 'Zasadzka zbójców')
+        paragraph.setCombat(combat)
+
+        const files: Record<string, string> = {
+            'Description_Paragraph_Rozstaje_drog.md': '# Rozstaje dróg\n\nOpis okolicy.',
+        }
+
+        const ctx: Record<string, unknown> = {
+            files,
+            projectStats: [],
+            projectParameters: [],
+            projectParagraphs: [paragraph],
+            vm: {
+                getActiveFile: (): string => 'Description_Paragraph_Rozstaje_drog.md',
+            },
+        }
+
+        // 1. Sync combat in
+        syncCombatToParagraphDescription(paragraph, ctx)
+        expect(files['Description_Paragraph_Rozstaje_drog.md']).toContain('<!-- COMBAT_START -->')
+        expect(files['Description_Paragraph_Rozstaje_drog.md']).toContain(
+            '### Starcie: Zasadzka zbójców'
+        )
+
+        // 2. Disable/remove combat
+        paragraph.setHasCombat(false)
+        syncCombatToParagraphDescription(paragraph, ctx)
+
+        expect(files['Description_Paragraph_Rozstaje_drog.md']).not.toContain(
+            '<!-- COMBAT_START -->'
+        )
+        expect(files['Description_Paragraph_Rozstaje_drog.md']).not.toContain(
+            '### Starcie: Zasadzka zbójców'
+        )
+        expect(files['Description_Paragraph_Rozstaje_drog.md']).toContain('# Rozstaje dróg')
+        expect(desc.getText()).not.toContain('<!-- COMBAT_START -->')
     })
 })

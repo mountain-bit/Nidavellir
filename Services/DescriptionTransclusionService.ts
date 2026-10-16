@@ -124,7 +124,7 @@ export class DescriptionTransclusionService {
      */
     public static preprocessForEditor(markdown: string): string {
         if (!markdown || typeof markdown !== 'string') return ''
-        return markdown.replace(
+        let result = markdown.replace(
             EMBED_MACRO_REGEX,
             (_full, type: string, id: string, variant: string = 'text') => {
                 const cleanId = id.trim()
@@ -136,6 +136,25 @@ export class DescriptionTransclusionService {
                 return `[Opis: ${cleanId}](${url})`
             }
         )
+
+        // Protect combat markdown block from ProseMirror table flattening and HTML comment stripping
+        const combatRegex =
+            /(?:<!--\s*COMBAT_START\s*-->|\{\{combat:start\}\})[\s\S]*?(?:<!--\s*COMBAT_END\s*-->|\{\{combat:end\}\})/gi
+        result = result.replace(combatRegex, (rawCombatMatch: string) => {
+            let cleanRaw = rawCombatMatch.trim()
+            cleanRaw = cleanRaw
+                .replace(/(?:<p>)?\{\{combat:start\}\}(?:<\/p>)?/gi, '<!-- COMBAT_START -->')
+                .replace(/(?:<p>)?\{\{combat:end\}\}(?:<\/p>)?/gi, '<!-- COMBAT_END -->')
+            if (!cleanRaw.includes('<!-- COMBAT_START -->')) {
+                cleanRaw = '<!-- COMBAT_START -->\n' + cleanRaw
+            }
+            if (!cleanRaw.includes('<!-- COMBAT_END -->')) {
+                cleanRaw = cleanRaw + '\n<!-- COMBAT_END -->'
+            }
+            return `\n\n<div data-combat-block="true" data-raw-combat="${encodeURIComponent(cleanRaw)}"></div>\n\n`
+        })
+
+        return result
     }
 
     /**
@@ -145,11 +164,32 @@ export class DescriptionTransclusionService {
         if (!content || typeof content !== 'string') return ''
         const divRegex =
             /<div[^>]*data-description-embed="true"[^>]*data-type="([^"]+)"[^>]*data-id="([^"]+)"(?:[^>]*data-variant="([^"]+)")?[^>]*><\/div>/gi
-        return content.replace(divRegex, (_match, type, id, variant) => {
+        let result = content.replace(divRegex, (_match, type, id, variant) => {
             const v = variant || 'text'
             const url = v === 'summary' ? `embed://${type}/${id}/summary` : `embed://${type}/${id}`
             return `[Opis: ${id}](${url})`
         })
+
+        // Restore combat block from TipTap HTML placeholder if present in serialized string
+        const combatDivRegex =
+            /<div[^>]*data-combat-block="true"[^>]*data-raw-combat="([^"]+)"[^>]*><\/div>/gi
+        result = result.replace(combatDivRegex, (_match, encoded) => {
+            try {
+                return '\n\n' + decodeURIComponent(encoded).trim() + '\n\n'
+            } catch {
+                return '\n\n' + encoded.trim() + '\n\n'
+            }
+        })
+
+        // Restore combat comments from TipTap markdown serialization without accumulating blank lines
+        result = result
+            .replace(/(?:<p>)?\{\{combat:start\}\}(?:<\/p>)?/gi, '<!-- COMBAT_START -->')
+            .replace(/(?:<p>)?\{\{combat:end\}\}(?:<\/p>)?/gi, '<!-- COMBAT_END -->')
+            .replace(/\n*<!--\s*COMBAT_START\s*-->\s*\n*/gi, '\n\n<!-- COMBAT_START -->\n')
+            .replace(/\n*<!--\s*COMBAT_END\s*-->\s*\n*/gi, '\n<!-- COMBAT_END -->\n\n')
+            .replace(/\n{3,}/g, '\n\n')
+
+        return result
     }
 
     /**

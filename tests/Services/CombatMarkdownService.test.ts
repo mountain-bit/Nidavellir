@@ -41,9 +41,9 @@ describe('CombatMarkdownService', () => {
 
         expect(md).toContain(CombatMarkdownService.COMBAT_START_TAG)
         expect(md).toContain(CombatMarkdownService.COMBAT_END_TAG)
-        expect(md).toContain('### ⚔️ Starcie: Starcie w krypcie')
+        expect(md).toContain('### Starcie: Starcie w krypcie')
         expect(md).toContain('| Przeciwnik | Punkty Życia | Siła |')
-        expect(md).toContain('| 👤 Szkielet Wojownik | 20 | 6 |')
+        expect(md).toContain('| Szkielet Wojownik | 20 | 6 |')
         expect(md).toContain('- **Zwycięstwo** → [§ 15 Korytarz](entity://paragraph/p2)')
     })
 
@@ -74,5 +74,74 @@ describe('CombatMarkdownService', () => {
         expect(removed).toContain('Stoisz przed wejściem.')
         expect(removed).not.toContain('<!-- COMBAT_START -->')
         expect(removed).not.toContain('<!-- COMBAT_END -->')
+    })
+
+    it('removes combat block with flexible whitespace and TipTap markers {{combat:start}}', () => {
+        const textWithEditorMarkers =
+            '# Opis\n\nPrzygoda trwa.\n\n{{combat:start}}\n### ⚔️ Starcie: Bandyci\n- Wynik\n{{combat:end}}\n'
+        const cleaned = CombatMarkdownService.updateContentWithCombat(
+            textWithEditorMarkers,
+            '',
+            false
+        )
+        expect(cleaned).toContain('# Opis')
+        expect(cleaned).toContain('Przygoda trwa.')
+        expect(cleaned).not.toContain('{{combat:start}}')
+        expect(cleaned).not.toContain('Bandyci')
+    })
+
+    it('removes legacy combat block even if comment tags were stripped', () => {
+        const textWithoutComments =
+            '# Jaskinia\n\nCiemno i głucho.\n\n---\n### ⚔️ Starcie: Smok\n| Przeciwnik | HP |\n| Smok | 100 |\n#### Możliwe wyniki starcia:\n- Wygrana → § 2\n'
+        const cleaned = CombatMarkdownService.updateContentWithCombat(
+            textWithoutComments,
+            '',
+            false
+        )
+        expect(cleaned).toContain('# Jaskinia')
+        expect(cleaned).toContain('Ciemno i głucho.')
+        expect(cleaned).not.toContain('### ⚔️ Starcie: Smok')
+        expect(cleaned).not.toContain('#### Możliwe wyniki starcia:')
+    })
+
+    it('does not accumulate blank lines when updating combat repeatedly', () => {
+        const initialText = '# Wstęp\n\nOpis lokacji.'
+        const combatMd = '<!-- COMBAT_START -->\n---\n### Starcie: Wilki\n<!-- COMBAT_END -->'
+
+        let current = CombatMarkdownService.updateContentWithCombat(initialText, combatMd, true)
+        const initialLines = current.split('\n').length
+
+        // Run 10 consecutive updates on the text
+        for (let i = 0; i < 10; i++) {
+            current = CombatMarkdownService.updateContentWithCombat(
+                current,
+                `<!-- COMBAT_START -->\n---\n### Starcie: Wilki (edycja ${i})\n<!-- COMBAT_END -->`,
+                true
+            )
+        }
+
+        const finalLines = current.split('\n').length
+        expect(finalLines).toBe(initialLines)
+        expect(current).not.toMatch(/\n{3,}/)
+    })
+
+    it('deduplicates traits by id and name in extractTraits', () => {
+        const ctx = {
+            projectStats: [
+                { getId: () => 'stat_1', getName: () => 'Siła' },
+                { getId: () => 'stat_1', getName: () => 'Siła' }, // duplicate id & name
+                { getId: () => 'stat_2', getName: () => 'siła' }, // duplicate name (case-insensitive)
+            ],
+            projectParameters: [
+                { getId: () => 'stat_1', getName: () => 'Siła' }, // duplicate id with stat
+                { getId: () => 'param_1', getName: () => 'Mana' },
+                { getId: () => 'param_1_1', getName: () => 'Mana' }, // duplicate name from disk duplicate
+            ],
+        }
+
+        const traits = CombatMarkdownService.extractTraits(ctx)
+        expect(traits).toHaveLength(2)
+        expect(traits[0].name).toBe('Siła')
+        expect(traits[1].name).toBe('Mana')
     })
 })

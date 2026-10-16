@@ -566,10 +566,26 @@ export class Project {
             return !isParameter(z) && !isSkill(z) && !isStat(z)
         }
 
-        const globalStats = rules.filter(isStat).map(z => Stat.fromJSON(z))
-        const globalSkills = rules.filter(isSkill).map(z => Skill.fromJSON(z))
-        const globalFeatures = rules.filter(isFeature).map(z => Feature.fromJSON(z))
-        const globalParameters = rules.filter(isParameter).map(z => Parameter.fromJSON(z))
+        const dedupeRules = <T extends { getId(): string; getName(): string }>(items: T[]): T[] => {
+            const seenIds = new Set<string>()
+            const seenNames = new Set<string>()
+            return items.filter(item => {
+                const id = (item.getId() || '').trim()
+                const name = (item.getName() || '').trim().toLowerCase()
+                if (id && seenIds.has(id)) return false
+                if (name && seenNames.has(name)) return false
+                if (id) seenIds.add(id)
+                if (name) seenNames.add(name)
+                return true
+            })
+        }
+
+        const globalStats = dedupeRules(rules.filter(isStat).map(z => Stat.fromJSON(z)))
+        const globalSkills = dedupeRules(rules.filter(isSkill).map(z => Skill.fromJSON(z)))
+        const globalFeatures = dedupeRules(rules.filter(isFeature).map(z => Feature.fromJSON(z)))
+        const globalParameters = dedupeRules(
+            rules.filter(isParameter).map(z => Parameter.fromJSON(z))
+        )
 
         const name = projectData.name ?? ''
         const author = projectData.author ?? ''

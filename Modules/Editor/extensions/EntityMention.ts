@@ -17,8 +17,15 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
         return {
             id: {
                 default: null,
-                parseHTML: (element: HTMLElement): string | null =>
-                    element.getAttribute('data-id') || element.getAttribute('data-entity-id'),
+                parseHTML: (element: HTMLElement): string | null => {
+                    const did =
+                        element.getAttribute('data-id') || element.getAttribute('data-entity-id')
+                    if (did) return did
+                    const href = element.getAttribute('href') || ''
+                    const match = href.match(/^entity:\/\/[^/]+\/(.+)$/)
+                    if (match) return match[1]
+                    return null
+                },
                 renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
                     if (!attributes.id) return {}
                     return {
@@ -47,10 +54,16 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
             },
             type: {
                 default: 'location',
-                parseHTML: (element: HTMLElement): string =>
-                    element.getAttribute('data-type') ||
-                    element.getAttribute('data-entity-type') ||
-                    'location',
+                parseHTML: (element: HTMLElement): string => {
+                    const dt =
+                        element.getAttribute('data-type') ||
+                        element.getAttribute('data-entity-type')
+                    if (dt) return dt
+                    const href = element.getAttribute('href') || ''
+                    const match = href.match(/^entity:\/\/([^/]+)\//)
+                    if (match) return match[1]
+                    return 'location'
+                },
                 renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
                     return {
                         'data-type': String(attributes.type || 'location'),

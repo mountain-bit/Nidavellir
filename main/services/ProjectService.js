@@ -524,13 +524,7 @@ class ProjectService {
                         const nameSource =
                             item.id || item.title || item.name || `${category.toLowerCase()}_item`
                         const base = slugifyEntityName(String(nameSource))
-                        folderSlug = generateUniqueSlug(
-                            base,
-                            cand =>
-                                existingFolderNames.has(cand) ||
-                                (fs.existsSync(path.join(categoryDir, cand)) &&
-                                    !existingFolderNames.has(cand))
-                        )
+                        folderSlug = generateUniqueSlug(base, cand => existingFolderNames.has(cand))
                     }
 
                     existingFolderNames.add(folderSlug)

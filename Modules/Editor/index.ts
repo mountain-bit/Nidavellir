@@ -7,6 +7,7 @@ export {
 export { CustomFontsService, type IProjectFontsData } from './CustomFontsService'
 export { CustomStylesService, DEFAULT_CUSTOM_STYLES } from './CustomStylesService'
 export { EntitySyncService } from './EntitySyncService'
+export { CombatBlock, parseCombatMarkdown } from './extensions/CombatBlock'
 export { CustomImage } from './extensions/CustomImage'
 export { CustomStyleMark } from './extensions/CustomStyleMark'
 export { CustomUnderline } from './extensions/CustomUnderline'
