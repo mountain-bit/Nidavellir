@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { validateStoryGraph } from '../../View/ui/graphValidator.js'
+import { validateStoryGraph } from '../../View/ui/common/graphValidator.js'
 
 describe('Graph Validation Engine (View/ui/graphValidator.js)', () => {
     it('reports error when project has no paragraphs', () => {

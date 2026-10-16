@@ -1,4 +1,4 @@
-import { t } from '../../dist/Utils/translate.js'
+import { t } from '../../../dist/Utils/translate.js'
 
 let isDirty = false
 let cleanTimeout = null

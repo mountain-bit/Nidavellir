@@ -65,7 +65,7 @@ declare module '*/View/projectData.js' {
     } from '*/View/mockData.js'
 }
 
-declare module '*/View/ui/npcModal.js' {
+declare module '*/View/ui/npcModal/npcModal.js' {
     import type { NPC } from '../Model/NPC'
     import type { NPC_Template } from '../Model/NPC_Template'
 
@@ -401,11 +401,11 @@ declare module '*/View/ui/npcModal/npcTraitsCounter.js' {
     export function updateTraitsCounterUI(ctx?: unknown): ITraitsCounts
 }
 
-declare module '*/View/ui/contextMenu.js' {
+declare module '*/View/ui/workspace/contextMenu.js' {
     export function setupSectionControlsAndContextMenu(ctx?: unknown): void
 }
 
-declare module '*/View/ui/drawerLists.js' {
+declare module '*/View/ui/drawer/drawerLists.js' {
     export function renderTraitsList(ctx?: unknown): void
     export function renderParagraphsList(ctx?: unknown): void
     export function renderScenesList(ctx?: unknown): void
@@ -439,7 +439,7 @@ declare module '*/View/ui/drawerLists.js' {
     ): void
 }
 
-declare module '*/View/ui/heroModal.js' {
+declare module '*/View/ui/heroModal/heroModal.js' {
     export function setupHeroModal(ctx?: unknown): {
         open: (options?: unknown) => void
         close: (options?: unknown) => void
@@ -449,7 +449,7 @@ declare module '*/View/ui/heroModal.js' {
     export function hasUnsavedHeroChanges(): boolean
 }
 
-declare module '*/View/ui/detailsPanel.js' {
+declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
 }
@@ -575,7 +575,7 @@ declare module '*/View/ui/editor/index.js' {
     export * from '*/View/ui/editor/npcEditor.js'
 }
 
-declare module '*/View/ui/npcAvatars.js' {
+declare module '*/View/ui/common/npcAvatars.js' {
     export interface IFantasyAvatar {
         id: string
         nameKey?: string
@@ -595,7 +595,7 @@ declare module '*/View/ui/npcAvatars.js' {
     export function isCustomAvatarPath(avatarId: string): boolean
 }
 
-declare module '*/View/ui/imageEditorModal.js' {
+declare module '*/View/ui/assets/imageEditorModal.js' {
     export function setupImageEditorModal(ctx: unknown): {
         open: (options: {
             src: string
@@ -623,7 +623,7 @@ declare module '*/dist/Modules/ImageEditor/index.js' {
     export * from '../Modules/ImageEditor/index'
 }
 
-declare module '*/View/ui/confirmModal.js' {
+declare module '*/View/ui/modals/confirmModal.js' {
     export function markFileDirty(fileName: string): void
     export function markFileClean(fileName: string): void
     export function hasUnsavedFileChanges(): boolean
@@ -651,7 +651,7 @@ declare module '*/View/ui/confirmModal.js' {
     ): Promise<boolean>
 }
 
-declare module '*/View/ui/workspace.js' {
+declare module '*/View/ui/workspace/workspace.js' {
     export function renderEditorTabs(ctx?: unknown): void
     export function saveActiveFile(ctx?: unknown): void
     export function saveAllUnsavedFiles(ctx?: unknown): Promise<void>
@@ -692,7 +692,7 @@ declare module '*/View/ui/heroModal/heroSectionControllers.js' {
     export function addHeroSkill(name?: string, statName?: string, value?: string): void
 }
 
-declare module '*/View/ui/projectStateTracker.js' {
+declare module '*/View/ui/project/projectStateTracker.js' {
     export function isProjectDirty(): boolean
     export function markProjectDirty(): void
     export function markProjectClean(): void
@@ -705,14 +705,14 @@ declare module '*/View/ui/projectStateTracker.js' {
     export function updateProjectNameUI(name?: string): void
 }
 
-declare module '*/View/ui/projectSaver.js' {
+declare module '*/View/ui/project/projectSaver.js' {
     export function saveFullProject(
         ctx: unknown,
         options?: { isAutoSave?: boolean }
     ): Promise<{ success: boolean; canceled?: boolean; skipped?: boolean; error?: string }>
 }
 
-declare module '*/View/ui/autoSaveService.js' {
+declare module '*/View/ui/project/autoSaveService.js' {
     export const DEFAULT_AUTOSAVE_INTERVAL_MS: number
     export function isAutoSaveEnabled(): boolean
     export function setAutoSaveEnabled(enabled: boolean, ctx?: unknown): void
@@ -724,7 +724,7 @@ declare module '*/View/ui/autoSaveService.js' {
     export function isAutoSaveRunningStatus(): boolean
 }
 
-declare module '*/View/ui/graphValidator.js' {
+declare module '*/View/ui/common/graphValidator.js' {
     export interface IGraphValidationIssue {
         id?: string
         type: 'error' | 'warning' | 'info'
@@ -747,7 +747,7 @@ declare module '*/View/ui/graphValidator.js' {
     export function validateStoryGraph(ctx: unknown): IGraphValidationReport
 }
 
-declare module '*/View/ui/topBar.js' {
+declare module '*/View/ui/workspace/topBar.js' {
     export function updateTopBarUI(ctx: unknown): void
     export function runGraphValidation(ctx: unknown): unknown
     export function openPlaytestSimulator(ctx: unknown): void
@@ -758,7 +758,7 @@ declare module '*/View/ui/topBar.js' {
     export function openSettingsView(ctx: unknown): void
 }
 
-declare module '*/View/ui/quickSearch.js' {
+declare module '*/View/ui/workspace/quickSearch.js' {
     export interface ISearchCandidate {
         id: string
         title: string
@@ -795,13 +795,13 @@ declare module '*/View/ui/quickSearch.js' {
     export function initQuickSearch(ctx: unknown): void
 }
 
-declare module '*/View/ui/assetManagerModal.js' {
+declare module '*/View/ui/assets/assetManagerModal.js' {
     export function openAssetManager(ctx: unknown): Promise<void>
     export function closeAssetManager(): void
     export function refreshAssetList(): Promise<void>
 }
 
-declare module '*/View/ui/assetPicker.js' {
+declare module '*/View/ui/assets/assetPicker.js' {
     export function getActiveProjectPath(ctx?: unknown): string
     export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
     export function importImageNative(
@@ -833,7 +833,7 @@ declare module '*/View/ui/assetPicker.js' {
     ): void
 }
 
-declare module '*/View/ui/playtestModal.js' {
+declare module '*/View/ui/modals/playtestModal.js' {
     export class PlaytestEngine {
         godMode: boolean
         constructor(ctx: unknown)
@@ -936,4 +936,24 @@ declare module '*/View/ui/detailsPanel/combatModule.js' {
         ctx: unknown,
         onRefreshDetails?: (ctx: unknown) => void
     ): void
+}
+
+declare module '*/View/ui/graph/index.js' {
+    export function getStoryGraphInstance(): unknown
+    export function setStoryGraphInstance(instance: unknown): void
+    export function centerStoryGraph(ctx?: unknown, animate?: boolean): void
+    export function centerGraph(ctx?: unknown, animate?: boolean): void
+    export function renderStoryGraph(forceRebuild?: boolean): void
+    export function showStoryGraph(ctx: unknown, forceRebuild?: boolean): void
+    export function showGraph(ctx: unknown, forceRebuild?: boolean): void
+    export function setupGraphDropZone(
+        canvasContainer: HTMLElement,
+        ctx: unknown,
+        getGraphInstance: () => unknown
+    ): void
+    export function setupGraphZoomControls(ctx: unknown, getGraphInstance: () => unknown): void
+}
+
+declare module '*/View/ui/graph/storyGraphController.js' {
+    export * from '*/View/ui/graph/index.js'
 }

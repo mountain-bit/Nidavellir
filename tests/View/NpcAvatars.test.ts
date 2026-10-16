@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest'
 
-import { getAvatarById, isCustomAvatarPath } from '../../View/ui/npcAvatars.js'
+import { getAvatarById, isCustomAvatarPath } from '../../View/ui/common/npcAvatars.js'
 
 describe('NpcAvatars', () => {
     it('returns preset fantasy avatar by id', () => {

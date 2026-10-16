@@ -6,15 +6,19 @@ import {
     DEFAULT_TAG_COLOR,
     Paragraph,
 } from '../../../../dist/ViewModel/MainWindowViewModel.js'
-import { importDroppedImage, pickProjectImage, setupElementDropZone } from '../../assetPicker.js'
+import {
+    importDroppedImage,
+    pickProjectImage,
+    setupElementDropZone,
+} from '../../assets/assetPicker.js'
 import {
     escapeHtml,
     getTypeBadgeColor,
     PRESET_COLORS,
     renderColorPresetButtonsHtml,
-} from '../../htmlTemplates.js'
-import { FANTASY_AVATARS, getAvatarById } from '../../npcAvatars.js'
-import { markProjectDirty } from '../../projectStateTracker.js'
+} from '../../common/htmlTemplates.js'
+import { FANTASY_AVATARS, getAvatarById } from '../../common/npcAvatars.js'
+import { markProjectDirty } from '../../project/projectStateTracker.js'
 import { syncCombatToParagraphDescription } from '../combatModule.js'
 import { createSection } from '../common/domHelpers.js'
 import { renderHistoryBar } from '../historyBar.js'

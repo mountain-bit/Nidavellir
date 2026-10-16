@@ -5,7 +5,7 @@
 
 import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
-import { escapeHtml } from '../htmlTemplates.js'
+import { escapeHtml } from '../common/htmlTemplates.js'
 
 /**
  * Safely looks up a translation key with a fallback string.

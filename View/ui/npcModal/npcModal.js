@@ -4,17 +4,17 @@
  * form inputs, and narrative drawer, delegating sub-responsibilities to specialized modules.
  */
 
-import { applyTranslations, t } from '../../dist/Utils/translate.js'
-import { showUnsavedChangesModal } from './confirmModal.js'
+import { applyTranslations, t } from '../../../dist/Utils/translate.js'
 import {
     destroyNpcEditor,
     getNpcEditorInstance,
     getOrCreateNpcEditor,
     updateNpcEditorStats,
-} from './editor/npcEditor.js'
-import { evaluateFormula, parseStatValueAsNumber } from './npcModal/formulaEvaluator.js'
-import { saveNpcCharacter as saveNpcCharacterHelper } from './npcModal/npcCharacterSaver.js'
-import { clampModalPosition, initDraggable, initResizable } from './npcModal/npcDraggable.js'
+} from '../editor/npcEditor.js'
+import { showUnsavedChangesModal } from '../modals/confirmModal.js'
+import { evaluateFormula, parseStatValueAsNumber } from './formulaEvaluator.js'
+import { saveNpcCharacter as saveNpcCharacterHelper } from './npcCharacterSaver.js'
+import { clampModalPosition, initDraggable, initResizable } from './npcDraggable.js'
 import {
     addCustomAttribute,
     addNpcSkill,
@@ -56,17 +56,17 @@ import {
     updateSelectedAvatarPreview,
     updateSkillStatDropdowns,
     updateVitalFormulasPreview,
-} from './npcModal/npcSectionControllers.js'
-import * as state from './npcModal/npcState.js'
-import { saveNpcTemplate as saveNpcTemplateHelper } from './npcModal/npcTemplateSaver.js'
-import { getTraitsCounts, updateTraitsCounterUI } from './npcModal/npcTraitsCounter.js'
+} from './npcSectionControllers.js'
+import * as state from './npcState.js'
+import { saveNpcTemplate as saveNpcTemplateHelper } from './npcTemplateSaver.js'
+import { getTraitsCounts, updateTraitsCounterUI } from './npcTraitsCounter.js'
 import {
     extractTemplateAttributes,
     extractTemplateSkills,
     extractTemplateStats,
     extractTemplateTags,
     extractTemplateVitals,
-} from './npcModal/templateMerger.js'
+} from './templateMerger.js'
 
 // Re-export pure domain & section helpers for 100% public API compatibility
 export {

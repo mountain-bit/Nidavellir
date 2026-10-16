@@ -1,4 +1,4 @@
-import { escapeHtml } from '../../htmlTemplates.js'
+import { escapeHtml } from '../../common/htmlTemplates.js'
 import { evaluateFormula } from '../../npcModal/formulaEvaluator.js'
 
 /**

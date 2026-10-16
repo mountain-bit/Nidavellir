@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { initTopBar, updateTopBarUI } from '../../View/ui/topBar.js'
+import { initTopBar, updateTopBarUI } from '../../View/ui/workspace/topBar.js'
 
 describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     beforeEach(() => {
@@ -125,7 +125,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     })
 
     it('handles graph validation and updates badge and report modal', async () => {
-        const { runGraphValidation } = await import('../../View/ui/topBar.js')
+        const { runGraphValidation } = await import('../../View/ui/workspace/topBar.js')
 
         document.body.innerHTML += `
             <span id="topbar-validation-badge"></span>
@@ -164,7 +164,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     })
 
     it('handles interactive playtest simulator modal and step choices', async () => {
-        const { openPlaytestSimulator } = await import('../../View/ui/topBar.js')
+        const { openPlaytestSimulator } = await import('../../View/ui/workspace/topBar.js')
 
         document.body.innerHTML += `
             <div id="modal-playtest" class="hidden">
@@ -237,7 +237,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     })
 
     it('centers the graph and switches to graph view when "zoom-fit" (Dopasuj widok grafu) is clicked', async () => {
-        const { centerGraphView } = await import('../../View/ui/topBar.js')
+        const { centerGraphView } = await import('../../View/ui/workspace/topBar.js')
 
         const centerSpy = vi.fn()
         const showGraphSpy = vi.fn()
@@ -268,7 +268,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     })
 
     it('opens settings in the side panel when "open-settings" (Opcje) is clicked', async () => {
-        const { openSettingsView } = await import('../../View/ui/topBar.js')
+        const { openSettingsView } = await import('../../View/ui/workspace/topBar.js')
 
         const updateLeftDrawerSpy = vi.fn()
         const setActiveLeftTabSpy = vi.fn()

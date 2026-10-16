@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { formatMarkdown, PlaytestEngine } from '../../View/ui/playtestModal.js'
+import { formatMarkdown, PlaytestEngine } from '../../View/ui/modals/playtestModal.js'
 
 describe('Playtest & Narrative Simulator Engine (View/ui/playtestModal.js)', () => {
     let mockContext: any

@@ -6,8 +6,8 @@ import { Feature } from '../../Model/Feature'
 import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
-import { setupSectionControlsAndContextMenu } from '../../View/ui/contextMenu.js'
-import { renderTraitsList } from '../../View/ui/drawerLists.js'
+import { renderTraitsList } from '../../View/ui/drawer/drawerLists.js'
+import { setupSectionControlsAndContextMenu } from '../../View/ui/workspace/contextMenu.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 interface IMockAppContext {

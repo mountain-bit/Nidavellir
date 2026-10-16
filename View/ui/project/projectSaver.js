@@ -1,8 +1,8 @@
-import { toast } from '../../dist/Utils/toast.js'
-import { t } from '../../dist/Utils/translate.js'
-import { clearDirtyFiles } from './confirmModal.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { t } from '../../../dist/Utils/translate.js'
+import { clearDirtyFiles } from '../modals/confirmModal.js'
+import { saveActiveFile } from '../workspace/workspace.js'
 import { markProjectDirty, setProjectSaved, setProjectSaving } from './projectStateTracker.js'
-import { saveActiveFile } from './workspace.js'
 
 let isSaving = false
 

@@ -6,7 +6,7 @@
 import { getIconSvg } from '../../../../dist/Utils/icons.js'
 import { t } from '../../../../dist/Utils/translate.js'
 import { CombatSyncService } from '../../../../dist/ViewModel/MainWindowViewModel.js'
-import { escapeHtml } from '../../htmlTemplates.js'
+import { escapeHtml } from '../../common/htmlTemplates.js'
 
 /**
  * Renders traits selection section.

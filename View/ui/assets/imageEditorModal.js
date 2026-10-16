@@ -12,10 +12,10 @@ import {
     DEFAULT_TRANSFORM,
     normalizeRotation,
     processImageToCanvas,
-} from '../../dist/Modules/ImageEditor/index.js'
-import { toAssetUrl, toRelativeAssetPath } from '../../dist/Utils/assetUtils.js'
-import { toast } from '../../dist/Utils/toast.js'
-import { t } from '../../dist/Utils/translate.js'
+} from '../../../dist/Modules/ImageEditor/index.js'
+import { toAssetUrl, toRelativeAssetPath } from '../../../dist/Utils/assetUtils.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { t } from '../../../dist/Utils/translate.js'
 import { getActiveProjectPath } from './assetPicker.js'
 
 let _imageEditorInstance = null

@@ -1,15 +1,15 @@
-import { getIconSvg } from '../../dist/Utils/icons.js'
-import { toast } from '../../dist/Utils/toast.js'
-import { t } from '../../dist/Utils/translate.js'
+import { getIconSvg } from '../../../dist/Utils/icons.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { t } from '../../../dist/Utils/translate.js'
 import {
     DEFAULT_TAG_COLOR,
     ENTITY_CATEGORIES,
     ProjectManager,
     Scene,
-} from '../../dist/ViewModel/MainWindowViewModel.js'
-import { escapeHtml } from './htmlTemplates.js'
-import { openPlaytestSimulator } from './playtestModal.js'
-import { markProjectDirty } from './projectStateTracker.js'
+} from '../../../dist/ViewModel/MainWindowViewModel.js'
+import { escapeHtml } from '../common/htmlTemplates.js'
+import { openPlaytestSimulator } from '../modals/playtestModal.js'
+import { markProjectDirty } from '../project/projectStateTracker.js'
 
 let activeContextMenuTarget = null
 let activeEntityForColor = null

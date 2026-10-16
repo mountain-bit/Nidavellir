@@ -7,8 +7,8 @@
 import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
-import { pickProjectImage } from '../assetPicker.js'
-import { escapeHtml } from '../htmlTemplates.js'
+import { pickProjectImage } from '../assets/assetPicker.js'
+import { escapeHtml } from '../common/htmlTemplates.js'
 import { evaluateFormula, parseStatValueAsNumber } from '../npcModal/formulaEvaluator.js'
 import * as state from './heroState.js'
 

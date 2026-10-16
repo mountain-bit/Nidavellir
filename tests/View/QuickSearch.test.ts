@@ -11,7 +11,7 @@ import {
     openQuickSearch,
     scoreCandidate,
     searchProjectObjects,
-} from '../../View/ui/quickSearch.js'
+} from '../../View/ui/workspace/quickSearch.js'
 
 describe('QuickSearch', () => {
     beforeEach(() => {

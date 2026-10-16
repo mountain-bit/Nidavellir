@@ -4,10 +4,10 @@
  * checking usage references, and deleting project assets.
  */
 
-import { findAssetUsages, replaceAssetReferences } from '../../dist/Utils/assetUsageTracker.js'
-import { toAssetUrl } from '../../dist/Utils/assetUtils.js'
-import { toast } from '../../dist/Utils/toast.js'
-import { applyTranslations, t } from '../../dist/Utils/translate.js'
+import { findAssetUsages, replaceAssetReferences } from '../../../dist/Utils/assetUsageTracker.js'
+import { toAssetUrl } from '../../../dist/Utils/assetUtils.js'
+import { toast } from '../../../dist/Utils/toast.js'
+import { applyTranslations, t } from '../../../dist/Utils/translate.js'
 import {
     ensureActiveProjectPath,
     importDroppedImage,
