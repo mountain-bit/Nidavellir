@@ -545,30 +545,46 @@ function processParagraphs(paragraphs, shuffle = false, ctx = null) {
             ''
 
         const rawChoices = (p.getChoices ? p.getChoices() : p.choices) || []
-        const choices = rawChoices.map(ch => ({
-            text:
-                (typeof ch.getName === 'function' ? ch.getName() : null) ||
-                (typeof ch.getTitle === 'function' ? ch.getTitle() : null) ||
-                (typeof ch.getText === 'function' ? ch.getText() : null) ||
-                ch.name ||
-                ch.title ||
-                ch.text ||
-                'Wybierz',
-            targetId:
-                (typeof ch.getTargetId === 'function' ? ch.getTargetId() : null) ||
-                (typeof ch.getToParagraphId === 'function' ? ch.getToParagraphId() : null) ||
-                (typeof ch.getTargetParagraphId === 'function'
-                    ? ch.getTargetParagraphId()
-                    : null) ||
-                ch.targetId ||
-                ch.toParagraphId ||
-                ch.targetParagraphId ||
-                '',
-            targetNumber:
-                (typeof ch.getTargetNumber === 'function' ? ch.getTargetNumber() : null) ||
-                ch.targetNumber ||
-                null,
-        }))
+        const choices = rawChoices.map(ch => {
+            const cond = typeof ch.getCondition === 'function' ? ch.getCondition() : ch.condition
+            const condSummary =
+                cond && typeof cond.getSummary === 'function'
+                    ? cond.getSummary()
+                    : cond?.text || cond?.name || ''
+            const costs = typeof ch.getCosts === 'function' ? ch.getCosts() : ch.costs || []
+            const rewards = typeof ch.getRewards === 'function' ? ch.getRewards() : ch.rewards || []
+            const diceCheck =
+                typeof ch.getDiceCheck === 'function' ? ch.getDiceCheck() : ch.diceCheck || null
+
+            return {
+                text:
+                    (typeof ch.getName === 'function' ? ch.getName() : null) ||
+                    (typeof ch.getTitle === 'function' ? ch.getTitle() : null) ||
+                    (typeof ch.getText === 'function' ? ch.getText() : null) ||
+                    ch.name ||
+                    ch.title ||
+                    ch.text ||
+                    'Wybierz',
+                targetId:
+                    (typeof ch.getTargetId === 'function' ? ch.getTargetId() : null) ||
+                    (typeof ch.getToParagraphId === 'function' ? ch.getToParagraphId() : null) ||
+                    (typeof ch.getTargetParagraphId === 'function'
+                        ? ch.getTargetParagraphId()
+                        : null) ||
+                    ch.targetId ||
+                    ch.toParagraphId ||
+                    ch.targetParagraphId ||
+                    '',
+                targetNumber:
+                    (typeof ch.getTargetNumber === 'function' ? ch.getTargetNumber() : null) ||
+                    ch.targetNumber ||
+                    null,
+                conditionSummary: condSummary,
+                costs,
+                rewards,
+                diceCheck,
+            }
+        })
 
         const isStart =
             (typeof p.getIsStart === 'function' ? p.getIsStart() : p.isStartNode || p.isStart) ||
@@ -658,9 +674,33 @@ function processParagraphs(paragraphs, shuffle = false, ctx = null) {
             } else if (targetNum && oldNumToNewNum.has(targetNum)) {
                 targetNum = oldNumToNewNum.get(targetNum)
             }
+
+            let resolvedDiceCheck = null
+            if (ch.diceCheck && Array.isArray(ch.diceCheck.branches)) {
+                resolvedDiceCheck = {
+                    ...ch.diceCheck,
+                    branches: ch.diceCheck.branches.map(b => {
+                        let bTargetNum = null
+                        if (b.targetParagraphId && idToNewNumber.has(b.targetParagraphId)) {
+                            bTargetNum = idToNewNumber.get(b.targetParagraphId)
+                        } else if (b.targetNumber && oldNumToNewNum.has(b.targetNumber)) {
+                            bTargetNum = oldNumToNewNum.get(b.targetNumber)
+                        }
+                        return {
+                            ...b,
+                            targetNumber: bTargetNum,
+                        }
+                    }),
+                }
+            }
+
             return {
                 text: ch.text,
                 targetNumber: targetNum,
+                conditionSummary: ch.conditionSummary,
+                costs: ch.costs,
+                rewards: ch.rewards,
+                diceCheck: resolvedDiceCheck,
             }
         })
 
@@ -1153,10 +1193,54 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
             const isLast = idx === bookData.paragraphs.length - 1
             const choicesHtml = (p.choices || [])
                 .map(ch => {
+                    let prefixTags = ''
+                    if (ch.conditionSummary) {
+                        prefixTags += `<span class="choice-tag choice-condition" style="color: #b45309; font-weight: 600;">[Jeżeli: ${escapeHtml(ch.conditionSummary)}]</span> `
+                    }
+                    if (ch.costs && ch.costs.length > 0) {
+                        const costsStr = ch.costs.map(c => `${c.value || 1} ${c.name}`).join(', ')
+                        prefixTags += `<span class="choice-tag choice-cost" style="color: #b91c1c; font-weight: 600;">[Tracisz: ${escapeHtml(costsStr)}]</span> `
+                    }
+                    if (ch.rewards && ch.rewards.length > 0) {
+                        const rewardsStr = ch.rewards
+                            .map(r => `${r.value || 1} ${r.name}`)
+                            .join(', ')
+                        prefixTags += `<span class="choice-tag choice-reward" style="color: #047857; font-weight: 600;">[Zyskujesz: ${escapeHtml(rewardsStr)}]</span> `
+                    }
+
+                    if (
+                        ch.diceCheck &&
+                        Array.isArray(ch.diceCheck.branches) &&
+                        ch.diceCheck.branches.length > 0
+                    ) {
+                        const dc = ch.diceCheck
+                        const statPart = dc.stat ? ` + ${escapeHtml(dc.stat)}` : ''
+                        const descPart = dc.description ? ` (${escapeHtml(dc.description)})` : ''
+                        const branchesHtml = dc.branches
+                            .map(b => {
+                                const bTarget = b.targetNumber
+                                    ? `idź do ${b.targetNumber}`
+                                    : 'pozostań'
+                                const bDesc = b.description ? ` — ${escapeHtml(b.description)}` : ''
+                                return `<li class="dice-branch-item" style="margin: 2px 0;">Wynik ${b.min}–${b.max}: <strong>${bTarget}</strong>${bDesc}</li>`
+                            })
+                            .join('')
+                        return `
+                        <div class="choice-item ${choiceStyle} choice-with-dice" style="margin-bottom: 6px;">
+                            <span class="choice-prefix">${escapeHtml(choicePrefix)}</span>${prefixTags}${escapeHtml(ch.text)}
+                            <div class="choice-dice-block" style="margin-top: 3px; padding-left: 14px; font-size: 0.9em; color: #4b5563;">
+                                <em>Rzuć kośćmi (${escapeHtml(dc.dice)}${statPart})${descPart}:</em>
+                                <ul style="margin: 2px 0 0 16px; padding: 0;">
+                                    ${branchesHtml}
+                                </ul>
+                            </div>
+                        </div>`
+                    }
+
                     const targetStr = ch.targetNumber
                         ? ` <span class="choice-target">(Idź do ${ch.targetNumber})</span>`
                         : ''
-                    return `<div class="choice-item ${choiceStyle}"><span class="choice-prefix">${escapeHtml(choicePrefix)}</span>${escapeHtml(ch.text)}${targetStr}</div>`
+                    return `<div class="choice-item ${choiceStyle}"><span class="choice-prefix">${escapeHtml(choicePrefix)}</span>${prefixTags}${escapeHtml(ch.text)}${targetStr}</div>`
                 })
                 .join('')
 

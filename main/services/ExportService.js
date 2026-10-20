@@ -581,17 +581,84 @@ class ExportService {
                 if (p.choices && p.choices.length > 0) {
                     const choicePrefix = styleConfig.choicePrefix || '→ '
                     for (const ch of p.choices) {
-                        const targetText = ch.targetNumber ? ` (Idź do ${ch.targetNumber})` : ''
-                        docChildren.push(
-                            new Paragraph({
-                                style: 'GamebookChoice',
-                                children: [
-                                    new TextRun({
-                                        text: `${choicePrefix}${ch.text}${targetText}`,
-                                    }),
-                                ],
-                            })
-                        )
+                        let prefixTags = ''
+                        if (ch.conditionSummary) {
+                            prefixTags += `[Jeżeli: ${ch.conditionSummary}] `
+                        }
+                        if (ch.costs && ch.costs.length > 0) {
+                            const costsStr = ch.costs
+                                .map(c => `${c.value || 1} ${c.name}`)
+                                .join(', ')
+                            prefixTags += `[Tracisz: ${costsStr}] `
+                        }
+                        if (ch.rewards && ch.rewards.length > 0) {
+                            const rewardsStr = ch.rewards
+                                .map(r => `${r.value || 1} ${r.name}`)
+                                .join(', ')
+                            prefixTags += `[Zyskujesz: ${rewardsStr}] `
+                        }
+
+                        if (
+                            ch.diceCheck &&
+                            Array.isArray(ch.diceCheck.branches) &&
+                            ch.diceCheck.branches.length > 0
+                        ) {
+                            const dc = ch.diceCheck
+                            const statPart = dc.stat ? ` + ${dc.stat}` : ''
+                            const descPart = dc.description ? ` (${dc.description})` : ''
+                            docChildren.push(
+                                new Paragraph({
+                                    style: 'GamebookChoice',
+                                    children: [
+                                        new TextRun({
+                                            text: `${choicePrefix}${prefixTags}${ch.text}`,
+                                            bold: true,
+                                        }),
+                                    ],
+                                })
+                            )
+                            docChildren.push(
+                                new Paragraph({
+                                    style: 'GamebookChoice',
+                                    indent: { left: 360 },
+                                    children: [
+                                        new TextRun({
+                                            text: `Rzuć kośćmi (${dc.dice}${statPart})${descPart}:`,
+                                            italics: true,
+                                        }),
+                                    ],
+                                })
+                            )
+                            for (const b of dc.branches) {
+                                const bTarget = b.targetNumber
+                                    ? `idź do ${b.targetNumber}`
+                                    : 'pozostań'
+                                const bDesc = b.description ? ` — ${b.description}` : ''
+                                docChildren.push(
+                                    new Paragraph({
+                                        style: 'GamebookList',
+                                        indent: { left: 720 },
+                                        children: [
+                                            new TextRun({
+                                                text: `• Wynik ${b.min}–${b.max}: ${bTarget}${bDesc}`,
+                                            }),
+                                        ],
+                                    })
+                                )
+                            }
+                        } else {
+                            const targetText = ch.targetNumber ? ` (Idź do ${ch.targetNumber})` : ''
+                            docChildren.push(
+                                new Paragraph({
+                                    style: 'GamebookChoice',
+                                    children: [
+                                        new TextRun({
+                                            text: `${choicePrefix}${prefixTags}${ch.text}${targetText}`,
+                                        }),
+                                    ],
+                                })
+                            )
+                        }
                     }
                 }
 

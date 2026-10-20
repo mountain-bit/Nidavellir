@@ -1614,21 +1614,58 @@ export function renderPlaytestView() {
                     ch.title ||
                     `Przejdź do: ${targetTitle}`
 
-                // Condition check (informational for author)
+                // Condition check (informational for author & playtester)
                 const condition =
                     typeof ch.getCondition === 'function' ? ch.getCondition() : ch.condition
                 const hasCondition = Boolean(condition)
                 let conditionBadge = ''
                 if (hasCondition) {
                     const condText =
-                        (condition.getDescription && condition.getDescription()) ||
-                        condition.name ||
-                        'Warunek'
+                        (typeof condition.getSummary === 'function'
+                            ? condition.getSummary()
+                            : condition.name || condition.text) || 'Warunek'
                     conditionBadge = `
                     <span class="px-2 py-0.5 rounded text-[10px] bg-[#29241b] border border-[#4d3d25] text-[#d6b07c] flex items-center gap-1 font-mono">
                         ${getIconSvg('lock', 'w-3 h-3 text-[#d6b07c]')} ${escapeHtml(condText)}
                     </span>
-                `
+                    `
+                }
+
+                // Costs and Rewards
+                const costs = typeof ch.getCosts === 'function' ? ch.getCosts() : ch.costs || []
+                let costsBadge = ''
+                if (costs.length > 0) {
+                    const costsStr = costs.map(c => `-${c.value || 1} ${c.name}`).join(', ')
+                    costsBadge = `
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-red-950/70 border border-red-800/50 text-red-300 font-mono">
+                        Koszt: ${escapeHtml(costsStr)}
+                    </span>
+                    `
+                }
+
+                const rewards =
+                    typeof ch.getRewards === 'function' ? ch.getRewards() : ch.rewards || []
+                let rewardsBadge = ''
+                if (rewards.length > 0) {
+                    const rewardsStr = rewards.map(r => `+${r.value || 1} ${r.name}`).join(', ')
+                    rewardsBadge = `
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-950/70 border border-emerald-800/50 text-emerald-300 font-mono">
+                        Zysk: ${escapeHtml(rewardsStr)}
+                    </span>
+                    `
+                }
+
+                // Dice check
+                const diceCheck =
+                    typeof ch.getDiceCheck === 'function' ? ch.getDiceCheck() : ch.diceCheck || null
+                let diceBadge = ''
+                if (diceCheck && diceCheck.branches && diceCheck.branches.length > 0) {
+                    const statPart = diceCheck.stat ? ` + ${diceCheck.stat}` : ''
+                    diceBadge = `
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-purple-950/70 border border-purple-800/50 text-purple-300 font-mono flex items-center gap-1">
+                        ${getIconSvg('combat', 'w-3 h-3')} Rzut: ${escapeHtml(diceCheck.dice)}${escapeHtml(statPart)} (${diceCheck.branches.length} cele)
+                    </span>
+                    `
                 }
 
                 const combatObj = currentP.getCombat ? currentP.getCombat() : currentP.combat
@@ -1658,6 +1695,7 @@ export function renderPlaytestView() {
                             ? 'border-amber-600/40 hover:border-amber-500/70 bg-gradient-to-r from-amber-950/20 to-[#1b1c20]'
                             : 'border-[#2e3037] hover:border-[#4a5e74]'
                     }"
+                    data-choice-idx="${idx}"
                     data-target-id="${escapeHtml(targetId)}"
                     data-choice-title="${escapeHtml(chTitle)}"
                 >
@@ -1670,9 +1708,12 @@ export function renderPlaytestView() {
                                 <span>${escapeHtml(chTitle)}</span>
                                 ${outcomeBadge}
                             </div>
-                            <div class="text-[11px] text-zinc-500 group-hover:text-zinc-400 mt-0.5 flex items-center gap-2">
+                            <div class="text-[11px] text-zinc-500 group-hover:text-zinc-400 mt-1 flex items-center gap-2 flex-wrap">
                                 <span>(cel: ${escapeHtml(targetLabel)})</span>
                                 ${conditionBadge}
+                                ${costsBadge}
+                                ${rewardsBadge}
+                                ${diceBadge}
                             </div>
                         </div>
                     </div>
@@ -1686,8 +1727,75 @@ export function renderPlaytestView() {
 
         choicesEl.querySelectorAll('.btn-playtest-choice').forEach(btn => {
             btn.addEventListener('click', () => {
-                const targetId = btn.dataset.targetId
+                const choiceIdx = parseInt(btn.dataset.choiceIdx, 10)
+                const ch = choices[choiceIdx]
+                let targetId = btn.dataset.targetId
                 const title = btn.dataset.choiceTitle
+
+                // Check and execute diceCheck if present
+                const dc =
+                    ch && (typeof ch.getDiceCheck === 'function' ? ch.getDiceCheck() : ch.diceCheck)
+                if (dc && Array.isArray(dc.branches) && dc.branches.length > 0) {
+                    const formula = dc.dice || '1k6'
+                    let roll = Math.floor(Math.random() * 6) + 1
+                    if (formula === '2k6' || formula === '2d6') {
+                        const d1 = Math.floor(Math.random() * 6) + 1
+                        const d2 = Math.floor(Math.random() * 6) + 1
+                        roll = d1 + d2
+                    } else if (formula === '1k20' || formula === '1d20') {
+                        roll = Math.floor(Math.random() * 20) + 1
+                    } else if (formula === '1k100' || formula === '1d100') {
+                        roll = Math.floor(Math.random() * 100) + 1
+                    }
+
+                    const activeHero = playtestEngineInstance.getActiveHero
+                        ? playtestEngineInstance.getActiveHero()
+                        : null
+                    let bonus = 0
+                    if (dc.stat && activeHero) {
+                        const statVal =
+                            typeof activeHero.getStat === 'function'
+                                ? activeHero.getStat(dc.stat)
+                                : activeHero[dc.stat]
+                        if (typeof statVal === 'number') bonus = statVal
+                    }
+                    const totalScore = roll + bonus
+                    const matchedBranch =
+                        dc.branches.find(b => totalScore >= b.min && totalScore <= b.max) ||
+                        dc.branches[dc.branches.length - 1]
+
+                    if (matchedBranch && matchedBranch.targetParagraphId) {
+                        targetId = matchedBranch.targetParagraphId
+                        const statInfo = dc.stat ? ` (+${bonus} ${dc.stat})` : ''
+                        const branchDesc = matchedBranch.description
+                            ? ` [${matchedBranch.description}]`
+                            : ''
+                        toast.info(
+                            `Rzut ${formula}: wyrzucono ${roll}${statInfo} = ${totalScore}${branchDesc}`,
+                            'Wynik rzutu kością'
+                        )
+                    }
+                }
+
+                // Notify costs & rewards
+                const chCosts =
+                    ch && (typeof ch.getCosts === 'function' ? ch.getCosts() : ch.costs || [])
+                if (chCosts && chCosts.length > 0) {
+                    toast.warning(
+                        `Utracono: ${chCosts.map(c => `${c.value || 1} ${c.name}`).join(', ')}`,
+                        'Koszt wyboru'
+                    )
+                }
+
+                const chRewards =
+                    ch && (typeof ch.getRewards === 'function' ? ch.getRewards() : ch.rewards || [])
+                if (chRewards && chRewards.length > 0) {
+                    toast.success(
+                        `Zyskano: ${chRewards.map(r => `${r.value || 1} ${r.name}`).join(', ')}`,
+                        'Nagroda za wybór'
+                    )
+                }
+
                 if (!targetId) {
                     toast.warning('Ten wybór nie ma przypisanego węzła docelowego.', 'Wybór')
                     return

@@ -1,7 +1,21 @@
 import { CharacterClass } from '../Model/CharacterClass'
-import { Choice } from '../Model/Choice'
+import {
+    Choice,
+    type ChoiceDiceCheck,
+    type ChoiceModifier,
+    type DiceBranch,
+    type IChoiceDiceCheck,
+    type IChoiceModifier,
+    type IDiceBranch,
+} from '../Model/Choice'
 import { Combat } from '../Model/Combat'
-import { Condition, TextCondition } from '../Model/Condition'
+import {
+    Condition,
+    ItemCondition,
+    type StatComparisonOperator,
+    StatCondition,
+    TextCondition,
+} from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Feature } from '../Model/Feature'
@@ -31,6 +45,8 @@ import { t } from '../Utils/translate'
 export {
     CharacterClass,
     Choice,
+    type ChoiceDiceCheck,
+    type ChoiceModifier,
     Combat,
     CombatMarkdownService,
     CombatSyncService,
@@ -39,10 +55,15 @@ export {
     DEFAULT_TAG_COLOR,
     Description,
     DescriptionTransclusionService,
+    type DiceBranch,
     ENTITY_CATEGORIES,
     Feature,
+    type IChoiceDiceCheck,
+    type IChoiceModifier,
+    type IDiceBranch,
     Inventory,
     Item,
+    ItemCondition,
     Location,
     NPC,
     NPC_Template,
@@ -55,6 +76,8 @@ export {
     Scene,
     Skill,
     Stat,
+    type StatComparisonOperator,
+    StatCondition,
     Tag,
     TextCondition,
 }
@@ -1192,27 +1215,50 @@ export class MainWindowViewModel {
         return true
     }
 
-    public updateChoiceDetails(choice: Choice, name: string, conditionText: string): boolean {
+    public updateChoiceDetails(
+        choice: Choice,
+        name: string,
+        conditionOrText?: Condition | string | null,
+        costs?: ChoiceModifier[],
+        rewards?: ChoiceModifier[],
+        diceCheck?: ChoiceDiceCheck | null
+    ): boolean {
         const trimmedName = name.trim()
         if (!trimmedName) return false
         choice.setName(trimmedName)
 
-        const trimmedCondition = conditionText.trim()
-        if (trimmedCondition) {
-            const currentCond = choice.getCondition()
-            if (currentCond instanceof TextCondition) {
-                currentCond.setText(trimmedCondition)
-            } else {
-                choice.setCondition(
-                    new TextCondition(
-                        this.idGenerator('condition'),
-                        'Requirement',
-                        trimmedCondition
+        if (conditionOrText instanceof Condition) {
+            choice.setCondition(conditionOrText)
+        } else if (typeof conditionOrText === 'string') {
+            const trimmedCondition = conditionOrText.trim()
+            if (trimmedCondition) {
+                const currentCond = choice.getCondition()
+                if (currentCond instanceof TextCondition) {
+                    currentCond.setText(trimmedCondition)
+                } else {
+                    choice.setCondition(
+                        new TextCondition(
+                            this.idGenerator('condition'),
+                            'Requirement',
+                            trimmedCondition
+                        )
                     )
-                )
+                }
+            } else {
+                choice.setCondition(null)
             }
-        } else {
+        } else if (conditionOrText === null) {
             choice.setCondition(null)
+        }
+
+        if (Array.isArray(costs)) {
+            choice.setCosts(costs)
+        }
+        if (Array.isArray(rewards)) {
+            choice.setRewards(rewards)
+        }
+        if (diceCheck !== undefined) {
+            choice.setDiceCheck(diceCheck)
         }
 
         if (this.selectedItem?.id === choice.getId()) {

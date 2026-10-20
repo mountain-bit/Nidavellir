@@ -259,6 +259,91 @@ describe('Export System Tests', () => {
             expect(html).toContain('Początek przygody w lesie.')
             expect(html).toContain('Glosariusz i Słowniczek')
         })
+
+        it('compiles choices with conditions, costs, rewards, and branching dice checks', () => {
+            const ctxWithAdvancedChoices = {
+                projectData: {
+                    projectParagraphs: [
+                        {
+                            id: 'p1',
+                            number: 1,
+                            isStartNode: true,
+                            text: 'Stoisz przed mostem strzeżonym przez trolla.',
+                            choices: [
+                                {
+                                    text: 'Przekup trolla złotem',
+                                    targetId: 'p2',
+                                    condition: { getSummary: () => 'Posiadasz Złoto x 5' },
+                                    costs: [{ name: 'Złoto', value: 5, type: 'parameter' }],
+                                    rewards: [{ name: 'Przepustka', value: 1, type: 'item' }],
+                                },
+                                {
+                                    text: 'Spróbuj przeskoczyć rozpadlinę',
+                                    targetId: 'p2',
+                                    diceCheck: {
+                                        dice: '2k6',
+                                        stat: 'Zręczność',
+                                        description: 'Test skoku',
+                                        branches: [
+                                            {
+                                                min: 2,
+                                                max: 6,
+                                                targetParagraphId: 'p3',
+                                                description: 'Upadek w przepaść',
+                                            },
+                                            {
+                                                min: 7,
+                                                max: 12,
+                                                targetParagraphId: 'p2',
+                                                description: 'Udany skok',
+                                            },
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            id: 'p2',
+                            number: 2,
+                            text: 'Dotarłeś na drugą stronę mostu.',
+                            choices: [],
+                        },
+                        {
+                            id: 'p3',
+                            number: 3,
+                            text: 'Spadasz w dół i giniesz.',
+                            choices: [],
+                        },
+                    ],
+                },
+            }
+
+            const compiled = compileGamebook(ctxWithAdvancedChoices, { shuffleParagraphs: false })
+            const startP = compiled.paragraphs[0]
+            expect(startP.choices).toHaveLength(2)
+
+            const ch1 = startP.choices[0]
+            expect(ch1.conditionSummary).toBe('Posiadasz Złoto x 5')
+            expect(ch1.costs).toEqual([{ name: 'Złoto', value: 5, type: 'parameter' }])
+            expect(ch1.rewards).toEqual([{ name: 'Przepustka', value: 1, type: 'item' }])
+            expect(ch1.targetNumber).toBe(2)
+
+            const ch2 = startP.choices[1]
+            expect(ch2.diceCheck).toBeDefined()
+            expect(ch2.diceCheck.dice).toBe('2k6')
+            expect(ch2.diceCheck.branches[0].targetNumber).toBe(3)
+            expect(ch2.diceCheck.branches[1].targetNumber).toBe(2)
+
+            const style = getStyleById('classic-fantasy')
+            const html = generatePrintHtml(compiled, style)
+
+            expect(html).toContain('[Jeżeli: Posiadasz Złoto x 5]')
+            expect(html).toContain('[Tracisz: 5 Złoto]')
+            expect(html).toContain('[Zyskujesz: 1 Przepustka]')
+            expect(html).toContain('Rzuć kośćmi (2k6 + Zręczność)')
+            expect(html).toContain('Wynik 2–6: <strong>idź do 3</strong>')
+            expect(html).toContain('Wynik 7–12: <strong>idź do 2</strong>')
+        })
     })
 
     describe('Export Modal UI interaction', () => {
