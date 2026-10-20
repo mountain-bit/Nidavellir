@@ -8,7 +8,7 @@ import {
     Scene,
 } from '../../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from '../common/htmlTemplates.js'
-import { openPlaytestSimulator } from '../modals/playtestModal.js'
+import { openPlaytestSimulator } from '../modals/playtest/playtestModal.js'
 import { markProjectDirty } from '../project/projectStateTracker.js'
 
 let activeContextMenuTarget = null

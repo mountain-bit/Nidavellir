@@ -31,15 +31,15 @@ import {
     setupGraphZoomControls,
     showStoryGraph,
 } from './ui/graph/index.js'
-import { openHeroModal, setupHeroModal } from './ui/heroModal/heroModal.js'
-import { confirmApplicationClose, markFileDirty } from './ui/modals/confirmModal.js'
+import { confirmApplicationClose, markFileDirty } from './ui/modals/confirm/confirmModal.js'
+import { openHeroModal, setupHeroModal } from './ui/modals/hero/heroModal.js'
 import {
     executeNpcModalSave,
     hasUnsavedNpcChanges,
     renderDynamicSuggestions,
     setupNpcModal,
     updateTraitsCounterUI,
-} from './ui/npcModal/npcModal.js'
+} from './ui/modals/npc/npcModal.js'
 import {
     isAutoSaveEnabled,
     setAutoSaveEnabled,

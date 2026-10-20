@@ -4,8 +4,8 @@
  * global pool registration, and UI refresh logic.
  */
 
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
 import { evaluateFormula } from './formulaEvaluator.js'
 import { syncActiveModalInputs } from './npcSectionControllers.js'
 import * as state from './npcState.js'

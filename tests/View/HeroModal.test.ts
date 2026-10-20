@@ -8,7 +8,11 @@ import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
 import { renderMainCharacter } from '../../View/ui/drawer/drawerLists.js'
-import { closeHeroModal, openHeroModal, setupHeroModal } from '../../View/ui/heroModal/heroModal.js'
+import {
+    closeHeroModal,
+    openHeroModal,
+    setupHeroModal,
+} from '../../View/ui/modals/hero/heroModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 interface IMockHeroContext {
@@ -273,7 +277,7 @@ describe('HeroModal and renderMainCharacter', () => {
     })
 
     it('closes the modal immediately when unsaved changes confirmation resolves to dont_save', async () => {
-        const confirmModalModule = await import('../../View/ui/modals/confirmModal.js')
+        const confirmModalModule = await import('../../View/ui/modals/confirm/confirmModal.js')
         const showUnsavedSpy = vi
             .spyOn(confirmModalModule, 'showUnsavedChangesModal')
             .mockResolvedValue('dont_save')
@@ -332,7 +336,7 @@ describe('HeroModal and renderMainCharacter', () => {
         const preview = document.getElementById('hero-selected-avatar-preview')
         expect(preview?.innerHTML).toContain('Brak zdjęcia')
 
-        const controllers = await import('../../View/ui/heroModal/heroSectionControllers.js')
+        const controllers = await import('../../View/ui/modals/hero/heroSectionControllers.js')
         controllers.updateHeroSelectedAvatarPreview('assets/custom_hero.png')
         expect(preview?.innerHTML).toContain('<img')
         expect(preview?.innerHTML).toContain('custom_hero.png')
@@ -345,7 +349,7 @@ describe('HeroModal and renderMainCharacter', () => {
         setupHeroModal(ctx)
         openHeroModal({ ctx })
 
-        const controllers = await import('../../View/ui/heroModal/heroSectionControllers.js')
+        const controllers = await import('../../View/ui/modals/hero/heroSectionControllers.js')
         controllers.addHeroStat('Siła', 15)
         controllers.addHeroVital('Zdrowie', 'formula', 0, 'Siła * 2 + 10')
 
@@ -358,7 +362,7 @@ describe('HeroModal and renderMainCharacter', () => {
         setupHeroModal(ctx)
         openHeroModal({ ctx })
 
-        const controllers = await import('../../View/ui/heroModal/heroSectionControllers.js')
+        const controllers = await import('../../View/ui/modals/hero/heroSectionControllers.js')
         controllers.addHeroStat('Zręczność', 14)
         controllers.addHeroVital('Mana', 'direct', 50, '')
 

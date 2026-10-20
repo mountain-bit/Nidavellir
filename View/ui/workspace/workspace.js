@@ -9,7 +9,7 @@ import {
     updateEditorStats,
     updateToolbarActiveStates,
 } from '../editor/index.js'
-import { getUnsavedFiles, markFileClean } from '../modals/confirmModal.js'
+import { getUnsavedFiles, markFileClean } from '../modals/confirm/confirmModal.js'
 
 export {
     getOrCreateMainEditor,

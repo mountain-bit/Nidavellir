@@ -26,7 +26,7 @@ import {
     resetNpcModalForm,
     setupNpcModal,
     toggleTemplateDropdown,
-} from '../../View/ui/npcModal/npcModal.js'
+} from '../../View/ui/modals/npc/npcModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('Template Usage & Multi-Template Composition Integration Tests', () => {

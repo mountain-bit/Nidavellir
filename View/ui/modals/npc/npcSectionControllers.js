@@ -4,17 +4,17 @@
  * Avatars, Custom Attributes, Stats, Skills, and Vitals.
  */
 
-import { isCustomAvatarPath } from '../../../dist/Utils/assetUtils.js'
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
+import { isCustomAvatarPath } from '../../../../dist/Utils/assetUtils.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
 import {
     importDroppedImage,
     pickProjectImage,
     setupElementDropZone,
-} from '../assets/assetPicker.js'
-import { openImageEditor } from '../assets/imageEditorModal.js'
-import { FANTASY_AVATARS, getAvatarById } from '../common/npcAvatars.js'
-import { getNpcEditorInstance, updateNpcEditorStats } from '../editor/npcEditor.js'
+} from '../../assets/assetPicker.js'
+import { openImageEditor } from '../../assets/imageEditorModal.js'
+import { FANTASY_AVATARS, getAvatarById } from '../../common/npcAvatars.js'
+import { getNpcEditorInstance, updateNpcEditorStats } from '../../editor/npcEditor.js'
 import { evaluateFormula } from './formulaEvaluator.js'
 import * as state from './npcState.js'
 import {

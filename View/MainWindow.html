@@ -5840,102 +5840,513 @@
         <!-- Modal: Eksport Projektu -->
         <div
             id="modal-export-project"
-            class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150 select-none"
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
+            <div class="bg-[#18191c] border border-[#2e3037] rounded-xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[92vh] overflow-hidden text-xs">
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
-                            <app-icon name="export" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
+                <div class="px-5 py-3.5 border-b border-[#2e3037] bg-[#1f2024] flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0">
+                            <app-icon name="export" class="w-4 h-4 text-blue-400"></app-icon>
                         </div>
                         <div>
                             <h3 class="text-sm font-semibold text-zinc-100">Eksport Gry Paragrafowej</h3>
-                            <p class="text-[11px] text-zinc-400">Wybierz docelowy format publikacji</p>
+                            <p class="text-[11px] text-zinc-400">Publikacja książkowa (PDF/DOCX) lub backup projektu (ZIP)</p>
                         </div>
                     </div>
                     <button
                         type="button"
                         id="btn-close-export-modal"
                         class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
                     >
                         <app-icon name="close" class="w-4 h-4"></app-icon>
                     </button>
                 </div>
-                <!-- Body -->
-                <div class="p-5 space-y-4 text-xs">
-                    <div class="space-y-2">
-                        <label class="block text-zinc-300 font-medium">Format eksportu:</label>
-                        <div class="grid grid-cols-2 gap-2.5" id="export-format-options">
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#4a5e74] bg-[#2a3543]/40 cursor-pointer transition-colors export-opt active">
-                                <input type="radio" name="export-format" value="html" checked class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100 flex items-center gap-1.5">
-                                        <span>Web Player (HTML)</span>
+
+                <!-- Body (Two Columns: Options + Live Summary & Preview) -->
+                <div class="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-12 gap-5 min-h-0">
+                    <!-- LEWA KOLUMNA: Opcje i konfiguracja (7 cols) -->
+                    <div class="md:col-span-7 space-y-4">
+                        <!-- Krok 1: Wybór formatu docelowego -->
+                        <div>
+                            <label class="block text-zinc-300 font-semibold mb-2">1. Format docelowy:</label>
+                            <div class="grid grid-cols-3 gap-2" id="export-format-selector">
+                                <button
+                                    type="button"
+                                    data-format="pdf"
+                                    class="export-format-card p-2.5 rounded-lg border border-blue-500 bg-blue-950/25 ring-1 ring-blue-500 text-left cursor-pointer transition-all hover:bg-blue-950/40"
+                                >
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-zinc-100">Książka PDF</span>
+                                        <span class="text-[10px] text-red-400 font-mono font-semibold">.PDF</span>
                                     </div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Samodzielna gra w przeglądarce</p>
-                                </div>
-                            </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="json" class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100">Baza danych (JSON)</div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Kompletne dane strukturalne</p>
-                                </div>
-                            </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="pdf" class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100">Książka PDF</div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Układ gotowy do wydruku</p>
-                                </div>
-                            </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="docx" class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100">Dokument Word</div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Do dalszej redakcji tekstu</p>
-                                </div>
+                                    <p class="text-[10px] text-zinc-400 leading-tight">Gotowy skład do druku, A5/A4, linki</p>
+                                </button>
+                                <button
+                                    type="button"
+                                    data-format="docx"
+                                    class="export-format-card p-2.5 rounded-lg border border-[#2e3037] bg-[#18191c] text-left cursor-pointer transition-all hover:bg-[#23252a]"
+                                >
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-zinc-100">Dokument Word</span>
+                                        <span class="text-[10px] text-blue-400 font-mono font-semibold">.DOCX</span>
+                                    </div>
+                                    <p class="text-[10px] text-zinc-400 leading-tight">Do edycji i składu w Word / Writerze</p>
+                                </button>
+                                <button
+                                    type="button"
+                                    data-format="zip"
+                                    class="export-format-card p-2.5 rounded-lg border border-[#2e3037] bg-[#18191c] text-left cursor-pointer transition-all hover:bg-[#23252a]"
+                                >
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-zinc-100">Projekt (ZIP)</span>
+                                        <span class="text-[10px] text-amber-400 font-mono font-semibold">.ZIP</span>
+                                    </div>
+                                    <p class="text-[10px] text-zinc-400 leading-tight">Pełny backup do przeniesienia</p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Krok 2A: Opcje dla formatu ZIP -->
+                        <div id="export-section-zip-options" class="hidden p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-3">
+                            <div class="flex items-center gap-2 text-zinc-200 font-medium">
+                                <app-icon name="open" class="w-4 h-4 text-amber-400"></app-icon>
+                                <span>Kopia całego projektu do archiwum ZIP</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400 leading-normal">
+                                Archiwum zawiera strukturę katalogów projektu (<code class="text-zinc-300">Paragraphs/</code>, <code class="text-zinc-300">NPC/</code>, <code class="text-zinc-300">Locations/</code>, <code class="text-zinc-300">project.json</code>). Po rozpakowaniu na innym komputerze można go bezpośrednio otworzyć w silniku Nidavelir.
+                            </p>
+                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer pt-1 border-t border-[#2e3037]">
+                                <input type="checkbox" id="export-opt-zip-images" checked class="rounded accent-blue-600" />
+                                <span>Dołącz zasoby graficzne i załączniki (<code class="text-zinc-400">Assets/Images</code>)</span>
                             </label>
                         </div>
+
+                        <!-- Krok 2B: Opcje dla formatu PDF / DOCX -->
+                        <div id="export-section-book-options" class="space-y-4">
+                            <!-- Styl książki & Czcionki -->
+                            <div class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-zinc-200 font-medium">Styl typograficzny i układ:</label>
+                                    <button
+                                        type="button"
+                                        id="btn-manage-export-styles"
+                                        class="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                                    >
+                                        <app-icon name="edit" class="w-3.5 h-3.5"></app-icon>
+                                        <span>Zarządzaj stylami...</span>
+                                    </button>
+                                </div>
+                                <select
+                                    id="export-style-select"
+                                    class="w-full bg-[#18191c] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+                                ></select>
+                            </div>
+
+                            <!-- Oddzielanie paragrafów -->
+                            <div class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2">
+                                <label class="block text-zinc-200 font-medium">Sposób oddzielania paragrafów:</label>
+                                <select
+                                    id="export-opt-separator"
+                                    class="export-reactive-input w-full bg-[#18191c] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+                                >
+                                    <option value="ornament">Ozdobna winieta / fleuron (❖ ❖ ❖ lub ❦)</option>
+                                    <option value="page-break">Każdy paragraf od nowej strony (Page Break)</option>
+                                    <option value="line">Stylizowana linia pozioma</option>
+                                    <option value="space">Odstęp pionowy bez linii</option>
+                                </select>
+                            </div>
+
+                            <!-- Zawartość dodatkowa i umiejscowienie -->
+                            <div class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2.5">
+                                <label class="block text-zinc-200 font-medium">Sekcje dodatkowe i opisy encji:</label>
+
+                                <!-- Lokacje -->
+                                <div class="flex items-center justify-between text-zinc-300 py-1 border-b border-[#2a2c33]">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-locations" checked class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Opisy Lokacji i Świata</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-locations-place" value="start" checked class="accent-blue-600 export-reactive-input" /> Na początku
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-locations-place" value="end" class="accent-blue-600 export-reactive-input" /> Na końcu
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- NPC -->
+                                <div class="flex items-center justify-between text-zinc-300 py-1 border-b border-[#2a2c33]">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-npcs" checked class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Dossier Postaci i NPC</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-npcs-place" value="start" class="accent-blue-600 export-reactive-input" /> Na początku
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-npcs-place" value="end" checked class="accent-blue-600 export-reactive-input" /> Na końcu
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Przedmioty -->
+                                <div class="flex items-center justify-between text-zinc-300 py-1 border-b border-[#2a2c33]">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-items" class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Katalog Przedmiotów i Broni</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-items-place" value="start" class="accent-blue-600 export-reactive-input" /> Na początku
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-items-place" value="end" checked class="accent-blue-600 export-reactive-input" /> Na końcu
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Glosariusz -->
+                                <div class="flex items-center justify-between text-zinc-300 py-1">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-glossary" checked class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Glosariusz (Słowniczek pojęć)</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-glossary-place" value="start" class="accent-blue-600 export-reactive-input" /> Na początku
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input type="radio" name="export-opt-glossary-place" value="end" checked class="accent-blue-600 export-reactive-input" /> Na końcu
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opcje Anti-Spoiler & Druk -->
+                            <div class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2">
+                                <label class="block text-zinc-200 font-medium">Udogodnienia dla gracza i publikacji:</label>
+                                <label class="flex items-start gap-2 text-zinc-300 cursor-pointer">
+                                    <input type="checkbox" id="export-opt-shuffle" checked class="mt-0.5 rounded accent-blue-600 export-reactive-input" />
+                                    <div>
+                                        <span class="font-medium text-zinc-200">Losowe przetasowanie numeracji paragrafów (Anti-Spoiler)</span>
+                                        <p class="text-[10px] text-zinc-400">Automatycznie aktualizuje odnośniki w wyborach. Zachowuje numery zablokowane kłódką oraz § 1 jako start.</p>
+                                    </div>
+                                </label>
+                                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#2a2c33]">
+                                    <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-cover" checked class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Strona tytułowa / Okładka</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-character-sheet" checked class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Karta Postaci do druku</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
+                                        <input type="checkbox" id="export-opt-rules" checked class="rounded accent-blue-600 export-reactive-input" />
+                                        <span>Zasady gry i wprowadzenie</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="pt-3 border-t border-[#2e3037] space-y-2">
-                        <label class="block text-zinc-300 font-medium">Opcje publikacji:</label>
-                        <div class="space-y-1.5">
-                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" id="export-opt-shuffle" checked class="rounded accent-[#4f6b8a]" />
-                                <span>Losowe wymieszanie numeracji paragrafów</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" id="export-opt-images" checked class="rounded accent-[#4f6b8a]" />
-                                <span>Dołącz grafiki i portrety postaci</span>
-                            </label>
+                    <!-- PRAWA KOLUMNA: Podsumowanie projektu i Mini-Podgląd Live (5 cols) -->
+                    <div class="md:col-span-5 flex flex-col space-y-3">
+                        <!-- Pudełko statystyk -->
+                        <div class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2">
+                            <div class="font-semibold text-zinc-200 text-xs flex items-center justify-between">
+                                <span>Szacunki publikacji</span>
+                                <span class="text-blue-400 text-[10px]">A5 Standard</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
+                                    <div class="text-[10px] text-zinc-400">Paragrafy</div>
+                                    <div id="export-stat-count" class="font-bold text-zinc-200 text-xs mt-0.5">0</div>
+                                </div>
+                                <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
+                                    <div class="text-[10px] text-zinc-400">Słowa</div>
+                                    <div id="export-stat-words" class="font-bold text-zinc-200 text-xs mt-0.5">~0</div>
+                                </div>
+                                <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
+                                    <div class="text-[10px] text-zinc-400">Objętość</div>
+                                    <div id="export-stat-pages" class="font-bold text-emerald-400 text-xs mt-0.5">~0 str.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini podgląd strony -->
+                        <div class="flex-1 flex flex-col p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] min-h-[260px]">
+                            <div class="font-semibold text-zinc-200 text-xs mb-2 flex items-center justify-between">
+                                <span>Podgląd układu i czcionek</span>
+                                <span class="text-[10px] text-zinc-500">Live Preview</span>
+                            </div>
+                            <div class="flex-1 rounded border border-[#383a42] p-3.5 overflow-hidden shadow-inner flex flex-col justify-start" id="export-mini-preview-content">
+                                <!-- Generowane dynamicznie przez JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <!-- Footer -->
-                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between">
+                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between shrink-0">
                     <button
                         type="button"
                         id="btn-cancel-export"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
+                        class="px-4 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
                     >
                         Anuluj
                     </button>
                     <button
                         type="button"
                         id="btn-confirm-export"
-                        class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+                        class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 transition-colors cursor-pointer shadow-md flex items-center gap-2"
                     >
-                        <app-icon name="export" class="w-3.5 h-3.5"></app-icon>
-                        <span>Pobierz / Zapisz</span>
+                        <app-icon name="export" class="w-4 h-4"></app-icon>
+                        <span>Eksportuj publikację</span>
                     </button>
                 </div>
             </div>
         </div>
+
+        <!-- Modal: Edytor i Menedżer Stylów (PDF / DOCX) -->
+        <div
+            id="modal-style-editor"
+            class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[95] hidden flex items-center justify-center p-4 transition-opacity duration-150 select-none"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div class="bg-[#18191c] border border-[#2e3037] rounded-xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[92vh] overflow-hidden text-xs">
+                <!-- Header -->
+                <div class="px-5 py-3.5 border-b border-[#2e3037] bg-[#1f2024] flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0">
+                            <app-icon name="edit" class="w-4 h-4 text-purple-400"></app-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-zinc-100">Menedżer i Edytor Stylów Książki</h3>
+                            <p class="text-[11px] text-zinc-400">Dostosuj czcionki, marginesy, kolory i ozdobniki dla PDF i DOCX</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-close-style-editor"
+                        class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                    >
+                        <app-icon name="close" class="w-4 h-4"></app-icon>
+                    </button>
+                </div>
+
+                <!-- Body (3 Columns: List of Styles, Form Settings, Live Preview) -->
+                <div class="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-12 gap-5 min-h-0">
+                    <!-- KOLUMNA 1: Lista profili (3 cols) -->
+                    <div class="md:col-span-3 space-y-3 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-zinc-200 text-xs">Profile stylów:</span>
+                            <button
+                                type="button"
+                                id="btn-new-style"
+                                class="text-blue-400 hover:text-blue-300 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                            >
+                                <span>+ Nowy</span>
+                            </button>
+                        </div>
+                        <div id="style-editor-list" class="space-y-1.5 overflow-y-auto max-h-[460px] pr-1">
+                            <!-- Dynamicznie generowana lista profili -->
+                        </div>
+                        <button
+                            type="button"
+                            id="btn-delete-style"
+                            class="mt-auto px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-950/30 text-xs transition-colors cursor-pointer"
+                        >
+                            Usuń ten styl
+                        </button>
+                    </div>
+
+                    <!-- KOLUMNA 2: Formularz ustawień stylu (5 cols) -->
+                    <div class="md:col-span-5 space-y-3.5 overflow-y-auto max-h-[480px] pr-1">
+                        <div>
+                            <label class="block text-zinc-300 font-medium mb-1">Nazwa profilu:</label>
+                            <input
+                                type="text"
+                                id="style-input-name"
+                                class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+
+                        <!-- Format papieru i kolumny -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1">Format papieru:</label>
+                                <select id="style-input-format" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200">
+                                    <option value="A5">A5 (Standard książki)</option>
+                                    <option value="A4">A4 (Dokument)</option>
+                                    <option value="B5">B5 (Większy format)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1">Układ kolumn:</label>
+                                <select id="style-input-columns" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200">
+                                    <option value="1">1 Kolumna (Książka)</option>
+                                    <option value="2">2 Kolumny (Kompakt)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Czcionki -->
+                        <div class="space-y-2 pt-2 border-t border-[#2e3037]">
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1">Czcionka treści:</label>
+                                <select id="style-input-font-family" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200">
+                                    <option value="Georgia, serif">Georgia (Szeryfowa, klasyczna)</option>
+                                    <option value='Baskerville, "Times New Roman", serif'>Baskerville / Mroczna</option>
+                                    <option value='Inter, system-ui, sans-serif'>Inter (Nowoczesna bezszeryfowa)</option>
+                                    <option value='"Times New Roman", Times, serif'>Times New Roman (Standard)</option>
+                                    <option value='Garamond, serif'>Garamond (Powieściowa)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1">Rozmiar treści (pt):</label>
+                                    <input type="number" id="style-input-font-size" step="0.5" min="8" max="14" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200" />
+                                </div>
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1">Interlinia:</label>
+                                    <input type="number" id="style-input-line-height" step="0.05" min="1.1" max="2" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200" />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1">Czcionka nagłówków (§):</label>
+                                <select id="style-input-header-font" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200">
+                                    <option value="Cinzel, Georgia, serif">Cinzel / Gotycka</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="Inter, sans-serif">Inter</option>
+                                    <option value='"Times New Roman", Times, serif'>Times New Roman</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1">Rozmiar nagłówka (§) (pt):</label>
+                                <input type="number" id="style-input-header-size" step="1" min="10" max="24" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200" />
+                            </div>
+                        </div>
+
+                        <!-- Kolorystyka -->
+                        <div class="space-y-2 pt-2 border-t border-[#2e3037]">
+                            <label class="block text-zinc-300 font-medium">Kolory:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400 mb-0.5">Tekst:</label>
+                                    <input type="color" id="style-input-color-text" class="style-prop-input w-full h-7 rounded border border-[#2e3037] bg-transparent cursor-pointer" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400 mb-0.5">Akcent (§/linki):</label>
+                                    <input type="color" id="style-input-color-accent" class="style-prop-input w-full h-7 rounded border border-[#2e3037] bg-transparent cursor-pointer" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400 mb-0.5">Tło strony:</label>
+                                    <input type="color" id="style-input-color-bg" class="style-prop-input w-full h-7 rounded border border-[#2e3037] bg-transparent cursor-pointer" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Separatory i Wybory -->
+                        <div class="space-y-2 pt-2 border-t border-[#2e3037]">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1">Separator paragrafów:</label>
+                                    <select id="style-input-separator-type" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200">
+                                        <option value="ornament">Winieta / Ornament</option>
+                                        <option value="line">Linia pozioma</option>
+                                        <option value="page-break">Podział strony</option>
+                                        <option value="space">Odstęp</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1">Znak winiety:</label>
+                                    <input type="text" id="style-input-custom-separator" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200" />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1">Wyróżnienie wyborów:</label>
+                                    <select id="style-input-choice-style" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200">
+                                        <option value="italic">Kursywa</option>
+                                        <option value="bold">Pogrubienie</option>
+                                        <option value="box">Ramka blokowa</option>
+                                        <option value="bullet">Punktor</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1">Prefiks wyboru:</label>
+                                    <input type="text" id="style-input-choice-prefix" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Marginesy (mm) -->
+                        <div class="space-y-1.5 pt-2 border-t border-[#2e3037]">
+                            <label class="block text-zinc-300 font-medium">Marginesy strony (mm):</label>
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Góra:</label>
+                                    <input type="number" id="style-input-margin-top" min="5" max="40" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Dół:</label>
+                                    <input type="number" id="style-input-margin-bottom" min="5" max="40" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Lewy:</label>
+                                    <input type="number" id="style-input-margin-left" min="5" max="40" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200" />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Prawy:</label>
+                                    <input type="number" id="style-input-margin-right" min="5" max="40" class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KOLUMNA 3: Podgląd próbki na żywo (4 cols) -->
+                    <div class="md:col-span-4 flex flex-col space-y-2">
+                        <span class="font-semibold text-zinc-200 text-xs">Podgląd stylu na żywo:</span>
+                        <div
+                            id="style-editor-preview-card"
+                            class="flex-1 rounded-lg border border-[#383a42] p-4 shadow-lg overflow-y-auto max-h-[480px]"
+                        >
+                            <!-- Odświeżany na żywo przez JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between shrink-0">
+                    <button
+                        type="button"
+                        id="btn-cancel-style-editor"
+                        class="px-4 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
+                    >
+                        Anuluj
+                    </button>
+                    <button
+                        type="button"
+                        id="btn-save-style"
+                        class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 border border-purple-500 transition-colors cursor-pointer shadow-md flex items-center gap-1.5"
+                    >
+                        <span>Zapisz i Zastosuj styl</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Modal: Pomoc i Skróty Klawiszowe -->
         <div

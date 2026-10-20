@@ -65,7 +65,7 @@ declare module '*/View/projectData.js' {
     } from '*/View/mockData.js'
 }
 
-declare module '*/View/ui/npcModal/npcModal.js' {
+declare module '*/View/ui/modals/npc/npcModal.js' {
     import type { NPC } from '../Model/NPC'
     import type { NPC_Template } from '../Model/NPC_Template'
 
@@ -268,7 +268,7 @@ declare module '*/View/ui/npcModal/npcModal.js' {
     export function renderTemplateDropdownList(ctx?: unknown, filterQuery?: string): void
 }
 
-declare module '*/View/ui/npcModal/npcState.js' {
+declare module '*/View/ui/modals/npc/npcState.js' {
     export interface INpcStateStat {
         name: string
         value: string
@@ -354,8 +354,8 @@ declare module '*/View/ui/npcModal/npcState.js' {
     export function setActiveCtx(ctx: unknown): void
 }
 
-declare module '*/View/ui/npcModal/templateMerger.js' {
-    export { ITemplateMergeReport } from '*/View/ui/npcModal/npcTraitsCounter.js'
+declare module '*/View/ui/modals/npc/templateMerger.js' {
+    export { ITemplateMergeReport } from '*/View/ui/modals/npc/npcTraitsCounter.js'
 
     export function extractTemplateStats(tpl: unknown): Array<{ name: string; value: string }>
     export function extractTemplateSkills(tpl: unknown): Array<{
@@ -375,10 +375,10 @@ declare module '*/View/ui/npcModal/templateMerger.js' {
     export function mergeTemplateIntoModalState(
         tpl: unknown,
         options?: unknown
-    ): import('*/View/ui/npcModal/npcTraitsCounter.js').ITemplateMergeReport
+    ): import('*/View/ui/modals/npc/npcTraitsCounter.js').ITemplateMergeReport
 }
 
-declare module '*/View/ui/npcModal/npcTraitsCounter.js' {
+declare module '*/View/ui/modals/npc/npcTraitsCounter.js' {
     export interface ITraitsCounts {
         project: {
             stats: number
@@ -439,7 +439,7 @@ declare module '*/View/ui/drawer/drawerLists.js' {
     ): void
 }
 
-declare module '*/View/ui/heroModal/heroModal.js' {
+declare module '*/View/ui/modals/hero/heroModal.js' {
     export function setupHeroModal(ctx?: unknown): {
         open: (options?: unknown) => void
         close: (options?: unknown) => void
@@ -623,7 +623,7 @@ declare module '*/dist/Modules/ImageEditor/index.js' {
     export * from '../Modules/ImageEditor/index'
 }
 
-declare module '*/View/ui/modals/confirmModal.js' {
+declare module '*/View/ui/modals/confirm/confirmModal.js' {
     export function markFileDirty(fileName: string): void
     export function markFileClean(fileName: string): void
     export function hasUnsavedFileChanges(): boolean
@@ -666,7 +666,7 @@ declare module '*/View/ui/workspace/workspace.js' {
     export function updateZoomToolbarUI(storyGraphInstance?: unknown, zoomLevel?: number): void
 }
 
-declare module '*/View/ui/heroModal/heroSectionControllers.js' {
+declare module '*/View/ui/modals/hero/heroSectionControllers.js' {
     export function initHeroAvatarGrid(): void
     export function updateHeroSelectedAvatarPreview(avatarId?: string): void
     export function openHeroAvatarPopover(): void
@@ -833,7 +833,7 @@ declare module '*/View/ui/assets/assetPicker.js' {
     ): void
 }
 
-declare module '*/View/ui/modals/playtestModal.js' {
+declare module '*/View/ui/modals/playtest/playtestModal.js' {
     export class PlaytestEngine {
         godMode: boolean
         constructor(ctx: unknown)
@@ -956,4 +956,82 @@ declare module '*/View/ui/graph/index.js' {
 
 declare module '*/View/ui/graph/storyGraphController.js' {
     export * from '*/View/ui/graph/index.js'
+}
+
+declare module '*/View/ui/modals/npc/formulaEvaluator.js' {
+    export function parseStatValueAsNumber(val: unknown): number | null
+    export function evaluateFormula(
+        formula: string,
+        statsMap: Record<string, number>
+    ): number | null
+}
+
+declare module '*/View/ui/modals/npc/npcDraggable.js' {
+    export function initDraggable(modal: HTMLElement, handle?: HTMLElement): void
+    export function initResizable(modal: HTMLElement): void
+    export function clampModalPosition(modal: HTMLElement): void
+}
+
+declare module '*/View/ui/modals/npc/index.js' {
+    export * from '*/View/ui/modals/npc/npcModal.js'
+}
+
+declare module '*/View/ui/modals/hero/index.js' {
+    export * from '*/View/ui/modals/hero/heroModal.js'
+}
+
+declare module '*/View/ui/modals/confirm/index.js' {
+    export * from '*/View/ui/modals/confirm/confirmModal.js'
+}
+
+declare module '*/View/ui/modals/playtest/index.js' {
+    export * from '*/View/ui/modals/playtest/playtestModal.js'
+}
+
+declare module '*/View/ui/modals/export/exportModal.js' {
+    export function openExportModal(ctx: unknown): void
+}
+
+declare module '*/View/ui/modals/export/exportStyleService.js' {
+    export const BUILT_IN_STYLES: unknown[]
+    export function getAllStyles(): unknown[]
+    export function getStyleById(id: string): unknown
+    export function saveCustomStyle(style: unknown): unknown
+    export function deleteCustomStyle(id: string): boolean
+}
+
+declare module '*/View/ui/modals/export/gamebookCompiler.js' {
+    export function extractText(entityOrDesc: unknown, ctx?: unknown): string
+    export function compileGamebook(options: unknown): Promise<unknown>
+}
+
+declare module '*/View/ui/modals/export/index.js' {
+    export * from '*/View/ui/modals/export/exportModal.js'
+    export * from '*/View/ui/modals/export/exportStyleService.js'
+    export * from '*/View/ui/modals/export/gamebookCompiler.js'
+}
+
+declare module '*/View/ui/modals/styleEditor/styleEditorModal.js' {
+    export function openStyleEditorModal(
+        initialStyleId?: string,
+        onSaved?: (style: unknown) => void
+    ): void
+    export function closeStyleEditorModal(): void
+}
+
+declare module '*/View/ui/modals/styleEditor/index.js' {
+    export * from '*/View/ui/modals/styleEditor/styleEditorModal.js'
+}
+
+declare module '*/View/ui/modals/index.js' {
+    export * from '*/View/ui/modals/confirm/confirmModal.js'
+    export * from '*/View/ui/modals/export/exportModal.js'
+    export * from '*/View/ui/modals/hero/heroModal.js'
+    export * from '*/View/ui/modals/npc/npcModal.js'
+    export * from '*/View/ui/modals/playtest/playtestModal.js'
+    export * from '*/View/ui/modals/styleEditor/styleEditorModal.js'
+}
+declare module '*/main/services/ExportService.js' {
+    const ExportService: any
+    export default ExportService
 }

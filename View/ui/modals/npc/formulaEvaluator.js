@@ -4,7 +4,7 @@
  * Supports dice notation ("2d6", "d20+2"), Polish variable identifiers, and basic math operators.
  */
 
-import { t } from '../../../dist/Utils/translate.js'
+import { t } from '../../../../dist/Utils/translate.js'
 
 /**
  * Safely parses a stat value string into a numerical value.

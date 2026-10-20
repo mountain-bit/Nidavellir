@@ -11,14 +11,14 @@
  * - Quick jump to editor / graph centering
  */
 
-import { getIconSvg } from '../../../dist/Utils/icons.js'
-import { toast } from '../../../dist/Utils/toast.js'
+import { getIconSvg } from '../../../../dist/Utils/icons.js'
+import { toast } from '../../../../dist/Utils/toast.js'
 import {
     CombatSyncService,
     DescriptionTransclusionService,
-} from '../../../dist/ViewModel/MainWindowViewModel.js'
-import { escapeHtml, getTypeIconSvg } from '../common/htmlTemplates.js'
-import { getAvatarById } from '../common/npcAvatars.js'
+} from '../../../../dist/ViewModel/MainWindowViewModel.js'
+import { escapeHtml, getTypeIconSvg } from '../../common/htmlTemplates.js'
+import { getAvatarById } from '../../common/npcAvatars.js'
 
 /**
  * @typedef {object} PlaytestHistoryEntry

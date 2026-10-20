@@ -8,7 +8,7 @@ import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
-import * as state from '../../View/ui/npcModal/npcState.js'
+import * as state from '../../View/ui/modals/npc/npcState.js'
 import {
     extractTemplateAttributes,
     extractTemplateSkills,
@@ -16,7 +16,7 @@ import {
     extractTemplateTags,
     extractTemplateVitals,
     mergeTemplateIntoModalState,
-} from '../../View/ui/npcModal/templateMerger.js'
+} from '../../View/ui/modals/npc/templateMerger.js'
 
 describe('TemplateMerger Engine', () => {
     beforeEach(() => {

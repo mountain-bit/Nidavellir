@@ -4,8 +4,8 @@
  * the NPC modal, the active project, or the entire application with unsaved changes.
  */
 
-import { t } from '../../../dist/Utils/translate.js'
-import { markProjectDirty } from '../project/projectStateTracker.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { markProjectDirty } from '../../project/projectStateTracker.js'
 
 /**
  * Tracks project files with unsaved changes in memory.

@@ -4,10 +4,10 @@
  * RPG mechanics, and narrative description drawer for the Player Character.
  */
 
-import { t } from '../../../dist/Utils/translate.js'
-import { getHeroEditorInstance, getOrCreateHeroEditor } from '../editor/heroEditor.js'
-import { showUnsavedChangesModal } from '../modals/confirmModal.js'
-import { clampModalPosition, initDraggable, initResizable } from '../npcModal/npcDraggable.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { getHeroEditorInstance, getOrCreateHeroEditor } from '../../editor/heroEditor.js'
+import { showUnsavedChangesModal } from '../confirm/confirmModal.js'
+import { clampModalPosition, initDraggable, initResizable } from '../npc/npcDraggable.js'
 import { saveHeroCharacter as saveHeroCharacterHelper } from './heroSaver.js'
 import {
     addHeroCustomAttribute,

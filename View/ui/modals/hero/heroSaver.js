@@ -4,8 +4,8 @@
  * and persists protagonist data to project memory and disk via IPC.
  */
 
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
 import {
     Description,
     Parameter,
@@ -13,8 +13,8 @@ import {
     Skill,
     Stat,
     Tag,
-} from '../../../dist/ViewModel/MainWindowViewModel.js'
-import { evaluateFormula } from '../npcModal/formulaEvaluator.js'
+} from '../../../../dist/ViewModel/MainWindowViewModel.js'
+import { evaluateFormula } from '../npc/formulaEvaluator.js'
 import * as state from './heroState.js'
 
 /**

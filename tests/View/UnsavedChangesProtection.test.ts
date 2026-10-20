@@ -10,7 +10,7 @@ import {
     markFileClean,
     markFileDirty,
     showUnsavedChangesModal,
-} from '../../View/ui/modals/confirmModal.js'
+} from '../../View/ui/modals/confirm/confirmModal.js'
 import {
     addCustomAttribute,
     hasUnsavedNpcChanges,
@@ -19,7 +19,7 @@ import {
     resetNpcModalForm,
     setNpcName,
     setupNpcModal,
-} from '../../View/ui/npcModal/npcModal.js'
+} from '../../View/ui/modals/npc/npcModal.js'
 
 describe('Unsaved Changes Protection Integration Tests', () => {
     function setupTestDOM(): void {

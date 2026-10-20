@@ -4,7 +4,7 @@ import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { escapeHtml } from '../common/htmlTemplates.js'
 import { getAvatarById } from '../common/npcAvatars.js'
-import { openHeroModal } from '../heroModal/heroModal.js'
+import { openHeroModal } from '../modals/hero/heroModal.js'
 
 /**
  * Renders the list of Paragraphs in the Left Drawer.

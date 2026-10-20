@@ -3,7 +3,8 @@ import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { openAssetManager } from '../assets/assetManagerModal.js'
 import { validateStoryGraph } from '../common/graphValidator.js'
-import { openPlaytestSimulator as openAdvancedPlaytestSimulator } from '../modals/playtestModal.js'
+import { openExportModal as openAdvancedExportModal } from '../modals/export/exportModal.js'
+import { openPlaytestSimulator as openAdvancedPlaytestSimulator } from '../modals/playtest/playtestModal.js'
 import { saveFullProject } from '../project/projectSaver.js'
 import { openQuickSearch } from './quickSearch.js'
 import { updateZoomToolbarUI } from './workspace.js'
@@ -290,201 +291,12 @@ export function openPlaytestSimulator(ctx) {
 }
 
 /**
- * Handles Project Export modal logic (HTML Web Player, JSON, PDF, DOCX).
+ * Handles Project Export modal logic (delegates to exportModal module).
  *
  * @param {object} ctx - Application context
  */
 export function openExportModal(ctx) {
-    const modal = document.getElementById('modal-export-project')
-    if (!modal) return
-
-    // Setup format radio option cards highlight
-    const options = modal.querySelectorAll('.export-opt')
-    options.forEach(opt => {
-        const radio = opt.querySelector('input[type="radio"]')
-        if (radio) {
-            radio.addEventListener('change', () => {
-                options.forEach(o => {
-                    o.classList.remove('border-blue-500/60', 'bg-blue-950/20')
-                    o.classList.add('border-[#2d2d32]', 'bg-[#18181b]')
-                })
-                opt.classList.remove('border-[#2d2d32]', 'bg-[#18181b]')
-                opt.classList.add('border-blue-500/60', 'bg-blue-950/20')
-            })
-        }
-    })
-
-    const btnConfirm = document.getElementById('btn-confirm-export')
-    if (btnConfirm) {
-        btnConfirm.onclick = () => {
-            const selectedFormat =
-                modal.querySelector('input[name="export-format"]:checked')?.value || 'html'
-
-            executeExport(selectedFormat, ctx)
-            modal.classList.add('hidden')
-        }
-    }
-
-    modal.classList.remove('hidden')
-}
-
-/**
- * Executes file download/generation based on selected format.
- *
- * @param {string} format 'html' | 'json' | 'pdf' | 'docx'
- * @param {object} ctx Application Context
- */
-function executeExport(format, ctx) {
-    const rawDisplayName = document.getElementById('project-name-display')?.textContent?.trim()
-    const placeholder =
-        (typeof t === 'function' ? t('topbar.project_placeholder') : '') || 'Brak projektu'
-    const projectName =
-        (rawDisplayName &&
-        rawDisplayName !== placeholder &&
-        rawDisplayName !== 'No project' &&
-        rawDisplayName !== 'Kein Projekt'
-            ? rawDisplayName
-            : '') ||
-        ctx?.vm?.project?.getName?.() ||
-        'Moja_Gra'
-    const cleanFilename = projectName.replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_')
-
-    if (format === 'json') {
-        const rawData = ctx?.projectData || {}
-        const dataStr =
-            'data:text/json;charset=utf-8,' +
-            encodeURIComponent(
-                JSON.stringify(
-                    {
-                        project: projectName,
-                        exportedAt: new Date().toISOString(),
-                        data: rawData,
-                    },
-                    null,
-                    2
-                )
-            )
-        downloadFile(dataStr, `${cleanFilename}_export.json`)
-        toast.success(
-            `Projekt został wyeksportowany do pliku ${cleanFilename}_export.json`,
-            'Eksport JSON'
-        )
-    } else if (format === 'html') {
-        const paragraphs = ctx?.projectData?.projectParagraphs || []
-        const htmlDoc = generateWebPlayerHtml(projectName, paragraphs)
-        const blob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' })
-        const url = URL.createObjectURL(blob)
-        downloadFile(url, `${cleanFilename}_WebPlayer.html`)
-        toast.success(
-            `Wygenerowano interaktywną grę: ${cleanFilename}_WebPlayer.html`,
-            'Web Player'
-        )
-    } else {
-        toast.info(`Format ${format.toUpperCase()} został przygotowany do publikacji.`, 'Eksport')
-    }
-}
-
-/**
- * Helper to download content as a local file.
- */
-function downloadFile(url, filename) {
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-}
-
-/**
- * Generates standalone playable HTML gamebook for Web Player.
- */
-function generateWebPlayerHtml(title, paragraphs) {
-    const serializedParagraphs = paragraphs.map(p => {
-        const id = p.getId ? p.getId() : p.id
-        const num = p.getDisplayNumber
-            ? p.getDisplayNumber()
-            : p.getNumber && p.getNumber() > 0
-              ? p.getNumber()
-              : p.number || 1
-        const pTitle = p.getTitle ? p.getTitle() : p.getName ? p.getName() : `Paragraf ${num}`
-        const isStart = (p.getIsStart ? p.getIsStart() : p.isStart) || false
-        let text = ''
-        if (p.getContent && typeof p.getContent === 'function') {
-            const desc = p.getContent()
-            text = (desc && desc.getSummary && desc.getSummary()) || ''
-        } else if (p.content && p.content.summary) {
-            text = p.content.summary
-        }
-        const choices = ((p.getChoices ? p.getChoices() : p.choices) || []).map(ch => ({
-            title:
-                (typeof ch.getName === 'function' && ch.getName()) ||
-                (typeof ch.getTitle === 'function' && ch.getTitle()) ||
-                ch.name ||
-                ch.title ||
-                'Wybór',
-            targetId:
-                (typeof ch.getToParagraphId === 'function' && ch.getToParagraphId()) ||
-                (typeof ch.getTargetParagraphId === 'function' && ch.getTargetParagraphId()) ||
-                (typeof ch.getTargetId === 'function' && ch.getTargetId()) ||
-                ch.toParagraphId ||
-                ch.targetParagraphId ||
-                ch.targetId ||
-                '',
-        }))
-        return { id, num, title: pTitle, isStart, text, choices }
-    })
-
-    return `<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${escapeHtml(title)} — Gra Paragrafowa</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: #121214; color: #e4e4e7; margin: 0; padding: 2rem; display: flex; justify-content: center; }
-        .container { max-width: 640px; width: 100%; background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { margin-top: 0; color: #60a5fa; font-size: 1.5rem; }
-        .content { font-size: 1.05rem; line-height: 1.7; margin: 1.5rem 0; white-space: pre-line; }
-        .choices { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 2rem; }
-        .choice-btn { background: #27272a; border: 1px solid #3f3f46; color: #f4f4f5; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.95rem; text-align: left; cursor: pointer; transition: all 0.15s; }
-        .choice-btn:hover { background: #3b82f6; border-color: #2563eb; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1 id="title"></h1>
-        <div class="content" id="content"></div>
-        <div class="choices" id="choices"></div>
-    </div>
-    <script>
-        const story = ${JSON.stringify(serializedParagraphs)};
-        const start = story.find(p => p.isStart) || story[0];
-        function render(p) {
-            if (!p) return;
-            document.getElementById('title').textContent = p.title;
-            document.getElementById('content').textContent = p.text || '...';
-            const choicesEl = document.getElementById('choices');
-            choicesEl.innerHTML = '';
-            if (!p.choices || p.choices.length === 0) {
-                choicesEl.innerHTML = '<p style="color:#a1a1aa; font-style:italic;">Koniec gry.</p><button class="choice-btn" onclick="render(start)">Zacznij od nowa</button>';
-            } else {
-                p.choices.forEach(ch => {
-                    const btn = document.createElement('button');
-                    btn.className = 'choice-btn';
-                    btn.textContent = ch.title || 'Dalej';
-                    btn.onclick = () => {
-                        const target = story.find(item => item.id === ch.targetId);
-                        render(target);
-                    };
-                    choicesEl.appendChild(btn);
-                });
-            }
-        }
-        render(start);
-    </script>
-</body>
-</html>`
+    openAdvancedExportModal(ctx)
 }
 
 /**
@@ -499,7 +311,6 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;')
 }
-
 /**
  * Registers global keyboard shortcuts for the entire top bar ecosystem.
  *
@@ -800,10 +611,23 @@ export function initTopBar(ctx) {
 
     // Export button & modal
     document.querySelectorAll('[data-action="export-game"]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
             openExportModal(ctx)
         })
     })
+
+    document.addEventListener('click', e => {
+        const btn =
+            e.target && e.target.closest ? e.target.closest('[data-action="export-game"]') : null
+        if (btn) {
+            e.preventDefault()
+            openExportModal(ctx)
+        }
+    })
+
+    window.openExportModal = () => openExportModal(ctx)
+
     const btnCloseExport = document.getElementById('btn-close-export-modal')
     const btnCancelExport = document.getElementById('btn-cancel-export')
     const exportModal = document.getElementById('modal-export-project')
