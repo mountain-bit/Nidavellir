@@ -665,6 +665,51 @@ document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
     })
 })
 
+document.querySelectorAll('[data-action="restore-project"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (window.electronAPI && typeof window.electronAPI.restoreProjectZip === 'function') {
+            const canProceed = await confirmApplicationClose('project', appContext, {
+                hasUnsavedNpc: hasUnsavedNpcChanges,
+                saveNpc: () => executeNpcModalSave(appContext),
+                saveFiles: ctx => saveAllUnsavedFiles(ctx),
+                isProjectDirty: () => isProjectDirty(),
+                saveFullProject: ctx => saveFullProject(ctx),
+                markProjectClean: () => markProjectClean(),
+            })
+            if (!canProceed) return
+
+            try {
+                const res = await window.electronAPI.restoreProjectZip()
+                if (res && res.success && res.project) {
+                    const projectDir = res.path
+                        ? res.path.endsWith('project.json')
+                            ? res.path.replace(/[\\/]project\.json$/i, '')
+                            : res.path
+                        : ''
+                    const projectInstance = ProjectManager.getInstance().load(
+                        res.project,
+                        res.entities || {},
+                        res.path || projectDir
+                    )
+                    applyLoadedProject(projectInstance, projectDir || res.path)
+                    toast.success(
+                        t('start_window.restore_project_success') ||
+                            'Projekt został pomyślnie przywrócony z archiwum ZIP!'
+                    )
+                } else if (res && !res.success && !res.canceled && res.error) {
+                    toast.error(res.error)
+                }
+            } catch (err) {
+                console.error('Error restoring project from zip:', err)
+                toast.error(
+                    t('start_window.restore_project_error') ||
+                        'Nie udało się przywrócić projektu z pliku ZIP'
+                )
+            }
+        }
+    })
+})
+
 document.querySelectorAll('[data-action="close-project"]').forEach(btn => {
     btn.addEventListener('click', async () => {
         const canClose = await confirmApplicationClose('project', appContext, {

@@ -145,6 +145,21 @@ declare global {
                 error?: string
                 errorCode?: string
             }>
+            exportProjectZip?: (payload?: {
+                projectPath?: string
+                includeImages?: boolean
+                defaultName?: string
+            }) => Promise<{
+                success: boolean
+                canceled?: boolean
+                filePath?: string
+                bytes?: number
+                error?: string
+            }>
+            restoreProjectZip?: (payload?: {
+                zipPath?: string
+                targetDir?: string
+            }) => Promise<OpenProjectResult>
         }
     }
 }

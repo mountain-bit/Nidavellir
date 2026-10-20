@@ -1,10 +1,17 @@
 {
     "dialog": {
         "choose_new_project_folder": "Wybierz folder dla nowego projektu",
-        "open_project": "Otwórz projekt"
+        "open_project": "Otwórz projekt",
+        "restore_project_title": "Wybierz kopię zapasową projektu (.zip)",
+        "restore_destination_title": "Wybierz folder docelowy dla przywracanego projektu"
     },
     "error": {
-        "project_not_found": "Ścieżka projektu nie istnieje"
+        "project_not_found": "Ścieżka projektu nie istnieje",
+        "zip_file_not_found": "Nie znaleziono pliku ZIP",
+        "destination_folder_required": "Nie wybrano folderu docelowego",
+        "zip_is_empty": "Archiwum ZIP jest puste",
+        "zip_missing_project_json": "Archiwum ZIP nie zawiera pliku project.json",
+        "project_not_found_after_extraction": "Nie znaleziono pliku project.json po wypakowaniu archiwum"
     },
     "app": {
         "title": "Nidavelir",
@@ -534,7 +541,10 @@
         "np_browse": "Przeglądaj",
         "np_create_success": "Projekt został pomyślnie utworzony!",
         "np_create_error": "Błąd podczas tworzenia projektu:",
-        "np_unexpected_error": "Wystąpił nieoczekiwany błąd:"
+        "np_unexpected_error": "Wystąpił nieoczekiwany błąd:",
+        "restore_project": "Przywróć z ZIP",
+        "restore_project_success": "Projekt został pomyślnie przywrócony z archiwum ZIP!",
+        "restore_project_error": "Błąd podczas przywracania projektu:"
     },
     "topbar": {
         "project_placeholder": "Brak projektu",
@@ -545,6 +555,8 @@
             "save_as": "Zapisz jako...",
             "close_project": "Zamknij projekt",
             "open_project": "Otwórz projekt",
+            "restore_project": "Przywróć",
+            "restore_project_tooltip": "Przywróć projekt z archiwum ZIP",
             "new_file": "Nowy plik",
             "undo": "Cofnij (Ctrl+Z)",
             "redo": "Ponów (Ctrl+Y)",

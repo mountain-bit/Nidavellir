@@ -1,6 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
+const AdmZip = require('adm-zip')
 const {
     resolveProjectDir,
     isPathInsideBase,
@@ -342,6 +343,153 @@ class ProjectService {
             return {
                 success: false,
                 error: 'An unexpected error occurred while opening the project.',
+            }
+        }
+    }
+
+    /**
+     * Restores a project from a .zip backup archive into a target directory.
+     * Extracts files safely, validates project structure, and opens the restored project.
+     *
+     * @param {Object} options
+     * @param {string} options.zipFilePath - Path to the source .zip file
+     * @param {string} options.targetDestinationDir - Directory where the project should be extracted
+     * @returns {Promise<{ success: boolean, path?: string, project?: any, entities?: any, error?: string }>}
+     */
+    static async restoreProjectFromZip({ zipFilePath, targetDestinationDir }) {
+        if (!zipFilePath || !fs.existsSync(zipFilePath)) {
+            return {
+                success: false,
+                error: t('error.zip_file_not_found') || 'Nie znaleziono pliku ZIP.',
+            }
+        }
+
+        if (!targetDestinationDir) {
+            return {
+                success: false,
+                error: t('error.destination_folder_required') || 'Nie wybrano folderu docelowego.',
+            }
+        }
+
+        try {
+            const zip = new AdmZip(zipFilePath)
+            const zipEntries = zip.getEntries()
+
+            if (!zipEntries || zipEntries.length === 0) {
+                return {
+                    success: false,
+                    error: t('error.zip_is_empty') || 'Archiwum ZIP jest puste.',
+                }
+            }
+
+            // Look for project.json to verify validity and extract project name
+            let projectJsonEntry = zip.getEntry('project.json')
+            if (!projectJsonEntry) {
+                // Check if project.json is inside a top-level directory (e.g. MyProject/project.json)
+                projectJsonEntry = zipEntries.find(
+                    e => !e.isDirectory && /(?:^|[/\\])project\.json$/i.test(e.entryName)
+                )
+            }
+
+            if (!projectJsonEntry) {
+                return {
+                    success: false,
+                    error:
+                        t('error.zip_missing_project_json') ||
+                        'Archiwum ZIP nie zawiera pliku project.json.',
+                }
+            }
+
+            let projectName = 'RestoredProject'
+            try {
+                const manifestContent = zip.readAsText(projectJsonEntry)
+                const manifest = JSON.parse(manifestContent)
+                if (manifest && manifest.name) {
+                    projectName = manifest.name
+                }
+            } catch {
+                // If reading manifest fails here, proceed and let full validation handle it
+            }
+
+            // Determine safe target directory:
+            // If targetDestinationDir contains existing files, create a dedicated subfolder for the project
+            let finalTargetDir = path.resolve(targetDestinationDir)
+            if (!fs.existsSync(finalTargetDir)) {
+                fs.mkdirSync(finalTargetDir, { recursive: true })
+            }
+
+            const existingFiles = fs.readdirSync(finalTargetDir)
+            if (existingFiles.length > 0) {
+                const baseSlug = slugifyEntityName(projectName) || 'RestoredProject'
+                let folderName = baseSlug
+                let counter = 1
+                while (fs.existsSync(path.join(finalTargetDir, folderName))) {
+                    folderName = `${baseSlug}_${counter++}`
+                }
+                finalTargetDir = path.join(finalTargetDir, folderName)
+                fs.mkdirSync(finalTargetDir, { recursive: true })
+            }
+
+            // Zip Slip protection: Validate all entry paths before extraction
+            for (const entry of zipEntries) {
+                const normalizedEntry = entry.entryName.replace(/\\/g, '/')
+                if (
+                    normalizedEntry.startsWith('../') ||
+                    normalizedEntry.startsWith('/') ||
+                    normalizedEntry.includes('/../')
+                ) {
+                    return {
+                        success: false,
+                        error: `Wykryto niedozwoloną ścieżkę w pliku ZIP (Zip Slip): ${entry.entryName}`,
+                    }
+                }
+
+                const fullDestPath = path.resolve(finalTargetDir, entry.entryName)
+                if (!isPathInsideBase(finalTargetDir, fullDestPath)) {
+                    return {
+                        success: false,
+                        error: `Wykryto niedozwoloną ścieżkę w pliku ZIP (Zip Slip): ${entry.entryName}`,
+                    }
+                }
+            }
+
+            // Extract all entries safely
+            zip.extractAllTo(finalTargetDir, true)
+
+            // Locate actual project directory in case zip had a wrapper folder
+            let projectDir = finalTargetDir
+            if (!fs.existsSync(path.join(projectDir, 'project.json'))) {
+                const subdirs = fs
+                    .readdirSync(finalTargetDir, { withFileTypes: true })
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => path.join(finalTargetDir, dirent.name))
+
+                for (const subdir of subdirs) {
+                    if (fs.existsSync(path.join(subdir, 'project.json'))) {
+                        projectDir = subdir
+                        break
+                    }
+                }
+            }
+
+            if (!fs.existsSync(path.join(projectDir, 'project.json'))) {
+                return {
+                    success: false,
+                    error:
+                        t('error.project_not_found_after_extraction') ||
+                        'Nie znaleziono pliku project.json po wypakowaniu archiwum.',
+                }
+            }
+
+            // Open the extracted project using openProject
+            return await this.openProject(projectDir)
+        } catch (err) {
+            console.error('Error restoring project from zip:', err)
+            return {
+                success: false,
+                error:
+                    err.message ||
+                    'Wystąpił nieoczekiwany błąd podczas przywracania projektu z archiwum ZIP.',
             }
         }
     }

@@ -39,6 +39,7 @@
         "@tiptap/extension-underline": "^3.31.4",
         "@tiptap/starter-kit": "^3.31.4",
         "@tiptap/suggestion": "^3.31.4",
+        "adm-zip": "^0.6.1",
         "archiver": "^8.0.0",
         "cytoscape": "^3.33.3",
         "docx": "^9.11.0",

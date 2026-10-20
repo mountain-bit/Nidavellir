@@ -54,6 +54,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openAssetInFolder: (relativePath, projectPath) =>
         ipcRenderer.invoke('asset-open-folder', { relativePath, projectPath }),
     exportProjectZip: payload => ipcRenderer.invoke('export-project-zip', payload),
+    restoreProjectZip: payload => ipcRenderer.invoke('restore-project-zip', payload),
     exportProjectPdf: payload => ipcRenderer.invoke('export-project-pdf', payload),
     exportProjectDocx: payload => ipcRenderer.invoke('export-project-docx', payload),
 })

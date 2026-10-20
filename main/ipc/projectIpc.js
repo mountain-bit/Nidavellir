@@ -38,6 +38,43 @@ function registerProjectIpc() {
         return await ProjectService.openProject(targetPath)
     })
 
+    ipcMain.handle('restore-project-zip', async (_event, payload = {}) => {
+        let { zipPath, targetDir } = payload || {}
+
+        if (!zipPath) {
+            const { canceled, filePaths } = await dialog.showOpenDialog({
+                title:
+                    t('dialog.restore_project_title') || 'Wybierz kopię zapasową projektu (.zip)',
+                filters: [{ name: 'Archiwum ZIP', extensions: ['zip'] }],
+                properties: ['openFile'],
+            })
+
+            if (canceled || filePaths.length === 0) {
+                return { canceled: true, success: false }
+            }
+            zipPath = filePaths[0]
+        }
+
+        if (!targetDir) {
+            const { canceled, filePaths } = await dialog.showOpenDialog({
+                title:
+                    t('dialog.restore_destination_title') ||
+                    'Wybierz folder docelowy dla przywracanego projektu',
+                properties: ['openDirectory', 'createDirectory'],
+            })
+
+            if (canceled || filePaths.length === 0) {
+                return { canceled: true, success: false }
+            }
+            targetDir = filePaths[0]
+        }
+
+        return await ProjectService.restoreProjectFromZip({
+            zipFilePath: zipPath,
+            targetDestinationDir: targetDir,
+        })
+    })
+
     ipcMain.handle('save-project', async (_event, payload) => {
         const { projectPath, projectData } = payload || {}
         return await ProjectService.saveProject(projectPath, projectData)

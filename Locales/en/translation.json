@@ -1,10 +1,17 @@
 {
     "dialog": {
         "choose_new_project_folder": "Choose folder for new project",
-        "open_project": "Open project"
+        "open_project": "Open project",
+        "restore_project_title": "Choose project backup archive (.zip)",
+        "restore_destination_title": "Choose destination folder for restored project"
     },
     "error": {
-        "project_not_found": "Project path does not exist"
+        "project_not_found": "Project path does not exist",
+        "zip_file_not_found": "ZIP file not found",
+        "destination_folder_required": "Destination folder not selected",
+        "zip_is_empty": "ZIP archive is empty",
+        "zip_missing_project_json": "ZIP archive does not contain a project.json file",
+        "project_not_found_after_extraction": "project.json not found after extracting archive"
     },
     "app": {
         "title": "Nidavelir",
@@ -534,7 +541,10 @@
         "np_browse": "Browse",
         "np_create_success": "Project created successfully!",
         "np_create_error": "Error creating project:",
-        "np_unexpected_error": "An unexpected error occurred:"
+        "np_unexpected_error": "An unexpected error occurred:",
+        "restore_project": "Restore from ZIP",
+        "restore_project_success": "Project restored successfully from ZIP archive!",
+        "restore_project_error": "Error restoring project:"
     },
     "topbar": {
         "project_placeholder": "No project",
@@ -545,6 +555,8 @@
             "save_as": "Save As...",
             "close_project": "Close Project",
             "open_project": "Open Project",
+            "restore_project": "Restore",
+            "restore_project_tooltip": "Restore project from ZIP archive",
             "new_file": "New File",
             "undo": "Undo (Ctrl+Z)",
             "redo": "Redo (Ctrl+Y)",

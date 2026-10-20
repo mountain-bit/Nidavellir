@@ -11,6 +11,7 @@ import {
 export class StartWindowViewModel {
     private btnCreateProject: HTMLElement | null
     private btnOpenProject: HTMLElement | null
+    private btnRestoreProject: HTMLElement | null
     private btnCloseApp: HTMLElement | null
     private btnSettings: HTMLElement | null
     private btnLangPl: HTMLElement | null
@@ -31,6 +32,7 @@ export class StartWindowViewModel {
     constructor() {
         this.btnCreateProject = document.getElementById('btn-create-project')
         this.btnOpenProject = document.getElementById('btn-open-project')
+        this.btnRestoreProject = document.getElementById('btn-restore-project')
         this.btnCloseApp = document.getElementById('btn-close-app')
         this.btnSettings = document.getElementById('btn-settings')
         this.btnLangPl = document.getElementById('btn-lang-pl')
@@ -223,6 +225,36 @@ export class StartWindowViewModel {
             } else if (result && !result.success) {
                 this.showToast(
                     `${t('start_window.open_project_error')} ${result.error || ''}`,
+                    'error'
+                )
+            }
+        })
+
+        this.btnRestoreProject?.addEventListener('click', async () => {
+            if (!window.electronAPI || typeof window.electronAPI.restoreProjectZip !== 'function') {
+                return
+            }
+
+            const result = await window.electronAPI.restoreProjectZip()
+            if (result?.success && result.project && result.entities) {
+                try {
+                    window.currentProjectPath = result.path || ''
+                    ProjectManager.getInstance().load(
+                        result.project,
+                        result.entities,
+                        result.path || ''
+                    )
+                    this.showToast(t('start_window.restore_project_success'), 'success')
+                    setTimeout(() => {
+                        window.electronAPI.loadMainWindow()
+                    }, 800)
+                } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : String(err)
+                    this.showToast(`${t('start_window.open_project_load_error')} ${msg}`, 'error')
+                }
+            } else if (result && !result.success && !result.canceled) {
+                this.showToast(
+                    `${t('start_window.restore_project_error')} ${result.error || ''}`,
                     'error'
                 )
             }

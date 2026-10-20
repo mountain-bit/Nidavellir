@@ -65,6 +65,17 @@
                     <button
                         class="topbar-btn"
                         type="button"
+                        data-action="restore-project"
+                        data-i18n-title="topbar.buttons.restore_project_tooltip"
+                        title="Przywróć projekt z archiwum ZIP"
+                    >
+                        <app-icon name="import" class="w-3.5 h-3.5 text-amber-400"></app-icon>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.restore_project">Przywróć</span>
+                    </button>
+
+                    <button
+                        class="topbar-btn"
+                        type="button"
                         data-action="close-project"
                         data-i18n-title="topbar.buttons.close_project"
                         title="Zamknij projekt"
