@@ -270,6 +270,7 @@ export function extractProjectData(project, files = {}) {
             projectTags: [],
             projectCharacters: [],
             playerCharacter: null,
+            playerCharacters: [],
             projectTemplates: [],
             projectLocations: [],
             projectStats: [],
@@ -310,12 +311,17 @@ export function extractProjectData(project, files = {}) {
         typeof project.getPlayerCharacter === 'function'
             ? project.getPlayerCharacter()
             : project.playerCharacter || null
+    const playerCharacters =
+        typeof project.getPlayerCharacters === 'function'
+            ? project.getPlayerCharacters()
+            : project.playerCharacters || (playerCharacter ? [playerCharacter] : [])
 
     return {
         files: files || {},
         projectTags: tags,
         projectCharacters: characters,
         playerCharacter,
+        playerCharacters,
         projectTemplates: templates,
         projectLocations: locations,
         projectItems: items,

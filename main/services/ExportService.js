@@ -517,79 +517,27 @@ class ExportService {
                 )
             }
 
-            // 3. Optional Character Sheet
-            if (bookData.characterSheet) {
-                docChildren.push(
-                    new Paragraph({
-                        text: 'Karta Postaci / Dziennik Przygody',
-                        style: 'GamebookSectionTitle',
-                        heading: HeadingLevel.HEADING_1,
-                    }),
-                    new Paragraph({
-                        style: 'GamebookParagraph',
-                        text: `Imię bohatera: ${bookData.characterSheet.name || '........................................'}`,
-                    }),
-                    new Paragraph({
-                        style: 'GamebookParagraph',
-                        text: `Klasa: ${bookData.characterSheet.characterClass || '....................'}   |   Zdrowie: ........ / ........   |   Złoto: ........`,
-                    }),
-                    new Paragraph({
-                        style: 'GamebookParagraph',
-                        children: [
-                            new TextRun({
-                                text: 'Ekwipunek:',
-                                bold: true,
-                            }),
-                        ],
-                    }),
-                    new Paragraph({
-                        style: 'GamebookParagraph',
-                        text: '1. .....................................................   2. .....................................................\n3. .....................................................   4. .....................................................',
-                    }),
-                    new Paragraph({
-                        children: [new PageBreak()],
-                    })
-                )
+            // 3. Optional Character Sheet(s)
+            const sheets =
+                bookData.characterSheets && bookData.characterSheets.length > 0
+                    ? bookData.characterSheets
+                    : bookData.characterSheet
+                      ? [bookData.characterSheet]
+                      : []
+            if (sheets.length > 0) {
+                docChildren.push(...renderDocxCharacterSheets(sheets, styleConfig))
             }
 
             // 4. Early content: Locations / NPCs / Glossary if configured for start
             if (bookData.startSections && bookData.startSections.length > 0) {
-                for (const section of bookData.startSections) {
-                    docChildren.push(
-                        new Paragraph({
-                            text: section.title,
-                            style: 'GamebookSectionTitle',
-                            heading: HeadingLevel.HEADING_1,
-                        })
+                docChildren.push(
+                    ...renderDocxEntitySections(
+                        bookData.startSections,
+                        styleConfig,
+                        bookData,
+                        projectPath
                     )
-                    for (const item of section.items || []) {
-                        const descRuns = parseInlineMarkdownToRuns(
-                            item.description || '',
-                            styleConfig,
-                            bookData.paragraphMap || {}
-                        )
-                        docChildren.push(
-                            new Paragraph({
-                                style: 'GamebookEntityItem',
-                                children: [
-                                    new TextRun({
-                                        text: item.name,
-                                        bold: true,
-                                    }),
-                                    ...(descRuns.length > 0
-                                        ? [
-                                              new TextRun({
-                                                  text: ' — ',
-                                              }),
-                                              ...descRuns,
-                                          ]
-                                        : []),
-                                ],
-                            })
-                        )
-                    }
-                    docChildren.push(new Paragraph({ children: [new PageBreak()] }))
-                }
+                )
             }
 
             // 5. Main Paragraphs
@@ -690,42 +638,14 @@ class ExportService {
 
             // 6. End Sections: Locations / NPCs / Glossary configured for end
             if (bookData.endSections && bookData.endSections.length > 0) {
-                docChildren.push(new Paragraph({ children: [new PageBreak()] }))
-                for (const section of bookData.endSections) {
-                    docChildren.push(
-                        new Paragraph({
-                            text: section.title,
-                            style: 'GamebookSectionTitle',
-                            heading: HeadingLevel.HEADING_1,
-                        })
+                docChildren.push(
+                    ...renderDocxEntitySections(
+                        bookData.endSections,
+                        styleConfig,
+                        bookData,
+                        projectPath
                     )
-                    for (const item of section.items || []) {
-                        const descRuns = parseInlineMarkdownToRuns(
-                            item.description || '',
-                            styleConfig,
-                            bookData.paragraphMap || {}
-                        )
-                        docChildren.push(
-                            new Paragraph({
-                                style: 'GamebookEntityItem',
-                                children: [
-                                    new TextRun({
-                                        text: item.name,
-                                        bold: true,
-                                    }),
-                                    ...(descRuns.length > 0
-                                        ? [
-                                              new TextRun({
-                                                  text: ' — ',
-                                              }),
-                                              ...descRuns,
-                                          ]
-                                        : []),
-                                ],
-                            })
-                        )
-                    }
-                }
+                )
             }
 
             const doc = new Document({
@@ -831,6 +751,334 @@ class ExportService {
             }
         }
     }
+}
+
+/**
+ * Renders entity sections (Locations, NPCs, Items, Glossary) with full Markdown descriptions into native docx elements.
+ *
+ * @param {Array<object>} sections
+ * @param {object} styleConfig
+ * @param {object} bookData
+ * @param {string} [projectPath]
+ * @returns {Array<object>} docx Paragraphs and elements
+ */
+function renderDocxEntitySections(sections, styleConfig, bookData, projectPath) {
+    const elements = []
+    if (!sections || sections.length === 0) return elements
+
+    for (const section of sections) {
+        elements.push(
+            new Paragraph({
+                text: section.title,
+                style: 'GamebookSectionTitle',
+                heading: HeadingLevel.HEADING_1,
+            })
+        )
+
+        for (const item of section.items || []) {
+            let descMarkdown = (item.description || '').trim()
+            if (!descMarkdown && item.filePath && projectPath) {
+                try {
+                    const fullPath = path.resolve(projectPath, item.filePath)
+                    if (fs.existsSync(fullPath)) {
+                        descMarkdown = fs.readFileSync(fullPath, 'utf8').trim()
+                    }
+                } catch {
+                    // ignore disk read errors
+                }
+            }
+
+            if (section.type === 'glossary') {
+                const descRuns = parseInlineMarkdownToRuns(
+                    descMarkdown,
+                    styleConfig,
+                    bookData.paragraphMap || {}
+                )
+                elements.push(
+                    new Paragraph({
+                        style: 'GamebookEntityItem',
+                        children: [
+                            new TextRun({
+                                text: item.name,
+                                bold: true,
+                            }),
+                            ...(descRuns.length > 0
+                                ? [new TextRun({ text: ' — ' }), ...descRuns]
+                                : []),
+                        ],
+                    })
+                )
+            } else {
+                // Locations, NPCs, Items: header and rich markdown paragraphs
+                elements.push(
+                    new Paragraph({
+                        text: item.name,
+                        style: 'GamebookParagraphHeader',
+                        heading: HeadingLevel.HEADING_2,
+                    })
+                )
+
+                if (descMarkdown) {
+                    const mdParagraphs = parseMarkdownToDocxParagraphs(
+                        descMarkdown,
+                        styleConfig,
+                        bookData.paragraphMap || {}
+                    )
+                    elements.push(...mdParagraphs)
+                } else {
+                    elements.push(
+                        new Paragraph({
+                            style: 'GamebookParagraph',
+                            children: [
+                                new TextRun({
+                                    text: '(Brak opisu)',
+                                    italics: true,
+                                    color: '888888',
+                                }),
+                            ],
+                        })
+                    )
+                }
+            }
+        }
+
+        elements.push(new Paragraph({ children: [new PageBreak()] }))
+    }
+
+    return elements
+}
+
+/**
+ * Renders structured character sheet(s) into native docx elements.
+ * Generates accurate stats, parameters/vitals, skills, inventory, and notes based on the PlayerCharacter model.
+ *
+ * @param {Array<object>} sheets
+ * @param {object} styleConfig
+ * @returns {Array<object>} docx elements
+ */
+function renderDocxCharacterSheets(sheets, styleConfig) {
+    const elements = []
+    if (!sheets || sheets.length === 0) return elements
+
+    const accentColor = styleConfig.accentColor
+        ? styleConfig.accentColor.replace('#', '')
+        : '8b1e1e'
+
+    for (const sheet of sheets) {
+        elements.push(
+            new Paragraph({
+                text: `Karta Postaci: ${sheet.name || 'Bohater Gracza'}`,
+                style: 'GamebookSectionTitle',
+                heading: HeadingLevel.HEADING_1,
+            })
+        )
+
+        // Basic Info: Name and Class
+        elements.push(
+            new Paragraph({
+                style: 'GamebookParagraph',
+                children: [
+                    new TextRun({ text: 'Imię bohatera: ', bold: true }),
+                    new TextRun({ text: sheet.name || '........................................' }),
+                    new TextRun({ text: '    |    Klasa: ', bold: true }),
+                    new TextRun({ text: sheet.characterClass || 'Brak' }),
+                ],
+            })
+        )
+
+        // Summary / Narrative backstory
+        if (sheet.summary) {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookQuote',
+                    children: [
+                        new TextRun({
+                            text: stripEmojis(sheet.summary),
+                            italics: true,
+                        }),
+                    ],
+                })
+            )
+        }
+
+        // Parameters / Vitals (Zdrowie, Złoto, Zasoby)
+        if (sheet.parameters && sheet.parameters.length > 0) {
+            const paramRuns = []
+            sheet.parameters.forEach((p, idx) => {
+                if (idx > 0) paramRuns.push(new TextRun({ text: '   |   ' }))
+                paramRuns.push(new TextRun({ text: `${p.name}: `, bold: true }))
+                const cur =
+                    p.currentValue !== undefined && p.currentValue !== ''
+                        ? p.currentValue
+                        : p.value || '........'
+                const max = p.maxValue !== undefined && p.maxValue !== '' ? ` / ${p.maxValue}` : ''
+                paramRuns.push(new TextRun({ text: `[ ${cur}${max} ]` }))
+            })
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    children: paramRuns,
+                })
+            )
+        } else {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    text: 'Zdrowie: [ ........ / ........ ]   |   Punkty Akcji: [ ........ ]   |   Złoto: [ ........ ]',
+                })
+            )
+        }
+
+        // Stats (Cechy główne)
+        if (sheet.stats && sheet.stats.length > 0) {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    children: [
+                        new TextRun({
+                            text: 'Cechy i Statystyki:',
+                            bold: true,
+                            color: accentColor,
+                        }),
+                    ],
+                    spacing: { before: 160, after: 80 },
+                })
+            )
+
+            const tableRows = []
+            for (let i = 0; i < sheet.stats.length; i += 2) {
+                const s1 = sheet.stats[i]
+                const s2 = sheet.stats[i + 1]
+
+                const cells = [
+                    new TableCell({
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({ text: `${s1.name}: `, bold: true }),
+                                    new TextRun({ text: String(s1.value ?? '') }),
+                                ],
+                            }),
+                        ],
+                        width: { size: s2 ? 50 : 100, type: WidthType.PERCENTAGE },
+                    }),
+                ]
+
+                if (s2) {
+                    cells.push(
+                        new TableCell({
+                            children: [
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({ text: `${s2.name}: `, bold: true }),
+                                        new TextRun({ text: String(s2.value ?? '') }),
+                                    ],
+                                }),
+                            ],
+                            width: { size: 50, type: WidthType.PERCENTAGE },
+                        })
+                    )
+                }
+
+                tableRows.push(new TableRow({ children: cells }))
+            }
+
+            elements.push(
+                new Table({
+                    rows: tableRows,
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                })
+            )
+        }
+
+        // Skills (Umiejętności)
+        if (sheet.skills && sheet.skills.length > 0) {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    children: [
+                        new TextRun({
+                            text: 'Umiejętności:',
+                            bold: true,
+                            color: accentColor,
+                        }),
+                    ],
+                    spacing: { before: 160, after: 60 },
+                })
+            )
+            for (const sk of sheet.skills) {
+                const valStr = sk.value ? ` (${sk.value})` : ''
+                elements.push(
+                    new Paragraph({
+                        style: 'GamebookList',
+                        children: [new TextRun({ text: `• ${sk.name}${valStr}` })],
+                    })
+                )
+            }
+        }
+
+        // Features (Cechy specjalne i atuty)
+        if (sheet.features && sheet.features.length > 0) {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    children: [
+                        new TextRun({
+                            text: 'Zdolności i Atuty:',
+                            bold: true,
+                            color: accentColor,
+                        }),
+                    ],
+                    spacing: { before: 160, after: 60 },
+                })
+            )
+            for (const f of sheet.features) {
+                const descStr = f.description ? `: ${f.description}` : ''
+                elements.push(
+                    new Paragraph({
+                        style: 'GamebookList',
+                        children: [
+                            new TextRun({ text: `• ${f.name}`, bold: true }),
+                            new TextRun({ text: descStr }),
+                        ],
+                    })
+                )
+            }
+        }
+
+        // Inventory / Equipment
+        elements.push(
+            new Paragraph({
+                style: 'GamebookParagraph',
+                children: [
+                    new TextRun({
+                        text: 'Ekwipunek i Wyposażenie:',
+                        bold: true,
+                        color: accentColor,
+                    }),
+                ],
+                spacing: { before: 160, after: 60 },
+            })
+        )
+
+        const startItems = sheet.items || []
+        const totalLines = Math.max(6, startItems.length + 3)
+        for (let i = 0; i < totalLines; i++) {
+            const itemText = startItems[i]
+                ? `${i + 1}. ${startItems[i].name}`
+                : `${i + 1}. ............................................................................................`
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookList',
+                    children: [new TextRun({ text: itemText })],
+                })
+            )
+        }
+
+        elements.push(new Paragraph({ children: [new PageBreak()] }))
+    }
+
+    return elements
 }
 
 /**

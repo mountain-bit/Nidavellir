@@ -113,6 +113,7 @@ describe('mockData and projectData provider', () => {
             expect(data).toEqual({
                 files: {},
                 playerCharacter: null,
+                playerCharacters: [],
                 projectTags: [],
                 projectCharacters: [],
                 projectLocations: [],

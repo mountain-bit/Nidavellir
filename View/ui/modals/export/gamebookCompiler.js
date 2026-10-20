@@ -162,6 +162,151 @@ export function extractEntityMarkdown(entity, ctx = null) {
 }
 
 /**
+ * Resolves all available player characters in the current project context.
+ * Deduplicates by ID or name and filters out empty or unconfigured entries.
+ *
+ * @param {object} ctx
+ * @returns {Array<object>}
+ */
+export function getAvailablePlayerCharacters(ctx) {
+    if (!ctx) return []
+    const heroes = []
+    const seenIds = new Set()
+
+    const addHero = h => {
+        if (!h) return
+        const name = (typeof h.getName === 'function' ? h.getName() : h.name || '').trim()
+        if (!name) return
+        const id = (typeof h.getId === 'function' ? h.getId() : h.id) || name
+        if (seenIds.has(id)) return
+        seenIds.add(id)
+        heroes.push(h)
+    }
+
+    // 1. Check ctx.projectData.entities.PlayerCharacter or ctx.entities.PlayerCharacter
+    const rawEntities =
+        ctx?.projectData?.entities?.PlayerCharacter ||
+        ctx?.projectData?.entities?.PostacGracza ||
+        ctx?.entities?.PlayerCharacter ||
+        ctx?.entities?.PostacGracza ||
+        []
+    if (Array.isArray(rawEntities)) {
+        rawEntities.forEach(addHero)
+    }
+
+    // 2. Check ctx.projectData.playerCharacters or ctx.playerCharacters or vm.project.getPlayerCharacters
+    const pcList =
+        ctx?.projectData?.playerCharacters ||
+        ctx?.playerCharacters ||
+        (ctx?.vm?.project?.getPlayerCharacters ? ctx.vm.project.getPlayerCharacters() : null) ||
+        []
+    if (Array.isArray(pcList)) {
+        pcList.forEach(addHero)
+    }
+
+    // 3. Check single playerCharacter fallback
+    const singlePc =
+        ctx?.projectData?.playerCharacter ||
+        ctx?.playerCharacter ||
+        (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null)
+    if (singlePc) {
+        addHero(singlePc)
+    }
+
+    return heroes
+}
+
+/**
+ * Compiles a comprehensive character sheet object from a PlayerCharacter domain model or raw object.
+ * Extracts actual stats, skills, parameters/vitals, items, and attributes.
+ *
+ * @param {object} hero
+ * @returns {object|null}
+ */
+export function compileCharacterSheet(hero) {
+    if (!hero) return null
+    const name =
+        (typeof hero.getName === 'function' ? hero.getName() : hero.name) || 'Bezimienny Bohater'
+
+    const charClassObj =
+        typeof hero.getCharacterClass === 'function'
+            ? hero.getCharacterClass()
+            : hero.characterClass
+    const characterClass =
+        (charClassObj && typeof charClassObj.getName === 'function'
+            ? charClassObj.getName()
+            : charClassObj?.name || (typeof charClassObj === 'string' ? charClassObj : '')) || ''
+
+    const summary =
+        (typeof hero.getSummary === 'function'
+            ? hero.getSummary()
+            : hero.summary || hero.description?.summary || '') || ''
+    const avatar = (typeof hero.getAvatar === 'function' ? hero.getAvatar() : hero.avatar) || ''
+
+    // Stats (cechy główne)
+    const rawStats = (typeof hero.getStats === 'function' ? hero.getStats() : hero.stats) || []
+    const stats = rawStats.map(s => ({
+        name: (typeof s.getName === 'function' ? s.getName() : s.name) || 'Cecha',
+        value: typeof s.getValue === 'function' ? s.getValue() : (s.value ?? ''),
+    }))
+
+    // Parameters (parametry życiowe i zasoby, np. Zdrowie, Złoto, Mana)
+    const rawParams =
+        (typeof hero.getParameters === 'function' ? hero.getParameters() : hero.parameters) || []
+    const parameters = rawParams.map(p => ({
+        name: (typeof p.getName === 'function' ? p.getName() : p.name) || 'Wskaźnik',
+        value: typeof p.getValue === 'function' ? p.getValue() : (p.value ?? ''),
+        currentValue:
+            typeof p.getCurrentValue === 'function' ? p.getCurrentValue() : (p.currentValue ?? ''),
+        maxValue: typeof p.getMaxValue === 'function' ? p.getMaxValue() : (p.maxValue ?? ''),
+    }))
+
+    // Skills (umiejętności)
+    const rawSkills = (typeof hero.getSkills === 'function' ? hero.getSkills() : hero.skills) || []
+    const skills = rawSkills.map(sk => ({
+        name: (typeof sk.getName === 'function' ? sk.getName() : sk.name) || 'Umiejętność',
+        value: typeof sk.getValue === 'function' ? sk.getValue() : (sk.value ?? ''),
+    }))
+
+    // Features (cechy specjalne i atuty)
+    const rawFeatures =
+        (typeof hero.getFeatures === 'function' ? hero.getFeatures() : hero.features) || []
+    const features = rawFeatures.map(f => ({
+        name: (typeof f.getName === 'function' ? f.getName() : f.name) || 'Zdolność',
+        description:
+            (typeof f.getDescription === 'function'
+                ? f.getDescription()?.getText?.() || f.getDescription()?.getSummary?.()
+                : f.description) || '',
+    }))
+
+    // Items (ekwipunek początkowy)
+    const rawItems = (typeof hero.getItems === 'function' ? hero.getItems() : hero.items) || []
+    const items = rawItems.map(i => ({
+        name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
+    }))
+
+    // Tags
+    const rawTags = (typeof hero.getTags === 'function' ? hero.getTags() : hero.tags) || []
+    const tags = rawTags.map(t =>
+        typeof t.getName === 'function' ? t.getName() : t.name || String(t)
+    )
+
+    return {
+        id: (typeof hero.getId === 'function' ? hero.getId() : hero.id) || name,
+        name,
+        characterClass,
+        summary,
+        avatar,
+        stats,
+        parameters,
+        skills,
+        features,
+        items,
+        tags,
+    }
+}
+
+/**
  * Compiles project data according to user export options.
  *
  * @param {object} ctx - Application context
@@ -194,11 +339,6 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
         ctx?.vm?.project?.items ||
         []
     const rawRules = ctx?.projectData?.rules || ctx?.projectData?.projectRules || []
-    const rawHero =
-        ctx?.projectData?.playerCharacter ||
-        ctx?.playerCharacter ||
-        ctx?.vm?.project?.playerCharacter ||
-        null
 
     const projectName =
         document.getElementById('project-name-display')?.textContent?.trim() ||
@@ -212,14 +352,34 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
     const startSections = []
     const endSections = []
 
+    // Helper to resolve entity file path
+    const getEntityFilePath = ent => {
+        const desc =
+            typeof ent.getContent === 'function'
+                ? ent.getContent()
+                : typeof ent.getDescription === 'function'
+                  ? ent.getDescription()
+                  : ent.content || ent.description
+        return (
+            (desc && typeof desc.getFilePath === 'function' ? desc.getFilePath() : null) ||
+            desc?.filePath ||
+            desc?.textPath ||
+            ent?.filePath ||
+            ''
+        )
+    }
+
     // Locations
     if (options.includeLocations && rawLocations.length > 0) {
         const locSection = {
             title: 'Atlas Świata i Lokacje',
+            type: 'locations',
             items: rawLocations.map(l => ({
+                id: (typeof l.getId === 'function' ? l.getId() : l.id) || '',
                 name:
                     (typeof l.getName === 'function' ? l.getName() : l.name) || 'Nieznana lokacja',
                 description: extractEntityMarkdown(l, ctx),
+                filePath: getEntityFilePath(l),
             })),
         }
         if (options.locationsPlacement === 'start') startSections.push(locSection)
@@ -230,9 +390,12 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
     if (options.includeNPCs && rawNpcs.length > 0) {
         const npcSection = {
             title: 'Dramatis Personae / Bestiariusz',
+            type: 'npcs',
             items: rawNpcs.map(n => ({
+                id: (typeof n.getId === 'function' ? n.getId() : n.id) || '',
                 name: (typeof n.getName === 'function' ? n.getName() : n.name) || 'Postać',
                 description: extractEntityMarkdown(n, ctx),
+                filePath: getEntityFilePath(n),
             })),
         }
         if (options.npcsPlacement === 'start') startSections.push(npcSection)
@@ -243,9 +406,12 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
     if (options.includeItems && rawItems.length > 0) {
         const itemSection = {
             title: 'Katalog Przedmiotów i Artefaktów',
+            type: 'items',
             items: rawItems.map(i => ({
+                id: (typeof i.getId === 'function' ? i.getId() : i.id) || '',
                 name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
                 description: extractEntityMarkdown(i, ctx),
+                filePath: getEntityFilePath(i),
             })),
         }
         if (options.itemsPlacement === 'start') startSections.push(itemSection)
@@ -258,6 +424,7 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
         if (glossaryItems.length > 0) {
             const glossarySection = {
                 title: 'Glosariusz i Słowniczek Pojęć',
+                type: 'glossary',
                 items: glossaryItems,
             }
             if (options.glossaryPlacement === 'start') startSections.push(glossarySection)
@@ -273,13 +440,23 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
             .join('\n\n')
     }
 
-    // Character Sheet
-    let characterSheet = null
-    if (options.includeCharacterSheet) {
-        characterSheet = {
-            name: rawHero?.name || '',
-            characterClass: rawHero?.characterClass || '',
-            stats: rawHero?.stats || [],
+    // Character Sheet(s)
+    const availableHeroes = getAvailablePlayerCharacters(ctx)
+    let characterSheets = []
+
+    if (options.includeCharacterSheet && availableHeroes.length > 0) {
+        if (Array.isArray(options.selectedHeroIds) && options.selectedHeroIds.length > 0) {
+            const filtered = availableHeroes.filter(h => {
+                const hId =
+                    (typeof h.getId === 'function' ? h.getId() : h.id) ||
+                    (typeof h.getName === 'function' ? h.getName() : h.name)
+                return options.selectedHeroIds.includes(hId)
+            })
+            characterSheets = (filtered.length > 0 ? filtered : availableHeroes).map(
+                compileCharacterSheet
+            )
+        } else {
+            characterSheets = availableHeroes.map(compileCharacterSheet)
         }
     }
 
@@ -295,7 +472,8 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
         author: ctx?.projectData?.author || 'Autor',
         includeCoverPage: options.includeCoverPage !== false,
         rulesContent,
-        characterSheet,
+        characterSheet: characterSheets[0] || null,
+        characterSheets,
         startSections,
         endSections,
         paragraphs: compiledParagraphs,
@@ -988,10 +1166,10 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
                     ${(sec.items || [])
                         .map(
                             item => `
-                        <div class="extra-item">
-                            <span class="item-name">${escapeHtml(item.name)}</span>
-                            ${item.description ? `<div class="item-desc">${markdownToHtml(item.description, bookData.paragraphMap || {})}</div>` : ''}
-                        </div>
+                        <article class="extra-item">
+                            <h3 class="item-name">${escapeHtml(item.name)}</h3>
+                            ${item.description ? `<div class="item-desc">${markdownToHtml(item.description, bookData.paragraphMap || {})}</div>` : '<p class="item-desc italic text-gray-500">(Brak opisu)</p>'}
+                        </article>
                     `
                         )
                         .join('')}
@@ -1005,35 +1183,75 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
     const startSectionsHtml = renderSectionList(bookData.startSections)
     const endSectionsHtml = renderSectionList(bookData.endSections)
 
-    // Character sheet HTML
+    // Character sheet(s) HTML
+    const sheets =
+        bookData.characterSheets && bookData.characterSheets.length > 0
+            ? bookData.characterSheets
+            : bookData.characterSheet
+              ? [bookData.characterSheet]
+              : []
+
     let sheetHtml = ''
-    if (bookData.characterSheet) {
-        sheetHtml = `
-        <section class="character-sheet-section page-break-before">
-            <h2>Karta Postaci / Arkusz Bohatera</h2>
-            <div class="sheet-box">
-                <div class="sheet-row">
-                    <div><strong>Imię:</strong> ${escapeHtml(bookData.characterSheet.name || '...........................................')}</div>
-                    <div><strong>Klasa:</strong> ${escapeHtml(bookData.characterSheet.characterClass || '........................')}</div>
-                </div>
-                <div class="sheet-row stats-row">
-                    <div><strong>Zdrowie:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
-                    <div><strong>Złoto:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
-                    <div><strong>Ekwipunek max:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
-                </div>
-                <div class="sheet-box-inner">
-                    <strong>Plecak i Wyposażenie:</strong>
-                    <ol class="backpack-lines">
-                        <li>..................................................................................</li>
-                        <li>..................................................................................</li>
-                        <li>..................................................................................</li>
-                        <li>..................................................................................</li>
-                        <li>..................................................................................</li>
-                    </ol>
-                </div>
-            </div>
-        </section>
-        `
+    if (sheets.length > 0) {
+        sheetHtml = sheets
+            .map(sheet => {
+                const statsHtml =
+                    sheet.stats && sheet.stats.length > 0
+                        ? `<div class="sheet-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; margin: 8px 0;">
+                            ${sheet.stats.map(s => `<div style="border: 1px solid #ccc; padding: 4px 6px; border-radius: 4px; font-size: 9pt;"><strong>${escapeHtml(s.name)}:</strong> ${escapeHtml(String(s.value))}</div>`).join('')}
+                           </div>`
+                        : ''
+
+                const paramsHtml =
+                    sheet.parameters && sheet.parameters.length > 0
+                        ? `<div class="sheet-row stats-row" style="margin-top: 6px;">
+                            ${sheet.parameters.map(p => `<div><strong>${escapeHtml(p.name)}:</strong> [ ${escapeHtml(String(p.currentValue || p.value || ''))} / ${escapeHtml(String(p.maxValue || ''))} ]</div>`).join('')}
+                           </div>`
+                        : `<div class="sheet-row stats-row">
+                            <div><strong>Zdrowie:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
+                            <div><strong>Złoto:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
+                            <div><strong>Ekwipunek max:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
+                           </div>`
+
+                const skillsHtml =
+                    sheet.skills && sheet.skills.length > 0
+                        ? `<div style="margin: 6px 0; font-size: 9pt;">
+                            <strong>Umiejętności:</strong> ${sheet.skills.map(sk => `${escapeHtml(sk.name)}${sk.value ? ` (${escapeHtml(String(sk.value))})` : ''}`).join(', ')}
+                           </div>`
+                        : ''
+
+                const itemsList = sheet.items && sheet.items.length > 0 ? sheet.items : []
+                const itemLines = []
+                for (let i = 0; i < Math.max(5, itemsList.length + 2); i++) {
+                    const itemName = itemsList[i]
+                        ? itemsList[i].name
+                        : '..................................................................................'
+                    itemLines.push(`<li>${escapeHtml(itemName)}</li>`)
+                }
+
+                return `
+                <section class="character-sheet-section page-break-before">
+                    <h2>Karta Postaci: ${escapeHtml(sheet.name || 'Bohater')}</h2>
+                    <div class="sheet-box">
+                        <div class="sheet-row">
+                            <div><strong>Imię:</strong> ${escapeHtml(sheet.name || '...........................................')}</div>
+                            <div><strong>Klasa:</strong> ${escapeHtml(sheet.characterClass || '........................')}</div>
+                        </div>
+                        ${sheet.summary ? `<p style="font-style: italic; font-size: 9pt; margin: 4px 0 8px 0; color: #555;">${escapeHtml(sheet.summary)}</p>` : ''}
+                        ${paramsHtml}
+                        ${statsHtml}
+                        ${skillsHtml}
+                        <div class="sheet-box-inner" style="margin-top: 8px;">
+                            <strong>Plecak i Wyposażenie:</strong>
+                            <ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
+                                ${itemLines.join('')}
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+                `
+            })
+            .join('')
     }
 
     return `<!DOCTYPE html>

@@ -6,12 +6,16 @@ export interface ICompiledGamebook {
     includeCoverPage: boolean
     rulesContent: string
     characterSheet: any
+    characterSheets?: any[]
     startSections: any[]
     endSections: any[]
     paragraphs: any[]
     paragraphMap?: Record<string, number>
     styleConfig: IExportStyle
 }
+
+export declare function getAvailablePlayerCharacters(ctx: any): any[]
+export declare function compileCharacterSheet(hero: any): any
 
 export declare function compileGamebook(
     ctx: any,

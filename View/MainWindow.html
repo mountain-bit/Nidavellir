@@ -6045,13 +6045,33 @@
                                         <span>Strona tytułowa / Okładka</span>
                                     </label>
                                     <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                        <input type="checkbox" id="export-opt-character-sheet" checked class="rounded accent-blue-600 export-reactive-input" />
-                                        <span>Karta Postaci do druku</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
                                         <input type="checkbox" id="export-opt-rules" checked class="rounded accent-blue-600 export-reactive-input" />
                                         <span>Zasady gry i wprowadzenie</span>
                                     </label>
+                                </div>
+
+                                <!-- Opcje Karty Postaci Gracza -->
+                                <div id="export-container-character-sheet" class="pt-2 border-t border-[#2a2c33] space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <label class="flex items-center gap-2 text-zinc-300 cursor-pointer font-medium">
+                                            <input type="checkbox" id="export-opt-character-sheet" checked class="rounded accent-blue-600 export-reactive-input" />
+                                            <span>Karta Postaci do druku</span>
+                                        </label>
+                                        <span id="export-single-hero-indicator" class="text-[11px] text-zinc-400 font-normal"></span>
+                                    </div>
+
+                                    <!-- Panel wyboru bohaterów (gdy jest ich więcej niż 1) -->
+                                    <div id="export-heroes-selection-panel" class="hidden pl-2 space-y-1.5 bg-[#18191c] p-2.5 rounded-lg border border-[#2a2c33]">
+                                        <div class="flex items-center justify-between text-[11px] text-zinc-400 mb-1 border-b border-[#282a30] pb-1">
+                                            <span>Wybierz bohaterów do wygenerowania kart:</span>
+                                            <button type="button" id="btn-export-toggle-all-heroes" class="text-blue-400 hover:text-blue-300 font-medium text-[10px] cursor-pointer">
+                                                Zaznacz / Odznacz wszystkich
+                                            </button>
+                                        </div>
+                                        <div id="export-heroes-list" class="space-y-1 max-h-32 overflow-y-auto pr-1">
+                                            <!-- Dynamicznie generowane checkboxy dla bohaterów -->
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

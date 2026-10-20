@@ -209,6 +209,12 @@ const appContext = {
     get playerCharacter() {
         return projectData.playerCharacter || null
     },
+    get playerCharacters() {
+        return (
+            projectData.playerCharacters ||
+            (projectData.playerCharacter ? [projectData.playerCharacter] : [])
+        )
+    },
     get storyGraphInstance() {
         return getStoryGraphInstance()
     },

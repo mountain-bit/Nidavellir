@@ -7,7 +7,12 @@
 import { toast } from '../../../../dist/Utils/toast.js'
 import { openStyleEditorModal } from '../styleEditor/styleEditorModal.js'
 import { getAllStyles, getStyleById } from './exportStyleService.js'
-import { compileGamebook, extractText, generatePrintHtml } from './gamebookCompiler.js'
+import {
+    compileGamebook,
+    extractText,
+    generatePrintHtml,
+    getAvailablePlayerCharacters,
+} from './gamebookCompiler.js'
 
 let activeContext = null
 let selectedFormat = 'pdf'
@@ -115,6 +120,7 @@ export function openExportModal(ctx) {
 
         initFormatSelection()
         populateStylesDropdown()
+        setupCharacterSheetUI(ctx)
         updateProjectStatistics()
         updateMiniPreview()
         bindModalEvents()
@@ -190,6 +196,125 @@ function bindModalEvents() {
         btnConfirm.onclick = () => {
             executeExport()
         }
+    }
+}
+
+/**
+ * Configures the Character Sheet export section based on active PlayerCharacter(s).
+ * Hides option entirely if no hero exists.
+ * Displays multi-select options if multiple heroes are defined.
+ *
+ * @param {object} ctx
+ */
+export function setupCharacterSheetUI(ctx) {
+    const container = document.getElementById('export-container-character-sheet')
+    const sheetCheckbox = document.getElementById('export-opt-character-sheet')
+    const indicator = document.getElementById('export-single-hero-indicator')
+    const heroesPanel = document.getElementById('export-heroes-selection-panel')
+    const heroesList = document.getElementById('export-heroes-list')
+    const btnToggleAll = document.getElementById('btn-export-toggle-all-heroes')
+
+    if (!container || !sheetCheckbox) return
+
+    const availableHeroes = getAvailablePlayerCharacters(ctx)
+
+    if (availableHeroes.length === 0) {
+        // "Jeżeli nie będzie bohatera gracza nie dawaj takiej opcji"
+        container.classList.add('hidden')
+        sheetCheckbox.checked = false
+        if (heroesPanel) heroesPanel.classList.add('hidden')
+        if (indicator) indicator.textContent = ''
+        return
+    }
+
+    // Is at least 1 hero
+    container.classList.remove('hidden')
+    sheetCheckbox.checked = true
+
+    if (availableHeroes.length === 1) {
+        const singleHero = availableHeroes[0]
+        const heroName =
+            (typeof singleHero.getName === 'function' ? singleHero.getName() : singleHero.name) ||
+            'Bohater'
+        const charClassObj =
+            typeof singleHero.getCharacterClass === 'function'
+                ? singleHero.getCharacterClass()
+                : singleHero.characterClass
+        const className =
+            (charClassObj && typeof charClassObj.getName === 'function'
+                ? charClassObj.getName()
+                : charClassObj?.name || (typeof charClassObj === 'string' ? charClassObj : '')) ||
+            ''
+
+        if (indicator) {
+            indicator.textContent = `(${heroName}${className ? ` - ${className}` : ''})`
+        }
+        if (heroesPanel) {
+            heroesPanel.classList.add('hidden')
+        }
+    } else {
+        // "a jeżeli jest więcej Bohaterów to daj opcje jakiego wybrać w tym daj opcje wyboru wielu"
+        if (indicator) {
+            indicator.textContent = `(Dostępnych: ${availableHeroes.length})`
+        }
+
+        if (heroesList) {
+            heroesList.innerHTML = ''
+            availableHeroes.forEach(h => {
+                const hName = (typeof h.getName === 'function' ? h.getName() : h.name) || 'Bohater'
+                const hId = (typeof h.getId === 'function' ? h.getId() : h.id) || hName
+                const charClassObj =
+                    typeof h.getCharacterClass === 'function'
+                        ? h.getCharacterClass()
+                        : h.characterClass
+                const className =
+                    (charClassObj && typeof charClassObj.getName === 'function'
+                        ? charClassObj.getName()
+                        : charClassObj?.name ||
+                          (typeof charClassObj === 'string' ? charClassObj : '')) || ''
+
+                const label = document.createElement('label')
+                label.className =
+                    'flex items-center gap-2 text-zinc-300 text-xs cursor-pointer py-1 px-1.5 rounded hover:bg-[#202227] transition-colors'
+                label.innerHTML = `
+                    <input type="checkbox" class="export-hero-checkbox rounded accent-blue-600 export-reactive-input" value="${escapeHtml(hId)}" checked />
+                    <span class="font-medium text-zinc-200">${escapeHtml(hName)}</span>
+                    ${className ? `<span class="text-zinc-400 text-[11px]">(${escapeHtml(className)})</span>` : ''}
+                `
+                heroesList.appendChild(label)
+            })
+
+            // Bind change on hero checkboxes to refresh preview
+            heroesList.querySelectorAll('.export-hero-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    updateMiniPreview()
+                })
+            })
+        }
+
+        if (heroesPanel) {
+            heroesPanel.classList.toggle('hidden', !sheetCheckbox.checked)
+        }
+
+        if (btnToggleAll) {
+            btnToggleAll.onclick = () => {
+                if (!heroesList) return
+                const allCheckboxes = heroesList.querySelectorAll('.export-hero-checkbox')
+                const allChecked = Array.from(allCheckboxes).every(cb => cb.checked)
+                allCheckboxes.forEach(cb => {
+                    cb.checked = !allChecked
+                })
+                updateMiniPreview()
+            }
+        }
+    }
+
+    // Toggle panel visibility when main sheet checkbox changes
+    sheetCheckbox.onchange = () => {
+        if (availableHeroes.length > 1 && heroesPanel) {
+            heroesPanel.classList.toggle('hidden', !sheetCheckbox.checked)
+        }
+        updateMiniPreview()
     }
 }
 
@@ -368,6 +493,33 @@ async function executeExport() {
         const sepSelect = document.getElementById('export-opt-separator')
         const chosenSep = sepSelect ? sepSelect.value : style.separatorType || 'ornament'
 
+        const availableHeroes = getAvailablePlayerCharacters(activeContext)
+        const hasHero = availableHeroes.length > 0
+        const wantCharacterSheet = hasHero && isChecked('export-opt-character-sheet')
+
+        let selectedHeroIds = []
+        if (wantCharacterSheet) {
+            if (availableHeroes.length > 1) {
+                const heroBoxes = document.querySelectorAll(
+                    '#export-heroes-list .export-hero-checkbox:checked'
+                )
+                selectedHeroIds = Array.from(heroBoxes).map(cb => cb.value)
+                if (selectedHeroIds.length === 0) {
+                    selectedHeroIds = availableHeroes.map(
+                        h =>
+                            (typeof h.getId === 'function' ? h.getId() : h.id) ||
+                            (typeof h.getName === 'function' ? h.getName() : h.name)
+                    )
+                }
+            } else if (availableHeroes.length === 1) {
+                const single = availableHeroes[0]
+                selectedHeroIds = [
+                    (typeof single.getId === 'function' ? single.getId() : single.id) ||
+                        (typeof single.getName === 'function' ? single.getName() : single.name),
+                ]
+            }
+        }
+
         const options = {
             format: selectedFormat,
             styleId: selectedStyleId,
@@ -381,7 +533,8 @@ async function executeExport() {
             glossaryPlacement: getRadioVal('export-opt-glossary-place') || 'end',
             separatorType: chosenSep,
             shuffleParagraphs: isChecked('export-opt-shuffle'),
-            includeCharacterSheet: isChecked('export-opt-character-sheet'),
+            includeCharacterSheet: wantCharacterSheet,
+            selectedHeroIds,
             includeRules: isChecked('export-opt-rules'),
             includeCoverPage: isChecked('export-opt-cover'),
             includeAssetsInZip: isChecked('export-opt-zip-images'),

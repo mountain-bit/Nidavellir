@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import ExportService from '../../main/services/ExportService.js'
+import { setupCharacterSheetUI } from '../../View/ui/modals/export/exportModal.js'
 import {
     deleteCustomStyle,
     getAllStyles,
@@ -9,9 +10,11 @@ import {
     saveCustomStyle,
 } from '../../View/ui/modals/export/exportStyleService.js'
 import {
+    compileCharacterSheet,
     compileGamebook,
     extractText,
     generatePrintHtml,
+    getAvailablePlayerCharacters,
     markdownToHtml,
 } from '../../View/ui/modals/export/gamebookCompiler.js'
 
@@ -514,6 +517,310 @@ Wybierz swój dalszy krok.
             // 3. Quote paragraph has GamebookQuote style
             const jsonQuote = JSON.stringify(elements[2])
             expect(jsonQuote).toContain('GamebookQuote')
+        })
+    })
+
+    describe('Player Characters and Character Sheet', () => {
+        it('resolves available player characters and handles missing hero', () => {
+            const emptyCtx = { projectData: {} }
+            expect(getAvailablePlayerCharacters(emptyCtx)).toEqual([])
+
+            const singleHeroCtx = {
+                projectData: {
+                    playerCharacter: {
+                        id: 'hero1',
+                        getName: () => 'Kaelen',
+                        name: 'Kaelen',
+                    },
+                },
+            }
+            const heroes1 = getAvailablePlayerCharacters(singleHeroCtx)
+            expect(heroes1.length).toBe(1)
+            expect(heroes1[0].name).toBe('Kaelen')
+
+            const multiHeroCtx = {
+                projectData: {
+                    playerCharacters: [
+                        { id: 'h1', name: 'Kaelen' },
+                        { id: 'h2', name: 'Lyra' },
+                    ],
+                },
+            }
+            const heroes2 = getAvailablePlayerCharacters(multiHeroCtx)
+            expect(heroes2.length).toBe(2)
+            expect(heroes2.map(h => h.name)).toEqual(['Kaelen', 'Lyra'])
+        })
+
+        it('compiles detailed character sheet matching hero domain data', () => {
+            const mockHero = {
+                getId: () => 'hero-123',
+                getName: () => 'Aleron z Rivii',
+                getCharacterClass: () => ({ getName: () => 'Zwiadowca' }),
+                getSummary: () => 'Doświadczony tropiciel i łucznik.',
+                getAvatar: () => 'archer',
+                getStats: () => [
+                    { getName: () => 'Zręczność', getValue: () => 16 },
+                    { getName: () => 'Siła', getValue: () => 12 },
+                ],
+                getParameters: () => [
+                    {
+                        getName: () => 'Zdrowie',
+                        getCurrentValue: () => 20,
+                        getMaxValue: () => 20,
+                    },
+                    { getName: () => 'Złoto', getValue: () => 50 },
+                ],
+                getSkills: () => [
+                    { getName: () => 'Strzelectwo', getValue: () => '+3' },
+                    { getName: () => 'Skradanie', getValue: () => '+2' },
+                ],
+                getFeatures: () => [
+                    { getName: () => 'Sokoli Wzrok', description: 'Widzi w ciemności.' },
+                ],
+                getItems: () => [
+                    { getName: () => 'Długi łuk' },
+                    { getName: () => 'Kołczan strzał' },
+                ],
+                getTags: () => ['Elf', 'Szybki'],
+            }
+
+            const sheet = compileCharacterSheet(mockHero)
+            expect(sheet.name).toBe('Aleron z Rivii')
+            expect(sheet.characterClass).toBe('Zwiadowca')
+            expect(sheet.summary).toBe('Doświadczony tropiciel i łucznik.')
+            expect(sheet.stats).toEqual([
+                { name: 'Zręczność', value: 16 },
+                { name: 'Siła', value: 12 },
+            ])
+            expect(sheet.parameters[0].name).toBe('Zdrowie')
+            expect(sheet.parameters[0].currentValue).toBe(20)
+            expect(sheet.skills[0].name).toBe('Strzelectwo')
+            expect(sheet.items.map((i: any) => i.name)).toEqual(['Długi łuk', 'Kołczan strzał'])
+        })
+
+        it('supports multi-selection of heroes during export compilation', () => {
+            const ctxWithMultiple = {
+                projectData: {
+                    playerCharacters: [
+                        {
+                            getId: () => 'h1',
+                            getName: () => 'Wojownik',
+                            getCharacterClass: () => 'Rycerz',
+                        },
+                        {
+                            getId: () => 'h2',
+                            getName: () => 'Czarodziejka',
+                            getCharacterClass: () => 'Mag',
+                        },
+                        {
+                            getId: () => 'h3',
+                            getName: () => 'Złodziej',
+                            getCharacterClass: () => 'Łotrzyk',
+                        },
+                    ],
+                    projectParagraphs: [{ id: 'p1', number: 1, text: 'Start' }],
+                },
+            }
+
+            // Export with selected heroes: only h1 and h3
+            const compiled = compileGamebook(ctxWithMultiple, {
+                includeCharacterSheet: true,
+                selectedHeroIds: ['h1', 'h3'],
+            })
+
+            expect(compiled.characterSheets).toBeDefined()
+            expect(compiled.characterSheets?.length).toBe(2)
+            expect(compiled.characterSheets?.[0].name).toBe('Wojownik')
+            expect(compiled.characterSheets?.[1].name).toBe('Złodziej')
+            expect(compiled.characterSheet.name).toBe('Wojownik')
+        })
+
+        it('does not generate character sheets when project has no player character', () => {
+            const ctxNoHero = {
+                projectData: {
+                    projectParagraphs: [{ id: 'p1', number: 1, text: 'Start' }],
+                },
+            }
+
+            const compiled = compileGamebook(ctxNoHero, {
+                includeCharacterSheet: true,
+            })
+
+            expect(compiled.characterSheets).toEqual([])
+            expect(compiled.characterSheet).toBeNull()
+        })
+    })
+
+    describe('Locations and NPCs Markdown Descriptions in Export', () => {
+        it('includes full markdown descriptions for locations and NPCs', () => {
+            const locDescMd =
+                '### Stara Twierdza\n\nMur z ciosanego kamienia porastają pnącza.\n\n— Kto tam idzie? — rozlega się krzyk.'
+            const npcDescMd =
+                '**Karczmarz Barnaba** to tęgi jegomość.\n\n- Zawsze ma ciepłą strawę\n- Wie wszystko o okolicy'
+
+            const ctx = {
+                projectData: {
+                    locations: [
+                        {
+                            getName: () => 'Stara Twierdza',
+                            getDescription: () => ({ getText: () => locDescMd }),
+                        },
+                    ],
+                    npcs: [
+                        {
+                            getName: () => 'Barnaba',
+                            getDescription: () => ({ getText: () => npcDescMd }),
+                        },
+                    ],
+                    projectParagraphs: [{ id: 'p1', number: 1, text: 'Początek drogi.' }],
+                },
+            }
+
+            const compiled = compileGamebook(ctx, {
+                includeLocations: true,
+                locationsPlacement: 'start',
+                includeNPCs: true,
+                npcsPlacement: 'end',
+            })
+
+            expect(compiled.startSections.length).toBe(1)
+            expect(compiled.startSections[0].items[0].name).toBe('Stara Twierdza')
+            expect(compiled.startSections[0].items[0].description).toBe(locDescMd)
+
+            expect(compiled.endSections.length).toBe(1)
+            expect(compiled.endSections[0].items[0].name).toBe('Barnaba')
+            expect(compiled.endSections[0].items[0].description).toBe(npcDescMd)
+
+            // Verify print HTML contains parsed markdown tags
+            const html = generatePrintHtml(compiled)
+            expect(html).toContain('Stara Twierdza')
+            expect(html).toContain('Mur z ciosanego kamienia')
+            expect(html).toContain('Barnaba')
+            expect(html).toContain('Zawsze ma ciepłą strawę')
+        })
+    })
+
+    describe('Export Modal UI Character Sheet Setup', () => {
+        it('hides character sheet option when no player character exists', () => {
+            document.body.innerHTML = `
+                <div id="modal-export-project">
+                    <div id="export-container-character-sheet">
+                        <input type="checkbox" id="export-opt-character-sheet" checked />
+                        <span id="export-single-hero-indicator"></span>
+                        <div id="export-heroes-selection-panel" class="hidden">
+                            <button id="btn-export-toggle-all-heroes"></button>
+                            <div id="export-heroes-list"></div>
+                        </div>
+                    </div>
+                </div>
+            `
+
+            setupCharacterSheetUI({ projectData: {} })
+
+            const container = document.getElementById('export-container-character-sheet')
+            const checkbox = document.getElementById(
+                'export-opt-character-sheet'
+            ) as HTMLInputElement
+
+            expect(container?.classList.contains('hidden')).toBe(true)
+            expect(checkbox?.checked).toBe(false)
+        })
+
+        it('shows single hero indicator when exactly 1 player character exists', () => {
+            document.body.innerHTML = `
+                <div id="modal-export-project">
+                    <div id="export-container-character-sheet" class="hidden">
+                        <input type="checkbox" id="export-opt-character-sheet" />
+                        <span id="export-single-hero-indicator"></span>
+                        <div id="export-heroes-selection-panel" class="hidden">
+                            <button id="btn-export-toggle-all-heroes"></button>
+                            <div id="export-heroes-list"></div>
+                        </div>
+                    </div>
+                </div>
+            `
+
+            const singleHeroCtx = {
+                projectData: {
+                    playerCharacter: {
+                        getName: () => 'Thorgal',
+                        getCharacterClass: () => 'Wojownik Północy',
+                    },
+                },
+            }
+
+            setupCharacterSheetUI(singleHeroCtx)
+
+            const container = document.getElementById('export-container-character-sheet')
+            const checkbox = document.getElementById(
+                'export-opt-character-sheet'
+            ) as HTMLInputElement
+            const indicator = document.getElementById('export-single-hero-indicator')
+            const panel = document.getElementById('export-heroes-selection-panel')
+
+            expect(container?.classList.contains('hidden')).toBe(false)
+            expect(checkbox?.checked).toBe(true)
+            expect(indicator?.textContent).toContain('Thorgal')
+            expect(panel?.classList.contains('hidden')).toBe(true)
+        })
+
+        it('displays multi-selection list and toggle button when multiple player characters exist', () => {
+            document.body.innerHTML = `
+                <div id="modal-export-project">
+                    <div id="export-container-character-sheet" class="hidden">
+                        <input type="checkbox" id="export-opt-character-sheet" />
+                        <span id="export-single-hero-indicator"></span>
+                        <div id="export-heroes-selection-panel" class="hidden">
+                            <button id="btn-export-toggle-all-heroes"></button>
+                            <div id="export-heroes-list"></div>
+                        </div>
+                    </div>
+                </div>
+            `
+
+            const multiCtx = {
+                projectData: {
+                    playerCharacters: [
+                        {
+                            getId: () => 'h1',
+                            getName: () => 'Geralt',
+                            getCharacterClass: () => 'Wiedźmin',
+                        },
+                        {
+                            getId: () => 'h2',
+                            getName: () => 'Yennefer',
+                            getCharacterClass: () => 'Czarodziejka',
+                        },
+                    ],
+                },
+            }
+
+            setupCharacterSheetUI(multiCtx)
+
+            const container = document.getElementById('export-container-character-sheet')
+            const panel = document.getElementById('export-heroes-selection-panel')
+            const list = document.getElementById('export-heroes-list')
+            const btnToggle = document.getElementById('btn-export-toggle-all-heroes')
+
+            expect(container?.classList.contains('hidden')).toBe(false)
+            expect(panel?.classList.contains('hidden')).toBe(false)
+
+            const checkboxes = list?.querySelectorAll(
+                '.export-hero-checkbox'
+            ) as NodeListOf<HTMLInputElement>
+            expect(checkboxes.length).toBe(2)
+            expect(checkboxes[0].value).toBe('h1')
+            expect(checkboxes[1].value).toBe('h2')
+            expect(checkboxes[0].checked).toBe(true)
+
+            // Test Toggle All button
+            btnToggle?.click()
+            expect(checkboxes[0].checked).toBe(false)
+            expect(checkboxes[1].checked).toBe(false)
+
+            btnToggle?.click()
+            expect(checkboxes[0].checked).toBe(true)
+            expect(checkboxes[1].checked).toBe(true)
         })
     })
 })
