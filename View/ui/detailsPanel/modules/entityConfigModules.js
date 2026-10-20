@@ -203,9 +203,10 @@ export function renderNameModule(container, item, entityScope, ctx, onRefreshDet
         }
         nameError.classList.add('hidden')
         nameInput.classList.remove('border-red-500')
-        ctx.vm.updateName(val, entityScope)
+        ctx.vm.updateName(val, entityScope, ctx)
         renderHistoryBar(ctx, onRefreshDetails)
         ctx.refreshActiveSection(item.type)
+        markProjectDirty()
         return true
     }
 

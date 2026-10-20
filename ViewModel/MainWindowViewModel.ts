@@ -36,6 +36,7 @@ import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
 import { CombatMarkdownService } from '../Services/CombatMarkdownService'
 import { CombatSyncService } from '../Services/CombatSyncService'
 import { DescriptionTransclusionService } from '../Services/DescriptionTransclusionService'
+import { EntityLinkUpdateService } from '../Services/EntityLinkUpdateService'
 import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
 import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
@@ -57,6 +58,7 @@ export {
     DescriptionTransclusionService,
     type DiceBranch,
     ENTITY_CATEGORIES,
+    EntityLinkUpdateService,
     Feature,
     type IChoiceDiceCheck,
     type IChoiceModifier,
@@ -408,10 +410,22 @@ export class MainWindowViewModel {
         return { valid: true }
     }
 
-    public updateName(newName: string, allEntities?: IIdentifiableEntity[]): boolean {
+    public updateName(
+        newName: string,
+        allEntities?: IIdentifiableEntity[],
+        projectScope?: unknown
+    ): boolean {
         if (!this.selectedItem?.entity) return false
         const validation = this.validateName(newName, this.selectedItem, allEntities)
         if (!validation.valid) return false
+
+        const oldName =
+            this.selectedItem.name ||
+            (this.selectedItem.entity.getName
+                ? this.selectedItem.entity.getName()
+                : this.selectedItem.entity.getTitle
+                  ? this.selectedItem.entity.getTitle()
+                  : '')
 
         const trimmed = newName.trim()
         if (this.selectedItem.entity.setName) {
@@ -420,10 +434,28 @@ export class MainWindowViewModel {
             this.selectedItem.entity.setTitle(trimmed)
         }
 
+        const id =
+            this.selectedItem.id ||
+            (this.selectedItem.entity.getId ? this.selectedItem.entity.getId() : '')
+        const type = this.selectedItem.type
+
         this.selectedItem.name = trimmed
         const hist = this.history.find(h => h.id === this.selectedItem!.id)
         if (hist) {
             hist.name = trimmed
+        }
+
+        if (oldName && oldName !== trimmed) {
+            this.updateFileDisplayNameForEntity(oldName, trimmed, id)
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id,
+                    oldName,
+                    newName: trimmed,
+                    type,
+                },
+                projectScope || allEntities || this
+            )
         }
 
         return true
@@ -720,6 +752,14 @@ export class MainWindowViewModel {
 
     public setFileDisplayName(file: string, displayName: string): void {
         this.fileDisplayNames.set(file, displayName)
+    }
+
+    public updateFileDisplayNameForEntity(oldName: string, newName: string, id?: string): void {
+        for (const [key, val] of this.fileDisplayNames.entries()) {
+            if (val === oldName || (id && key.includes(id))) {
+                this.fileDisplayNames.set(key, newName)
+            }
+        }
     }
 
     public getFileDisplayName(file: string | null): string {
