@@ -1001,6 +1001,21 @@ async function initApp() {
             })
         }
 
+        const showGridCheckbox = document.getElementById('settings-show-grid')
+        const gridSvg = document.getElementById('graph-grid-svg')
+        if (showGridCheckbox && gridSvg) {
+            const savedGridPref = localStorage.getItem('gamebook_setting_show_grid')
+            const isGridVisible = savedGridPref !== null ? savedGridPref === 'true' : true
+            showGridCheckbox.checked = isGridVisible
+            gridSvg.classList.toggle('hidden', !isGridVisible)
+
+            showGridCheckbox.addEventListener('change', () => {
+                const visible = showGridCheckbox.checked
+                localStorage.setItem('gamebook_setting_show_grid', String(visible))
+                gridSvg.classList.toggle('hidden', !visible)
+            })
+        }
+
         if (isAutoSaveEnabled()) {
             startAutoSave(appContext)
         }

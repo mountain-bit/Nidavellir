@@ -139,6 +139,20 @@ export function clearHeroTags() {
     heroTags = []
 }
 
+let heroInventories = []
+
+export function getHeroInventories() {
+    return heroInventories
+}
+
+export function setHeroInventories(invs) {
+    heroInventories = Array.isArray(invs) ? [...invs] : []
+}
+
+export function clearHeroInventories() {
+    heroInventories = []
+}
+
 /**
  * Creates a comparable snapshot of the current form state to detect unsaved changes.
  */
@@ -153,6 +167,7 @@ export function captureFormSnapshot(nameInputVal = '', summaryInputVal = '', des
         heroSkills,
         heroVitals,
         heroTags,
+        heroInventories,
     })
 }
 
@@ -172,6 +187,7 @@ export function resetHeroState() {
     heroSkills = []
     heroVitals = []
     heroTags = []
+    heroInventories = []
     editingHero = null
     isDrawerOpen = false
     originalFormSnapshot = null

@@ -11,12 +11,14 @@ import { clampModalPosition, initDraggable, initResizable } from '../npc/npcDrag
 import { saveHeroCharacter as saveHeroCharacterHelper } from './heroSaver.js'
 import {
     addHeroCustomAttribute,
+    addHeroInventory,
     addHeroSkill,
     addHeroStat,
     addHeroVital,
     initHeroAvatarGrid,
     initHeroTagsController,
     renderHeroCustomAttributes,
+    renderHeroInventories,
     renderHeroSkills,
     renderHeroStats,
     renderHeroTags,
@@ -263,6 +265,44 @@ export function openHeroModal(options = {}) {
         const tags = targetHero.getTags ? targetHero.getTags() : targetHero.tags || []
         state.setHeroTags(tags)
 
+        // Inventories
+        const rawInvs = targetHero.getInventories
+            ? targetHero.getInventories()
+            : targetHero.inventories || []
+        if (rawInvs.length > 0) {
+            state.setHeroInventories(
+                rawInvs.map(inv => ({
+                    id: inv.getId ? inv.getId() : inv.id || `inv_${Date.now()}`,
+                    name: inv.getName ? inv.getName() : inv.name || 'Główny plecak',
+                    capacity:
+                        typeof inv.getCapacity === 'function'
+                            ? inv.getCapacity()
+                            : (inv.capacity ?? 0),
+                    items: (inv.getItems ? inv.getItems() : inv.items || []).map(it => ({
+                        id: it.getId ? it.getId() : it.id || `item_${Date.now()}`,
+                        name: it.getName ? it.getName() : it.name || String(it),
+                    })),
+                }))
+            )
+        } else {
+            const legacyItems = targetHero.getItems ? targetHero.getItems() : targetHero.items || []
+            if (legacyItems.length > 0) {
+                state.setHeroInventories([
+                    {
+                        id: 'inv_default',
+                        name: 'Główny plecak',
+                        capacity: 0,
+                        items: legacyItems.map(it => ({
+                            id: it.getId ? it.getId() : it.id || `item_${Date.now()}`,
+                            name: it.getName ? it.getName() : it.name || String(it),
+                        })),
+                    },
+                ])
+            } else {
+                state.setHeroInventories([])
+            }
+        }
+
         // Set rich editor content
         getOrCreateHeroEditor(ctx)
         setHeroDescription(narrativeText)
@@ -285,6 +325,14 @@ export function openHeroModal(options = {}) {
         state.setHeroStats([])
         state.setHeroVitals([])
         state.setHeroSkills([])
+        state.setHeroInventories([
+            {
+                id: 'inv_default',
+                name: 'Główny plecak',
+                capacity: 10,
+                items: [],
+            },
+        ])
 
         getOrCreateHeroEditor(ctx)
         setHeroDescription('')
@@ -295,6 +343,7 @@ export function openHeroModal(options = {}) {
     renderHeroVitals()
     renderHeroSkills()
     renderHeroTags()
+    renderHeroInventories()
     updateHeroVitalFormulasPreview()
     updateHeroSkillStatDropdowns()
 
@@ -420,6 +469,11 @@ export function setupHeroModal(ctx) {
     const btnAddSkill = document.getElementById('btn-add-hero-skill')
     if (btnAddSkill) {
         btnAddSkill.onclick = () => addHeroSkill('', '', '')
+    }
+
+    const btnAddInventory = document.getElementById('btn-add-hero-inventory')
+    if (btnAddInventory) {
+        btnAddInventory.onclick = () => addHeroInventory()
     }
 
     // Tags

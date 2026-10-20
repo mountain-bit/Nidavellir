@@ -285,6 +285,28 @@ export function compileCharacterSheet(hero) {
         name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
     }))
 
+    // Inventories (wielokrotny ekwipunek)
+    const rawInventories =
+        (typeof hero.getInventories === 'function' ? hero.getInventories() : hero.inventories) || []
+    const inventories = rawInventories.map(inv => {
+        const invName =
+            (typeof inv.getName === 'function' ? inv.getName() : inv.name) || 'Ekwipunek'
+        const invCapacity =
+            typeof inv.getCapacity === 'function' ? inv.getCapacity() : (inv.capacity ?? 0)
+        const invItemsRaw = (typeof inv.getItems === 'function' ? inv.getItems() : inv.items) || []
+        const invItems = invItemsRaw.map(i => ({
+            name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
+            description:
+                (typeof i.getDescription === 'function' ? i.getDescription() : i.description) || '',
+        }))
+        return {
+            id: (typeof inv.getId === 'function' ? inv.getId() : inv.id) || '',
+            name: invName,
+            capacity: Number(invCapacity) || 0,
+            items: invItems,
+        }
+    })
+
     // Tags
     const rawTags = (typeof hero.getTags === 'function' ? hero.getTags() : hero.tags) || []
     const tags = rawTags.map(t =>
@@ -302,6 +324,7 @@ export function compileCharacterSheet(hero) {
         skills,
         features,
         items,
+        inventories,
         tags,
     }
 }
@@ -1220,13 +1243,49 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
                            </div>`
                         : ''
 
-                const itemsList = sheet.items && sheet.items.length > 0 ? sheet.items : []
-                const itemLines = []
-                for (let i = 0; i < Math.max(5, itemsList.length + 2); i++) {
-                    const itemName = itemsList[i]
-                        ? itemsList[i].name
-                        : '..................................................................................'
-                    itemLines.push(`<li>${escapeHtml(itemName)}</li>`)
+                let inventoryHtml = ''
+                if (sheet.inventories && sheet.inventories.length > 0) {
+                    inventoryHtml = sheet.inventories
+                        .map(inv => {
+                            const capText =
+                                inv.capacity > 0
+                                    ? ` (Pojemność: ${inv.capacity} miejsc)`
+                                    : ' (Bez limitu)'
+                            const invItems = inv.items || []
+                            const numLines =
+                                inv.capacity > 0 ? inv.capacity : Math.max(5, invItems.length + 2)
+                            const lines = []
+                            for (let i = 0; i < numLines; i++) {
+                                const itemName = invItems[i]
+                                    ? invItems[i].name
+                                    : '..................................................................................'
+                                lines.push(`<li>${escapeHtml(itemName)}</li>`)
+                            }
+                            return `
+                        <div class="sheet-box-inner" style="margin-top: 8px;">
+                            <strong>${escapeHtml(inv.name || 'Ekwipunek')}${escapeHtml(capText)}:</strong>
+                            <ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
+                                ${lines.join('')}
+                            </ol>
+                        </div>`
+                        })
+                        .join('')
+                } else {
+                    const itemsList = sheet.items && sheet.items.length > 0 ? sheet.items : []
+                    const itemLines = []
+                    for (let i = 0; i < Math.max(5, itemsList.length + 2); i++) {
+                        const itemName = itemsList[i]
+                            ? itemsList[i].name
+                            : '..................................................................................'
+                        itemLines.push(`<li>${escapeHtml(itemName)}</li>`)
+                    }
+                    inventoryHtml = `
+                        <div class="sheet-box-inner" style="margin-top: 8px;">
+                            <strong>Plecak i Wyposażenie:</strong>
+                            <ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
+                                ${itemLines.join('')}
+                            </ol>
+                        </div>`
                 }
 
                 return `
@@ -1241,12 +1300,7 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
                         ${paramsHtml}
                         ${statsHtml}
                         ${skillsHtml}
-                        <div class="sheet-box-inner" style="margin-top: 8px;">
-                            <strong>Plecak i Wyposażenie:</strong>
-                            <ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
-                                ${itemLines.join('')}
-                            </ol>
-                        </div>
+                        ${inventoryHtml}
                     </div>
                 </section>
                 `

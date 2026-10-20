@@ -8,6 +8,8 @@ import { toast } from '../../../../dist/Utils/toast.js'
 import { t } from '../../../../dist/Utils/translate.js'
 import {
     Description,
+    Inventory,
+    Item,
     Parameter,
     PlayerCharacter,
     Skill,
@@ -237,6 +239,27 @@ export function saveHeroCharacter(ctx, options = {}) {
             : new Tag(tg.id || `tag_${Date.now()}`, tg.name || '', tg.color || '#3b82f6')
     )
 
+    const rawInventories = state.getHeroInventories()
+    const domainInventories = rawInventories.map(inv => {
+        const rawItems = Array.isArray(inv.items) ? inv.items : []
+        const domainItems = rawItems
+            .map(it => {
+                const itName = (typeof it === 'string' ? it : it?.name || '').trim()
+                if (!itName) return null
+                return new Item(it.id || `item_${Date.now()}`, itName, new Description())
+            })
+            .filter(Boolean)
+        return new Inventory(
+            inv.id || `inv_${Date.now()}`,
+            inv.name || 'Główny plecak',
+            typeof inv.capacity === 'number' ? inv.capacity : 0,
+            domainItems
+        )
+    })
+
+    const allDomainItems = []
+    domainInventories.forEach(inv => allDomainItems.push(...inv.getItems()))
+
     const isEdit = Boolean(state.getEditingHero())
     const heroId =
         isEdit && state.getEditingHero()?.getId?.()
@@ -251,12 +274,13 @@ export function saveHeroCharacter(ctx, options = {}) {
         domainStats,
         domainSkills,
         [],
-        isEdit && state.getEditingHero()?.getItems ? state.getEditingHero().getItems() : [],
+        allDomainItems,
         null,
         avatar,
         domainVitals,
         domainTags,
-        customAttrs
+        customAttrs,
+        domainInventories
     )
 
     // Synchronize Project memory

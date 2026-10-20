@@ -5,6 +5,7 @@ import { Condition, TextCondition } from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Feature } from '../Model/Feature'
+import { Inventory } from '../Model/Inventory'
 import { Item } from '../Model/Item'
 import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
@@ -40,6 +41,7 @@ export {
     DescriptionTransclusionService,
     ENTITY_CATEGORIES,
     Feature,
+    Inventory,
     Item,
     Location,
     NPC,

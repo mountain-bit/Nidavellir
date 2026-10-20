@@ -1047,32 +1047,70 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
         }
 
         // Inventory / Equipment
-        elements.push(
-            new Paragraph({
-                style: 'GamebookParagraph',
-                children: [
-                    new TextRun({
-                        text: 'Ekwipunek i Wyposażenie:',
-                        bold: true,
-                        color: accentColor,
-                    }),
-                ],
-                spacing: { before: 160, after: 60 },
-            })
-        )
+        const inventories =
+            sheet.inventories && sheet.inventories.length > 0 ? sheet.inventories : null
+        if (inventories) {
+            for (const inv of inventories) {
+                const capText =
+                    inv.capacity > 0
+                        ? ` (Pojemność: ${inv.capacity} miejsc)`
+                        : ' (Pojemność: bez limitu)'
+                elements.push(
+                    new Paragraph({
+                        style: 'GamebookParagraph',
+                        children: [
+                            new TextRun({
+                                text: `${inv.name || 'Ekwipunek'}${capText}:`,
+                                bold: true,
+                                color: accentColor,
+                            }),
+                        ],
+                        spacing: { before: 160, after: 60 },
+                    })
+                )
 
-        const startItems = sheet.items || []
-        const totalLines = Math.max(6, startItems.length + 3)
-        for (let i = 0; i < totalLines; i++) {
-            const itemText = startItems[i]
-                ? `${i + 1}. ${startItems[i].name}`
-                : `${i + 1}. ............................................................................................`
+                const invItems = inv.items || []
+                const numLines = inv.capacity > 0 ? inv.capacity : Math.max(5, invItems.length + 3)
+                for (let i = 0; i < numLines; i++) {
+                    const itemText = invItems[i]
+                        ? `${i + 1}. ${invItems[i].name}`
+                        : `${i + 1}. ............................................................................................`
+                    elements.push(
+                        new Paragraph({
+                            style: 'GamebookList',
+                            children: [new TextRun({ text: itemText })],
+                        })
+                    )
+                }
+            }
+        } else {
             elements.push(
                 new Paragraph({
-                    style: 'GamebookList',
-                    children: [new TextRun({ text: itemText })],
+                    style: 'GamebookParagraph',
+                    children: [
+                        new TextRun({
+                            text: 'Ekwipunek i Wyposażenie:',
+                            bold: true,
+                            color: accentColor,
+                        }),
+                    ],
+                    spacing: { before: 160, after: 60 },
                 })
             )
+
+            const startItems = sheet.items || []
+            const totalLines = Math.max(6, startItems.length + 3)
+            for (let i = 0; i < totalLines; i++) {
+                const itemText = startItems[i]
+                    ? `${i + 1}. ${startItems[i].name}`
+                    : `${i + 1}. ............................................................................................`
+                elements.push(
+                    new Paragraph({
+                        style: 'GamebookList',
+                        children: [new TextRun({ text: itemText })],
+                    })
+                )
+            }
         }
 
         elements.push(new Paragraph({ children: [new PageBreak()] }))

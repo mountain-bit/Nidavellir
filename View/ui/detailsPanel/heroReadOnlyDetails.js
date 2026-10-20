@@ -333,7 +333,66 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
     })
     container.appendChild(skillsMod)
 
-    // 10. Custom Attributes Module
+    // 10. Inventories Module
+    const inventories =
+        typeof entity.getInventories === 'function'
+            ? entity.getInventories() || []
+            : entity.inventories || []
+    const invCount = inventories.length
+    const invMod = createSection(
+        'border-b border-[#333338] p-3 space-y-2',
+        `
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('hero.inventories_title') || 'Ekwipunki i Przedmioty'}</span>
+            <span class="text-[10px] text-gray-500 font-mono">${invCount}</span>
+        </div>
+        <div id="details-hero-inventories-list" class="flex flex-col gap-2 min-h-[20px]">
+            ${invCount === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('hero.empty_inventories') || 'Brak ekwipunków'}</span>` : ''}
+        </div>
+    `
+    )
+    const invListEl = invMod.querySelector('#details-hero-inventories-list')
+    inventories.forEach(inv => {
+        const invName = typeof inv.getName === 'function' ? inv.getName() : inv.name || 'Ekwipunek'
+        const capacity =
+            typeof inv.getCapacity === 'function' ? inv.getCapacity() : inv.capacity || 0
+        const items = typeof inv.getItems === 'function' ? inv.getItems() : inv.items || []
+        const capText = capacity > 0 ? `${items.length} / ${capacity}` : `${items.length} (∞)`
+
+        const card = document.createElement('div')
+        card.className =
+            'bg-[#18181b] p-2 rounded border border-[#27272a] text-xs flex flex-col gap-1.5'
+        card.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span class="text-white font-semibold flex items-center gap-1.5 truncate">
+                    <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('item', 'w-3 h-3')}</span>
+                    <span class="truncate">${escapeHtml(invName)}</span>
+                </span>
+                <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/50 shrink-0">${escapeHtml(capText)}</span>
+            </div>
+            ${
+                items.length > 0
+                    ? `
+                <div class="flex flex-wrap gap-1 pt-1 border-t border-zinc-800/80">
+                    ${items
+                        .map(it => {
+                            const itName =
+                                typeof it.getName === 'function'
+                                    ? it.getName()
+                                    : it.name || String(it)
+                            return `<span class="px-1.5 py-0.5 rounded text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium">${escapeHtml(itName)}</span>`
+                        })
+                        .join('')}
+                </div>
+            `
+                    : `<div class="text-[10px] text-zinc-500 italic pt-0.5">${escapeHtml(t('hero.empty_inv_items') || 'Pusty ekwipunek')}</div>`
+            }
+        `
+        invListEl.appendChild(card)
+    })
+    container.appendChild(invMod)
+
+    // 11. Custom Attributes Module
     const customAttrs =
         typeof entity.getCustomAttributes === 'function'
             ? entity.getCustomAttributes() || []

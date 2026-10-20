@@ -140,7 +140,22 @@
         "created_success_msg": "Pomyślnie utworzono postać bohatera: {{name}}",
         "no_hero_configured": "Brak skonfigurowanego bohatera gracza. Kliknij, aby stworzyć postać.",
         "create_hero_btn": "Stwórz Postać Gracza",
-        "edit_hero_btn": "Edytuj Kartę Bohatera"
+        "edit_hero_btn": "Edytuj Kartę Bohatera",
+        "inventories_title": "Ekwipunki i Przedmioty",
+        "add_inventory": "Dodaj ekwipunek",
+        "empty_inventories": "Brak zdefiniowanych ekwipunków. Kliknij „Dodaj ekwipunek”.",
+        "inventory_name_placeholder": "Np. Główny plecak, Sakiewka...",
+        "capacity_label": "Pojemność:",
+        "capacity_tooltip": "0 = brak limitu slotów",
+        "remove_inventory": "Usuń ten ekwipunek",
+        "initial_items": "Przedmioty początkowe:",
+        "add_item": "Dodaj przedmiot",
+        "empty_inv_items": "Brak przedmiotów w tym ekwipunku",
+        "item_name_placeholder": "Nazwa przedmiotu...",
+        "remove_item": "Usuń przedmiot",
+        "items_count": "przedmiotów",
+        "unlimited": "bez limitu",
+        "slots_used": "slotów"
     },
     "npc": {
         "modal_title": "Karta Postaci NPC",

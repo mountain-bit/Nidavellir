@@ -649,6 +649,68 @@ Wybierz swój dalszy krok.
             expect(compiled.characterSheets).toEqual([])
             expect(compiled.characterSheet).toBeNull()
         })
+
+        it('compiles and renders multiple inventories with capacities and initial items', () => {
+            const heroWithInventories = {
+                id: 'hero_inv',
+                getName: () => 'Kupiec Korzenny',
+                getCharacterClass: () => 'Handlarz',
+                getSummary: () => 'Zamożny podróżnik',
+                getInventories: () => [
+                    {
+                        getId: () => 'inv_bag',
+                        getName: () => 'Skórzana Torba',
+                        getCapacity: () => 3,
+                        getItems: () => [
+                            { getName: () => 'Zwój pergaminu' },
+                            { getName: () => 'Atrament' },
+                        ],
+                    },
+                    {
+                        getId: () => 'inv_wagon',
+                        getName: () => 'Wóz Kupiecki',
+                        getCapacity: () => 0,
+                        getItems: () => [{ getName: () => 'Beczka piwa' }],
+                    },
+                ],
+            }
+
+            const ctx = {
+                projectData: {
+                    projectName: 'Wyprawa Handlowa',
+                    projectParagraphs: [{ id: 'p1', number: 1, text: 'Początek' }],
+                    playerCharacters: [heroWithInventories],
+                },
+            }
+
+            const compiled = compileGamebook(ctx, {
+                includeCharacterSheet: true,
+            })
+
+            expect(compiled.characterSheet).toBeDefined()
+            expect(compiled.characterSheet.inventories).toBeDefined()
+            expect(compiled.characterSheet.inventories.length).toBe(2)
+
+            const inv1 = compiled.characterSheet.inventories[0]
+            expect(inv1.name).toBe('Skórzana Torba')
+            expect(inv1.capacity).toBe(3)
+            expect(inv1.items.length).toBe(2)
+            expect(inv1.items[0].name).toBe('Zwój pergaminu')
+
+            const inv2 = compiled.characterSheet.inventories[1]
+            expect(inv2.name).toBe('Wóz Kupiecki')
+            expect(inv2.capacity).toBe(0)
+            expect(inv2.items.length).toBe(1)
+            expect(inv2.items[0].name).toBe('Beczka piwa')
+
+            // Verify HTML output contains inventory headers and item slots
+            const html = generatePrintHtml(compiled)
+            expect(html).toContain('Skórzana Torba (Pojemność: 3 miejsc)')
+            expect(html).toContain('Zwój pergaminu')
+            expect(html).toContain('Atrament')
+            expect(html).toContain('Wóz Kupiecki (Bez limitu)')
+            expect(html).toContain('Beczka piwa')
+        })
     })
 
     describe('Locations and NPCs Markdown Descriptions in Export', () => {

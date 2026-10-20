@@ -1100,8 +1100,9 @@
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
+                                            id="settings-show-grid"
                                             checked
-                                            class="rounded accent-blue-500"
+                                            class="rounded accent-blue-500 cursor-pointer"
                                         />
                                         <span data-i18n="settings.show_grid"
                                             >Pokazuj siatkę w grafie</span
@@ -3599,6 +3600,44 @@
                                         data-i18n="hero.empty_skills"
                                     >
                                         Brak umiejętności. Kliknij „Dodaj umiejętność”.
+                                    </div>
+                                </div>
+
+                                <!-- Inventories Section (Ekwipunki i Przedmioty Początkowe) -->
+                                <div id="hero-inventories-section" class="flex flex-col gap-2.5 pb-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon
+                                                name="item"
+                                                class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                            ></app-icon>
+                                            <h4
+                                                class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                data-i18n="hero.inventories_title"
+                                            >
+                                                Ekwipunki i Przedmioty
+                                            </h4>
+                                        </div>
+                                        <button
+                                            id="btn-add-hero-inventory"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="hero.add_inventory">Dodaj ekwipunek</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Dynamic Inventories List -->
+                                    <div id="hero-inventories-list" class="flex flex-col gap-3"></div>
+
+                                    <!-- Empty State -->
+                                    <div
+                                        id="hero-inventories-empty"
+                                        class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic"
+                                        data-i18n="hero.empty_inventories"
+                                    >
+                                        Brak zdefiniowanych ekwipunków. Kliknij „Dodaj ekwipunek”.
                                     </div>
                                 </div>
                             </div>

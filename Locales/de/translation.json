@@ -111,7 +111,22 @@
         "created_success_msg": "Spieler-Protagonist erfolgreich erstellt: {{name}}",
         "no_hero_configured": "Noch kein Spielercharakter konfiguriert. Klicken, um Protagonisten zu erstellen.",
         "create_hero_btn": "Spielercharakter erstellen",
-        "edit_hero_btn": "Heldenbogen bearbeiten"
+        "edit_hero_btn": "Heldenbogen bearbeiten",
+        "inventories_title": "Inventare & Gegenstände",
+        "add_inventory": "Inventar hinzufügen",
+        "empty_inventories": "Keine Inventare konfiguriert. Klicken Sie auf „Inventar hinzufügen“.",
+        "inventory_name_placeholder": "z.B. Hauptrucksack, Tasche...",
+        "capacity_label": "Kapazität:",
+        "capacity_tooltip": "0 = unbegrenzte Plätze",
+        "remove_inventory": "Dieses Inventar entfernen",
+        "initial_items": "Startgegenstände:",
+        "add_item": "Gegenstand hinzufügen",
+        "empty_inv_items": "Keine Gegenstände in diesem Inventar",
+        "item_name_placeholder": "Name des Gegenstands...",
+        "remove_item": "Gegenstand entfernen",
+        "items_count": "Gegenstände",
+        "unlimited": "unbegrenzt",
+        "slots_used": "Plätze"
     },
     "npc": {
         "modal_title": "NPC-Charakterbogen",

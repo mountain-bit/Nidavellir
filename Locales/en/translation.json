@@ -140,7 +140,22 @@
         "created_success_msg": "Successfully created player protagonist: {{name}}",
         "no_hero_configured": "No player character configured yet. Click to create protagonist.",
         "create_hero_btn": "Create Player Character",
-        "edit_hero_btn": "Edit Hero Folio"
+        "edit_hero_btn": "Edit Hero Folio",
+        "inventories_title": "Inventories & Items",
+        "add_inventory": "Add inventory",
+        "empty_inventories": "No inventories configured. Click \"Add inventory\".",
+        "inventory_name_placeholder": "e.g. Main Backpack, Pouch...",
+        "capacity_label": "Capacity:",
+        "capacity_tooltip": "0 = unlimited slots",
+        "remove_inventory": "Remove this inventory",
+        "initial_items": "Initial items:",
+        "add_item": "Add item",
+        "empty_inv_items": "No items in this inventory",
+        "item_name_placeholder": "Item name...",
+        "remove_item": "Remove item",
+        "items_count": "items",
+        "unlimited": "unlimited",
+        "slots_used": "slots"
     },
     "npc": {
         "modal_title": "NPC Character Folio",

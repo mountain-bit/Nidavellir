@@ -757,3 +757,228 @@ export function addHeroSkill(name = '', statName = '', value = '') {
     state.setHeroSkills(current)
     renderHeroSkills()
 }
+
+export function renderHeroInventories() {
+    const list = document.getElementById('hero-inventories-list')
+    const empty = document.getElementById('hero-inventories-empty')
+    if (!list) return
+
+    const inventories = state.getHeroInventories()
+
+    if (empty) {
+        if (inventories.length === 0) {
+            empty.classList.remove('hidden')
+        } else {
+            empty.classList.add('hidden')
+        }
+    }
+
+    list.innerHTML = inventories
+        .map((inv, invIdx) => {
+            const items = Array.isArray(inv.items) ? inv.items : []
+            const capacity = typeof inv.capacity === 'number' ? inv.capacity : 0
+            const isUnlimited = capacity === 0
+            const isOverCapacity = !isUnlimited && items.length > capacity
+            const badgeClass = isOverCapacity
+                ? 'bg-rose-950/70 border-rose-600/60 text-rose-300'
+                : 'bg-zinc-800/80 border-zinc-700/60 text-zinc-400'
+            const capacityBadge = isUnlimited
+                ? `${items.length} ${t('hero.items_count') || 'przedmiotów'} (${t('hero.unlimited') || 'bez limitu'})`
+                : `${items.length} / ${capacity} ${t('hero.slots_used') || 'slotów'}`
+
+            const itemsHtml = items
+                .map((item, itemIdx) => {
+                    const itemName = typeof item === 'string' ? item : item?.name || ''
+                    return `
+                    <div class="flex items-center gap-2 bg-[#18181b] p-1.5 rounded border border-[#2e3037] group">
+                        <span class="text-[10px] text-zinc-500 font-mono w-4 text-center shrink-0">${itemIdx + 1}.</span>
+                        <input
+                            type="text"
+                            class="hero-inv-item-name flex-1 bg-transparent text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:text-white"
+                            placeholder="${escapeHtml(t('hero.item_name_placeholder') || 'Nazwa przedmiotu...')}"
+                            value="${escapeHtml(itemName)}"
+                            data-inv-idx="${invIdx}"
+                            data-item-idx="${itemIdx}"
+                        />
+                        <button
+                            type="button"
+                            class="btn-remove-hero-inv-item text-zinc-500 hover:text-rose-400 p-0.5 rounded cursor-pointer transition-colors"
+                            data-inv-idx="${invIdx}"
+                            data-item-idx="${itemIdx}"
+                            title="${escapeHtml(t('hero.remove_item') || 'Usuń przedmiot')}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                `
+                })
+                .join('')
+
+            return `
+            <div class="p-3 rounded-xl bg-[#1b1c20] border border-[#2e3037] flex flex-col gap-2.5 shadow-sm" data-inv-idx="${invIdx}">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <input
+                            type="text"
+                            class="hero-inv-name flex-1 bg-[#141518] border border-[#2e3037] rounded-lg px-2.5 py-1 text-xs text-white font-medium placeholder-zinc-500 focus:outline-none focus:border-amber-500/50"
+                            placeholder="${escapeHtml(t('hero.inventory_name_placeholder') || 'Np. Główny plecak, Sakiewka...')}"
+                            value="${escapeHtml(inv.name || '')}"
+                            data-inv-idx="${invIdx}"
+                        />
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <div class="flex items-center gap-1.5 bg-[#141518] border border-[#2e3037] rounded-lg px-2 py-1">
+                            <span class="text-[10px] text-zinc-400 font-medium whitespace-nowrap">${escapeHtml(t('hero.capacity_label') || 'Pojemność:')}</span>
+                            <input
+                                type="number"
+                                min="0"
+                                max="999"
+                                class="hero-inv-capacity w-12 bg-transparent text-xs text-amber-300 font-mono text-center focus:outline-none"
+                                title="${escapeHtml(t('hero.capacity_tooltip') || '0 = brak limitu slotów')}"
+                                value="${capacity}"
+                                data-inv-idx="${invIdx}"
+                            />
+                            <span class="text-[9px] text-zinc-500" title="0 = bez limitu">(0=∞)</span>
+                        </div>
+                        <button
+                            type="button"
+                            class="btn-remove-hero-inv text-zinc-500 hover:text-rose-400 p-1 rounded hover:bg-rose-950/30 cursor-pointer transition-colors"
+                            data-inv-idx="${invIdx}"
+                            title="${escapeHtml(t('hero.remove_inventory') || 'Usuń ten ekwipunek')}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-zinc-800/80 pt-2 text-[11px]">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-zinc-400 font-medium">${escapeHtml(t('hero.initial_items') || 'Przedmioty początkowe:')}</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded border font-mono ${badgeClass}">${capacityBadge}</span>
+                    </div>
+                    <button
+                        type="button"
+                        class="btn-add-hero-inv-item px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/20 text-[10px] font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                        data-inv-idx="${invIdx}"
+                    >
+                        <span>+</span>
+                        <span>${escapeHtml(t('hero.add_item') || 'Dodaj przedmiot')}</span>
+                    </button>
+                </div>
+
+                <div class="hero-inv-items-container flex flex-col gap-1.5">
+                    ${itemsHtml || `<div class="text-[10px] text-zinc-600 italic py-1 text-center">${escapeHtml(t('hero.empty_inv_items') || 'Brak przedmiotów w tym ekwipunku')}</div>`}
+                </div>
+            </div>
+        `
+        })
+        .join('')
+
+    // Event listeners
+    list.querySelectorAll('.hero-inv-name').forEach(inp => {
+        inp.oninput = () => {
+            const idx = parseInt(inp.dataset.invIdx, 10)
+            const current = state.getHeroInventories()
+            if (current[idx]) {
+                current[idx].name = inp.value
+                state.setHeroInventories(current)
+            }
+        }
+    })
+
+    list.querySelectorAll('.hero-inv-capacity').forEach(inp => {
+        inp.onchange = () => {
+            const idx = parseInt(inp.dataset.invIdx, 10)
+            const current = state.getHeroInventories()
+            if (current[idx]) {
+                const val = parseInt(inp.value, 10)
+                current[idx].capacity = isNaN(val) || val < 0 ? 0 : val
+                state.setHeroInventories(current)
+                renderHeroInventories()
+            }
+        }
+    })
+
+    list.querySelectorAll('.btn-remove-hero-inv').forEach(btn => {
+        btn.onclick = () => {
+            const idx = parseInt(btn.dataset.invIdx, 10)
+            const current = state.getHeroInventories()
+            current.splice(idx, 1)
+            state.setHeroInventories(current)
+            renderHeroInventories()
+        }
+    })
+
+    list.querySelectorAll('.btn-add-hero-inv-item').forEach(btn => {
+        btn.onclick = () => {
+            const idx = parseInt(btn.dataset.invIdx, 10)
+            addHeroInventoryItem(idx)
+        }
+    })
+
+    list.querySelectorAll('.hero-inv-item-name').forEach(inp => {
+        inp.oninput = () => {
+            const invIdx = parseInt(inp.dataset.invIdx, 10)
+            const itemIdx = parseInt(inp.dataset.itemIdx, 10)
+            const current = state.getHeroInventories()
+            if (current[invIdx] && current[invIdx].items && current[invIdx].items[itemIdx]) {
+                if (typeof current[invIdx].items[itemIdx] === 'string') {
+                    current[invIdx].items[itemIdx] = inp.value
+                } else {
+                    current[invIdx].items[itemIdx].name = inp.value
+                }
+                state.setHeroInventories(current)
+            }
+        }
+    })
+
+    list.querySelectorAll('.btn-remove-hero-inv-item').forEach(btn => {
+        btn.onclick = () => {
+            const invIdx = parseInt(btn.dataset.invIdx, 10)
+            const itemIdx = parseInt(btn.dataset.itemIdx, 10)
+            removeHeroInventoryItem(invIdx, itemIdx)
+        }
+    })
+}
+
+export function addHeroInventory(name = '', capacity = 0, items = []) {
+    const current = state.getHeroInventories()
+    const defaultName =
+        name || (current.length === 0 ? 'Główny plecak' : `Ekwipunek ${current.length + 1}`)
+    current.push({
+        id: `inv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        name: defaultName,
+        capacity: typeof capacity === 'number' && capacity >= 0 ? capacity : 0,
+        items: Array.isArray(items) ? items : [],
+    })
+    state.setHeroInventories(current)
+    renderHeroInventories()
+}
+
+export function addHeroInventoryItem(invIdx, itemName = '') {
+    const current = state.getHeroInventories()
+    if (!current[invIdx]) return
+    if (!Array.isArray(current[invIdx].items)) {
+        current[invIdx].items = []
+    }
+    current[invIdx].items.push({
+        id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        name: itemName,
+    })
+    state.setHeroInventories(current)
+    renderHeroInventories()
+}
+
+export function removeHeroInventoryItem(invIdx, itemIdx) {
+    const current = state.getHeroInventories()
+    if (!current[invIdx] || !Array.isArray(current[invIdx].items)) return
+    current[invIdx].items.splice(itemIdx, 1)
+    state.setHeroInventories(current)
+    renderHeroInventories()
+}
