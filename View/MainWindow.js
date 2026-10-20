@@ -10,21 +10,22 @@ import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindo
 import { extractProjectData, loadProjectData } from './projectData.js'
 import { renderDetailsPanel, renderHistoryBar } from './ui/detailsPanel/detailsPanel.js'
 import {
+    populateFilterSelects,
     renderCharactersList,
     renderConnectionsList,
+    renderDrawerSearchResults,
+    renderFilterTags,
     renderLocationsList,
     renderMainCharacter,
     renderParagraphsList,
     renderScenesList,
     renderTagsList,
     renderTraitsList,
-} from './ui/drawer/drawerLists.js'
-import {
-    populateFilterSelects,
-    renderFilterTags,
+    setupDrawerSearch,
     setupParagraphSearchAndFilters,
+    setupSectionSearchInputs,
     updateFilterBadgeState,
-} from './ui/drawer/filterPopover.js'
+} from './ui/drawer/index.js'
 import {
     centerStoryGraph,
     getStoryGraphInstance,
@@ -238,6 +239,7 @@ const appContext = {
     updateFilterBadgeState: () => updateFilterBadgeState(appContext),
     renderHistoryBar: () => renderHistoryBar(appContext),
     renderDetailsPanel: () => renderDetailsPanel(appContext),
+    renderDrawerSearchResults: query => renderDrawerSearchResults(appContext, query),
     renderEditorTabs: () => renderEditorTabs(appContext),
     updateMainWorkspaceUI: () => updateMainWorkspaceUI(appContext),
     openHeroModal: opts => openHeroModal(opts),
@@ -345,6 +347,7 @@ function updateLeftDrawerUI() {
         else if (activeLeftTab === 'traits') renderTraitsList(appContext)
         else if (activeLeftTab === 'tags') renderTagsList(appContext)
         else if (activeLeftTab === 'main-character') renderMainCharacter(appContext)
+        else if (activeLeftTab === 'search') renderDrawerSearchResults(appContext)
     } else if (leftDrawer) {
         leftDrawer.classList.add('collapsed')
         if (leftResizer) leftResizer.classList.add('collapsed')
@@ -889,6 +892,8 @@ async function initApp() {
         }
 
         setupParagraphSearchAndFilters(appContext)
+        setupDrawerSearch(appContext)
+        setupSectionSearchInputs(appContext)
         setupSectionControlsAndContextMenu(appContext)
         setupNpcModal(appContext)
         setupHeroModal(appContext)

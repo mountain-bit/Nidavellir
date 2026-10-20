@@ -225,6 +225,7 @@ export class MainWindowViewModel {
     private featureSearchQuery: string = ''
     private tagSearchQuery: string = ''
     private connectionSearchQuery: string = ''
+    private itemSearchQuery: string = ''
 
     // Graph Settings
     private connectionLineStyle: ConnectionLineStyle = 'curved'
@@ -917,6 +918,14 @@ export class MainWindowViewModel {
         this.connectionSearchQuery = query
     }
 
+    public getItemSearchQuery(): string {
+        return this.itemSearchQuery
+    }
+
+    public setItemSearchQuery(query: string): void {
+        this.itemSearchQuery = query
+    }
+
     // Creation Factory Methods
     public createStartParagraph(position: { x: number; y: number } = { x: 80, y: 180 }): Paragraph {
         const p = new Paragraph('start', 'START')
@@ -1424,6 +1433,20 @@ export class MainWindowViewModel {
             l =>
                 l.getName().toLowerCase().includes(query) ||
                 l.getTags().some(t => t.getName().toLowerCase().includes(query))
+        )
+    }
+
+    public searchAndFilterItems(items: Item[]): Item[] {
+        const query = this.itemSearchQuery.trim().toLowerCase()
+        if (!query) return items
+        return items.filter(
+            it =>
+                it.getName().toLowerCase().includes(query) ||
+                (typeof it.getDescription === 'function' &&
+                    it.getDescription() &&
+                    it.getDescription().getText().toLowerCase().includes(query)) ||
+                (typeof it.getTags === 'function' &&
+                    it.getTags().some(t => t.getName().toLowerCase().includes(query)))
         )
     }
 
