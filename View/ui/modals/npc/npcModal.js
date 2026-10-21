@@ -4,14 +4,14 @@
  * form inputs, and narrative drawer, delegating sub-responsibilities to specialized modules.
  */
 
-import { applyTranslations, t } from '../../../dist/Utils/translate.js'
+import { applyTranslations, t } from '../../../../dist/Utils/translate.js'
 import {
     destroyNpcEditor,
     getNpcEditorInstance,
     getOrCreateNpcEditor,
     updateNpcEditorStats,
-} from '../editor/npcEditor.js'
-import { showUnsavedChangesModal } from '../modals/confirmModal.js'
+} from '../../editor/npcEditor.js'
+import { showUnsavedChangesModal } from '../confirm/confirmModal.js'
 import { evaluateFormula, parseStatValueAsNumber } from './formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcCharacterSaver.js'
 import { clampModalPosition, initDraggable, initResizable } from './npcDraggable.js'

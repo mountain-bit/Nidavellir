@@ -1,33 +1,35 @@
 # Frontend Architecture — Gamebook Engine
 
-This document provides an in-depth guide to the presentation layer (Renderer Process) of the **Gamebook Engine** (_Silnik Gier Paragrafowych_). It details the **MVVM** pattern, modular view controllers in `View/ui/`, and the interactive story graph subsystem in `Modules/Graph/` powered by **Cytoscape.js** and **Custom Web Components**.
+This document provides an in-depth guide to the presentation layer (Renderer Process) of the **Gamebook Engine** (_Silnik Gier Paragrafowych_). It details the **MVVM** pattern, modular view controllers in `View/ui/`, the interactive story graph subsystem in `Modules/Graph/` powered by **Cytoscape.js** and **Custom Web Components**, the TipTap Rich Markdown Editor, the in-app Image Editor, and the Publication & Export subsystem.
 
 ---
 
 ## 1. Frontend Architecture Overview (MVVM)
 
-The renderer process executes inside a sandboxed Chromium instance isolated from Node.js (`contextIsolation: true`, `nodeIntegration: false`). The user interface is structured around the **Model-View-ViewModel (MVVM)** pattern with a modularized view controller architecture.
+The renderer process executes inside a sandboxed Chromium instance isolated from Node.js (`contextIsolation: true`, `nodeIntegration: false`). The user interface is structured around the **Model-View-ViewModel (MVVM)** pattern with a modularized view controller architecture organized by domain.
 
 ```mermaid
 graph TD
     subgraph ViewLayer["View Layer (View & UI Controllers)"]
         HTML["MainWindow.html / StartWindow.html"]
-        MainController["MainWindow.js"]
+        MainController["MainWindow.js (Coordinates appContext)"]
         
         subgraph UIControllers["Modular Controllers (View/ui/)"]
-            WorkspaceCtrl["workspace.js (Workspace & Resizers)"]
-            DetailsCtrl["detailsPanel.js (Property Inspector & History)"]
-            DrawerCtrl["drawerLists.js (Entity Drawer Lists)"]
-            ContextMenuCtrl["contextMenu.js (Context Menus & Color Palette)"]
-            FilterCtrl["filterPopover.js (Faceted Search & Filters)"]
-            TemplatesHelper["htmlTemplates.js (HTML Template Builders)"]
+            WorkspaceCtrl["workspace/ (Layout, Top Bar, Quick Search, Context Menus)"]
+            DetailsCtrl["detailsPanel/ (Inspector, Combat, Exits, Character Sheets)"]
+            DrawerCtrl["drawer/ (Drawer Lists, Search, Faceted Filters)"]
+            EditorCtrl["editor/ (TipTap Toolbar, Styles, Font Browser, Mentions)"]
+            GraphCtrl["graph/ (Graph Controller, Drop Zones, Zoom Controls)"]
+            ModalsCtrl["modals/ (Export, Hero, NPC Folio, Playtest Simulator)"]
+            ProjectCtrl["project/ (Saver, State Tracker, AutoSave)"]
+            AssetsCtrl["assets/ (Asset Manager, Canvas Image Editor, Picker)"]
+            CommonCtrl["common/ (Templates, Confirm Modal, Avatars)"]
         end
 
-        subgraph GraphSubsystem["Story Graph Subsystem (Modules/Graph/)"]
-            StoryGraph["StoryGraph.ts (Cytoscape Coordinator)"]
-            ParagraphNodeWC["<paragraph-node> (Web Component)"]
-            SceneNodeWC["<scene-node> (Web Component)"]
-            GraphStyles["StoryGraphStyles.ts (Edge Styles & Collision Prevention)"]
+        subgraph FeatureModules["Engine Feature Modules (Modules/)"]
+            StoryGraph["Graph/ (Cytoscape Coordinator, Web Components, Layout)"]
+            MarkdownEditor["Editor/ (TipTap Markdown, Fonts, Custom Styles)"]
+            ImageProcessor["ImageEditor/ (Canvas 2D Processor)"]
         end
     end
 
@@ -41,26 +43,27 @@ graph TD
         SceneModel["Scene.ts"]
         ParagraphModel["Paragraph.ts"]
         ChoiceModel["Choice.ts"]
-        EntityModels["NPC, Location, Item, CharacterClass, Stat, Tag..."]
+        PlayerCharModel["PlayerCharacter.ts"]
+        CombatModel["Combat.ts"]
+        EntityModels["NPC, Location, Item, CharacterClass, Stat, Parameter, Tag..."]
     end
 
     subgraph FrontendServices["Frontend Services & Utilities (Services/ & Utils/)"]
         ProjectMgr["ProjectManager.ts (Active Project Singleton)"]
+        GraphVal["GraphValidator.ts (Integrity & Cycle Diagnostics)"]
         ToastMgr["toast.ts (Toast Notification System)"]
-        TranslateMgr["translate.ts (i18n Client)"]
+        TranslateMgr["translate.ts (Typed i18n Client)"]
         IconComponent["icons.ts (<app-icon>)"]
     end
 
     HTML --> MainController
     MainController --> UIControllers
     UIControllers --> MainVM
-    MainController --> StoryGraph
-    StoryGraph --> ParagraphNodeWC & SceneNodeWC
-    StoryGraph --> GraphStyles
-
+    UIControllers --> FeatureModules
+    FeatureModules --> ModelLayer
     MainVM --> ModelLayer
     MainVM --> FrontendServices
-    MainController --> ProjectMgr
+    MainController --> ProjectMgr & GraphVal
 ```
 
 ---
@@ -69,8 +72,8 @@ graph TD
 
 Models located in `Model/` are strongly typed TypeScript classes that encapsulate story game entities and business invariants:
 - Strict encapsulation (`private` properties with getters/setters).
-- `fromJSON(data)` factory constructors to parse data from `element.json` and `project.json`.
-- `toJSON()` methods for safe serialization to disk.
+- `fromJSON(data)` factory constructors to parse data from `element.json` and `project.json` (supporting Polish legacy schemas).
+- `toJSON()` methods emitting clean English schemas for safe serialization to disk.
 
 ### Key Domain Relationships:
 
@@ -89,6 +92,7 @@ classDiagram
         +PlayerCharacter playerCharacter
         +Stat[] globalStats
         +Skill[] globalSkills
+        +Parameter[] globalParameters
         +Feature[] globalFeatures
         +Tag[] tagList
         +fromJSON(projectData, entities)
@@ -98,54 +102,79 @@ classDiagram
     class Scene {
         +string id
         +string name
-        +Description description
-        +Paragraph[] paragraphs
-        +NPC[] characters
-        +Location[] locations
-        +Tag[] tags
-        +string initialParagraphId
-        +position: {x, y}
-        +number width
-        +number height
         +string color
-        +boolean isMovementLocked
+        +Paragraph[] paragraphs
+        +fromJSON(json)
+        +toJSON()
     }
 
     class Paragraph {
         +string id
+        +string title
         +number number
         +number randomizedNumber
         +boolean isNumberLocked
-        +string title
-        +Description content
+        +Description description
         +Choice[] choices
-        +boolean hasCombat
         +Combat combat
         +Tag[] tags
-        +NPC[] characters
-        +Location[] locations
+        +fromJSON(json)
+        +toJSON()
+    }
+
+    class PlayerCharacter {
+        +string id
+        +string name
+        +Description description
+        +string avatar
+        +CharacterClass characterClass
+        +Stat[] stats
+        +Parameter[] parameters
+        +Skill[] skills
+        +Item[] inventory
+        +Tag[] tags
+        +fromJSON(json)
+        +toJSON()
+    }
+
+    class NPC {
+        +string id
+        +string name
+        +Description description
+        +string avatar
+        +Stat[] stats
+        +Parameter[] parameters
+        +Skill[] skills
+        +Feature[] features
+        +Item[] items
+        +fromJSON(json)
+        +toJSON()
     }
 
     class Choice {
-        +string id
-        +string name
-        +string fromParagraphId
-        +string toParagraphId
+        +string text
+        +string targetParagraphId
         +Condition condition
+        +fromJSON(json)
+        +toJSON()
     }
 
     class Description {
         +string text
         +string summary
         +string filePath
+        +fromJSON(json)
+        +toJSON()
     }
 
     Project "1" *-- "many" Scene
-    Project "1" *-- "many" Paragraph
-    Scene "1" o-- "many" Paragraph
+    Project "1" *-- "1" PlayerCharacter
+    Project "1" *-- "many" NPC
+    Scene "1" *-- "many" Paragraph
     Paragraph "1" *-- "many" Choice
     Paragraph "1" *-- "1" Description
-    Scene "1" *-- "1" Description
+    PlayerCharacter "1" *-- "1" Description
+    NPC "1" *-- "1" Description
 ```
 
 ---
@@ -156,12 +185,12 @@ ViewModels isolate UI presentation state, algorithms, and event handling from di
 
 ### 3.1. `MainWindowViewModel.ts`
 Coordinates the state of the primary editor window:
-- **Ribbon Toolbar State**:
-  Tracks the active tab (`glowna` / General, `sceny` / Scenes, `widok` / View).
+- **Top Bar Toolbar & Ribbon State**:
+  Tracks active views, dirty tracking status, and tool selections.
 - **Navigation & Layout State**:
   - `activeLeftTab`: Selected tab in the left collapsible drawer (`paragraphs`, `scenes`, `characters`, `locations`, `stats`, `traits`, `main-character`, `tags`, `connections`, `search`, `settings`, `explorer`).
   - Drawer visibility and persisted resizable panel widths (`leftDrawerWidth`, `rightSidebarWidth`) bounded by min/max constraints.
-  - Workspace view mode (`graph` for the visual Cytoscape story graph vs `markdown` for the narrative prose editor).
+  - Workspace view mode (`graph` for Cytoscape story canvas vs `markdown` for TipTap prose editor).
 - **Faceted Search and Filtering**:
   - `searchAndFilterParagraphs(paragraphs, scenes, characters)`: Multi-attribute filtering combining full-text queries with active tag (`selectedFilterTag`), scene (`selectedFilterScene`), and character (`selectedFilterCharacter`) filters. Number-locked paragraphs are automatically sorted to the top.
   - Dedicated search and filtering methods for scenes, characters, locations, traits, and connections.
@@ -183,107 +212,85 @@ Manages the project launcher / welcome screen:
 
 ## 4. Modular UI Controllers (`View/ui/`)
 
-To prevent bloated monolithic scripts, `View/MainWindow.js` acts as an orchestrator delegating functionality to modular controllers organized into domain folders in `View/ui/`:
+To maintain high code modularity and maintainability, `View/MainWindow.js` acts as an orchestrator delegating functionality to domain-based modules in `View/ui/`:
 
-### 4.1. `workspace/workspace.js` — Workspace Management
-- **Dual Workspace View**: Toggles smoothly between the interactive story graph canvas (`#graph-view-container`) and the Markdown document editor (`#markdown-editor-view`).
-- **Resizers (Splitters)**: Handles mouse drag operations to resize the left drawer and right property sidebar, updating `MainWindowViewModel` widths.
-- **Zoom Toolbar**: Controls canvas viewport manipulation (`+`, `-`, fit to screen `fit`, reset `100%`) synchronized with the Cytoscape camera.
+### 4.1. `workspace/` — Workspace & Toolbar
+- **`topBar.js`**: Upper toolbar containing action groups: Project & Files, Edit & History, Views & Panels, Graph Diagnostics, Testing & Export, Tools & Settings.
+- **`workspace.js`**: Dual workspace coordinator (toggling between Cytoscape graph canvas and TipTap Markdown editor), splitter drag controllers for left and right panels.
+- **`quickSearch.js`**: Fast keyboard-driven command palette (`Ctrl+K` / `Cmd+K`) searching across paragraphs, scenes, NPCs, items, locations, and markdown text content.
+- **`contextMenu.js`**: Canvas and node right-click menus, color picker palette modal (`openColorPicker`).
 
-### 4.2. `detailsPanel/detailsPanel.js` — Property Inspector & History
-- Dynamically renders editing forms tailored to the selected entity type (`paragraph`, `scene`, `character`, `location`, `item`, `tag`, `stat`, `choice`).
-- Directly updates entity properties (title, prose content, locked numbering, choices, tag attachments, and NPC associations).
-- Renders the interactive breadcrumb history bar (`#history-bar`), enabling immediate navigation back to earlier elements.
+### 4.2. `detailsPanel/` — Property Inspector & Sub-modules
+- **`detailsPanel.js`**: Master inspector controller rendering forms based on active entity type.
+- **`combatModule.js` & `combat/`**: Turn-based combat parameters editor with enemy statistics, victory/defeat redirects, and TipTap markdown synchronization.
+- **`choiceDetails.js` & `exitsModule.js`**: Outgoing choices, targets, and condition rules editor.
+- **`heroReadOnlyDetails.js` & `npcReadOnlyDetails.js`**: Quick-preview cards in right sidebar for characters.
+- **`historyBar.js`**: Horizontal breadcrumb navigation bar of recently visited entities.
 
-### 4.3. `drawer/drawerLists.js` — Left Drawer Entity Listings
-- Renders filtered, searchable lists across all gamebook categories:
-  - `renderParagraphsList()`: Paragraph cards with numbers, tag badges, and lock indicators.
-  - `renderScenesList()`: Scene cards with color swatches and paragraph counts.
-  - `renderCharactersList()`, `renderLocationsList()`, `renderTagsList()`, `renderTraitsList()`, `renderConnectionsList()`.
-- Handles item clicks to inspect entities in `detailsPanel` and automatically center the corresponding node in the graph canvas.
+### 4.3. `drawer/` — Left Entity Navigation
+- **`drawerLists.js`**: Searchable, categorized lists of paragraphs, scenes, protagonist, NPCs, templates, locations, items, traits, and tags.
+- **`drawerSearch.js`**: Text filter and search input handlers.
+- **`filterPopover.js`**: Faceted filter popover with multi-criteria badges (tags, scenes, characters).
 
-### 4.4. `workspace/contextMenu.js` — Context Menus & Color Palette
-- Context menu dispatcher for nodes, scenes, and empty canvas space.
-- Context actions: *Add Paragraph*, *Add Choice*, *Change Scene Color*, *Lock/Unlock Position*, *Duplicate*, *Delete*.
-- Built-in color picker modal (`openColorPicker`) with predefined palettes (`PRESET_ENTITY_COLORS`) and real-time preview.
+### 4.4. `editor/` — TipTap Rich Markdown Subsystem
+- **`mainEditor.js`**: Mounts and controls the active TipTap instance.
+- **`editorToolbar.js`**: Formatting buttons (headings, bold, italic, underline, lists, quotes, dialogs, image upload).
+- **`customStylesMenu.js` & `customStyleModal.js`**: Managing project-specific CSS text styles.
+- **`fontBrowserModal.js`**: Google Fonts browser with offline fallback selection.
+- **`entityLinkModal.js`**: Popover for creating and editing bidirectional `@` entity mentions and grammatical aliases.
+- **`heroEditor.js` & `npcEditor.js`**: Narrative chronicle drawers embedded inside character modals.
 
-### 4.5. `drawer/filterPopover.js` — Advanced Filtering Popover
-- Dropdown popover interface allowing multidimensional filtering:
-  - Filter by Tag.
-  - Filter by Scene.
-  - Filter by Associated Character.
-- Displays dynamic badge counters indicating the number of active filters.
+### 4.5. `graph/` — Story Graph Coordinator
+- **`storyGraphController.js`**: Wires Cytoscape events to MVVM selection and navigation.
+- **`graphZoomControls.js`**: Floating zoom controls (`+`, `-`, fit, 100%).
+- **`graphDropZone.js`**: Drag & drop target handling for visual linking.
 
-### 4.6. `common/htmlTemplates.js` — Reusable HTML Templates
-- Generates standardized DOM structures for reusable UI elements: tag pills (`TagPill`), character badges, status pills, and icon buttons.
+### 4.6. `modals/` — Specialized Functional Modals
+- **`export/` (`exportModal.js`, `gamebookCompiler.js`)**: Publication wizard compiling PDF, DOCX, HTML, and ZIP archives with character sheets and paragraph shuffling.
+- **`hero/` (`heroModal.js`, `heroSaver.js`)**: Protagonist creation and configuration modal with vital parameter formula evaluator.
+- **`npc/` (`npcModal.js`, `npcCharacterSaver.js`)**: NPC Folio modal with archetype templates and stats.
+- **`playtest/` (`playtestModal.js`)**: Interactive walkthrough debugger with condition checking, dice roller, and rollback history.
+
+### 4.7. `assets/` — Media & Image Subsystem
+- **`assetManagerModal.js`**: Project image gallery browser.
+- **`imageEditorModal.js`**: Interactive canvas image editor (cropping, scaling, rotation, color filters).
+- **`assetPicker.js`**: Reusable media selection dialog.
+
+### 4.8. `project/` — Persistence & Autosave
+- **`projectSaver.js`**: Serializes full project payload for `save-full-project`.
+- **`projectStateTracker.js`**: Computes dirty state hashes to detect unsaved modifications.
+- **`autoSaveService.js`**: Non-blocking periodic autosave with visual debounce.
 
 ---
 
 ## 5. Story Graph Subsystem (`Modules/Graph/`)
 
-The visual story graph is the core interface of the engine. It utilizes a hybrid architecture combining the performance and mathematical edge routing of **Cytoscape.js** with the flexibility and interactivity of **Custom Web Components**.
-
-### 5.1. Dual-Layer Architecture (Canvas + DOM Layer)
+The visual story graph is powered by Cytoscape.js coupled with Custom Web Components:
 
 ```text
 ┌────────────────────────────────────────────────────────┐
 │ Graph Canvas Container (#graph-canvas-container)       │
 │                                                        │
-│  Layer 1 (Bottom / Background):                        │
-│  Cytoscape.js Canvas (cy)                              │
-│  - Edge routing (curved bezier & straight segments)    │
-│  - Choice direction arrows                             │
-│  - Graph physics, collision detection, pan, and zoom   │
+│  Layer 1 (Background): Cytoscape.js Canvas             │
+│  - Curved bezier & straight edge routing               │
+│  - Choice direction arrows & connection anchor spacing │
+│  - Physics, collision prevention, pan, and zoom        │
 │                                                        │
-│  Layer 2 (Top / Interactive):                          │
-│  DOM Layer (absolute positioning, pointer-events: none)│
-│  - <scene-node> (scene grouping containers)            │
-│  - <paragraph-node> (rich interactive HTML cards)      │
-│    * pointer-events: auto on cards                     │
-│    * Inputs, buttons, tag pills, quick-add forms       │
-│    * Connection drag dots for real-time linking        │
+│  Layer 2 (Foreground): DOM Overlay Web Components      │
+│  - <scene-node> (grouping boundaries)                  │
+│  - <paragraph-node> (interactive HTML cards)           │
+│    * Quick choice creation inputs                      │
+│    * Real-time drag-and-drop connection handles        │
 └────────────────────────────────────────────────────────┘
 ```
 
-Cytoscape tracks virtual coordinates and handles edge rendering. The DOM overlay calculates viewport transforms (`transform: translate(...) scale(...)`) so that HTML Web Components precisely match the underlying Cytoscape nodes during pan and zoom.
-
-### 5.2. `<paragraph-node>` Web Component (`ParagraphNode.ts`)
-A custom HTML element (`customElements.define('paragraph-node', ParagraphNode)`):
-- Displays paragraph number, title, and lock badge.
-- Shows assigned tag pills and character/location chips.
-- Features an inline quick-add choice form to create branches on the fly without navigating to side panels.
-- Includes an output connector dot allowing authors to drag-and-drop a link directly to another paragraph to generate a `Choice` connection in real time.
-
-### 5.3. `<scene-node>` Web Component (`SceneNode.ts`)
-A container node representing a scene group:
-- Displays scene title with configurable theme accent colors.
-- Shows total count of grouped paragraphs within the scene.
-- Offers position locking (`isMovementLocked`) to prevent accidental shifts.
-
-### 5.4. Edge Routing & Anti-Crossing Algorithms (`StoryGraphStyles.ts`)
-Ensures clean, readable visual graphs even in complex narratives:
-- **`calculateCurvedEdgeControlPointDistance`**: Dynamically calculates bezier curve control points so parallel edges between identical nodes never overlap.
-- **`calculateEdgeSourceOffsets`**: Spreads source connection points evenly along the paragraph node border based on the total number of outgoing choices.
-- **`preventChoiceLineCrossings` / `reorderChoicesToPreventCrossings`**: Analyzes the geometric layout of target nodes and sorts connection anchor points to minimize intersecting lines.
-
 ---
 
-## 6. Client Services and Helpers
+## 6. Frontend Testing Strategy
 
-- **`Services/ProjectManager.ts`**:  
-  Singleton storing the active in-memory `Project` instance and its file-system path. Provides `getProject()`, `getProjectPath()`, `load(projectData, entities, path)`, and `clear()`.
-- **`Utils/icons.ts`**:  
-  Custom Web Component `<app-icon name="...">` that injects optimized SVG vector icons (save, edit, lock, delete, zoom, tags, etc.).
-- **`Utils/toast.ts`**:  
-  Non-intrusive floating notification toast utility (`showToast({ message, type, duration })`) supporting `info`, `success`, `warning`, and `error` states.
-- **`Utils/translate.ts`**:  
-  Renderer-side i18n client offering typed translation keys (`TranslationKey`) and automatic DOM binding via `applyTranslations()`.
-
----
-
-## 7. Frontend Testing Strategy
-
-The presentation layer is covered by automated unit and integration tests using **Vitest** and **happy-dom**:
-- **Domain Model Tests** (`tests/Model/`): Validates entity creation, mutations, choice management, and complete deserialization via `Project.fromJSON()`.
+The presentation layer is thoroughly covered by automated unit and integration tests using **Vitest** and **happy-dom**:
+- **76 test files, 821 automated tests passing.**
+- **Domain Model Tests** (`tests/Model/`): Validates entity creation, mutations, choice management, and deserialization via `Project.fromJSON()`.
 - **ViewModel Tests** (`tests/ViewModel/`): Validates search algorithms, drawer toggling, history navigation, and launcher validation rules without spinning up Electron windows.
-- **View & DOM Tests** (`tests/View/`): Verifies Web Component lifecycle events (`<paragraph-node>`, `<scene-node>`), HTML template instantiation, and edge collision algorithms in `StoryGraphStyles`.
+- **View & DOM Tests** (`tests/View/`): Verifies Web Component lifecycle events (`<paragraph-node>`, `<scene-node>`), HTML template instantiation, and UI controller interactions.
+- **Feature Module Tests** (`tests/Modules/`): Tests TipTap Markdown parsing, image processing algorithms, and custom style sanitization.

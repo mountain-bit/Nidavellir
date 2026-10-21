@@ -20,7 +20,7 @@ import {
     renderDynamicSuggestions,
     setupNpcModal,
     updateTraitsCounterUI,
-} from '../../View/ui/npcModal/npcModal.js'
+} from '../../View/ui/modals/npc/npcModal.js'
 
 describe('NPC Traits Dynamic Module & Suggestions (Cechy i Atrybuty)', () => {
     beforeEach(() => {

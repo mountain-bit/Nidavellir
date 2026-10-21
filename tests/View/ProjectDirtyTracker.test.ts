@@ -1,7 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { confirmApplicationClose, markFileDirty } from '../../View/ui/modals/confirmModal.js'
+import {
+    confirmApplicationClose,
+    markFileDirty,
+} from '../../View/ui/modals/confirm/confirmModal.js'
 import { saveFullProject } from '../../View/ui/project/projectSaver.js'
 import {
     isProjectDirty,

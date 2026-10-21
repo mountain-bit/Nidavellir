@@ -18,12 +18,16 @@ Built on **Electron** with **TypeScript** domain logic, **plain JavaScript** vie
 | Desktop framework        | **Electron 41.5**                | Multi-process (Chromium + Node.js). `contextIsolation: true`, `nodeIntegration: false` |
 | Runtime                  | **Node.js ≥20 <22, pnpm ≥9 <10** | Enforced via `engines` in `package.json`. **Always use `pnpm`**, never `npm`          |
 | Domain logic language    | **TypeScript 6+** (`strict`)     | Pure domain models and MVVM presentation logic, compiled by esbuild                    |
-| View controllers         | **Plain JavaScript (ES modules)**| `View/*.js`, `View/ui/*.js` — ESM in browser, CommonJS on main process                 |
+| View controllers         | **Plain JavaScript (ES modules)**| `View/*.js`, `View/ui/**/*.js` — ESM in browser, CommonJS on main process             |
 | Main process             | **Plain JavaScript (CommonJS)**  | `main.js`, `main/**/*.js` — CommonJS `require()`                                      |
 | Bundler                  | **esbuild 0.28+**                | Bundles TS→ESM for the renderer. Config: `scripts/build-renderer.js`                   |
 | UI & Styling             | **HTML5 + Tailwind CSS 4.3+**    | `@tailwindcss/cli`, source `View/MainWindow.css` → `View/MainWindow.generated.css`    |
 | Graph visualization      | **Cytoscape.js 3.33+**           | Node-graph renderer with custom Web Components (`<paragraph-node>`, `<scene-node>`)    |
-| Testing                  | **Vitest 1.x + happy-dom 20+**   | Fast unit/integration tests. Coverage via `@vitest/coverage-v8`                        |
+| Rich text editor         | **TipTap 2.x**                   | Headings, dialog blocks, `@` entity mentions, custom text styles, Google Fonts catalog |
+| Export & Publishing      | **docx 8.x + printToPDF**        | Structured DOCX documents, print-ready PDF via Chromium, standalone HTML              |
+| Backup & Archive         | **JSZip 3.x**                    | Self-contained project zip export and instant restore                                 |
+| Image processing         | **HTML5 Canvas 2D**              | Custom `ImageProcessor.ts`: crop, scale, rotate, flip, and color adjustment filters    |
+| Testing                  | **Vitest 1.x + happy-dom 20+**   | Fast unit/integration tests. 76 test files, 821 tests. Coverage via `@vitest/coverage-v8` |
 | Linting                  | **ESLint 8 + @typescript-eslint 7** | Type-aware rules for `.ts`, standard `espree` for `.js`                             |
 | Formatting               | **Prettier 3**                   | No semicolons, single quotes, trailing commas `es5`, 100 char width, 4-space indent    |
 | Import ordering          | **eslint-plugin-simple-import-sort** | Auto-sorted imports and exports in all `.ts` / `.js` files                          |
@@ -50,18 +54,19 @@ Model (pure TS)  ←→  ViewModel (TS)  ←→  View (HTML + JS controllers)
 
 ### 3.2. Modular View Controllers & Context Object Pattern
 
-The View layer is split into focused controller modules in `View/ui/`:
+The View layer is split into focused controller modules in `View/ui/` subdirectories:
 
-| Module                              | Responsibility                                               |
-| ----------------------------------- | ------------------------------------------------------------ |
-| `detailsPanel/detailsPanel.js`      | Right-sidebar property inspector, entity details, history bar |
-| `drawer/drawerLists.js`             | Left-drawer entity lists (paragraphs, scenes, characters, locations, tags, traits, skills, parameters, features, connections) |
-| `workspace/contextMenu.js`          | Right-click context menus, section controls, color palette    |
-| `drawer/filterPopover.js`           | Faceted search & filter popover for paragraphs                |
-| `common/htmlTemplates.js`           | Shared HTML template builder functions                        |
-| `workspace/workspace.js`            | Main workspace tabs, resizers, zoom toolbar, file editor      |
-| `npcModal/npcModal.js`              | NPC creation/edit modal (orchestrator)                        |
-| `npcModal/*.js`                     | NPC modal sub-modules: `npcState`, `npcTemplates`, `npcSectionControllers`, `npcCharacterSaver`, `npcDraggable`, `formulaEvaluator` |
+| Subdirectory | Key Modules & Responsibilities |
+| ------------ | ------------------------------ |
+| `assets/` | `assetManagerModal.js`, `assetPicker.js`, `imageEditorModal.js` — media management, canvas cropping/scaling/filters |
+| `common/` | `confirmModal.js`, `htmlTemplates.js`, `npcAvatars.js` — shared dialogs, badge builders, portrait renderers |
+| `detailsPanel/` | `detailsPanel.js`, `combatModule.js`, `choiceDetails.js`, `exitsModule.js`, `heroReadOnlyDetails.js`, `npcReadOnlyDetails.js`, `historyBar.js` — property inspectors & combat setup |
+| `drawer/` | `drawerLists.js`, `drawerSearch.js`, `filterPopover.js` — entity navigation, search, faceted filters |
+| `editor/` | `mainEditor.js`, `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, `entityLinkModal.js`, `heroEditor.js`, `npcEditor.js` — TipTap rich text, fonts, custom styles |
+| `graph/` | `storyGraphController.js`, `graphZoomControls.js`, `graphDropZone.js` — Cytoscape canvas coordinator, drag-and-drop |
+| `modals/` | `export/` (`exportModal.js`, `gamebookCompiler.js`), `hero/` (`heroModal.js`, `heroSaver.js`), `npc/` (`npcModal.js`, `npcCharacterSaver.js`), `playtest/` (`playtestModal.js`) |
+| `project/` | `projectSaver.js`, `projectStateTracker.js`, `autoSaveService.js` — dirty state tracking, autosave, save orchestrator |
+| `workspace/` | `workspace.js`, `topBar.js`, `contextMenu.js`, `quickSearch.js` — layout resizers, ribbon toolbar, global palette |
 
 **All controllers receive a shared `appContext` object** (defined in `MainWindow.js`) which provides:
 - `vm` — the `MainWindowViewModel` instance
@@ -76,15 +81,20 @@ The View layer is split into focused controller modules in `View/ui/`:
 main.js (bootstrap)
 ├── main/windowManager.js        — BrowserWindow creation
 ├── main/ipc/index.js            — registerAllIpc() aggregator
-│   ├── projectIpc.js            — Project create/open handlers
+│   ├── projectIpc.js            — Project create/open/save handlers
 │   ├── entityIpc.js             — Entity CRUD handlers
 │   ├── markdownIpc.js           — Markdown file read/write
+│   ├── assetIpc.js              — Media import and browsing
+│   ├── exportIpc.js             — Gamebook export (HTML, PDF, DOCX, ZIP) and restore
 │   ├── recentProjectsIpc.js     — Recent projects
 │   └── appIpc.js                — App lifecycle, i18n, system info
 └── main/services/               — Pure Node.js business logic
-    ├── ProjectService.js        — Project creation, entity loading
+    ├── ProjectService.js        — Project creation, entity loading, save
     ├── EntityService.js         — Entity folder scaffolding, element.json
     ├── MarkdownService.js       — Safe read + atomic write of .md files
+    ├── AssetService.js          — Media asset management in Assets/Images/
+    ├── AssetProtocolService.js  — Secure custom asset:// protocol handler
+    ├── ExportService.js         — Export generation (PDF, DOCX, HTML, ZIP)
     └── RecentProjectsService.js — Recent projects persistence
 ```
 
@@ -152,16 +162,21 @@ SilnikGierParagrafowych/
 │   ├── windowManager.js
 │   ├── ipc/                       # IPC handlers
 │   │   ├── index.js               # registerAllIpc() aggregator
-│   │   ├── projectIpc.js
-│   │   ├── entityIpc.js
-│   │   ├── markdownIpc.js
-│   │   ├── recentProjectsIpc.js
-│   │   └── appIpc.js
+│   │   ├── projectIpc.js          # Project lifecycle and save
+│   │   ├── entityIpc.js           # Entity CRUD
+│   │   ├── markdownIpc.js         # Safe reading and writing of .md files
+│   │   ├── assetIpc.js            # Image import and asset management
+│   │   ├── exportIpc.js           # PDF, DOCX, HTML, ZIP exports & restore
+│   │   ├── recentProjectsIpc.js   # Recent projects
+│   │   └── appIpc.js              # Lifecycle, i18n, window controls
 │   └── services/                  # Node.js filesystem services
-│       ├── ProjectService.js
-│       ├── EntityService.js
-│       ├── MarkdownService.js
-│       └── RecentProjectsService.js
+│       ├── ProjectService.js      # Project scaffolding, save, JSON data loading
+│       ├── EntityService.js       # Entity directory slugging, element.json updates
+│       ├── MarkdownService.js     # Safe transactional atomic read/write of Markdown
+│       ├── AssetService.js        # Assets/Images/ file storage & imports
+│       ├── AssetProtocolService.js# Privileged asset:// custom protocol
+│       ├── ExportService.js       # Multi-format publication compiler (PDF, DOCX, HTML, ZIP)
+│       └── RecentProjectsService.js# Persisting recent project history
 │
 ├── Model/                         # Pure domain classes (TypeScript)
 │   ├── constants.ts               # ENTITY_CATEGORIES, PRESET_ENTITY_COLORS, DEFAULT_*_COLOR
@@ -182,14 +197,16 @@ SilnikGierParagrafowych/
 │   ├── Stat.ts                    # Character stat / attribute
 │   ├── Skill.ts                   # Character skill (direct value or stat modifier)
 │   ├── Parameter.ts               # Character parameter / vital (direct value or formula)
-│   └── Feature.ts                 # Character feature / special trait
+│   ├── Feature.ts                 # Character feature / special trait
+│   └── Combat.ts                  # Turn-based combat parameters & enemy config
 │
 ├── ViewModel/                     # Presentation logic (TypeScript)
 │   ├── MainWindowViewModel.ts     # Main editor ViewModel (selection, undo, search, state)
 │   └── StartWindowViewModel.ts    # Start window ViewModel (create/open/recent)
 │
 ├── Services/                      # Cross-cutting services (TypeScript)
-│   └── ProjectManager.ts          # Singleton — active project in renderer
+│   ├── ProjectManager.ts          # Singleton — active project in renderer
+│   └── GraphValidator.ts          # Story graph diagnostics & loop detection
 │
 ├── Modules/                       # Feature modules (TypeScript)
 │   ├── Graph/                     # Story graph subsystem (Cytoscape.js + Web Components)
@@ -201,18 +218,20 @@ SilnikGierParagrafowych/
 │   │   ├── StoryGraphStyles.ts
 │   │   ├── types.ts
 │   │   └── index.ts
-│   └── Editor/                    # Rich Markdown Editor subsystem (TipTap + i18n + Fonts)
-│       ├── MarkdownEditor.ts      # Core TipTap Markdown Editor implementation
-│       ├── CustomStylesService.ts # Custom text style management & stylesheet injection
-│       ├── CustomFontsService.ts  # Google Fonts loader, cache, offline fallback
-│       ├── EntitySyncService.ts   # Document mention scanning & scene/NPC auto-sync
-│       ├── styleSanitizer.ts      # CSS & XSS injection sanitizer
-│       ├── fontCatalog.ts         # Curated & offline font datasets
-│       ├── fontStacks.ts          # System serif/mono/sans font stack fallbacks
-│       ├── constants.ts           # Editor URLs, timeouts, defaults
-│       ├── types.ts               # Interfaces for formatting, styles, fonts, entities
-│       ├── extensions/            # TipTap custom extensions (CustomStyleMark, DialogBlock, etc.)
-│       └── ui/                    # Editor UI components (MentionSuggestionRenderer)
+│   ├── Editor/                    # Rich Markdown Editor subsystem (TipTap + i18n + Fonts)
+│   │   ├── MarkdownEditor.ts      # Core TipTap Markdown Editor implementation
+│   │   ├── CustomStylesService.ts # Custom text style management & stylesheet injection
+│   │   ├── CustomFontsService.ts  # Google Fonts loader, cache, offline fallback
+│   │   ├── EntitySyncService.ts   # Document mention scanning & scene/NPC auto-sync
+│   │   ├── styleSanitizer.ts      # CSS & XSS injection sanitizer
+│   │   ├── fontCatalog.ts         # Curated & offline font datasets
+│   │   ├── fontStacks.ts          # System serif/mono/sans font stack fallbacks
+│   │   ├── constants.ts           # Editor URLs, timeouts, defaults
+│   │   ├── types.ts               # Interfaces for formatting, styles, fonts, entities
+│   │   ├── extensions/            # TipTap custom extensions (CustomStyleMark, DialogBlock, etc.)
+│   │   └── ui/                    # Editor UI components (MentionSuggestionRenderer)
+│   └── ImageEditor/               # In-app image processing (HTML5 Canvas 2D)
+│       └── ImageProcessor.ts      # Crop, scale, rotate, flip, and color adjustment filters
 │
 ├── View/                          # HTML views & JS controllers
 │   ├── StartWindow.html           # Start screen
@@ -222,29 +241,16 @@ SilnikGierParagrafowych/
 │   ├── MainWindow.generated.css   # Compiled Tailwind output (DO NOT EDIT)
 │   ├── mockData.js                # Mock project data for development
 │   ├── projectData.js             # Data loading (mock vs real)
-│   └── ui/                        # Modular view controllers
-│       ├── detailsPanel.js        # Right sidebar details inspector
-│       ├── drawerLists.js         # Left drawer entity lists
-│       ├── contextMenu.js         # Context menus & color picker
-│       ├── filterPopover.js       # Paragraph search & filters
-│       ├── htmlTemplates.js       # HTML template builders
-│       ├── workspace.js           # Workspace layout, resizers, tabs, graph view
-│       ├── editor/                # Rich text editor UI modules
-│       │   ├── editorToolbar.js   # Toolbar click bindings & active states
-│       │   ├── customStylesMenu.js # Custom styles dropdown menu
-│       │   ├── customStyleModal.js # Style creation / edit modal with live preview
-│       │   ├── fontBrowserModal.js # Google Fonts online/offline browser modal
-│       │   ├── mainEditor.js      # Main editor instance & auto-sync trigger
-│       │   └── index.js           # Editor UI aggregator
-│       ├── npcAvatars.js          # NPC avatar definitions
-│       ├── npcModal.js            # NPC modal orchestrator
-│       └── npcModal/              # NPC modal sub-modules
-│           ├── npcState.js
-│           ├── npcTemplates.js
-│           ├── npcSectionControllers.js
-│           ├── npcCharacterSaver.js
-│           ├── npcDraggable.js
-│           └── formulaEvaluator.js
+│   └── ui/                        # Modular view controllers organized by domain
+│       ├── assets/                # Asset manager modal, image editor modal, asset picker
+│       ├── common/                # Shared templates, confirm modal, avatar renderers
+│       ├── detailsPanel/          # Details panel, exits, history bar, combat setup
+│       ├── drawer/                # Entity lists, search, faceted filters
+│       ├── editor/                # Editor toolbar, custom styles, font browser, entity link
+│       ├── graph/                 # Cytoscape coordinator, zoom controls, drop zones
+│       ├── modals/                # Export modal, hero modal, NPC folio, playtest modal
+│       ├── project/               # Project saver, state tracker, autosave service
+│       └── workspace/             # Workspace tabs, top bar toolbar, quick search
 │
 ├── Utils/                         # Shared utilities
 │   ├── translate.ts               # Frontend i18n (t(), setLanguage(), getLanguage())
@@ -279,12 +285,14 @@ SilnikGierParagrafowych/
 │   ├── FRONTEND_ARCHITECTURE.md
 │   └── MAIN_PROCESS_ARCHITECTURE.md
 │
-└── tests/                         # Test suites (Vitest)
-    ├── Model/                     # Domain model tests (15 files)
-    ├── ViewModel/                 # ViewModel tests (2 files)
-    ├── View/                      # View/UI controller tests (8 files)
-    ├── IPC/                       # IPC handler tests (1 file)
-    └── Utils/                     # Utility tests (6 files)
+└── tests/                         # Test suites (Vitest — 76 files, 821 tests)
+    ├── Model/                     # Domain model tests
+    ├── ViewModel/                 # ViewModel tests
+    ├── View/                      # View/UI controller tests
+    ├── IPC/                       # IPC handler & service integration tests
+    ├── Modules/                   # Feature modules tests (Editor, ImageProcessor, etc.)
+    ├── Services/                  # Application services tests (GraphValidator, etc.)
+    └── Utils/                     # Utility tests
 ```
 
 ---

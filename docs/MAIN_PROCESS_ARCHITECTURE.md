@@ -14,7 +14,7 @@ graph TD
         View["HTML Views / Tailwind CSS"]
         ViewModel["ViewModels (e.g. MainWindowViewModel)"]
         Model["Domain Models (Project, Scene, Paragraph, etc.)"]
-        Services["Frontend Services (ProjectManager)"]
+        Services["Frontend Services (ProjectManager, GraphValidator)"]
         View --> ViewModel
         ViewModel --> Model
         ViewModel --> Services
@@ -33,6 +33,8 @@ graph TD
             ProjectIPC["projectIpc.js"]
             EntityIPC["entityIpc.js"]
             MarkdownIPC["markdownIpc.js"]
+            AssetIPC["assetIpc.js"]
+            ExportIPC["exportIpc.js"]
             RecentIPC["recentProjectsIpc.js"]
             AppIPC["appIpc.js"]
         end
@@ -41,6 +43,9 @@ graph TD
             ProjectService["ProjectService.js"]
             EntityService["EntityService.js"]
             MarkdownService["MarkdownService.js"]
+            AssetService["AssetService.js"]
+            AssetProtoService["AssetProtocolService.js (asset://)"]
+            ExportService["ExportService.js"]
             RecentProjectsService["RecentProjectsService.js"]
         end
 
@@ -53,28 +58,34 @@ graph TD
 
     subgraph Storage["File System Storage"]
         ProjectJSON["project.json"]
+        AssetImages["Assets/Images/*"]
         CategoryFolders["Category Folders (NPC, Paragraphs, Items, etc.)"]
         MetaJSON["meta.json"]
         ElementJSON["element.json"]
-        MarkdownFiles["*.md narrative files"]
-        RecentProjectsJSON["userData/recent-projects.json"]
+        MarkdownFiles["Description_*.md narrative files"]
+        UserData["userData (settings.json, recent-projects.json)"]
+        ExportFiles["Export Artifacts (*.pdf, *.docx, *.html, *.zip)"]
     end
 
     ViewModel -->|Calls electronAPI| Preload
     Preload -->|ipcRenderer.invoke| IPCLayer
     Main --> WindowManager
     Main --> IPCIndex
-    IPCIndex --> ProjectIPC & EntityIPC & MarkdownIPC & RecentIPC & AppIPC
+    IPCIndex --> ProjectIPC & EntityIPC & MarkdownIPC & AssetIPC & ExportIPC & RecentIPC & AppIPC
     ProjectIPC --> ProjectService
     EntityIPC --> EntityService
     MarkdownIPC --> MarkdownService
+    AssetIPC --> AssetService
+    ExportIPC --> ExportService
     RecentIPC --> RecentProjectsService
-    ProjectService & EntityService & MarkdownService --> FSSecurity
+    ProjectService & EntityService & MarkdownService & AssetService & ExportService --> FSSecurity
     EntityService --> PathSanitizer
     ProjectService --> ProjectJSON & CategoryFolders & MetaJSON
     EntityService --> ElementJSON & MetaJSON
     MarkdownService --> MarkdownFiles
-    RecentProjectsService --> RecentProjectsJSON
+    AssetService & AssetProtoService --> AssetImages
+    ExportService --> ExportFiles & AssetImages
+    RecentProjectsService --> UserData
 ```
 
 > [!NOTE]
@@ -86,23 +97,28 @@ graph TD
 
 ```text
 /
-├── main.js                         # Application bootstrap & lifecycle (~25 lines)
+├── main.js                         # Application bootstrap & lifecycle
 │
 ├── main/
 │   ├── windowManager.js            # BrowserWindow creation & window management
 │   │
 │   ├── ipc/                        # IPC dispatchers (Electron IPC <-> Services)
 │   │   ├── index.js                # Aggregator (registerAllIpc)
-│   │   ├── projectIpc.js           # choose-folder, create-project, open-project
+│   │   ├── projectIpc.js           # choose-folder, create-project, open-project, save-full-project
 │   │   ├── entityIpc.js            # create-entity, save-entity
 │   │   ├── markdownIpc.js          # read-markdown-file, save-markdown-file
+│   │   ├── assetIpc.js             # asset-import-image, asset-list-images, asset-save-edited
+│   │   ├── exportIpc.js            # export-gamebook-html, pdf, docx, zip, restore-project-zip
 │   │   ├── recentProjectsIpc.js    # get-recent-projects
 │   │   └── appIpc.js               # i18n, get-system-username, close-app, load-main-window
 │   │
 │   └── services/                   # Pure Node.js domain & filesystem services
-│       ├── ProjectService.js       # Project creation, verification, project.json & meta.json loading
+│       ├── ProjectService.js       # Project creation, verification, save, project.json & meta.json loader
 │       ├── EntityService.js        # Entity creation, directory scaffolding, unique slugging, element.json saving
 │       ├── MarkdownService.js      # Safe reading and atomic writing of narrative markdown files
+│       ├── AssetService.js         # Managing media files in Assets/Images/, import and copy
+│       ├── AssetProtocolService.js # Secure custom asset:// protocol registration
+│       ├── ExportService.js        # Multi-format publication generator (PDF, DOCX, HTML, ZIP)
 │       └── RecentProjectsService.js# Management of recent projects list in userData
 │
 └── Utils/
@@ -118,9 +134,10 @@ graph TD
 ### 3.1. Application Entry (`main.js`)
 
 - Initializes global application lifecycle hooks (`whenReady`, `activate`, `window-all-closed`).
+- Registers privileged custom protocol schemes (`asset://` registered with standard and secure privileges via `registerAssetProtocolSchemes()`).
 - Initializes internationalization backend (`initI18n()`).
 - Calls `registerAllIpc()` to register all IPC channels before window instantiation.
-- Calls `createMainWindow()` to show the primary UI window.
+- Calls `createMainWindow()` or shows the launcher window.
 
 ### 3.2. Window Manager (`main/windowManager.js`)
 
@@ -132,9 +149,11 @@ graph TD
 
 Translates incoming `ipcRenderer.invoke(channel, payload)` calls from the renderer into service invocations:
 
-- **`projectIpc.js`**: Integrates Electron `dialog.showOpenDialog` for directory selection and delegates project creation/loading to `ProjectService`.
+- **`projectIpc.js`**: Integrates Electron `dialog.showOpenDialog` for directory selection, project creation, loading, and transactional full-project saving (`save-full-project`).
 - **`entityIpc.js`**: Bridges entity creation and updates to `EntityService`.
 - **`markdownIpc.js`**: Bridges narrative `.md` file reading and writing to `MarkdownService`.
+- **`assetIpc.js`**: Native file dialog for image import (`asset-import-image`), project asset listing (`asset-list-images`), and edited image saving (`asset-save-edited`).
+- **`exportIpc.js`**: Bridges publishing commands (`export-gamebook-html`, `export-gamebook-pdf`, `export-gamebook-docx`, `export-gamebook-zip`, and `restore-project-zip`).
 - **`recentProjectsIpc.js`**: Fetches recent projects via `RecentProjectsService`.
 - **`appIpc.js`**: Handles locale switching, translation payloads, system username detection, navigation and graceful application exit.
 - **`index.js`**: Single entry point `registerAllIpc()` to maintain clean registration without scattering IPC hooks.
@@ -144,14 +163,25 @@ Translates incoming `ipcRenderer.invoke(channel, payload)` calls from the render
 Pure Node.js business logic that operates independently of Electron IPC objects:
 
 - **`ProjectService`**:
-    - `createProject(projectDetails)`: Generates directory hierarchy (`NPC`, `Paragraphs`, `Items`, `Locations`, `Templates`, `CharacterClasses`, `Rules`, `PlayerCharacter`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
+    - `createProject(projectDetails)`: Generates directory hierarchy (`Assets/Images`, `NPC`, `Paragraphs`, `Items`, `Locations`, `Templates`, `CharacterClasses`, `Rules`, `PlayerCharacter`), generates `meta.json` files for each category, saves `project.json`, and registers the project in recent list.
     - `openProject(targetPath)`: Validates path safety, parses `project.json`, reads all related `meta.json` records, parses each `element.json`, and returns structured entity data (supports backward compatibility with legacy Polish schema keys).
+    - `saveFullProject(projectData)`: Atomically persists scenes, paragraphs, NPCs, items, locations, protagonist character, and custom styles.
 - **`EntityService`**:
     - `createEntity(options)`: Generates collision-free folder slug names, writes initial `element.json` with `{ text, summary, filePath }`, creates standardized `Description_<Category>_<Name>.md` markdown references, and updates the category `meta.json` elements list atomically.
     - `saveEntity(payload)`: Atomically updates an existing `element.json` file.
 - **`MarkdownService`**:
     - `readMarkdownFile(payload)`: Reads `.md` narrative text files within project boundaries; returns virtual empty state when file does not exist yet.
     - `saveMarkdownFile(payload)`: Atomically writes markdown files, creating parent directories on demand.
+- **`AssetService` & `AssetProtocolService`**:
+    - Manages `Assets/Images/` folder, copying imported images safely into project bounds.
+    - Handles privileged `asset://` URL resolution with path traversal guard checks.
+    - Saves canvas-edited copies (`Save as Copy` or `Overwrite Original`).
+- **`ExportService`**:
+    - Multi-format publication compiler:
+      - `exportHtml(options)`: Compiles standalone HTML book with embedded CSS and asset links.
+      - `exportPdf(options)`: Generates print-ready PDF via Chromium `printToPDF` with `@page` sizing, running headers, and page breaks.
+      - `exportDocx(options)`: Generates formatted Microsoft Word documents with paragraph styles, tables, and character sheets.
+      - `exportZip(options)` & `restoreFromZip(options)`: Complete project archiving and restore using JSZip.
 - **`RecentProjectsService`**:
     - Manages reading, writing, and deduplicating the list of recently opened projects inside Electron's `userData` folder.
 
@@ -171,7 +201,7 @@ Centralized path validation and transactional write operations:
 
 ### Path Traversal Defense
 
-In desktop applications, renderer inputs must never be trusted blindly. All file operations in `ProjectService`, `EntityService`, and `MarkdownService` validate target paths against the project root using:
+In desktop applications, renderer inputs must never be trusted blindly. All file operations in `ProjectService`, `EntityService`, `MarkdownService`, `AssetService`, and `ExportService` validate target paths against the project root using:
 
 ```javascript
 if (!isPathInsideBase(projectDir, targetPath)) {
@@ -198,59 +228,4 @@ Because business logic has been extracted into `main/services/` and `Utils/fsSec
 ```typescript
 import { ProjectService } from '../main/services/ProjectService'
 import { isPathInsideBase } from '../Utils/fsSecurity'
-
-describe('ProjectService', () => {
-    it('creates project directory hierarchy and meta.json files', async () => {
-        const result = await ProjectService.createProject({
-            name: 'Test Gamebook',
-            projectPath: tempDir,
-        })
-        expect(result.success).toBe(true)
-    })
-})
 ```
-
----
-
-## 6. Guide: Adding a New IPC Channel and Service
-
-To add a new capability (e.g. `export-gamebook`):
-
-1. **Implement Domain Logic in Service**:
-   Create or edit a service in `main/services/` (e.g., `ExportService.js`):
-
-    ```javascript
-    class ExportService {
-        static async exportToHtml(projectPath, outputPath) {
-            // ... business logic ...
-            return { success: true }
-        }
-    }
-    module.exports = ExportService
-    ```
-
-2. **Register IPC Handler**:
-   In `main/ipc/projectIpc.js` (or a dedicated `exportIpc.js`):
-
-    ```javascript
-    ipcMain.handle('export-gamebook', async (_event, payload) => {
-        return await ExportService.exportToHtml(payload.projectPath, payload.outputPath)
-    })
-    ```
-
-3. **Expose in Preload Bridge**:
-   In `preload.js`:
-
-    ```javascript
-    contextBridge.exposeInMainWorld('electronAPI', {
-        // ...
-        exportGamebook: (projectPath, outputPath) =>
-            ipcRenderer.invoke('export-gamebook', { projectPath, outputPath }),
-    })
-    ```
-
-4. **Update TypeScript Definitions**:
-   In `types/global.d.ts`, add the typed method to `Window['electronAPI']`.
-
-5. **Write Unit Tests**:
-   Create a unit test in `tests/` verifying `ExportService` logic directly.

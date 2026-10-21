@@ -19,6 +19,9 @@ const mockHTML = `
     <button id="btn-open-project">
         <span data-i18n="start_window.open_project">Otwórz projekt</span>
     </button>
+    <button id="btn-restore-project">
+        <span data-i18n="start_window.restore_project">Przywróć z ZIP</span>
+    </button>
 
     <button id="btn-settings" data-i18n="start_window.settings">Ustawienia</button>
     <div id="settings-dropdown" class="hidden">
@@ -574,6 +577,54 @@ describe('StartWindowViewModel', () => {
 
             expect(container?.children.length).toBe(0)
             vi.useRealTimers()
+        })
+    })
+
+    describe('Przywracanie projektu z ZIP (btn-restore-project)', () => {
+        it('ładuje projekt i otwiera główne okno po udanym przywróceniu z ZIP', async () => {
+            const mockRestore = vi.fn().mockResolvedValue({
+                success: true,
+                path: '/workspace/restored/project.json',
+                project: sampleValidProjectData,
+                entities: {},
+            })
+            const mockLoadMain = vi.fn()
+            window.electronAPI.restoreProjectZip = mockRestore
+            window.electronAPI.loadMainWindow = mockLoadMain
+
+            new StartWindowViewModel()
+            await vi.waitFor(() => {
+                expect(window.electronAPI.getRecentProjects).toHaveBeenCalled()
+            })
+
+            const btnRestore = document.getElementById('btn-restore-project')
+            btnRestore?.click()
+
+            await vi.waitFor(() => {
+                expect(mockRestore).toHaveBeenCalled()
+                expect(window.currentProjectPath).toBe('/workspace/restored/project.json')
+            })
+        })
+
+        it('pokazuje błąd Toast gdy przywracanie zakończy się niepowodzeniem', async () => {
+            const mockRestore = vi.fn().mockResolvedValue({
+                success: false,
+                error: 'Archiwum ZIP jest uszkodzone',
+            })
+            window.electronAPI.restoreProjectZip = mockRestore
+
+            new StartWindowViewModel()
+            await vi.waitFor(() => {
+                expect(window.electronAPI.getRecentProjects).toHaveBeenCalled()
+            })
+
+            const btnRestore = document.getElementById('btn-restore-project')
+            btnRestore?.click()
+
+            const toastContainer = document.getElementById('toast-container')
+            await vi.waitFor(() => {
+                expect(toastContainer?.textContent).toContain('Archiwum ZIP jest uszkodzone')
+            })
         })
     })
 

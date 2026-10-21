@@ -31,6 +31,7 @@ export class Project {
     private items: Item[] = []
     private characterClasses: CharacterClass[] = []
     private playerCharacter: PlayerCharacter = new PlayerCharacter()
+    private playerCharacters: PlayerCharacter[] = []
     private tagList: Tag[] = []
 
     private globalStats: Stat[] = []
@@ -293,6 +294,36 @@ export class Project {
 
     public setPlayerCharacter(playerCharacter: PlayerCharacter): void {
         this.playerCharacter = playerCharacter
+        const existingIdx = this.playerCharacters.findIndex(
+            p =>
+                (p.getId && playerCharacter.getId && p.getId() === playerCharacter.getId()) ||
+                (p.getName && playerCharacter.getName && p.getName() === playerCharacter.getName())
+        )
+        if (existingIdx >= 0) {
+            this.playerCharacters[existingIdx] = playerCharacter
+        } else {
+            this.playerCharacters.unshift(playerCharacter)
+        }
+    }
+
+    public getPlayerCharacters(): PlayerCharacter[] {
+        if (this.playerCharacters.length > 0) {
+            return this.playerCharacters
+        }
+        if (
+            this.playerCharacter &&
+            (this.playerCharacter.getName?.() || this.playerCharacter.hasId?.())
+        ) {
+            return [this.playerCharacter]
+        }
+        return []
+    }
+
+    public setPlayerCharacters(pcs: PlayerCharacter[]): void {
+        this.playerCharacters = pcs || []
+        if (this.playerCharacters.length > 0) {
+            this.playerCharacter = this.playerCharacters[0]
+        }
     }
 
     public getGlobalStats(): Stat[] {
@@ -516,10 +547,10 @@ export class Project {
             })
         })
 
-        const playerCharacterData = (entities.PlayerCharacter ?? entities.PostacGracza ?? [])[0]
-        const playerCharacter = playerCharacterData
-            ? PlayerCharacter.fromJSON(playerCharacterData)
-            : new PlayerCharacter()
+        const playerCharacterRawList = entities.PlayerCharacter ?? entities.PostacGracza ?? []
+        const playerCharacters = playerCharacterRawList.map((p: any) => PlayerCharacter.fromJSON(p))
+        const playerCharacter =
+            playerCharacters.length > 0 ? playerCharacters[0] : new PlayerCharacter()
 
         const rules = entities.Rules ?? entities.Zasady ?? []
 
@@ -621,6 +652,7 @@ export class Project {
 
         project.setCustomStyles(customStyles)
         project.setCustomFonts(customFonts)
+        project.setPlayerCharacters(playerCharacters)
 
         return project
     }

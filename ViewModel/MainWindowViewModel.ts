@@ -1,10 +1,25 @@
 import { CharacterClass } from '../Model/CharacterClass'
-import { Choice } from '../Model/Choice'
+import {
+    Choice,
+    type ChoiceDiceCheck,
+    type ChoiceModifier,
+    type DiceBranch,
+    type IChoiceDiceCheck,
+    type IChoiceModifier,
+    type IDiceBranch,
+} from '../Model/Choice'
 import { Combat } from '../Model/Combat'
-import { Condition, TextCondition } from '../Model/Condition'
+import {
+    Condition,
+    ItemCondition,
+    type StatComparisonOperator,
+    StatCondition,
+    TextCondition,
+} from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Feature } from '../Model/Feature'
+import { Inventory } from '../Model/Inventory'
 import { Item } from '../Model/Item'
 import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
@@ -21,6 +36,7 @@ import { ConnectionLineStyle } from '../Modules/Graph/StoryGraphStyles'
 import { CombatMarkdownService } from '../Services/CombatMarkdownService'
 import { CombatSyncService } from '../Services/CombatSyncService'
 import { DescriptionTransclusionService } from '../Services/DescriptionTransclusionService'
+import { EntityLinkUpdateService } from '../Services/EntityLinkUpdateService'
 import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
 import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
@@ -30,6 +46,8 @@ import { t } from '../Utils/translate'
 export {
     CharacterClass,
     Choice,
+    type ChoiceDiceCheck,
+    type ChoiceModifier,
     Combat,
     CombatMarkdownService,
     CombatSyncService,
@@ -38,9 +56,16 @@ export {
     DEFAULT_TAG_COLOR,
     Description,
     DescriptionTransclusionService,
+    type DiceBranch,
     ENTITY_CATEGORIES,
+    EntityLinkUpdateService,
     Feature,
+    type IChoiceDiceCheck,
+    type IChoiceModifier,
+    type IDiceBranch,
+    Inventory,
     Item,
+    ItemCondition,
     Location,
     NPC,
     NPC_Template,
@@ -53,6 +78,8 @@ export {
     Scene,
     Skill,
     Stat,
+    type StatComparisonOperator,
+    StatCondition,
     Tag,
     TextCondition,
 }
@@ -200,6 +227,7 @@ export class MainWindowViewModel {
     private featureSearchQuery: string = ''
     private tagSearchQuery: string = ''
     private connectionSearchQuery: string = ''
+    private itemSearchQuery: string = ''
 
     // Graph Settings
     private connectionLineStyle: ConnectionLineStyle = 'curved'
@@ -382,10 +410,22 @@ export class MainWindowViewModel {
         return { valid: true }
     }
 
-    public updateName(newName: string, allEntities?: IIdentifiableEntity[]): boolean {
+    public updateName(
+        newName: string,
+        allEntities?: IIdentifiableEntity[],
+        projectScope?: unknown
+    ): boolean {
         if (!this.selectedItem?.entity) return false
         const validation = this.validateName(newName, this.selectedItem, allEntities)
         if (!validation.valid) return false
+
+        const oldName =
+            this.selectedItem.name ||
+            (this.selectedItem.entity.getName
+                ? this.selectedItem.entity.getName()
+                : this.selectedItem.entity.getTitle
+                  ? this.selectedItem.entity.getTitle()
+                  : '')
 
         const trimmed = newName.trim()
         if (this.selectedItem.entity.setName) {
@@ -394,10 +434,28 @@ export class MainWindowViewModel {
             this.selectedItem.entity.setTitle(trimmed)
         }
 
+        const id =
+            this.selectedItem.id ||
+            (this.selectedItem.entity.getId ? this.selectedItem.entity.getId() : '')
+        const type = this.selectedItem.type
+
         this.selectedItem.name = trimmed
         const hist = this.history.find(h => h.id === this.selectedItem!.id)
         if (hist) {
             hist.name = trimmed
+        }
+
+        if (oldName && oldName !== trimmed) {
+            this.updateFileDisplayNameForEntity(oldName, trimmed, id)
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id,
+                    oldName,
+                    newName: trimmed,
+                    type,
+                },
+                projectScope || allEntities || this
+            )
         }
 
         return true
@@ -696,6 +754,14 @@ export class MainWindowViewModel {
         this.fileDisplayNames.set(file, displayName)
     }
 
+    public updateFileDisplayNameForEntity(oldName: string, newName: string, id?: string): void {
+        for (const [key, val] of this.fileDisplayNames.entries()) {
+            if (val === oldName || (id && key.includes(id))) {
+                this.fileDisplayNames.set(key, newName)
+            }
+        }
+    }
+
     public getFileDisplayName(file: string | null): string {
         if (!file) return ''
         if (this.fileDisplayNames.has(file)) {
@@ -890,6 +956,14 @@ export class MainWindowViewModel {
 
     public setConnectionSearchQuery(query: string): void {
         this.connectionSearchQuery = query
+    }
+
+    public getItemSearchQuery(): string {
+        return this.itemSearchQuery
+    }
+
+    public setItemSearchQuery(query: string): void {
+        this.itemSearchQuery = query
     }
 
     // Creation Factory Methods
@@ -1190,27 +1264,50 @@ export class MainWindowViewModel {
         return true
     }
 
-    public updateChoiceDetails(choice: Choice, name: string, conditionText: string): boolean {
+    public updateChoiceDetails(
+        choice: Choice,
+        name: string,
+        conditionOrText?: Condition | string | null,
+        costs?: ChoiceModifier[],
+        rewards?: ChoiceModifier[],
+        diceCheck?: ChoiceDiceCheck | null
+    ): boolean {
         const trimmedName = name.trim()
         if (!trimmedName) return false
         choice.setName(trimmedName)
 
-        const trimmedCondition = conditionText.trim()
-        if (trimmedCondition) {
-            const currentCond = choice.getCondition()
-            if (currentCond instanceof TextCondition) {
-                currentCond.setText(trimmedCondition)
-            } else {
-                choice.setCondition(
-                    new TextCondition(
-                        this.idGenerator('condition'),
-                        'Requirement',
-                        trimmedCondition
+        if (conditionOrText instanceof Condition) {
+            choice.setCondition(conditionOrText)
+        } else if (typeof conditionOrText === 'string') {
+            const trimmedCondition = conditionOrText.trim()
+            if (trimmedCondition) {
+                const currentCond = choice.getCondition()
+                if (currentCond instanceof TextCondition) {
+                    currentCond.setText(trimmedCondition)
+                } else {
+                    choice.setCondition(
+                        new TextCondition(
+                            this.idGenerator('condition'),
+                            'Requirement',
+                            trimmedCondition
+                        )
                     )
-                )
+                }
+            } else {
+                choice.setCondition(null)
             }
-        } else {
+        } else if (conditionOrText === null) {
             choice.setCondition(null)
+        }
+
+        if (Array.isArray(costs)) {
+            choice.setCosts(costs)
+        }
+        if (Array.isArray(rewards)) {
+            choice.setRewards(rewards)
+        }
+        if (diceCheck !== undefined) {
+            choice.setDiceCheck(diceCheck)
         }
 
         if (this.selectedItem?.id === choice.getId()) {
@@ -1376,6 +1473,22 @@ export class MainWindowViewModel {
             l =>
                 l.getName().toLowerCase().includes(query) ||
                 l.getTags().some(t => t.getName().toLowerCase().includes(query))
+        )
+    }
+
+    public searchAndFilterItems(items: Item[]): Item[] {
+        const query = this.itemSearchQuery.trim().toLowerCase()
+        if (!query) return items
+        return items.filter(
+            it =>
+                it.getName().toLowerCase().includes(query) ||
+                (typeof it.getDescription === 'function' &&
+                    it.getDescription() &&
+                    it.getDescription().getText().toLowerCase().includes(query)) ||
+                (typeof (it as any).getTags === 'function' &&
+                    (it as any)
+                        .getTags()
+                        .some((t: any) => t.getName().toLowerCase().includes(query)))
         )
     }
 

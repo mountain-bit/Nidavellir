@@ -4,7 +4,7 @@ import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { escapeHtml } from '../common/htmlTemplates.js'
 import { getAvatarById } from '../common/npcAvatars.js'
-import { openHeroModal } from '../heroModal/heroModal.js'
+import { openHeroModal } from '../modals/hero/heroModal.js'
 
 /**
  * Renders the list of Paragraphs in the Left Drawer.
@@ -909,10 +909,22 @@ export function renderMainCharacter(ctx) {
     const hero =
         ctx?.playerCharacter ||
         ctx?.projectData?.playerCharacter ||
-        (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null)
+        (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null) ||
+        (Array.isArray(ctx?.playerCharacters) ? ctx.playerCharacters[0] : null) ||
+        (Array.isArray(ctx?.projectData?.playerCharacters)
+            ? ctx.projectData.playerCharacters[0]
+            : null) ||
+        (Array.isArray(ctx?.projectPlayerCharacters) ? ctx.projectPlayerCharacters[0] : null) ||
+        (Array.isArray(ctx?.vm?.project?.getPlayerCharacters?.())
+            ? ctx.vm.project.getPlayerCharacters()[0]
+            : null)
 
-    const hasConfiguredHero =
-        hero && typeof hero.getName === 'function' && hero.getName().trim() !== ''
+    const heroName = hero
+        ? typeof hero.getName === 'function'
+            ? hero.getName()
+            : hero.name || hero.imie || ''
+        : ''
+    const hasConfiguredHero = hero && String(heroName).trim() !== ''
 
     if (!hasConfiguredHero) {
         container.innerHTML = `
@@ -948,9 +960,11 @@ export function renderMainCharacter(ctx) {
         return
     }
 
-    const heroName = hero.getName()
-    const heroAvatar = hero.getAvatar ? hero.getAvatar() : ''
-    const summary = hero.getSummary ? hero.getSummary() : ''
+    const heroAvatar = typeof hero.getAvatar === 'function' ? hero.getAvatar() : hero.avatar || ''
+    const summary =
+        typeof hero.getSummary === 'function'
+            ? hero.getSummary()
+            : hero.summary || hero.description?.summary || ''
 
     let avatarPreviewHtml = getIconSvg('character', 'w-5 h-5')
     if (
@@ -969,19 +983,35 @@ export function renderMainCharacter(ctx) {
         }
     }
 
-    const statsList = (hero.getStats ? hero.getStats() : [])
+    const rawStats =
+        typeof hero.getStats === 'function'
+            ? hero.getStats()
+            : Array.isArray(hero.stats)
+              ? hero.stats
+              : []
+    const statsList = (rawStats || [])
         .slice(0, 4)
         .map(s => {
-            const sName = s.getName ? s.getName() : s.name || ''
-            const sVal = s.getValue ? s.getValue() : (s.value ?? 10)
+            const sName = typeof s.getName === 'function' ? s.getName() : s.name || ''
+            const sVal = typeof s.getValue === 'function' ? s.getValue() : (s.value ?? 10)
             return `<span class="px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-[10px] text-zinc-300 font-mono"><strong class="text-amber-400 font-semibold">${escapeHtml(sName)}:</strong> ${sVal}</span>`
         })
         .join(' ')
 
-    const tagsBadges = (hero.getTags ? hero.getTags() : [])
+    const rawTags =
+        typeof hero.getTags === 'function'
+            ? hero.getTags()
+            : Array.isArray(hero.tags)
+              ? hero.tags
+              : []
+    const tagsBadges = (rawTags || [])
         .map(tObj => {
-            const color = tObj.getColor ? tObj.getColor() : '#3b82f6'
-            const name = tObj.getName ? tObj.getName() : tObj.name || ''
+            const color =
+                typeof tObj.getColor === 'function' ? tObj.getColor() : tObj.color || '#3b82f6'
+            const name =
+                typeof tObj.getName === 'function'
+                    ? tObj.getName()
+                    : tObj.name || (typeof tObj === 'string' ? tObj : '')
             return `<span class="px-1.5 py-0.2 rounded text-[9px] text-white" style="background-color: ${escapeHtml(color)}">${escapeHtml(name)}</span>`
         })
         .join(' ')

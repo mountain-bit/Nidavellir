@@ -3,9 +3,9 @@
  * Generates organic RPG character-sheet styling, badges, and tiles.
  */
 
-import { getIconSvg } from '../../../dist/Utils/icons.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { escapeHtml } from '../common/htmlTemplates.js'
+import { getIconSvg } from '../../../../dist/Utils/icons.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { escapeHtml } from '../../common/htmlTemplates.js'
 
 /**
  * Safely looks up a translation key with a fallback string.

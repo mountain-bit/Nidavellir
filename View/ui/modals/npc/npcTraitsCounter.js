@@ -1,4 +1,4 @@
-import { t } from '../../../dist/Utils/translate.js'
+import { t } from '../../../../dist/Utils/translate.js'
 import * as state from './npcState.js'
 
 /**

@@ -91,4 +91,56 @@ describe('Choice Model', () => {
         expect(choice.getFromParagraphId()).toBe('p1')
         expect(choice.getToParagraphId()).toBe('p2')
     })
+
+    it('should manage costs, rewards and dice checks', () => {
+        const choice = new Choice('c_adv', 'Przejdź przez most', 'p1', 'p2')
+        expect(choice.hasCosts()).toBe(false)
+        expect(choice.hasRewards()).toBe(false)
+        expect(choice.hasDiceCheck()).toBe(false)
+
+        // Costs
+        choice.addCost({ type: 'parameter', name: 'Złoto', value: 5 })
+        choice.addCost({ type: 'item', name: 'Pochodnia', value: 1 })
+        expect(choice.hasCosts()).toBe(true)
+        expect(choice.getCosts().length).toBe(2)
+
+        choice.removeCost('Pochodnia')
+        expect(choice.getCosts().length).toBe(1)
+        expect(choice.getCosts()[0].name).toBe('Złoto')
+
+        // Rewards
+        choice.addReward({ type: 'item', name: 'Amulet', value: 1 })
+        expect(choice.hasRewards()).toBe(true)
+        expect(choice.getRewards()[0].name).toBe('Amulet')
+
+        // Dice check
+        choice.setDiceCheck({
+            dice: '1k6',
+            stat: 'Zręczność',
+            description: 'Test skoku',
+            branches: [
+                { min: 1, max: 3, targetParagraphId: 'p_fail', description: 'Upadek' },
+                { min: 4, max: 6, targetParagraphId: 'p_success', description: 'Lądowanie' },
+            ],
+        })
+        expect(choice.hasDiceCheck()).toBe(true)
+        expect(choice.getDiceCheck()?.branches.length).toBe(2)
+
+        // Serialization & deserialization
+        const json = choice.toJSON()
+        expect(json.costs).toBeDefined()
+        expect(json.rewards).toBeDefined()
+        expect(json.diceCheck).toBeDefined()
+
+        const restored = Choice.fromJSON(json)
+        expect(restored.hasCosts()).toBe(true)
+        expect(restored.getCosts()[0].name).toBe('Złoto')
+        expect(restored.hasRewards()).toBe(true)
+        expect(restored.getRewards()[0].name).toBe('Amulet')
+        expect(restored.hasDiceCheck()).toBe(true)
+        expect(restored.getDiceCheck()?.dice).toBe('1k6')
+        expect(restored.getDiceCheck()?.stat).toBe('Zręczność')
+        expect(restored.getDiceCheck()?.branches[0].description).toBe('Upadek')
+        expect(restored.getDiceCheck()?.branches[1].targetParagraphId).toBe('p_success')
+    })
 })

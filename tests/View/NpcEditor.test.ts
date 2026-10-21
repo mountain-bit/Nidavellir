@@ -13,7 +13,7 @@ import {
     setNpcDescription,
     setupNpcModal,
     toggleDescriptionDrawer,
-} from '../../View/ui/npcModal/npcModal.js'
+} from '../../View/ui/modals/npc/npcModal.js'
 
 describe('NpcEditor in NPC Modal', () => {
     let container: HTMLElement

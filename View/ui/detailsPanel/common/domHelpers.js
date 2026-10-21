@@ -1,5 +1,5 @@
 import { escapeHtml } from '../../common/htmlTemplates.js'
-import { evaluateFormula } from '../../npcModal/formulaEvaluator.js'
+import { evaluateFormula } from '../../modals/npc/formulaEvaluator.js'
 
 /**
  * Creates a standard details panel <section> container.

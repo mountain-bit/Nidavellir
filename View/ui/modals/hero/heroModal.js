@@ -4,19 +4,21 @@
  * RPG mechanics, and narrative description drawer for the Player Character.
  */
 
-import { t } from '../../../dist/Utils/translate.js'
-import { getHeroEditorInstance, getOrCreateHeroEditor } from '../editor/heroEditor.js'
-import { showUnsavedChangesModal } from '../modals/confirmModal.js'
-import { clampModalPosition, initDraggable, initResizable } from '../npcModal/npcDraggable.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { getHeroEditorInstance, getOrCreateHeroEditor } from '../../editor/heroEditor.js'
+import { showUnsavedChangesModal } from '../confirm/confirmModal.js'
+import { clampModalPosition, initDraggable, initResizable } from '../npc/npcDraggable.js'
 import { saveHeroCharacter as saveHeroCharacterHelper } from './heroSaver.js'
 import {
     addHeroCustomAttribute,
+    addHeroInventory,
     addHeroSkill,
     addHeroStat,
     addHeroVital,
     initHeroAvatarGrid,
     initHeroTagsController,
     renderHeroCustomAttributes,
+    renderHeroInventories,
     renderHeroSkills,
     renderHeroStats,
     renderHeroTags,
@@ -174,12 +176,21 @@ export function openHeroModal(options = {}) {
         const potentialHero =
             ctx?.playerCharacter ||
             ctx?.projectData?.playerCharacter ||
-            (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null)
-        if (
-            potentialHero &&
-            typeof potentialHero.getName === 'function' &&
-            potentialHero.getName().trim() !== ''
-        ) {
+            (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null) ||
+            (Array.isArray(ctx?.playerCharacters) ? ctx.playerCharacters[0] : null) ||
+            (Array.isArray(ctx?.projectData?.playerCharacters)
+                ? ctx.projectData.playerCharacters[0]
+                : null) ||
+            (Array.isArray(ctx?.projectPlayerCharacters) ? ctx.projectPlayerCharacters[0] : null) ||
+            (Array.isArray(ctx?.vm?.project?.getPlayerCharacters?.())
+                ? ctx.vm.project.getPlayerCharacters()[0]
+                : null)
+        const potentialHeroName = potentialHero
+            ? typeof potentialHero.getName === 'function'
+                ? potentialHero.getName()
+                : potentialHero.name || potentialHero.imie || ''
+            : ''
+        if (potentialHero && String(potentialHeroName).trim() !== '') {
             targetHero = potentialHero
         }
     }
@@ -263,6 +274,44 @@ export function openHeroModal(options = {}) {
         const tags = targetHero.getTags ? targetHero.getTags() : targetHero.tags || []
         state.setHeroTags(tags)
 
+        // Inventories
+        const rawInvs = targetHero.getInventories
+            ? targetHero.getInventories()
+            : targetHero.inventories || []
+        if (rawInvs.length > 0) {
+            state.setHeroInventories(
+                rawInvs.map(inv => ({
+                    id: inv.getId ? inv.getId() : inv.id || `inv_${Date.now()}`,
+                    name: inv.getName ? inv.getName() : inv.name || 'Główny plecak',
+                    capacity:
+                        typeof inv.getCapacity === 'function'
+                            ? inv.getCapacity()
+                            : (inv.capacity ?? 0),
+                    items: (inv.getItems ? inv.getItems() : inv.items || []).map(it => ({
+                        id: it.getId ? it.getId() : it.id || `item_${Date.now()}`,
+                        name: it.getName ? it.getName() : it.name || String(it),
+                    })),
+                }))
+            )
+        } else {
+            const legacyItems = targetHero.getItems ? targetHero.getItems() : targetHero.items || []
+            if (legacyItems.length > 0) {
+                state.setHeroInventories([
+                    {
+                        id: 'inv_default',
+                        name: 'Główny plecak',
+                        capacity: 0,
+                        items: legacyItems.map(it => ({
+                            id: it.getId ? it.getId() : it.id || `item_${Date.now()}`,
+                            name: it.getName ? it.getName() : it.name || String(it),
+                        })),
+                    },
+                ])
+            } else {
+                state.setHeroInventories([])
+            }
+        }
+
         // Set rich editor content
         getOrCreateHeroEditor(ctx)
         setHeroDescription(narrativeText)
@@ -285,6 +334,14 @@ export function openHeroModal(options = {}) {
         state.setHeroStats([])
         state.setHeroVitals([])
         state.setHeroSkills([])
+        state.setHeroInventories([
+            {
+                id: 'inv_default',
+                name: 'Główny plecak',
+                capacity: 10,
+                items: [],
+            },
+        ])
 
         getOrCreateHeroEditor(ctx)
         setHeroDescription('')
@@ -295,6 +352,7 @@ export function openHeroModal(options = {}) {
     renderHeroVitals()
     renderHeroSkills()
     renderHeroTags()
+    renderHeroInventories()
     updateHeroVitalFormulasPreview()
     updateHeroSkillStatDropdowns()
 
@@ -420,6 +478,11 @@ export function setupHeroModal(ctx) {
     const btnAddSkill = document.getElementById('btn-add-hero-skill')
     if (btnAddSkill) {
         btnAddSkill.onclick = () => addHeroSkill('', '', '')
+    }
+
+    const btnAddInventory = document.getElementById('btn-add-hero-inventory')
+    if (btnAddInventory) {
+        btnAddInventory.onclick = () => addHeroInventory()
     }
 
     // Tags

@@ -169,6 +169,37 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                 })
                 .join('')
 
+            const exitBadges = []
+            if (choiceCondText) {
+                exitBadges.push(
+                    `<span class="px-1.5 py-0.2 rounded text-[9px] bg-amber-950/60 text-amber-300 border border-amber-800/40 font-mono truncate max-w-full">Warunek: ${escapeHtml(choiceCondText)}</span>`
+                )
+            }
+            if (typeof choice.hasCosts === 'function' && choice.hasCosts()) {
+                const costsStr = choice
+                    .getCosts()
+                    .map(c => `-${c.value || 1} ${c.name}`)
+                    .join(', ')
+                exitBadges.push(
+                    `<span class="px-1.5 py-0.2 rounded text-[9px] bg-red-950/60 text-red-300 border border-red-800/40 font-mono">Koszt: ${escapeHtml(costsStr)}</span>`
+                )
+            }
+            if (typeof choice.hasRewards === 'function' && choice.hasRewards()) {
+                const rewardsStr = choice
+                    .getRewards()
+                    .map(r => `+${r.value || 1} ${r.name}`)
+                    .join(', ')
+                exitBadges.push(
+                    `<span class="px-1.5 py-0.2 rounded text-[9px] bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 font-mono">Zysk: ${escapeHtml(rewardsStr)}</span>`
+                )
+            }
+            if (typeof choice.hasDiceCheck === 'function' && choice.hasDiceCheck()) {
+                const dc = choice.getDiceCheck()
+                exitBadges.push(
+                    `<span class="px-1.5 py-0.2 rounded text-[9px] bg-purple-950/60 text-purple-300 border border-purple-800/40 font-mono">Rzut: ${escapeHtml(dc.dice)} (${dc.branches?.length || 0} cele)</span>`
+                )
+            }
+
             card.innerHTML = `
                 <div class="flex items-center justify-between gap-1">
                     <span class="text-xs text-emerald-400 font-medium truncate flex items-center gap-1 min-w-0" title="${escapeHtml(toTitle)}">
@@ -185,6 +216,8 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                     </div>
                 </div>
 
+                ${exitBadges.length > 0 ? `<div class="flex flex-wrap gap-1">${exitBadges.join('')}</div>` : ''}
+
                 <div class="space-y-1">
                     <label class="block text-[10px] text-gray-400 uppercase font-semibold">${t('details.choice_name')}</label>
                     <input type="text" class="exit-name-input w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" value="${escapeHtml(choice.getName())}" placeholder="${t('details.choice_name_placeholder')}" />
@@ -195,14 +228,6 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                     <select class="exit-target-select w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
                         ${targetOptionsHtml}
                     </select>
-                </div>
-
-                <div class="space-y-1">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-[10px] text-gray-400 uppercase font-semibold">${t('details.condition_section')}</label>
-                        <span class="text-[9px] text-amber-400 font-mono">${t('condition.type_text')}</span>
-                    </div>
-                    <input type="text" class="exit-condition-input w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" value="${escapeHtml(choiceCondText)}" placeholder="${t('details.condition_placeholder')}" />
                 </div>
             `
 

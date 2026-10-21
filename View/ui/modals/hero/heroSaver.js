@@ -4,17 +4,21 @@
  * and persists protagonist data to project memory and disk via IPC.
  */
 
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
 import {
     Description,
+    Inventory,
+    Item,
     Parameter,
     PlayerCharacter,
     Skill,
     Stat,
     Tag,
-} from '../../../dist/ViewModel/MainWindowViewModel.js'
-import { evaluateFormula } from '../npcModal/formulaEvaluator.js'
+} from '../../../../dist/ViewModel/MainWindowViewModel.js'
+import { saveFullProject } from '../../project/projectSaver.js'
+import { markProjectDirty } from '../../project/projectStateTracker.js'
+import { evaluateFormula } from '../npc/formulaEvaluator.js'
 import * as state from './heroState.js'
 
 /**
@@ -237,6 +241,27 @@ export function saveHeroCharacter(ctx, options = {}) {
             : new Tag(tg.id || `tag_${Date.now()}`, tg.name || '', tg.color || '#3b82f6')
     )
 
+    const rawInventories = state.getHeroInventories()
+    const domainInventories = rawInventories.map(inv => {
+        const rawItems = Array.isArray(inv.items) ? inv.items : []
+        const domainItems = rawItems
+            .map(it => {
+                const itName = (typeof it === 'string' ? it : it?.name || '').trim()
+                if (!itName) return null
+                return new Item(it.id || `item_${Date.now()}`, itName, new Description())
+            })
+            .filter(Boolean)
+        return new Inventory(
+            inv.id || `inv_${Date.now()}`,
+            inv.name || 'Główny plecak',
+            typeof inv.capacity === 'number' ? inv.capacity : 0,
+            domainItems
+        )
+    })
+
+    const allDomainItems = []
+    domainInventories.forEach(inv => allDomainItems.push(...inv.getItems()))
+
     const isEdit = Boolean(state.getEditingHero())
     const heroId =
         isEdit && state.getEditingHero()?.getId?.()
@@ -251,27 +276,71 @@ export function saveHeroCharacter(ctx, options = {}) {
         domainStats,
         domainSkills,
         [],
-        isEdit && state.getEditingHero()?.getItems ? state.getEditingHero().getItems() : [],
+        allDomainItems,
         null,
         avatar,
         domainVitals,
         domainTags,
-        customAttrs
+        customAttrs,
+        domainInventories
     )
 
     // Synchronize Project memory
-    if (vm?.project && typeof vm.project.setPlayerCharacter === 'function') {
-        vm.project.setPlayerCharacter(hero)
+    const targetProject =
+        vm?.project ||
+        effectiveCtx?.project ||
+        (typeof window !== 'undefined' &&
+            window?.ProjectManager?.getInstance?.()?.getProject?.()) ||
+        (typeof globalThis !== 'undefined' &&
+            globalThis?.ProjectManager?.getInstance?.()?.getProject?.())
+
+    if (targetProject && typeof targetProject.setPlayerCharacter === 'function') {
+        targetProject.setPlayerCharacter(hero)
     }
+
     if (effectiveCtx.projectData) {
         effectiveCtx.projectData.playerCharacter = hero
+        if (!Array.isArray(effectiveCtx.projectData.playerCharacters)) {
+            effectiveCtx.projectData.playerCharacters = []
+        }
+        const existingIdx = effectiveCtx.projectData.playerCharacters.findIndex(
+            h => (typeof h.getId === 'function' ? h.getId() : h.id) === heroId
+        )
+        if (existingIdx >= 0) {
+            effectiveCtx.projectData.playerCharacters[existingIdx] = hero
+        } else {
+            effectiveCtx.projectData.playerCharacters.push(hero)
+        }
+    }
+
+    effectiveCtx.playerCharacter = hero
+    if (Array.isArray(effectiveCtx.playerCharacters)) {
+        const pIdx = effectiveCtx.playerCharacters.findIndex(
+            h => (typeof h.getId === 'function' ? h.getId() : h.id) === heroId
+        )
+        if (pIdx >= 0) {
+            effectiveCtx.playerCharacters[pIdx] = hero
+        } else {
+            effectiveCtx.playerCharacters.push(hero)
+        }
+    } else {
+        effectiveCtx.playerCharacters = [hero]
     }
 
     // Persist to disk via Electron IPC if available
     const projectPath =
         effectiveCtx.projectPath ||
         (typeof effectiveCtx.getProjectPath === 'function' ? effectiveCtx.getProjectPath() : '') ||
+        (typeof window !== 'undefined' ? window.currentProjectPath : '') ||
+        (typeof window !== 'undefined' &&
+            window?.ProjectManager?.getInstance?.()?.getProjectPath?.()) ||
+        (typeof globalThis !== 'undefined' &&
+            globalThis?.ProjectManager?.getInstance?.()?.getProjectPath?.()) ||
         ''
+
+    if (typeof markProjectDirty === 'function') {
+        markProjectDirty()
+    }
 
     if (
         projectPath &&
@@ -280,16 +349,23 @@ export function saveHeroCharacter(ctx, options = {}) {
         typeof window.electronAPI.createEntity === 'function'
     ) {
         const payloadData = typeof hero.toJSON === 'function' ? hero.toJSON() : hero
+        const cleanPayload = JSON.parse(JSON.stringify(payloadData))
         window.electronAPI
             .createEntity({
                 projectPath,
                 category: 'PlayerCharacter',
-                entityData: payloadData,
+                entityData: cleanPayload,
                 folderName: rawName,
             })
             .catch(err => {
                 console.warn('Could not persist PlayerCharacter via IPC:', err)
             })
+    }
+
+    if (projectPath && typeof saveFullProject === 'function') {
+        saveFullProject(effectiveCtx, { isAutoSave: true }).catch(err => {
+            console.warn('Could not saveFullProject after hero save:', err)
+        })
     }
 
     // Show toast

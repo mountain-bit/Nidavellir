@@ -4,6 +4,7 @@ const { registerMarkdownIpc } = require('./markdownIpc')
 const { registerRecentProjectsIpc } = require('./recentProjectsIpc')
 const { registerAppIpc } = require('./appIpc')
 const { registerAssetIpc } = require('./assetIpc')
+const { registerExportIpc } = require('./exportIpc')
 
 /**
  * Registers all IPC event handlers across domain modules.
@@ -15,6 +16,7 @@ function registerAllIpc() {
     registerRecentProjectsIpc()
     registerAppIpc()
     registerAssetIpc()
+    registerExportIpc()
 }
 
 module.exports = { registerAllIpc }

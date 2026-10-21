@@ -7,39 +7,43 @@ import {
     t,
 } from '../dist/Utils/translate.js'
 import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
+if (typeof window !== 'undefined') {
+    window.ProjectManager = ProjectManager
+}
 import { extractProjectData, loadProjectData } from './projectData.js'
 import { renderDetailsPanel, renderHistoryBar } from './ui/detailsPanel/detailsPanel.js'
 import {
+    populateFilterSelects,
     renderCharactersList,
     renderConnectionsList,
+    renderDrawerSearchResults,
+    renderFilterTags,
     renderLocationsList,
     renderMainCharacter,
     renderParagraphsList,
     renderScenesList,
     renderTagsList,
     renderTraitsList,
-} from './ui/drawer/drawerLists.js'
-import {
-    populateFilterSelects,
-    renderFilterTags,
+    setupDrawerSearch,
     setupParagraphSearchAndFilters,
+    setupSectionSearchInputs,
     updateFilterBadgeState,
-} from './ui/drawer/filterPopover.js'
+} from './ui/drawer/index.js'
 import {
     centerStoryGraph,
     getStoryGraphInstance,
     setupGraphZoomControls,
     showStoryGraph,
 } from './ui/graph/index.js'
-import { openHeroModal, setupHeroModal } from './ui/heroModal/heroModal.js'
-import { confirmApplicationClose, markFileDirty } from './ui/modals/confirmModal.js'
+import { confirmApplicationClose, markFileDirty } from './ui/modals/confirm/confirmModal.js'
+import { openHeroModal, setupHeroModal } from './ui/modals/hero/heroModal.js'
 import {
     executeNpcModalSave,
     hasUnsavedNpcChanges,
     renderDynamicSuggestions,
     setupNpcModal,
     updateTraitsCounterUI,
-} from './ui/npcModal/npcModal.js'
+} from './ui/modals/npc/npcModal.js'
 import {
     isAutoSaveEnabled,
     setAutoSaveEnabled,
@@ -209,6 +213,31 @@ const appContext = {
     get playerCharacter() {
         return projectData.playerCharacter || null
     },
+    set playerCharacter(val) {
+        projectData.playerCharacter = val
+    },
+    get playerCharacters() {
+        if (!Array.isArray(projectData.playerCharacters)) {
+            projectData.playerCharacters = projectData.playerCharacter
+                ? [projectData.playerCharacter]
+                : []
+        }
+        return projectData.playerCharacters
+    },
+    set playerCharacters(val) {
+        projectData.playerCharacters = val
+    },
+    get project() {
+        return (
+            vm.project ||
+            (typeof ProjectManager !== 'undefined'
+                ? ProjectManager.getInstance().getProject()
+                : null)
+        )
+    },
+    set project(p) {
+        vm.project = p
+    },
     get storyGraphInstance() {
         return getStoryGraphInstance()
     },
@@ -232,6 +261,7 @@ const appContext = {
     updateFilterBadgeState: () => updateFilterBadgeState(appContext),
     renderHistoryBar: () => renderHistoryBar(appContext),
     renderDetailsPanel: () => renderDetailsPanel(appContext),
+    renderDrawerSearchResults: query => renderDrawerSearchResults(appContext, query),
     renderEditorTabs: () => renderEditorTabs(appContext),
     updateMainWorkspaceUI: () => updateMainWorkspaceUI(appContext),
     openHeroModal: opts => openHeroModal(opts),
@@ -339,6 +369,7 @@ function updateLeftDrawerUI() {
         else if (activeLeftTab === 'traits') renderTraitsList(appContext)
         else if (activeLeftTab === 'tags') renderTagsList(appContext)
         else if (activeLeftTab === 'main-character') renderMainCharacter(appContext)
+        else if (activeLeftTab === 'search') renderDrawerSearchResults(appContext)
     } else if (leftDrawer) {
         leftDrawer.classList.add('collapsed')
         if (leftResizer) leftResizer.classList.add('collapsed')
@@ -594,6 +625,8 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
 function applyLoadedProject(projectInstance, projectPath) {
     if (!projectInstance) return
 
+    vm.project = projectInstance
+    appContext.project = projectInstance
     const realData = extractProjectData(projectInstance, {})
     vm.ensureStartParagraph(realData.projectParagraphs)
     projectData = realData
@@ -615,6 +648,7 @@ function applyLoadedProject(projectInstance, projectPath) {
     renderScenesList(appContext)
     renderConnectionsList(appContext)
     renderCharactersList(appContext)
+    renderMainCharacter(appContext)
     renderLocationsList(appContext)
     renderTraitsList(appContext)
     renderTagsList(appContext)
@@ -654,6 +688,51 @@ document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
             } catch (err) {
                 console.error('Error opening project:', err)
                 toast.error(t('error.open_project_failed') || 'Nie udało się otworzyć projektu')
+            }
+        }
+    })
+})
+
+document.querySelectorAll('[data-action="restore-project"]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (window.electronAPI && typeof window.electronAPI.restoreProjectZip === 'function') {
+            const canProceed = await confirmApplicationClose('project', appContext, {
+                hasUnsavedNpc: hasUnsavedNpcChanges,
+                saveNpc: () => executeNpcModalSave(appContext),
+                saveFiles: ctx => saveAllUnsavedFiles(ctx),
+                isProjectDirty: () => isProjectDirty(),
+                saveFullProject: ctx => saveFullProject(ctx),
+                markProjectClean: () => markProjectClean(),
+            })
+            if (!canProceed) return
+
+            try {
+                const res = await window.electronAPI.restoreProjectZip()
+                if (res && res.success && res.project) {
+                    const projectDir = res.path
+                        ? res.path.endsWith('project.json')
+                            ? res.path.replace(/[\\/]project\.json$/i, '')
+                            : res.path
+                        : ''
+                    const projectInstance = ProjectManager.getInstance().load(
+                        res.project,
+                        res.entities || {},
+                        res.path || projectDir
+                    )
+                    applyLoadedProject(projectInstance, projectDir || res.path)
+                    toast.success(
+                        t('start_window.restore_project_success') ||
+                            'Projekt został pomyślnie przywrócony z archiwum ZIP!'
+                    )
+                } else if (res && !res.success && !res.canceled && res.error) {
+                    toast.error(res.error)
+                }
+            } catch (err) {
+                console.error('Error restoring project from zip:', err)
+                toast.error(
+                    t('start_window.restore_project_error') ||
+                        'Nie udało się przywrócić projektu z pliku ZIP'
+                )
             }
         }
     })
@@ -783,6 +862,8 @@ async function initApp() {
                                 openRes.entities || {},
                                 openRes.path || cur
                             )
+                            vm.project = projectInstance
+                            appContext.project = projectInstance
                             projectData = extractProjectData(projectInstance, {})
                             vm.ensureStartParagraph(projectData.projectParagraphs)
                             markProjectClean()
@@ -803,6 +884,8 @@ async function initApp() {
 
         if (!projectLoaded && ProjectManager.getInstance().getProject()) {
             const existingProj = ProjectManager.getInstance().getProject()
+            vm.project = existingProj
+            appContext.project = existingProj
             projectData = extractProjectData(existingProj, {})
             vm.ensureStartParagraph(projectData.projectParagraphs)
             markProjectClean()
@@ -838,6 +921,8 @@ async function initApp() {
         }
 
         setupParagraphSearchAndFilters(appContext)
+        setupDrawerSearch(appContext)
+        setupSectionSearchInputs(appContext)
         setupSectionControlsAndContextMenu(appContext)
         setupNpcModal(appContext)
         setupHeroModal(appContext)
@@ -947,6 +1032,21 @@ async function initApp() {
                       ? t('toast.auto_save_disabled')
                       : 'Wyłączono automatyczny zapis w tle.'
                 toast.info(msg, title)
+            })
+        }
+
+        const showGridCheckbox = document.getElementById('settings-show-grid')
+        const gridSvg = document.getElementById('graph-grid-svg')
+        if (showGridCheckbox && gridSvg) {
+            const savedGridPref = localStorage.getItem('gamebook_setting_show_grid')
+            const isGridVisible = savedGridPref !== null ? savedGridPref === 'true' : true
+            showGridCheckbox.checked = isGridVisible
+            gridSvg.classList.toggle('hidden', !isGridVisible)
+
+            showGridCheckbox.addEventListener('change', () => {
+                const visible = showGridCheckbox.checked
+                localStorage.setItem('gamebook_setting_show_grid', String(visible))
+                gridSvg.classList.toggle('hidden', !visible)
             })
         }
 

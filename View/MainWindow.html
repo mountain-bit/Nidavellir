@@ -21,7 +21,8 @@
             id="main-topbar"
             class="topbar-header shrink-0 flex items-center justify-between px-3 h-11 bg-[#202023] border-b border-[#333338] text-xs select-none z-30"
             aria-label="Pasek górny narzędzi"
-        >            <!-- LEWA STRONA: Brand, Projekt & Operacje na Plikach & Historia -->
+        >
+            <!-- LEWA STRONA: Brand, Projekt & Operacje na Plikach & Historia -->
             <div class="flex items-center gap-1.5 min-w-0">
                 <!-- App Brand & Project Name Display -->
                 <div class="flex items-center gap-2 pr-2 py-0.5 border-r border-[#333338] shrink-0">
@@ -30,7 +31,8 @@
                         class="text-zinc-200 font-semibold truncate max-w-[140px] md:max-w-[200px]"
                         id="project-name-display"
                         title="Nazwa projektu"
-                    >Moja Gra</span>
+                        >Moja Gra</span
+                    >
                     <span
                         id="project-dirty-indicator"
                         class="hidden w-2 h-2 rounded-full bg-amber-400 shrink-0"
@@ -59,7 +61,22 @@
                         title="Otwórz projekt (Ctrl+O)"
                     >
                         <app-icon name="open" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
-                        <span class="hidden md:inline" data-i18n="topbar.buttons.open_project">Otwórz</span>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.open_project"
+                            >Otwórz</span
+                        >
+                    </button>
+
+                    <button
+                        class="topbar-btn"
+                        type="button"
+                        data-action="restore-project"
+                        data-i18n-title="topbar.buttons.restore_project_tooltip"
+                        title="Przywróć projekt z archiwum ZIP"
+                    >
+                        <app-icon name="import" class="w-3.5 h-3.5 text-amber-400"></app-icon>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.restore_project"
+                            >Przywróć</span
+                        >
                     </button>
 
                     <button
@@ -70,7 +87,9 @@
                         title="Zamknij projekt"
                     >
                         <app-icon name="close" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
-                        <span class="hidden md:inline" data-i18n="topbar.buttons.close_project">Zamknij</span>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.close_project"
+                            >Zamknij</span
+                        >
                     </button>
                 </div>
 
@@ -128,12 +147,15 @@
                         title="Waliduj graf"
                     >
                         <app-icon name="check" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
-                        <span class="hidden sm:inline" data-i18n="topbar.buttons.validate_graph">Waliduj graf</span>
+                        <span class="hidden sm:inline" data-i18n="topbar.buttons.validate_graph"
+                            >Waliduj graf</span
+                        >
                         <span
                             id="topbar-validation-badge"
                             class="topbar-badge topbar-badge-ok ml-0.5"
                             data-i18n="topbar.buttons.validation_clean"
-                        >0 błędów</span>
+                            >0 błędów</span
+                        >
                     </button>
 
                     <button
@@ -159,7 +181,9 @@
                         title="Testuj grę (F5)"
                     >
                         <app-icon name="play" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
-                        <span class="hidden lg:inline" data-i18n="topbar.buttons.playtest">Testuj grę</span>
+                        <span class="hidden lg:inline" data-i18n="topbar.buttons.playtest"
+                            >Testuj grę</span
+                        >
                     </button>
                 </div>
             </div>
@@ -199,7 +223,9 @@
                     title="Eksportuj projekt"
                 >
                     <app-icon name="export" class="w-3.5 h-3.5 text-white"></app-icon>
-                    <span class="hidden sm:inline" data-i18n="topbar.buttons.export">Eksportuj</span>
+                    <span class="hidden sm:inline" data-i18n="topbar.buttons.export"
+                        >Eksportuj</span
+                    >
                 </button>
 
                 <div class="topbar-divider"></div>
@@ -236,7 +262,6 @@
                 </div>
             </div>
         </header>
-
 
         <!-- Main Workspace Container (Icon Bar + Left Drawer + Center View + Right Details Panel) -->
         <div class="flex flex-1 min-h-0 overflow-hidden relative">
@@ -1020,19 +1045,51 @@
                         </div>
 
                         <!-- Content: Search -->
-                        <div class="left-tab-content hidden" id="left-content-search">
+                        <div
+                            class="left-tab-content hidden flex flex-col h-full"
+                            id="left-content-search"
+                        >
                             <div
-                                class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider mb-2"
-                                data-i18n="left_panel.search"
+                                class="px-2 py-1 text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider mb-2 flex items-center justify-between"
                             >
-                                Wyszukiwanie
+                                <span data-i18n="left_panel.search">Wyszukiwanie</span>
+                                <span
+                                    id="drawer-search-stats"
+                                    class="text-[10px] text-zinc-400 font-normal"
+                                    >0 obiektów</span
+                                >
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Szukaj frazy lub sceny..."
-                                data-i18n-placeholder="left_panel.search_placeholder"
-                                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                            />
+                            <div class="px-1 space-y-2 mb-2">
+                                <div class="relative flex items-center">
+                                    <input
+                                        type="text"
+                                        id="drawer-search-input"
+                                        placeholder="Szukaj w projekcie..."
+                                        data-i18n-placeholder="left_panel.search_placeholder"
+                                        class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 pr-7 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                    />
+                                    <button
+                                        id="btn-drawer-search-clear"
+                                        type="button"
+                                        class="hidden absolute right-1.5 text-zinc-400 hover:text-zinc-200 p-0.5 rounded cursor-pointer"
+                                        title="Wyczyść"
+                                    >
+                                        <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                                    </button>
+                                </div>
+                                <div
+                                    id="drawer-search-category-filters"
+                                    class="flex flex-wrap gap-1"
+                                >
+                                    <!-- Dynamic category filters -->
+                                </div>
+                            </div>
+                            <div
+                                class="flex-1 overflow-y-auto p-1 space-y-1"
+                                id="drawer-search-results"
+                            >
+                                <!-- Dynamic search results -->
+                            </div>
                         </div>
 
                         <!-- Content: Settings -->
@@ -1083,14 +1140,16 @@
                                             class="text-[10px] text-[#71717a] leading-tight ml-5"
                                             data-i18n="settings.auto_save_help"
                                         >
-                                            Automatycznie zapisuje projekt w tle, gdy występują niezapisane zmiany.
+                                            Automatycznie zapisuje projekt w tle, gdy występują
+                                            niezapisane zmiany.
                                         </p>
                                     </div>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="checkbox"
+                                            id="settings-show-grid"
                                             checked
-                                            class="rounded accent-blue-500"
+                                            class="rounded accent-blue-500 cursor-pointer"
                                         />
                                         <span data-i18n="settings.show_grid"
                                             >Pokazuj siatkę w grafie</span
@@ -1627,7 +1686,10 @@
                                         id="btn-menu-insert-description-embed"
                                         class="w-full text-left px-3 py-1.5 flex items-center gap-2 hover:bg-emerald-950/40 text-emerald-400 font-medium cursor-pointer border-t border-zinc-800/80 mt-1"
                                     >
-                                        <app-icon name="paragraph" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
+                                        <app-icon
+                                            name="paragraph"
+                                            class="w-3.5 h-3.5 text-emerald-400"
+                                        ></app-icon>
                                         <span data-i18n="editor.toolbar.insert_description_embed"
                                             >Wstaw opis obiektu...</span
                                         >
@@ -1641,7 +1703,10 @@
                                 title="Wstaw opis przedmiotu, postaci lub lokacji (wstrzykiwany przy eksporcie)"
                                 data-i18n-title="editor.toolbar.insert_description_embed_title"
                             >
-                                <app-icon name="paragraph" class="w-3.5 h-3.5 text-emerald-400"></app-icon>
+                                <app-icon
+                                    name="paragraph"
+                                    class="w-3.5 h-3.5 text-emerald-400"
+                                ></app-icon>
                                 <span data-i18n="editor.toolbar.insert_description_embed"
                                     >Wstaw opis obiektu</span
                                 >
@@ -1790,10 +1855,7 @@
                 type="button"
                 class="hidden w-full px-3 py-1.5 text-left hover:bg-emerald-950/60 flex items-center gap-2 cursor-pointer text-emerald-300 hover:text-white"
             >
-                <app-icon
-                    name="play"
-                    class="w-3.5 h-3.5 text-emerald-400 shrink-0"
-                ></app-icon>
+                <app-icon name="play" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></app-icon>
                 <span>Rozpocznij test stąd</span>
             </button>
             <button
@@ -3240,15 +3302,22 @@
                                         </div>
 
                                         <!-- Bottom actions: Upload button and Remove button -->
-                                        <div class="w-full pt-1 border-t border-amber-500/20 flex items-center justify-center gap-1.5">
+                                        <div
+                                            class="w-full pt-1 border-t border-amber-500/20 flex items-center justify-center gap-1.5"
+                                        >
                                             <button
                                                 type="button"
                                                 id="btn-hero-avatar-trigger"
                                                 class="flex-1 py-1 px-1.5 rounded bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/40 text-[10px] text-amber-200 font-medium transition-colors cursor-pointer flex items-center justify-center gap-1 shadow-sm"
                                                 title="Wgraj własne zdjęcie"
                                             >
-                                                <app-icon name="upload" class="w-3 h-3 text-amber-300"></app-icon>
-                                                <span id="hero-avatar-action-label">Dodaj zdjęcie</span>
+                                                <app-icon
+                                                    name="upload"
+                                                    class="w-3 h-3 text-amber-300"
+                                                ></app-icon>
+                                                <span id="hero-avatar-action-label"
+                                                    >Dodaj zdjęcie</span
+                                                >
                                             </button>
                                             <button
                                                 type="button"
@@ -3256,7 +3325,17 @@
                                                 class="hidden p-1 rounded hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer border border-transparent hover:border-rose-500/30"
                                                 title="Usuń zdjęcie"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="12"
+                                                    height="12"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="2"
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                >
                                                     <line x1="18" y1="6" x2="6" y2="18"></line>
                                                     <line x1="6" y1="6" x2="18" y2="18"></line>
                                                 </svg>
@@ -3294,7 +3373,6 @@
                                             autocomplete="off"
                                         />
                                     </div>
-
 
                                     <!-- Custom Attributes / Tożsamość Section (Directly under class) -->
                                     <div
@@ -3590,6 +3668,52 @@
                                         Brak umiejętności. Kliknij „Dodaj umiejętność”.
                                     </div>
                                 </div>
+
+                                <!-- Inventories Section (Ekwipunki i Przedmioty Początkowe) -->
+                                <div
+                                    id="hero-inventories-section"
+                                    class="flex flex-col gap-2.5 pb-2"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-1.5">
+                                            <app-icon
+                                                name="item"
+                                                class="w-3.5 h-3.5 text-amber-400 shrink-0"
+                                            ></app-icon>
+                                            <h4
+                                                class="text-xs font-bold text-zinc-200 tracking-wide"
+                                                data-i18n="hero.inventories_title"
+                                            >
+                                                Ekwipunki i Przedmioty
+                                            </h4>
+                                        </div>
+                                        <button
+                                            id="btn-add-hero-inventory"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 hover:text-amber-200 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1 cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <span class="font-bold leading-none">+</span>
+                                            <span data-i18n="hero.add_inventory"
+                                                >Dodaj ekwipunek</span
+                                            >
+                                        </button>
+                                    </div>
+
+                                    <!-- Dynamic Inventories List -->
+                                    <div
+                                        id="hero-inventories-list"
+                                        class="flex flex-col gap-3"
+                                    ></div>
+
+                                    <!-- Empty State -->
+                                    <div
+                                        id="hero-inventories-empty"
+                                        class="rounded-lg border border-dashed border-zinc-800 p-2.5 text-center text-[11px] text-zinc-500 italic"
+                                        data-i18n="hero.empty_inventories"
+                                    >
+                                        Brak zdefiniowanych ekwipunków. Kliknij „Dodaj ekwipunek”.
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Error Alert (hidden by default) -->
@@ -3867,13 +3991,25 @@
                 class="relative w-full max-w-6xl bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[860px]"
             >
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0">
+                <div
+                    class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0"
+                >
                     <div class="flex items-center gap-2">
-                        <app-icon name="image" class="w-4 h-4 text-[#9bb7d4] inline-block"></app-icon>
-                        <h3 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.title">
+                        <app-icon
+                            name="image"
+                            class="w-4 h-4 text-[#9bb7d4] inline-block"
+                        ></app-icon>
+                        <h3
+                            class="text-sm font-semibold text-zinc-100"
+                            data-i18n="asset_manager.title"
+                        >
                             Menedżer zasobów
                         </h3>
-                        <span id="asset-manager-count-badge" class="ml-2 text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700/60">0 plików</span>
+                        <span
+                            id="asset-manager-count-badge"
+                            class="ml-2 text-xs text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700/60"
+                            >0 plików</span
+                        >
                     </div>
                     <div class="flex items-center gap-2">
                         <button
@@ -3895,10 +4031,14 @@
                 </div>
 
                 <!-- Filter & Search Toolbar -->
-                <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2d2d32] bg-[#1a1a1d] shrink-0">
+                <div
+                    class="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2d2d32] bg-[#1a1a1d] shrink-0"
+                >
                     <div class="flex items-center gap-2 flex-1 max-w-md">
                         <div class="relative w-full">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400">
+                            <span
+                                class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400"
+                            >
                                 <app-icon name="search" class="w-3.5 h-3.5"></app-icon>
                             </span>
                             <input
@@ -3919,7 +4059,9 @@
                             id="asset-manager-filter-type"
                             class="bg-[#26262a] border border-[#38383e] rounded-md text-xs text-zinc-200 px-2.5 py-1 focus:outline-none"
                         >
-                            <option value="all" data-i18n="asset_manager.filter_all">Wszystkie formaty</option>
+                            <option value="all" data-i18n="asset_manager.filter_all">
+                                Wszystkie formaty
+                            </option>
                             <option value="png">PNG</option>
                             <option value="jpg">JPG / JPEG</option>
                             <option value="webp">WebP</option>
@@ -3930,10 +4072,18 @@
                             id="asset-manager-sort"
                             class="bg-[#26262a] border border-[#38383e] rounded-md text-xs text-zinc-200 px-2.5 py-1 focus:outline-none"
                         >
-                            <option value="newest" data-i18n="asset_manager.sort_newest">Najnowsze</option>
-                            <option value="name_asc" data-i18n="asset_manager.sort_name_asc">Nazwa A-Z</option>
-                            <option value="name_desc" data-i18n="asset_manager.sort_name_desc">Nazwa Z-A</option>
-                            <option value="size_desc" data-i18n="asset_manager.sort_size_desc">Największe</option>
+                            <option value="newest" data-i18n="asset_manager.sort_newest">
+                                Najnowsze
+                            </option>
+                            <option value="name_asc" data-i18n="asset_manager.sort_name_asc">
+                                Nazwa A-Z
+                            </option>
+                            <option value="name_desc" data-i18n="asset_manager.sort_name_desc">
+                                Nazwa Z-A
+                            </option>
+                            <option value="size_desc" data-i18n="asset_manager.sort_size_desc">
+                                Największe
+                            </option>
                         </select>
                     </div>
                 </div>
@@ -3946,10 +4096,23 @@
                         class="flex-1 overflow-y-auto p-4 custom-scrollbar relative"
                     >
                         <!-- Empty state -->
-                        <div id="asset-manager-empty" class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500">
+                        <div
+                            id="asset-manager-empty"
+                            class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500"
+                        >
                             <app-icon name="image" class="w-12 h-12 text-zinc-600 mb-3"></app-icon>
-                            <p class="text-sm font-medium text-zinc-400" data-i18n="asset_manager.empty_title">Brak grafik w projekcie</p>
-                            <p class="text-xs text-zinc-500 mt-1 max-w-sm" data-i18n="asset_manager.empty_desc">Przeciągnij pliki tutaj lub kliknij "Dodaj pliki" u góry.</p>
+                            <p
+                                class="text-sm font-medium text-zinc-400"
+                                data-i18n="asset_manager.empty_title"
+                            >
+                                Brak grafik w projekcie
+                            </p>
+                            <p
+                                class="text-xs text-zinc-500 mt-1 max-w-sm"
+                                data-i18n="asset_manager.empty_desc"
+                            >
+                                Przeciągnij pliki tutaj lub kliknij "Dodaj pliki" u góry.
+                            </p>
                         </div>
 
                         <!-- Cards Grid -->
@@ -3963,8 +4126,15 @@
                             id="asset-manager-drag-overlay"
                             class="hidden absolute inset-0 bg-[#3d4e61]/25 border-2 border-dashed border-[#4f6b8a] rounded-lg flex flex-col items-center justify-center pointer-events-none z-20 backdrop-blur-xs"
                         >
-                            <app-icon name="upload" class="w-12 h-12 text-[#9bb7d4] mb-2"></app-icon>
-                            <span class="text-sm font-medium text-[#d2e0ee]" data-i18n="asset_manager.drop_here">Upuść pliki tutaj, aby zaimportować</span>
+                            <app-icon
+                                name="upload"
+                                class="w-12 h-12 text-[#9bb7d4] mb-2"
+                            ></app-icon>
+                            <span
+                                class="text-sm font-medium text-[#d2e0ee]"
+                                data-i18n="asset_manager.drop_here"
+                                >Upuść pliki tutaj, aby zaimportować</span
+                            >
                         </div>
                     </div>
 
@@ -3973,47 +4143,100 @@
                         id="asset-manager-sidebar"
                         class="w-80 border-l border-[#2d2d32] bg-[#1a1a1e] flex flex-col shrink-0 overflow-y-auto p-4 custom-scrollbar text-xs"
                     >
-                        <div id="asset-detail-placeholder" class="h-full flex flex-col items-center justify-center text-center text-zinc-500">
+                        <div
+                            id="asset-detail-placeholder"
+                            class="h-full flex flex-col items-center justify-center text-center text-zinc-500"
+                        >
                             <app-icon name="image" class="w-8 h-8 text-zinc-600 mb-2"></app-icon>
-                            <p data-i18n="asset_manager.select_to_preview">Wybierz plik, aby zobaczyć szczegóły i powiązania</p>
+                            <p data-i18n="asset_manager.select_to_preview">
+                                Wybierz plik, aby zobaczyć szczegóły i powiązania
+                            </p>
                         </div>
 
                         <div id="asset-detail-content" class="hidden flex flex-col gap-4">
                             <!-- Preview Box -->
-                            <div class="w-full h-48 rounded-lg overflow-hidden bg-black/40 border border-zinc-800 flex items-center justify-center p-2 relative group">
-                                <img id="asset-detail-img" src="" alt="Podgląd" class="max-w-full max-h-full object-contain rounded" />
+                            <div
+                                class="w-full h-48 rounded-lg overflow-hidden bg-black/40 border border-zinc-800 flex items-center justify-center p-2 relative group"
+                            >
+                                <img
+                                    id="asset-detail-img"
+                                    src=""
+                                    alt="Podgląd"
+                                    class="max-w-full max-h-full object-contain rounded"
+                                />
                             </div>
 
                             <!-- File Info -->
-                            <div class="flex flex-col gap-1.5 bg-[#222226] p-3 rounded-lg border border-[#303036]">
+                            <div
+                                class="flex flex-col gap-1.5 bg-[#222226] p-3 rounded-lg border border-[#303036]"
+                            >
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400 font-medium" data-i18n="asset_manager.label_name">Nazwa:</span>
-                                    <span id="asset-detail-name" class="font-semibold text-zinc-100 truncate max-w-[170px]" title=""></span>
+                                    <span
+                                        class="text-zinc-400 font-medium"
+                                        data-i18n="asset_manager.label_name"
+                                        >Nazwa:</span
+                                    >
+                                    <span
+                                        id="asset-detail-name"
+                                        class="font-semibold text-zinc-100 truncate max-w-[170px]"
+                                        title=""
+                                    ></span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400" data-i18n="asset_manager.label_size">Rozmiar:</span>
+                                    <span class="text-zinc-400" data-i18n="asset_manager.label_size"
+                                        >Rozmiar:</span
+                                    >
                                     <span id="asset-detail-size" class="text-zinc-300"></span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400" data-i18n="asset_manager.label_dimensions">Wymiary:</span>
-                                    <span id="asset-detail-dimensions" class="text-zinc-300" data-i18n="asset_manager.loading_dimensions">Wczytywanie...</span>
+                                    <span
+                                        class="text-zinc-400"
+                                        data-i18n="asset_manager.label_dimensions"
+                                        >Wymiary:</span
+                                    >
+                                    <span
+                                        id="asset-detail-dimensions"
+                                        class="text-zinc-300"
+                                        data-i18n="asset_manager.loading_dimensions"
+                                        >Wczytywanie...</span
+                                    >
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-zinc-400" data-i18n="asset_manager.label_path">Ścieżka:</span>
-                                    <span id="asset-detail-path" class="text-zinc-400 truncate max-w-[170px]" title=""></span>
+                                    <span class="text-zinc-400" data-i18n="asset_manager.label_path"
+                                        >Ścieżka:</span
+                                    >
+                                    <span
+                                        id="asset-detail-path"
+                                        class="text-zinc-400 truncate max-w-[170px]"
+                                        title=""
+                                    ></span>
                                 </div>
                             </div>
 
                             <!-- Usage Section (Gdzie użyto) -->
                             <div class="flex flex-col gap-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="font-semibold text-zinc-300 flex items-center gap-1.5">
-                                        <app-icon name="link" class="w-3.5 h-3.5 text-blue-400"></app-icon>
-                                        <span data-i18n="asset_manager.label_usages">Gdzie użyto</span>
+                                    <span
+                                        class="font-semibold text-zinc-300 flex items-center gap-1.5"
+                                    >
+                                        <app-icon
+                                            name="link"
+                                            class="w-3.5 h-3.5 text-blue-400"
+                                        ></app-icon>
+                                        <span data-i18n="asset_manager.label_usages"
+                                            >Gdzie użyto</span
+                                        >
                                     </span>
-                                    <span id="asset-detail-usage-badge" class="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700">0 miejsc</span>
+                                    <span
+                                        id="asset-detail-usage-badge"
+                                        class="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-800 text-zinc-400 border border-zinc-700"
+                                        >0 miejsc</span
+                                    >
                                 </div>
-                                <div id="asset-detail-usage-list" class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar">
+                                <div
+                                    id="asset-detail-usage-list"
+                                    class="flex flex-col gap-1 max-h-40 overflow-y-auto custom-scrollbar"
+                                >
                                     <!-- Injected usage items -->
                                 </div>
                             </div>
@@ -4026,7 +4249,9 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] text-white rounded-md font-medium transition-colors cursor-pointer shadow-sm"
                                 >
                                     <app-icon name="crop" class="w-3.5 h-3.5"></app-icon>
-                                    <span data-i18n="asset_manager.action_edit_image">Edytuj w edytorze grafik</span>
+                                    <span data-i18n="asset_manager.action_edit_image"
+                                        >Edytuj w edytorze grafik</span
+                                    >
                                 </button>
                                 <button
                                     type="button"
@@ -4042,7 +4267,9 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
                                 >
                                     <app-icon name="markdown" class="w-3.5 h-3.5"></app-icon>
-                                    <span data-i18n="asset_manager.action_copy_markdown">Kopiuj znacznik Markdown</span>
+                                    <span data-i18n="asset_manager.action_copy_markdown"
+                                        >Kopiuj znacznik Markdown</span
+                                    >
                                 </button>
                                 <button
                                     type="button"
@@ -4050,7 +4277,9 @@
                                     class="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#28282d] hover:bg-zinc-700 text-zinc-200 rounded-md font-medium transition-colors cursor-pointer border border-zinc-700/60"
                                 >
                                     <app-icon name="open" class="w-3.5 h-3.5"></app-icon>
-                                    <span data-i18n="asset_manager.action_open_folder">Pokaż w folderze</span>
+                                    <span data-i18n="asset_manager.action_open_folder"
+                                        >Pokaż w folderze</span
+                                    >
                                 </button>
                                 <button
                                     type="button"
@@ -4070,11 +4299,20 @@
                     id="asset-rename-dialog"
                     class="hidden absolute inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
                 >
-                    <div class="w-full max-w-md bg-[#202024] border border-[#38383e] rounded-xl shadow-2xl p-5 flex flex-col gap-4">
-                        <div class="flex items-center justify-between border-b border-[#2d2d32] pb-3">
+                    <div
+                        class="w-full max-w-md bg-[#202024] border border-[#38383e] rounded-xl shadow-2xl p-5 flex flex-col gap-4"
+                    >
+                        <div
+                            class="flex items-center justify-between border-b border-[#2d2d32] pb-3"
+                        >
                             <div class="flex items-center gap-2">
                                 <app-icon name="edit" class="w-4 h-4 text-blue-400"></app-icon>
-                                <h4 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.rename_dialog_title">Zmień nazwę pliku</h4>
+                                <h4
+                                    class="text-sm font-semibold text-zinc-100"
+                                    data-i18n="asset_manager.rename_dialog_title"
+                                >
+                                    Zmień nazwę pliku
+                                </h4>
                             </div>
                             <button
                                 type="button"
@@ -4085,7 +4323,11 @@
                             </button>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <label for="asset-rename-input" class="text-xs text-zinc-300" data-i18n="asset_manager.rename_label">
+                            <label
+                                for="asset-rename-input"
+                                class="text-xs text-zinc-300"
+                                data-i18n="asset_manager.rename_label"
+                            >
                                 Nowa nazwa pliku (bez rozszerzenia):
                             </label>
                             <div class="flex items-center gap-2">
@@ -4094,11 +4336,22 @@
                                     id="asset-rename-input"
                                     class="flex-1 px-3 py-1.5 bg-[#18181b] border border-[#38383e] focus:border-blue-500 rounded-md text-xs text-zinc-200 focus:outline-none"
                                 />
-                                <span id="asset-rename-ext-badge" class="px-2 py-1.5 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-md text-xs font-mono">.png</span>
+                                <span
+                                    id="asset-rename-ext-badge"
+                                    class="px-2 py-1.5 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded-md text-xs font-mono"
+                                    >.png</span
+                                >
                             </div>
-                            <span class="text-[11px] text-zinc-500" data-i18n="asset_manager.rename_hint">Wszystkie odwołania w projekcie zostaną automatycznie zaktualizowane.</span>
+                            <span
+                                class="text-[11px] text-zinc-500"
+                                data-i18n="asset_manager.rename_hint"
+                                >Wszystkie odwołania w projekcie zostaną automatycznie
+                                zaktualizowane.</span
+                            >
                         </div>
-                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#2d2d32]">
+                        <div
+                            class="flex items-center justify-end gap-2 pt-2 border-t border-[#2d2d32]"
+                        >
                             <button
                                 type="button"
                                 id="btn-cancel-asset-rename"
@@ -4124,25 +4377,52 @@
                     id="asset-delete-dialog"
                     class="hidden absolute inset-0 z-60 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4"
                 >
-                    <div class="w-full max-w-md bg-[#202024] border border-[#38383e] rounded-xl shadow-2xl p-5 flex flex-col gap-4">
-                        <div class="flex items-center gap-2.5 text-red-400 border-b border-[#2d2d32] pb-3">
+                    <div
+                        class="w-full max-w-md bg-[#202024] border border-[#38383e] rounded-xl shadow-2xl p-5 flex flex-col gap-4"
+                    >
+                        <div
+                            class="flex items-center gap-2.5 text-red-400 border-b border-[#2d2d32] pb-3"
+                        >
                             <app-icon name="trash" class="w-4 h-4 text-red-400"></app-icon>
-                            <h4 class="text-sm font-semibold text-zinc-100" data-i18n="asset_manager.delete_dialog_title">Usuń plik zasobu</h4>
+                            <h4
+                                class="text-sm font-semibold text-zinc-100"
+                                data-i18n="asset_manager.delete_dialog_title"
+                            >
+                                Usuń plik zasobu
+                            </h4>
                         </div>
                         <div class="flex flex-col gap-2">
-                            <p id="asset-delete-message" class="text-xs text-zinc-300" data-i18n="asset_manager.delete_message">
+                            <p
+                                id="asset-delete-message"
+                                class="text-xs text-zinc-300"
+                                data-i18n="asset_manager.delete_message"
+                            >
                                 Czy na pewno chcesz usunąć ten plik?
                             </p>
-                            <div id="asset-delete-warning-box" class="hidden p-3 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex flex-col gap-1.5">
+                            <div
+                                id="asset-delete-warning-box"
+                                class="hidden p-3 rounded-lg bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex flex-col gap-1.5"
+                            >
                                 <span class="font-semibold flex items-center gap-1 text-red-300">
                                     <app-icon name="warning" class="w-3.5 h-3.5"></app-icon>
-                                    <span data-i18n="asset_manager.delete_warning_used">Plik jest aktualnie używany w projekcie!</span>
+                                    <span data-i18n="asset_manager.delete_warning_used"
+                                        >Plik jest aktualnie używany w projekcie!</span
+                                    >
                                 </span>
-                                <span id="asset-delete-warning-details" class="text-[11px] text-red-300/90 leading-relaxed"></span>
-                                <span class="text-[11px] text-red-400/80 italic mt-0.5" data-i18n="asset_manager.delete_warning_hint">Usunięcie spowoduje brakujące grafiki w grze.</span>
+                                <span
+                                    id="asset-delete-warning-details"
+                                    class="text-[11px] text-red-300/90 leading-relaxed"
+                                ></span>
+                                <span
+                                    class="text-[11px] text-red-400/80 italic mt-0.5"
+                                    data-i18n="asset_manager.delete_warning_hint"
+                                    >Usunięcie spowoduje brakujące grafiki w grze.</span
+                                >
                             </div>
                         </div>
-                        <div class="flex items-center justify-end gap-2 pt-2 border-t border-[#2d2d32]">
+                        <div
+                            class="flex items-center justify-end gap-2 pt-2 border-t border-[#2d2d32]"
+                        >
                             <button
                                 type="button"
                                 id="btn-cancel-asset-delete"
@@ -4162,7 +4442,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -4175,10 +4454,19 @@
                 class="w-full max-w-4xl bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl overflow-hidden flex flex-col h-[80vh] max-h-[720px]"
             >
                 <!-- Modal Header -->
-                <div class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0">
+                <div
+                    class="flex items-center justify-between px-5 py-3 border-b border-[#2e3037] bg-[#212226] shrink-0"
+                >
                     <div class="flex items-center gap-2">
-                        <app-icon name="image" class="w-4 h-4 text-[#9bb7d4] inline-block"></app-icon>
-                        <h3 id="asset-picker-title" class="text-sm font-semibold text-zinc-100" data-i18n="asset_picker.title">
+                        <app-icon
+                            name="image"
+                            class="w-4 h-4 text-[#9bb7d4] inline-block"
+                        ></app-icon>
+                        <h3
+                            id="asset-picker-title"
+                            class="text-sm font-semibold text-zinc-100"
+                            data-i18n="asset_picker.title"
+                        >
                             Wybierz grafikę z projektu
                         </h3>
                     </div>
@@ -4192,9 +4480,13 @@
                 </div>
 
                 <!-- Filter bar -->
-                <div class="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2e3037] bg-[#17181b] shrink-0">
+                <div
+                    class="flex items-center justify-between gap-3 px-5 py-2.5 border-b border-[#2e3037] bg-[#17181b] shrink-0"
+                >
                     <div class="relative flex-1 max-w-sm">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400">
+                        <span
+                            class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-zinc-400"
+                        >
                             <app-icon name="search" class="w-3.5 h-3.5"></app-icon>
                         </span>
                         <input
@@ -4216,17 +4508,31 @@
 
                 <!-- Picker Grid -->
                 <div class="flex-1 overflow-y-auto p-4 custom-scrollbar bg-[#141417]">
-                    <div id="asset-picker-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
-                    <div id="asset-picker-empty" class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500">
+                    <div
+                        id="asset-picker-grid"
+                        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"
+                    ></div>
+                    <div
+                        id="asset-picker-empty"
+                        class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500"
+                    >
                         <app-icon name="image" class="w-12 h-12 text-zinc-600 mb-2"></app-icon>
                         <p class="text-sm font-medium text-zinc-400">Brak pasujących grafik</p>
-                        <p class="text-xs text-zinc-500 mt-1">Użyj przycisku "Wgraj nowy z dysku", aby dodać plik do projektu.</p>
+                        <p class="text-xs text-zinc-500 mt-1">
+                            Użyj przycisku "Wgraj nowy z dysku", aby dodać plik do projektu.
+                        </p>
                     </div>
                 </div>
 
                 <!-- Footer -->
-                <div class="flex items-center justify-between px-5 py-3 border-t border-[#2e3037] bg-[#141517] shrink-0">
-                    <span id="asset-picker-selected-label" class="text-xs text-zinc-400 truncate max-w-md">Nie wybrano grafiki</span>
+                <div
+                    class="flex items-center justify-between px-5 py-3 border-t border-[#2e3037] bg-[#141517] shrink-0"
+                >
+                    <span
+                        id="asset-picker-selected-label"
+                        class="text-xs text-zinc-400 truncate max-w-md"
+                        >Nie wybrano grafiki</span
+                    >
                     <div class="flex items-center gap-2">
                         <button
                             type="button"
@@ -5608,7 +5914,10 @@
                 class="px-3.5 py-2.5 border-b border-[#2e3037] flex items-center justify-between bg-[#212226] shrink-0"
             >
                 <div class="flex items-center gap-2">
-                    <app-icon name="paragraph" class="w-4 h-4 text-[#8ec8ad] inline-block"></app-icon>
+                    <app-icon
+                        name="paragraph"
+                        class="w-4 h-4 text-[#8ec8ad] inline-block"
+                    ></app-icon>
                     <div>
                         <h3
                             class="text-xs font-semibold text-zinc-100"
@@ -5674,7 +5983,10 @@
                     </div>
 
                     <!-- Filtry pigułkowe typów -->
-                    <div class="flex items-center gap-1 flex-wrap" id="description-embed-type-filters">
+                    <div
+                        class="flex items-center gap-1 flex-wrap"
+                        id="description-embed-type-filters"
+                    >
                         <button
                             type="button"
                             data-filter-type="all"
@@ -5719,17 +6031,37 @@
                 </div>
 
                 <!-- Konfiguracja wariantu (Pełny vs Streszczenie) -->
-                <div class="p-2 rounded-lg bg-zinc-800/40 border border-zinc-700/40 text-[11px] space-y-1.5">
-                    <span class="text-zinc-400 text-[10px] font-medium uppercase tracking-wide block" data-i18n="editor.embed_modal.variant_label">
+                <div
+                    class="p-2 rounded-lg bg-zinc-800/40 border border-zinc-700/40 text-[11px] space-y-1.5"
+                >
+                    <span
+                        class="text-zinc-400 text-[10px] font-medium uppercase tracking-wide block"
+                        data-i18n="editor.embed_modal.variant_label"
+                    >
                         Wariant wstawianej treści:
                     </span>
                     <div class="flex items-center gap-3">
-                        <label class="flex items-center gap-1.5 cursor-pointer text-zinc-200 hover:text-white">
-                            <input type="radio" name="embed-variant" value="text" checked class="text-emerald-500 focus:ring-emerald-500 rounded border-zinc-700 bg-zinc-900" />
+                        <label
+                            class="flex items-center gap-1.5 cursor-pointer text-zinc-200 hover:text-white"
+                        >
+                            <input
+                                type="radio"
+                                name="embed-variant"
+                                value="text"
+                                checked
+                                class="text-emerald-500 focus:ring-emerald-500 rounded border-zinc-700 bg-zinc-900"
+                            />
                             <span>Pełny opis (narracyjny)</span>
                         </label>
-                        <label class="flex items-center gap-1.5 cursor-pointer text-zinc-200 hover:text-white">
-                            <input type="radio" name="embed-variant" value="summary" class="text-emerald-500 focus:ring-emerald-500 rounded border-zinc-700 bg-zinc-900" />
+                        <label
+                            class="flex items-center gap-1.5 cursor-pointer text-zinc-200 hover:text-white"
+                        >
+                            <input
+                                type="radio"
+                                name="embed-variant"
+                                value="summary"
+                                class="text-emerald-500 focus:ring-emerald-500 rounded border-zinc-700 bg-zinc-900"
+                            />
                             <span>Krótkie streszczenie</span>
                         </label>
                     </div>
@@ -5741,10 +6073,16 @@
                     class="p-2 rounded-lg bg-zinc-800/40 border border-zinc-700/40 text-[11px] space-y-1"
                 >
                     <div class="flex items-center justify-between">
-                        <span class="text-zinc-400 text-[10px]" data-i18n="editor.entity_modal.selected_entity_label">
+                        <span
+                            class="text-zinc-400 text-[10px]"
+                            data-i18n="editor.entity_modal.selected_entity_label"
+                        >
                             Wybrany obiekt:
                         </span>
-                        <span id="description-embed-selected-name" class="font-semibold text-zinc-500 truncate ml-2">
+                        <span
+                            id="description-embed-selected-name"
+                            class="font-semibold text-zinc-500 truncate ml-2"
+                        >
                             (brak wyboru)
                         </span>
                     </div>
@@ -5798,16 +6136,26 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+            <div
+                class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden"
+            >
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
+                <div
+                    class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between"
+                >
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0"
+                        >
                             <app-icon name="check" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-zinc-100">Raport Walidacji Grafu</h3>
-                            <p class="text-[11px] text-zinc-400" id="validation-report-subtitle">Weryfikacja spójności fabuły i przeskoków</p>
+                            <h3 class="text-sm font-semibold text-zinc-100">
+                                Raport Walidacji Grafu
+                            </h3>
+                            <p class="text-[11px] text-zinc-400" id="validation-report-subtitle">
+                                Weryfikacja spójności fabuły i przeskoków
+                            </p>
                         </div>
                     </div>
                     <button
@@ -5820,12 +6168,19 @@
                     </button>
                 </div>
                 <!-- Body: Issues List -->
-                <div id="validation-issues-container" class="p-5 overflow-y-auto space-y-2.5 flex-1 text-xs">
+                <div
+                    id="validation-issues-container"
+                    class="p-5 overflow-y-auto space-y-2.5 flex-1 text-xs"
+                >
                     <!-- Dynamic issues or clean state rendered here -->
                 </div>
                 <!-- Footer -->
-                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between">
-                    <span id="validation-summary-text" class="text-xs text-zinc-400">Podsumowanie</span>
+                <div
+                    class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between"
+                >
+                    <span id="validation-summary-text" class="text-xs text-zinc-400"
+                        >Podsumowanie</span
+                    >
                     <button
                         type="button"
                         id="btn-validation-ok"
@@ -5840,98 +6195,893 @@
         <!-- Modal: Eksport Projektu -->
         <div
             id="modal-export-project"
-            class="fixed inset-0 bg-black/75 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150"
+            class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[90] hidden flex items-center justify-center p-4 transition-opacity duration-150 select-none"
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
+            <div
+                class="bg-[#18191c] border border-[#2e3037] rounded-xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[92vh] overflow-hidden text-xs"
+            >
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
-                            <app-icon name="export" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
+                <div
+                    class="px-5 py-3.5 border-b border-[#2e3037] bg-[#1f2024] flex items-center justify-between shrink-0"
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-500/40 flex items-center justify-center shrink-0"
+                        >
+                            <app-icon name="export" class="w-4 h-4 text-blue-400"></app-icon>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-zinc-100">Eksport Gry Paragrafowej</h3>
-                            <p class="text-[11px] text-zinc-400">Wybierz docelowy format publikacji</p>
+                            <h3 class="text-sm font-semibold text-zinc-100" data-i18n="export.modal_title">
+                                Eksport Gry Paragrafowej
+                            </h3>
+                            <p class="text-[11px] text-zinc-400" data-i18n="export.modal_subtitle">
+                                Publikacja książkowa (PDF/DOCX) lub backup projektu (ZIP)
+                            </p>
                         </div>
                     </div>
                     <button
                         type="button"
                         id="btn-close-export-modal"
                         class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                        data-i18n-title="export.btn_close"
                     >
                         <app-icon name="close" class="w-4 h-4"></app-icon>
                     </button>
                 </div>
-                <!-- Body -->
-                <div class="p-5 space-y-4 text-xs">
-                    <div class="space-y-2">
-                        <label class="block text-zinc-300 font-medium">Format eksportu:</label>
-                        <div class="grid grid-cols-2 gap-2.5" id="export-format-options">
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#4a5e74] bg-[#2a3543]/40 cursor-pointer transition-colors export-opt active">
-                                <input type="radio" name="export-format" value="html" checked class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100 flex items-center gap-1.5">
-                                        <span>Web Player (HTML)</span>
+
+                <!-- Body (Two Columns: Options + Live Summary & Preview) -->
+                <div
+                    class="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-12 gap-5 min-h-0"
+                >
+                    <!-- LEWA KOLUMNA: Opcje i konfiguracja (7 cols) -->
+                    <div class="md:col-span-7 space-y-4">
+                        <!-- Krok 1: Wybór formatu docelowego -->
+                        <div>
+                            <label class="block text-zinc-300 font-semibold mb-2" data-i18n="export.format_target"
+                                >1. Format docelowy:</label
+                            >
+                            <div class="grid grid-cols-3 gap-2" id="export-format-selector">
+                                <button
+                                    type="button"
+                                    data-format="pdf"
+                                    class="export-format-card p-2.5 rounded-lg border border-blue-500 bg-blue-950/25 ring-1 ring-blue-500 text-left cursor-pointer transition-all hover:bg-blue-950/40"
+                                >
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-zinc-100" data-i18n="export.format_pdf_title">Książka PDF</span>
+                                        <span
+                                            class="text-[10px] text-red-400 font-mono font-semibold"
+                                            data-i18n="export.format_pdf_ext"
+                                            >.PDF</span
+                                        >
                                     </div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Samodzielna gra w przeglądarce</p>
-                                </div>
+                                    <p class="text-[10px] text-zinc-400 leading-tight" data-i18n="export.format_pdf_desc">
+                                        Gotowy skład do druku, A5/A4, linki
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    data-format="docx"
+                                    class="export-format-card p-2.5 rounded-lg border border-[#2e3037] bg-[#18191c] text-left cursor-pointer transition-all hover:bg-[#23252a]"
+                                >
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-zinc-100" data-i18n="export.format_docx_title">Dokument Word</span>
+                                        <span
+                                            class="text-[10px] text-blue-400 font-mono font-semibold"
+                                            data-i18n="export.format_docx_ext"
+                                            >.DOCX</span
+                                        >
+                                    </div>
+                                    <p class="text-[10px] text-zinc-400 leading-tight" data-i18n="export.format_docx_desc">
+                                        Do edycji i składu w Word / Writerze
+                                    </p>
+                                </button>
+                                <button
+                                    type="button"
+                                    data-format="zip"
+                                    class="export-format-card p-2.5 rounded-lg border border-[#2e3037] bg-[#18191c] text-left cursor-pointer transition-all hover:bg-[#23252a]"
+                                >
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-zinc-100" data-i18n="export.format_zip_title">Projekt (ZIP)</span>
+                                        <span
+                                            class="text-[10px] text-amber-400 font-mono font-semibold"
+                                            data-i18n="export.format_zip_ext"
+                                            >.ZIP</span
+                                        >
+                                    </div>
+                                    <p class="text-[10px] text-zinc-400 leading-tight" data-i18n="export.format_zip_desc">
+                                        Pełny backup do przeniesienia
+                                    </p>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Krok 2A: Opcje dla formatu ZIP -->
+                        <div
+                            id="export-section-zip-options"
+                            class="hidden p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-3"
+                        >
+                            <div class="flex items-center gap-2 text-zinc-200 font-medium">
+                                <app-icon name="open" class="w-4 h-4 text-amber-400"></app-icon>
+                                <span data-i18n="export.zip_title">Kopia całego projektu do archiwum ZIP</span>
+                            </div>
+                            <p class="text-[11px] text-zinc-400 leading-normal" data-i18n="export.zip_desc">
+                                Archiwum zawiera strukturę katalogów projektu (Paragraphs/, NPC/, Locations/, project.json). Po rozpakowaniu na innym komputerze można go bezpośrednio otworzyć w silniku Nidavelir.
+                            </p>
+                            <label
+                                class="flex items-center gap-2 text-zinc-300 cursor-pointer pt-1 border-t border-[#2e3037]"
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="export-opt-zip-images"
+                                    checked
+                                    class="rounded accent-blue-600"
+                                />
+                                <span data-i18n="export.zip_images"
+                                    >Dołącz zasoby graficzne i załączniki (Assets/Images)</span
+                                >
                             </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="json" class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100">Baza danych (JSON)</div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Kompletne dane strukturalne</p>
+                        </div>
+
+                        <!-- Krok 2B: Opcje dla formatu PDF / DOCX -->
+                        <div id="export-section-book-options" class="space-y-4">
+                            <!-- Styl książki & Czcionki -->
+                            <div
+                                class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2.5"
+                            >
+                                <div class="flex items-center justify-between">
+                                    <label class="text-zinc-200 font-medium" data-i18n="export.style_label"
+                                        >Styl typograficzny i układ:</label
+                                    >
+                                    <button
+                                        type="button"
+                                        id="btn-manage-export-styles"
+                                        class="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer transition-colors"
+                                    >
+                                        <app-icon name="edit" class="w-3.5 h-3.5"></app-icon>
+                                        <span data-i18n="export.manage_styles">Zarządzaj stylami...</span>
+                                    </button>
                                 </div>
-                            </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="pdf" class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100">Książka PDF</div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Układ gotowy do wydruku</p>
+                                <select
+                                    id="export-style-select"
+                                    class="w-full bg-[#18191c] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+                                ></select>
+                            </div>
+
+                            <!-- Oddzielanie paragrafów -->
+                            <div
+                                class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2"
+                            >
+                                <label class="block text-zinc-200 font-medium" data-i18n="export.separator_label"
+                                    >Sposób oddzielania paragrafów:</label
+                                >
+                                <select
+                                    id="export-opt-separator"
+                                    class="export-reactive-input w-full bg-[#18191c] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 cursor-pointer"
+                                >
+                                    <option value="ornament" data-i18n="export.separator_ornament">
+                                        Ozdobna winieta / fleuron (❖ ❖ ❖ lub ❦)
+                                    </option>
+                                    <option value="page-break" data-i18n="export.separator_page_break">
+                                        Każdy paragraf od nowej strony (Page Break)
+                                    </option>
+                                    <option value="line" data-i18n="export.separator_line">Stylizowana linia pozioma</option>
+                                    <option value="space" data-i18n="export.separator_space">Odstęp pionowy bez linii</option>
+                                </select>
+                            </div>
+
+                            <!-- Zawartość dodatkowa i umiejscowienie -->
+                            <div
+                                class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2.5"
+                            >
+                                <label class="block text-zinc-200 font-medium" data-i18n="export.additional_sections"
+                                    >Sekcje dodatkowe i opisy encji:</label
+                                >
+
+                                <!-- Lokacje -->
+                                <div
+                                    class="flex items-center justify-between text-zinc-300 py-1 border-b border-[#2a2c33]"
+                                >
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            id="export-opt-locations"
+                                            checked
+                                            class="rounded accent-blue-600 export-reactive-input"
+                                        />
+                                        <span data-i18n="export.locations_desc">Opisy Lokacji i Świata</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-locations-place"
+                                                value="start"
+                                                checked
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_start">Na początku</span>
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-locations-place"
+                                                value="end"
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_end">Na końcu</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </label>
-                            <label class="flex items-start gap-2.5 p-3 rounded-lg border border-[#2e3037] bg-[#17181b] hover:border-[#4a5e74]/50 cursor-pointer transition-colors export-opt">
-                                <input type="radio" name="export-format" value="docx" class="mt-0.5 accent-[#4f6b8a]" />
-                                <div>
-                                    <div class="font-semibold text-zinc-100">Dokument Word</div>
-                                    <p class="text-[11px] text-zinc-400 mt-0.5">Do dalszej redakcji tekstu</p>
+
+                                <!-- NPC -->
+                                <div
+                                    class="flex items-center justify-between text-zinc-300 py-1 border-b border-[#2a2c33]"
+                                >
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            id="export-opt-npcs"
+                                            checked
+                                            class="rounded accent-blue-600 export-reactive-input"
+                                        />
+                                        <span data-i18n="export.npcs_desc">Dossier Postaci i NPC</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-npcs-place"
+                                                value="start"
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_start">Na początku</span>
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-npcs-place"
+                                                value="end"
+                                                checked
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_end">Na końcu</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </label>
+
+                                <!-- Przedmioty -->
+                                <div
+                                    class="flex items-center justify-between text-zinc-300 py-1 border-b border-[#2a2c33]"
+                                >
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            id="export-opt-items"
+                                            class="rounded accent-blue-600 export-reactive-input"
+                                        />
+                                        <span data-i18n="export.items_desc">Katalog Przedmiotów i Broni</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-items-place"
+                                                value="start"
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_start">Na początku</span>
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-items-place"
+                                                value="end"
+                                                checked
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_end">Na końcu</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Glosariusz -->
+                                <div class="flex items-center justify-between text-zinc-300 py-1">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            id="export-opt-glossary"
+                                            checked
+                                            class="rounded accent-blue-600 export-reactive-input"
+                                        />
+                                        <span data-i18n="export.glossary_desc">Glosariusz (Słowniczek pojęć)</span>
+                                    </label>
+                                    <div class="flex items-center gap-2 text-[11px] text-zinc-400">
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-glossary-place"
+                                                value="start"
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_start">Na początku</span>
+                                        </label>
+                                        <label class="cursor-pointer flex items-center gap-1">
+                                            <input
+                                                type="radio"
+                                                name="export-opt-glossary-place"
+                                                value="end"
+                                                checked
+                                                class="accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.place_end">Na końcu</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Opcje Anti-Spoiler & Druk -->
+                            <div
+                                class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2"
+                            >
+                                <label class="block text-zinc-200 font-medium" data-i18n="export.conveniences_label"
+                                    >Udogodnienia dla gracza i publikacji:</label
+                                >
+                                <label class="flex items-start gap-2 text-zinc-300 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        id="export-opt-shuffle"
+                                        checked
+                                        class="mt-0.5 rounded accent-blue-600 export-reactive-input"
+                                    />
+                                    <div>
+                                        <span class="font-medium text-zinc-200" data-i18n="export.shuffle_paragraphs"
+                                            >Losowe przetasowanie numeracji paragrafów
+                                            (Anti-Spoiler)</span
+                                        >
+                                        <p class="text-[10px] text-zinc-400" data-i18n="export.shuffle_hint">
+                                            Automatycznie aktualizuje odnośniki w wyborach.
+                                            Zachowuje numery zablokowane kłódką oraz § 1 jako start.
+                                        </p>
+                                    </div>
+                                </label>
+                                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-[#2a2c33]">
+                                    <label
+                                        class="flex items-center gap-2 text-zinc-300 cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            id="export-opt-cover"
+                                            checked
+                                            class="rounded accent-blue-600 export-reactive-input"
+                                        />
+                                        <span data-i18n="export.cover_page">Strona tytułowa / Okładka</span>
+                                    </label>
+                                    <label
+                                        class="flex items-center gap-2 text-zinc-300 cursor-pointer"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            id="export-opt-rules"
+                                            checked
+                                            class="rounded accent-blue-600 export-reactive-input"
+                                        />
+                                        <span data-i18n="export.rules_page">Zasady gry i wprowadzenie</span>
+                                    </label>
+                                </div>
+
+                                <!-- Opcje Karty Postaci Gracza -->
+                                <div
+                                    id="export-container-character-sheet"
+                                    class="pt-2 border-t border-[#2a2c33] space-y-2"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <label
+                                            class="flex items-center gap-2 text-zinc-300 cursor-pointer font-medium"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                id="export-opt-character-sheet"
+                                                checked
+                                                class="rounded accent-blue-600 export-reactive-input"
+                                            />
+                                            <span data-i18n="export.character_sheet">Karta Postaci do druku</span>
+                                        </label>
+                                        <span
+                                            id="export-single-hero-indicator"
+                                            class="text-[11px] text-zinc-400 font-normal"
+                                        ></span>
+                                    </div>
+
+                                    <!-- Panel wyboru bohaterów (gdy jest ich więcej niż 1) -->
+                                    <div
+                                        id="export-heroes-selection-panel"
+                                        class="hidden pl-2 space-y-1.5 bg-[#18191c] p-2.5 rounded-lg border border-[#2a2c33]"
+                                    >
+                                        <div
+                                            class="flex items-center justify-between text-[11px] text-zinc-400 mb-1 border-b border-[#282a30] pb-1"
+                                        >
+                                            <span id="export-heroes-selection-title" data-i18n="export.heroes_selection_title_plural">Wybierz bohaterów do wygenerowania kart:</span>
+                                            <button
+                                                type="button"
+                                                id="btn-export-toggle-all-heroes"
+                                                class="text-blue-400 hover:text-blue-300 font-medium text-[10px] cursor-pointer"
+                                                data-i18n="export.toggle_all_heroes"
+                                            >
+                                                Zaznacz / Odznacz wszystkich
+                                            </button>
+                                        </div>
+                                        <div
+                                            id="export-heroes-list"
+                                            class="space-y-1 max-h-32 overflow-y-auto pr-1"
+                                        >
+                                            <!-- Dynamicznie generowane checkboxy dla bohaterów -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="pt-3 border-t border-[#2e3037] space-y-2">
-                        <label class="block text-zinc-300 font-medium">Opcje publikacji:</label>
-                        <div class="space-y-1.5">
-                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" id="export-opt-shuffle" checked class="rounded accent-[#4f6b8a]" />
-                                <span>Losowe wymieszanie numeracji paragrafów</span>
-                            </label>
-                            <label class="flex items-center gap-2 text-zinc-300 cursor-pointer">
-                                <input type="checkbox" id="export-opt-images" checked class="rounded accent-[#4f6b8a]" />
-                                <span>Dołącz grafiki i portrety postaci</span>
-                            </label>
+                    <!-- PRAWA KOLUMNA: Podsumowanie projektu i Mini-Podgląd Live (5 cols) -->
+                    <div class="md:col-span-5 flex flex-col space-y-3">
+                        <!-- Pudełko statystyk -->
+                        <div
+                            class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2"
+                        >
+                            <div
+                                class="font-semibold text-zinc-200 text-xs flex items-center justify-between"
+                            >
+                                <span data-i18n="export.estimates_title">Szacunki publikacji</span>
+                                <span class="text-blue-400 text-[10px]">A5 Standard</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2 text-center">
+                                <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
+                                    <div class="text-[10px] text-zinc-400" data-i18n="export.stat_paragraphs">Paragrafy</div>
+                                    <div
+                                        id="export-stat-count"
+                                        class="font-bold text-zinc-200 text-xs mt-0.5"
+                                    >
+                                        0
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
+                                    <div class="text-[10px] text-zinc-400" data-i18n="export.stat_words">Słowa</div>
+                                    <div
+                                        id="export-stat-words"
+                                        class="font-bold text-zinc-200 text-xs mt-0.5"
+                                    >
+                                        ~0
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
+                                    <div class="text-[10px] text-zinc-400" data-i18n="export.stat_volume">Objętość</div>
+                                    <div
+                                        id="export-stat-pages"
+                                        class="font-bold text-emerald-400 text-xs mt-0.5"
+                                    >
+                                        ~0 str.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini podgląd strony -->
+                        <div
+                            class="flex-1 flex flex-col p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] min-h-[260px]"
+                        >
+                            <div
+                                class="font-semibold text-zinc-200 text-xs mb-2 flex items-center justify-between"
+                            >
+                                <span data-i18n="export.preview_title">Podgląd układu i czcionek</span>
+                                <span class="text-[10px] text-zinc-500" data-i18n="export.preview_live">Live Preview</span>
+                            </div>
+                            <div
+                                class="flex-1 rounded border border-[#383a42] p-3.5 overflow-hidden shadow-inner flex flex-col justify-start"
+                                id="export-mini-preview-content"
+                            >
+                                <!-- Generowane dynamicznie przez JS -->
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <!-- Footer -->
-                <div class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between">
+                <div
+                    class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between shrink-0"
+                >
                     <button
                         type="button"
                         id="btn-cancel-export"
-                        class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
+                        class="px-4 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
+                        data-i18n="export.btn_cancel"
                     >
                         Anuluj
                     </button>
                     <button
                         type="button"
                         id="btn-confirm-export"
-                        class="px-4 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#3d4e61] hover:bg-[#485c72] border border-[#4a5e74] transition-colors cursor-pointer shadow-sm flex items-center gap-1.5"
+                        class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 transition-colors cursor-pointer shadow-md flex items-center gap-2"
                     >
-                        <app-icon name="export" class="w-3.5 h-3.5"></app-icon>
-                        <span>Pobierz / Zapisz</span>
+                        <app-icon name="export" class="w-4 h-4"></app-icon>
+                        <span data-i18n="export.btn_export">Eksportuj publikację</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Edytor i Menedżer Stylów (PDF / DOCX) -->
+        <div
+            id="modal-style-editor"
+            class="fixed inset-0 bg-black/85 backdrop-blur-sm z-[95] hidden flex items-center justify-center p-4 transition-opacity duration-150 select-none"
+            role="dialog"
+            aria-modal="true"
+        >
+            <div
+                class="bg-[#18191c] border border-[#2e3037] rounded-xl shadow-2xl max-w-4xl w-full flex flex-col max-h-[92vh] overflow-hidden text-xs"
+            >
+                <!-- Header -->
+                <div
+                    class="px-5 py-3.5 border-b border-[#2e3037] bg-[#1f2024] flex items-center justify-between shrink-0"
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/40 flex items-center justify-center shrink-0"
+                        >
+                            <app-icon name="edit" class="w-4 h-4 text-purple-400"></app-icon>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-semibold text-zinc-100">
+                                Menedżer i Edytor Stylów Książki
+                            </h3>
+                            <p class="text-[11px] text-zinc-400">
+                                Dostosuj czcionki, marginesy, kolory i ozdobniki dla PDF i DOCX
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        id="btn-close-style-editor"
+                        class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
+                        title="Zamknij"
+                    >
+                        <app-icon name="close" class="w-4 h-4"></app-icon>
+                    </button>
+                </div>
+
+                <!-- Body (3 Columns: List of Styles, Form Settings, Live Preview) -->
+                <div
+                    class="flex-1 overflow-y-auto p-5 grid grid-cols-1 md:grid-cols-12 gap-5 min-h-0"
+                >
+                    <!-- KOLUMNA 1: Lista profili (3 cols) -->
+                    <div class="md:col-span-3 space-y-3 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-zinc-200 text-xs">Profile stylów:</span>
+                            <button
+                                type="button"
+                                id="btn-new-style"
+                                class="text-blue-400 hover:text-blue-300 text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                            >
+                                <span>+ Nowy</span>
+                            </button>
+                        </div>
+                        <div
+                            id="style-editor-list"
+                            class="space-y-1.5 overflow-y-auto max-h-[460px] pr-1"
+                        >
+                            <!-- Dynamicznie generowana lista profili -->
+                        </div>
+                        <button
+                            type="button"
+                            id="btn-delete-style"
+                            class="mt-auto px-3 py-1.5 rounded border border-red-900/60 text-red-400 hover:bg-red-950/30 text-xs transition-colors cursor-pointer"
+                        >
+                            Usuń ten styl
+                        </button>
+                    </div>
+
+                    <!-- KOLUMNA 2: Formularz ustawień stylu (5 cols) -->
+                    <div class="md:col-span-5 space-y-3.5 overflow-y-auto max-h-[480px] pr-1">
+                        <div>
+                            <label class="block text-zinc-300 font-medium mb-1"
+                                >Nazwa profilu:</label
+                            >
+                            <input
+                                type="text"
+                                id="style-input-name"
+                                class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-100 focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+
+                        <!-- Format papieru i kolumny -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1"
+                                    >Format papieru:</label
+                                >
+                                <select
+                                    id="style-input-format"
+                                    class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                >
+                                    <option value="A5">A5 (Standard książki)</option>
+                                    <option value="A4">A4 (Dokument)</option>
+                                    <option value="B5">B5 (Większy format)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1"
+                                    >Układ kolumn:</label
+                                >
+                                <select
+                                    id="style-input-columns"
+                                    class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                >
+                                    <option value="1">1 Kolumna (Książka)</option>
+                                    <option value="2">2 Kolumny (Kompakt)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Czcionki -->
+                        <div class="space-y-2 pt-2 border-t border-[#2e3037]">
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1"
+                                    >Czcionka treści:</label
+                                >
+                                <select
+                                    id="style-input-font-family"
+                                    class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                >
+                                    <option value="Georgia, serif">
+                                        Georgia (Szeryfowa, klasyczna)
+                                    </option>
+                                    <option value='Baskerville, "Times New Roman", serif'>
+                                        Baskerville / Mroczna
+                                    </option>
+                                    <option value="Inter, system-ui, sans-serif">
+                                        Inter (Nowoczesna bezszeryfowa)
+                                    </option>
+                                    <option value='"Times New Roman", Times, serif'>
+                                        Times New Roman (Standard)
+                                    </option>
+                                    <option value="Garamond, serif">Garamond (Powieściowa)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1"
+                                        >Rozmiar treści (pt):</label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="style-input-font-size"
+                                        step="0.5"
+                                        min="8"
+                                        max="14"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1"
+                                        >Interlinia:</label
+                                    >
+                                    <input
+                                        type="number"
+                                        id="style-input-line-height"
+                                        step="0.05"
+                                        min="1.1"
+                                        max="2"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1"
+                                    >Czcionka nagłówków (§):</label
+                                >
+                                <select
+                                    id="style-input-header-font"
+                                    class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                >
+                                    <option value="Cinzel, Georgia, serif">Cinzel / Gotycka</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="Inter, sans-serif">Inter</option>
+                                    <option value='"Times New Roman", Times, serif'>
+                                        Times New Roman
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-zinc-300 font-medium mb-1"
+                                    >Rozmiar nagłówka (§) (pt):</label
+                                >
+                                <input
+                                    type="number"
+                                    id="style-input-header-size"
+                                    step="1"
+                                    min="10"
+                                    max="24"
+                                    class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Kolorystyka -->
+                        <div class="space-y-2 pt-2 border-t border-[#2e3037]">
+                            <label class="block text-zinc-300 font-medium">Kolory:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400 mb-0.5"
+                                        >Tekst:</label
+                                    >
+                                    <input
+                                        type="color"
+                                        id="style-input-color-text"
+                                        class="style-prop-input w-full h-7 rounded border border-[#2e3037] bg-transparent cursor-pointer"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400 mb-0.5"
+                                        >Akcent (§/linki):</label
+                                    >
+                                    <input
+                                        type="color"
+                                        id="style-input-color-accent"
+                                        class="style-prop-input w-full h-7 rounded border border-[#2e3037] bg-transparent cursor-pointer"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400 mb-0.5"
+                                        >Tło strony:</label
+                                    >
+                                    <input
+                                        type="color"
+                                        id="style-input-color-bg"
+                                        class="style-prop-input w-full h-7 rounded border border-[#2e3037] bg-transparent cursor-pointer"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Separatory i Wybory -->
+                        <div class="space-y-2 pt-2 border-t border-[#2e3037]">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1"
+                                        >Separator paragrafów:</label
+                                    >
+                                    <select
+                                        id="style-input-separator-type"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                    >
+                                        <option value="ornament">Winieta / Ornament</option>
+                                        <option value="line">Linia pozioma</option>
+                                        <option value="page-break">Podział strony</option>
+                                        <option value="space">Odstęp</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1"
+                                        >Znak winiety:</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="style-input-custom-separator"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                    />
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1"
+                                        >Wyróżnienie wyborów:</label
+                                    >
+                                    <select
+                                        id="style-input-choice-style"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                    >
+                                        <option value="italic">Kursywa</option>
+                                        <option value="bold">Pogrubienie</option>
+                                        <option value="box">Ramka blokowa</option>
+                                        <option value="bullet">Punktor</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-zinc-300 font-medium mb-1"
+                                        >Prefiks wyboru:</label
+                                    >
+                                    <input
+                                        type="text"
+                                        id="style-input-choice-prefix"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Marginesy (mm) -->
+                        <div class="space-y-1.5 pt-2 border-t border-[#2e3037]">
+                            <label class="block text-zinc-300 font-medium"
+                                >Marginesy strony (mm):</label
+                            >
+                            <div class="grid grid-cols-4 gap-1.5">
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Góra:</label>
+                                    <input
+                                        type="number"
+                                        id="style-input-margin-top"
+                                        min="5"
+                                        max="40"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Dół:</label>
+                                    <input
+                                        type="number"
+                                        id="style-input-margin-bottom"
+                                        min="5"
+                                        max="40"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Lewy:</label>
+                                    <input
+                                        type="number"
+                                        id="style-input-margin-left"
+                                        min="5"
+                                        max="40"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200"
+                                    />
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-zinc-400">Prawy:</label>
+                                    <input
+                                        type="number"
+                                        id="style-input-margin-right"
+                                        min="5"
+                                        max="40"
+                                        class="style-prop-input w-full bg-[#202126] border border-[#2e3037] rounded px-1.5 py-1 text-xs text-zinc-200"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KOLUMNA 3: Podgląd próbki na żywo (4 cols) -->
+                    <div class="md:col-span-4 flex flex-col space-y-2">
+                        <span class="font-semibold text-zinc-200 text-xs"
+                            >Podgląd stylu na żywo:</span
+                        >
+                        <div
+                            id="style-editor-preview-card"
+                            class="flex-1 rounded-lg border border-[#383a42] p-4 shadow-lg overflow-y-auto max-h-[480px]"
+                        >
+                            <!-- Odświeżany na żywo przez JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div
+                    class="px-5 py-3 border-t border-[#2e3037] bg-[#141517] flex items-center justify-between shrink-0"
+                >
+                    <button
+                        type="button"
+                        id="btn-cancel-style-editor"
+                        class="px-4 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
+                    >
+                        Anuluj
+                    </button>
+                    <button
+                        type="button"
+                        id="btn-save-style"
+                        class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-purple-600 hover:bg-purple-500 border border-purple-500 transition-colors cursor-pointer shadow-md flex items-center gap-1.5"
+                    >
+                        <span>Zapisz i Zastosuj styl</span>
                     </button>
                 </div>
             </div>
@@ -5944,16 +7094,26 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden">
+            <div
+                class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-xl w-full flex flex-col overflow-hidden"
+            >
                 <!-- Header -->
-                <div class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between">
+                <div
+                    class="px-5 py-4 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between"
+                >
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0">
+                        <div
+                            class="w-8 h-8 rounded-lg bg-[#3d4e61]/25 border border-[#4a5e74]/40 flex items-center justify-center shrink-0"
+                        >
                             <app-icon name="help" class="w-4 h-4 text-[#9bb7d4]"></app-icon>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-zinc-100">Skróty Klawiszowe i Pomoc</h3>
-                            <p class="text-[11px] text-zinc-400">Szybka nawigacja i obsługa silnika gier</p>
+                            <h3 class="text-sm font-semibold text-zinc-100">
+                                Skróty Klawiszowe i Pomoc
+                            </h3>
+                            <p class="text-[11px] text-zinc-400">
+                                Szybka nawigacja i obsługa silnika gier
+                            </p>
                         </div>
                     </div>
                     <button
@@ -5967,67 +7127,139 @@
                 <!-- Body -->
                 <div class="p-5 overflow-y-auto max-h-[65vh] space-y-4 text-xs">
                     <div>
-                        <h4 class="font-semibold text-[#9bb7d4] uppercase tracking-wider text-[11px] mb-2">Projekt i Edycja</h4>
+                        <h4
+                            class="font-semibold text-[#9bb7d4] uppercase tracking-wider text-[11px] mb-2"
+                        >
+                            Projekt i Edycja
+                        </h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Zapisz projekt</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + S</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + S</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Otwórz projekt</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + O</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + O</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Cofnij</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + Z</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + Z</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Ponów</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + Y</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + Y</kbd
+                                >
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="font-semibold text-[#8ec8ad] uppercase tracking-wider text-[11px] mb-2">Obszar Roboczy i Panele</h4>
+                        <h4
+                            class="font-semibold text-[#8ec8ad] uppercase tracking-wider text-[11px] mb-2"
+                        >
+                            Obszar Roboczy i Panele
+                        </h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Widok: Graf historii</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + 1</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + 1</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Widok: Edytor tekstu</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + 2</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + 2</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Panel lewy (Eksplorator)</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + B</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + B</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Panel prawy (Szczegóły)</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + Alt + B</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + Alt + B</kbd
+                                >
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h4 class="font-semibold text-[#d6a86c] uppercase tracking-wider text-[11px] mb-2">Narzędzia i Gra</h4>
+                        <h4
+                            class="font-semibold text-[#d6a86c] uppercase tracking-wider text-[11px] mb-2"
+                        >
+                            Narzędzia i Gra
+                        </h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Testuj grę (Playtest)</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">F5</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >F5</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Waliduj graf</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">F7</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >F7</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Szukaj w projekcie</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">Ctrl + P</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >Ctrl + P</kbd
+                                >
                             </div>
-                            <div class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
                                 <span>Pomoc i skróty</span>
-                                <kbd class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200">F1</kbd>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >F1</kbd
+                                >
                             </div>
                         </div>
                     </div>
@@ -6052,14 +7284,28 @@
             role="dialog"
             aria-modal="true"
         >
-            <div class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+            <div
+                class="bg-[#1b1c20] border border-[#2e3037] rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+            >
                 <!-- Header -->
-                <div class="px-5 py-3 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between gap-3">
+                <div
+                    class="px-5 py-3 border-b border-[#2e3037] bg-[#212226] flex items-center justify-between gap-3"
+                >
                     <div class="flex items-center gap-2.5 min-w-0">
                         <app-icon name="play" class="w-4 h-4 text-[#8ec8ad] shrink-0"></app-icon>
-                        <span class="font-semibold text-sm text-zinc-100 truncate">Playtest — Symulator Gry</span>
-                        <span id="playtest-scene-badge" class="hidden px-2 py-0.5 rounded bg-[#202733] border border-[#3b4c61] text-[11px] text-[#9bb7d4] font-medium truncate max-w-[140px]">Scena</span>
-                        <span id="playtest-paragraph-badge" class="px-2 py-0.5 rounded bg-[#1d2b23] border border-[#2d4d3c] text-[11px] text-[#8ec8ad] font-mono shrink-0">§ 1: Początek</span>
+                        <span class="font-semibold text-sm text-zinc-100 truncate"
+                            >Playtest — Symulator Gry</span
+                        >
+                        <span
+                            id="playtest-scene-badge"
+                            class="hidden px-2 py-0.5 rounded bg-[#202733] border border-[#3b4c61] text-[11px] text-[#9bb7d4] font-medium truncate max-w-[140px]"
+                            >Scena</span
+                        >
+                        <span
+                            id="playtest-paragraph-badge"
+                            class="px-2 py-0.5 rounded bg-[#1d2b23] border border-[#2d4d3c] text-[11px] text-[#8ec8ad] font-mono shrink-0"
+                            >§ 1: Początek</span
+                        >
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <button
@@ -6083,7 +7329,9 @@
                 </div>
 
                 <!-- Secondary Toolbar: Navigation & Controls -->
-                <div class="px-5 py-2.5 border-b border-[#2e3037] bg-[#1c1d22] flex items-center flex-wrap gap-2 text-xs">
+                <div
+                    class="px-5 py-2.5 border-b border-[#2e3037] bg-[#1c1d22] flex items-center flex-wrap gap-2 text-xs"
+                >
                     <!-- Step Back -->
                     <button
                         type="button"
@@ -6093,7 +7341,10 @@
                     >
                         <app-icon name="arrow-left" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
                         <span>Cofnij</span>
-                        <kbd class="text-[9px] bg-[#141517] px-1 py-0.2 rounded border border-[#2e3037] font-mono text-zinc-400">⌫</kbd>
+                        <kbd
+                            class="text-[9px] bg-[#141517] px-1 py-0.2 rounded border border-[#2e3037] font-mono text-zinc-400"
+                            >⌫</kbd
+                        >
                     </button>
 
                     <!-- Restart -->
@@ -6105,7 +7356,10 @@
                     >
                         <app-icon name="undo" class="w-3.5 h-3.5 text-zinc-400"></app-icon>
                         <span>Od nowa</span>
-                        <kbd class="text-[9px] bg-[#141517] px-1 py-0.2 rounded border border-[#2e3037] font-mono text-zinc-400">R</kbd>
+                        <kbd
+                            class="text-[9px] bg-[#141517] px-1 py-0.2 rounded border border-[#2e3037] font-mono text-zinc-400"
+                            >R</kbd
+                        >
                     </button>
 
                     <!-- Teleport Toggle -->
@@ -6117,36 +7371,58 @@
                     >
                         <app-icon name="flag" class="w-3.5 h-3.5 text-[#8fa8c2]"></app-icon>
                         <span class="font-medium">Teleportacja</span>
-                        <kbd class="text-[9px] bg-[#1a212a] px-1 py-0.2 rounded border border-[#3d4e61] font-mono text-[#9bb7d4]">T</kbd>
+                        <kbd
+                            class="text-[9px] bg-[#1a212a] px-1 py-0.2 rounded border border-[#3d4e61] font-mono text-[#9bb7d4]"
+                            >T</kbd
+                        >
                     </button>
 
                     <!-- Step Counter -->
-                    <div id="playtest-step-counter" class="text-[11px] text-zinc-400 font-mono ml-auto">
+                    <div
+                        id="playtest-step-counter"
+                        class="text-[11px] text-zinc-400 font-mono ml-auto"
+                    >
                         Krok: 1 · Odwiedzono: 1
                     </div>
                 </div>
 
                 <!-- Breadcrumbs History Trail -->
-                <div id="playtest-breadcrumbs-bar" class="px-5 py-2 border-b border-[#2e3037] bg-[#18191d] flex items-center gap-2 overflow-x-auto text-xs custom-scrollbar">
-                    <span class="text-zinc-500 text-[10px] uppercase font-bold tracking-wider shrink-0 select-none">Ścieżka:</span>
-                    <div id="playtest-breadcrumbs-container" class="flex items-center gap-1.5 flex-nowrap">
+                <div
+                    id="playtest-breadcrumbs-bar"
+                    class="px-5 py-2 border-b border-[#2e3037] bg-[#18191d] flex items-center gap-2 overflow-x-auto text-xs custom-scrollbar"
+                >
+                    <span
+                        class="text-zinc-500 text-[10px] uppercase font-bold tracking-wider shrink-0 select-none"
+                        >Ścieżka:</span
+                    >
+                    <div
+                        id="playtest-breadcrumbs-container"
+                        class="flex items-center gap-1.5 flex-nowrap"
+                    >
                         <!-- Dynamic interactive breadcrumbs rendered here -->
                     </div>
                 </div>
 
                 <!-- Collapsible Teleportation Drawer Panel -->
-                <div id="playtest-teleport-panel" class="hidden px-5 py-3.5 border-b border-[#3b4c61]/40 bg-[#1c1d22] space-y-3">
+                <div
+                    id="playtest-teleport-panel"
+                    class="hidden px-5 py-3.5 border-b border-[#3b4c61]/40 bg-[#1c1d22] space-y-3"
+                >
                     <div class="flex items-center justify-between pb-1 border-b border-[#2e3037]">
                         <div class="flex items-center gap-2 text-[#9bb7d4] text-xs font-semibold">
                             <app-icon name="flag" class="w-4 h-4 text-[#8fa8c2]"></app-icon>
                             <span>Teleportacja w fabule — Wybierz Scenę lub Paragraf docelowy</span>
                         </div>
-                        <span class="text-[10px] text-zinc-400">Skok nie usuwa poprzedniej historii kroków</span>
+                        <span class="text-[10px] text-zinc-400"
+                            >Skok nie usuwa poprzedniej historii kroków</span
+                        >
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
-                            <label class="block text-zinc-400 font-medium mb-1">1. Filtruj wg Sceny / Grafu:</label>
+                            <label class="block text-zinc-400 font-medium mb-1"
+                                >1. Filtruj wg Sceny / Grafu:</label
+                            >
                             <select
                                 id="playtest-teleport-scene-select"
                                 class="w-full px-2.5 py-1.5 rounded-lg bg-[#141517] border border-[#2e3037] text-zinc-200 focus:outline-none focus:border-[#4f6b8a]"
@@ -6155,7 +7431,9 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-zinc-400 font-medium mb-1">2. Szukaj paragrafu:</label>
+                            <label class="block text-zinc-400 font-medium mb-1"
+                                >2. Szukaj paragrafu:</label
+                            >
                             <input
                                 type="text"
                                 id="playtest-teleport-search-input"
@@ -6166,7 +7444,9 @@
                     </div>
 
                     <div>
-                        <label class="block text-zinc-400 font-medium text-xs mb-1">3. Wybierz punkt docelowy:</label>
+                        <label class="block text-zinc-400 font-medium text-xs mb-1"
+                            >3. Wybierz punkt docelowy:</label
+                        >
                         <select
                             id="playtest-teleport-paragraph-select"
                             class="w-full px-2.5 py-1.5 rounded-lg bg-[#141517] border border-[#2e3037] text-zinc-200 focus:outline-none focus:border-[#4f6b8a] text-xs"
@@ -6195,7 +7475,9 @@
                 </div>
 
                 <!-- Body: Story Content -->
-                <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#141517] custom-scrollbar">
+                <div
+                    class="p-6 overflow-y-auto space-y-6 flex-1 text-sm bg-[#141517] custom-scrollbar"
+                >
                     <div id="playtest-content" class="text-zinc-200 leading-relaxed space-y-3">
                         <!-- Dynamic paragraph story content rendered here -->
                     </div>
@@ -6203,8 +7485,12 @@
                     <!-- Choices container -->
                     <div class="pt-4 border-t border-[#2e3037] space-y-2.5">
                         <div class="flex items-center justify-between">
-                            <h4 class="text-xs uppercase font-bold tracking-wider text-zinc-400">Twoje wybory:</h4>
-                            <span class="text-[10px] text-zinc-500 font-mono">Wybierz klikając lub klawiszami 1–9</span>
+                            <h4 class="text-xs uppercase font-bold tracking-wider text-zinc-400">
+                                Twoje wybory:
+                            </h4>
+                            <span class="text-[10px] text-zinc-500 font-mono"
+                                >Wybierz klikając lub klawiszami 1–9</span
+                            >
                         </div>
                         <div id="playtest-choices-container" class="space-y-2">
                             <!-- Dynamic choices buttons rendered here -->
@@ -6213,14 +7499,46 @@
                 </div>
 
                 <!-- Footer Hint -->
-                <div class="px-5 py-2.5 border-t border-[#2e3037] bg-[#18191d] flex items-center justify-between text-[11px] text-zinc-500">
+                <div
+                    class="px-5 py-2.5 border-t border-[#2e3037] bg-[#18191d] flex items-center justify-between text-[11px] text-zinc-500"
+                >
                     <div class="flex items-center gap-3">
-                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">1–9</kbd> Wybór</span>
-                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">⌫</kbd> Cofnij</span>
-                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">T</kbd> Teleportacja</span>
-                        <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">R</kbd> Od nowa</span>
+                        <span
+                            ><kbd
+                                class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300"
+                                >1–9</kbd
+                            >
+                            Wybór</span
+                        >
+                        <span
+                            ><kbd
+                                class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300"
+                                >⌫</kbd
+                            >
+                            Cofnij</span
+                        >
+                        <span
+                            ><kbd
+                                class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300"
+                                >T</kbd
+                            >
+                            Teleportacja</span
+                        >
+                        <span
+                            ><kbd
+                                class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300"
+                                >R</kbd
+                            >
+                            Od nowa</span
+                        >
                     </div>
-                    <span><kbd class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300">Esc</kbd> Zamknij</span>
+                    <span
+                        ><kbd
+                            class="font-mono bg-[#212226] px-1.5 py-0.5 rounded border border-[#2e3037] text-zinc-300"
+                            >Esc</kbd
+                        >
+                        Zamknij</span
+                    >
                 </div>
             </div>
         </div>
@@ -6259,7 +7577,9 @@
                     </button>
                     <button
                         type="button"
-                        onclick="document.getElementById('modal-quick-search').classList.add('hidden')"
+                        onclick="
+                            document.getElementById('modal-quick-search').classList.add('hidden')
+                        "
                         class="text-xs text-zinc-400 hover:text-zinc-200 px-2 py-1 rounded bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 font-mono transition-colors"
                         title="Zamknij (ESC)"
                     >
@@ -6287,11 +7607,35 @@
                 <div
                     class="px-4 py-2.5 bg-[#141517] border-t border-[#2e3037] flex items-center justify-between text-[11px] text-zinc-400 select-none"
                 >
-                    <span id="quick-search-stats" class="text-zinc-500 font-medium">Wszystkie obiekty</span>
+                    <span id="quick-search-stats" class="text-zinc-500 font-medium"
+                        >Wszystkie obiekty</span
+                    >
                     <div class="flex items-center gap-3 text-zinc-500">
-                        <span><kbd class="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]">↑</kbd> <kbd class="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]">↓</kbd> nawiguj</span>
-                        <span><kbd class="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]">↵</kbd> otwórz</span>
-                        <span><kbd class="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]">ESC</kbd> zamknij</span>
+                        <span
+                            ><kbd
+                                class="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]"
+                                >↑</kbd
+                            >
+                            <kbd
+                                class="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]"
+                                >↓</kbd
+                            >
+                            nawiguj</span
+                        >
+                        <span
+                            ><kbd
+                                class="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]"
+                                >↵</kbd
+                            >
+                            otwórz</span
+                        >
+                        <span
+                            ><kbd
+                                class="px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono text-[10px]"
+                                >ESC</kbd
+                            >
+                            zamknij</span
+                        >
                     </div>
                 </div>
             </div>

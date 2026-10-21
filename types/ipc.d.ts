@@ -39,6 +39,7 @@ export type SerializedProject = ISerializedProject
 
 export interface IOpenProjectResult {
     success: boolean
+    canceled?: boolean
     path?: string
     project?: IProjectData
     entities?: IEntitiesData

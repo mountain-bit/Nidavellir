@@ -506,10 +506,11 @@ export function searchProjectObjects(ctx, query, categoryFilter = 'all') {
  * @param {object} item
  * @param {object} ctx
  */
-export function executeQuickSearchAction(item, ctx) {
+export function executeQuickSearchAction(item, ctx, options = {}) {
     if (!item || !ctx) return
 
     const { type, entity, id } = item
+    const shouldSwitchDrawerTab = options.switchDrawerTab !== false
 
     if (type === 'paragraph') {
         // 1. Switch to Graph View if not already active
@@ -627,8 +628,8 @@ export function executeQuickSearchAction(item, ctx) {
             updateRightSidebarUI(ctx.vm, rightSidebar, toggleBtn, reopenBtn)
         }
 
-        // Switch left drawer to matching category tab if drawer is open or available
-        if (ctx.vm && typeof ctx.vm.toggleLeftTab === 'function') {
+        // Switch left drawer to matching category tab if requested and drawer is open or available
+        if (shouldSwitchDrawerTab && ctx.vm && typeof ctx.vm.toggleLeftTab === 'function') {
             if (type === 'character' || type === 'template') {
                 ctx.vm.toggleLeftTab('characters')
             } else if (type === 'location') {

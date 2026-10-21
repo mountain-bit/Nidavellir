@@ -14,7 +14,63 @@ const allowedLicenses = new Set([
     'CC0-1.0',
     'MPL-2.0',
     'Python-2.0',
+    'Zlib',
+    'BlueOak-1.0.0',
 ])
+
+function isLicenseAllowed(licenseStr, allowedSet) {
+    if (!licenseStr || typeof licenseStr !== 'string') return false
+
+    const tokens = licenseStr.match(/\(|\)|OR|AND|[^\s()]+/gi)
+    if (!tokens || tokens.length === 0) return false
+
+    let pos = 0
+    function peek() {
+        return tokens[pos]
+    }
+    function consume() {
+        return tokens[pos++]
+    }
+
+    function parsePrimary() {
+        const token = peek()
+        if (token === '(') {
+            consume()
+            const result = parseOr()
+            if (peek() === ')') {
+                consume()
+            }
+            return result
+        }
+        if (token === ')' || !token) {
+            return false
+        }
+        const id = consume()
+        return allowedSet.has(id)
+    }
+
+    function parseAnd() {
+        let result = parsePrimary()
+        while (peek() && peek().toUpperCase() === 'AND') {
+            consume()
+            const next = parsePrimary()
+            result = result && next
+        }
+        return result
+    }
+
+    function parseOr() {
+        let result = parseAnd()
+        while (peek() && peek().toUpperCase() === 'OR') {
+            consume()
+            const next = parseAnd()
+            result = result || next
+        }
+        return result
+    }
+
+    return Boolean(parseOr())
+}
 
 if (!fs.existsSync(virtualStoreDir)) {
     console.error('pnpm dependencies not found. Please run pnpm install first.')
@@ -45,10 +101,16 @@ function collectPackageManifests(directory) {
         if (checkedPackages.has(packageId)) continue
         checkedPackages.add(packageId)
 
-        const license =
+        let license =
             typeof manifest.license === 'string' ? manifest.license : manifest.license?.type
-        const licenses = license?.replace(/[()]/g, '').split(/\s+(?:OR|AND)\s+/) ?? []
-        const isAllowed = licenses.length > 0 && licenses.every(item => allowedLicenses.has(item))
+        if (!license && Array.isArray(manifest.licenses)) {
+            license = manifest.licenses
+                .map(l => (typeof l === 'string' ? l : l?.type))
+                .filter(Boolean)
+                .join(' OR ')
+        }
+
+        const isAllowed = isLicenseAllowed(license, allowedLicenses)
         if (!isAllowed) invalidPackages.push(`${packageId}: ${license ?? 'brak licencji'}`)
     }
 }

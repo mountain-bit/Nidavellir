@@ -4,11 +4,12 @@ import { t } from '../../../dist/Utils/translate.js'
 import {
     DEFAULT_TAG_COLOR,
     ENTITY_CATEGORIES,
+    EntityLinkUpdateService,
     ProjectManager,
     Scene,
 } from '../../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from '../common/htmlTemplates.js'
-import { openPlaytestSimulator } from '../modals/playtestModal.js'
+import { openPlaytestSimulator } from '../modals/playtest/playtestModal.js'
 import { markProjectDirty } from '../project/projectStateTracker.js'
 
 let activeContextMenuTarget = null
@@ -544,8 +545,45 @@ export function setupSectionControlsAndContextMenu(ctx) {
 
             const newName = prompt(t('context_menu.rename_prompt'), activeContextMenuTarget.name)
             if (newName !== null && newName.trim() !== '') {
-                activeContextMenuTarget.item.setName(newName.trim())
+                const trimmed = newName.trim()
+                const oldName =
+                    activeContextMenuTarget.name ||
+                    (typeof activeContextMenuTarget.item.getName === 'function'
+                        ? activeContextMenuTarget.item.getName()
+                        : typeof activeContextMenuTarget.item.getTitle === 'function'
+                          ? activeContextMenuTarget.item.getTitle()
+                          : '')
+
+                if (typeof activeContextMenuTarget.item.setName === 'function') {
+                    activeContextMenuTarget.item.setName(trimmed)
+                } else if (typeof activeContextMenuTarget.item.setTitle === 'function') {
+                    activeContextMenuTarget.item.setTitle(trimmed)
+                }
+                activeContextMenuTarget.name = trimmed
+
+                const targetId =
+                    typeof activeContextMenuTarget.item.getId === 'function'
+                        ? activeContextMenuTarget.item.getId()
+                        : activeContextMenuTarget.item.id || ''
+
+                if (typeof ctx?.vm?.updateFileDisplayNameForEntity === 'function') {
+                    ctx.vm.updateFileDisplayNameForEntity(oldName, trimmed, targetId)
+                }
+
+                if (oldName && oldName !== trimmed) {
+                    EntityLinkUpdateService.updateEntityReferences(
+                        {
+                            id: targetId,
+                            oldName,
+                            newName: trimmed,
+                            type: activeContextMenuTarget.type,
+                        },
+                        ctx
+                    )
+                }
+
                 ctx.refreshActiveSection(activeContextMenuTarget.type)
+                markProjectDirty()
             }
             if (ctxMenu) ctxMenu.classList.add('hidden')
         })
