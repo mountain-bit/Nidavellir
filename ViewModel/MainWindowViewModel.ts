@@ -1485,8 +1485,10 @@ export class MainWindowViewModel {
                 (typeof it.getDescription === 'function' &&
                     it.getDescription() &&
                     it.getDescription().getText().toLowerCase().includes(query)) ||
-                (typeof it.getTags === 'function' &&
-                    it.getTags().some(t => t.getName().toLowerCase().includes(query)))
+                (typeof (it as any).getTags === 'function' &&
+                    (it as any)
+                        .getTags()
+                        .some((t: any) => t.getName().toLowerCase().includes(query)))
         )
     }
 

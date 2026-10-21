@@ -245,7 +245,17 @@ class ProjectService {
             }
 
             const entities = {}
-            const dataPaths = projectData.dataPaths || projectData.sciezkiDanych || []
+            const dataPaths = [...(projectData.dataPaths || projectData.sciezkiDanych || [])]
+
+            for (const folder of DEFAULT_PROJECT_FOLDERS) {
+                const relMeta = `./${folder}/meta.json`
+                if (!dataPaths.includes(relMeta)) {
+                    const absMeta = path.join(projectDir, folder, 'meta.json')
+                    if (fs.existsSync(absMeta)) {
+                        dataPaths.push(relMeta)
+                    }
+                }
+            }
 
             for (const sciezka of dataPaths) {
                 const metaPath = path.resolve(projectDir, sciezka)

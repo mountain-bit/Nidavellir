@@ -176,12 +176,21 @@ export function openHeroModal(options = {}) {
         const potentialHero =
             ctx?.playerCharacter ||
             ctx?.projectData?.playerCharacter ||
-            (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null)
-        if (
-            potentialHero &&
-            typeof potentialHero.getName === 'function' &&
-            potentialHero.getName().trim() !== ''
-        ) {
+            (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null) ||
+            (Array.isArray(ctx?.playerCharacters) ? ctx.playerCharacters[0] : null) ||
+            (Array.isArray(ctx?.projectData?.playerCharacters)
+                ? ctx.projectData.playerCharacters[0]
+                : null) ||
+            (Array.isArray(ctx?.projectPlayerCharacters) ? ctx.projectPlayerCharacters[0] : null) ||
+            (Array.isArray(ctx?.vm?.project?.getPlayerCharacters?.())
+                ? ctx.vm.project.getPlayerCharacters()[0]
+                : null)
+        const potentialHeroName = potentialHero
+            ? typeof potentialHero.getName === 'function'
+                ? potentialHero.getName()
+                : potentialHero.name || potentialHero.imie || ''
+            : ''
+        if (potentialHero && String(potentialHeroName).trim() !== '') {
             targetHero = potentialHero
         }
     }

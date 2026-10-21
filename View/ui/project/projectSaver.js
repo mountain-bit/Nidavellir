@@ -69,6 +69,20 @@ export async function saveFullProject(ctx, options = {}) {
             i && typeof i.toJSON === 'function' ? i.toJSON() : i
         )
 
+        const rawPlayerCharacters =
+            ctx.playerCharacters ||
+            ctx.projectData?.playerCharacters ||
+            (ctx.playerCharacter ? [ctx.playerCharacter] : []) ||
+            (ctx.projectData?.playerCharacter ? [ctx.projectData.playerCharacter] : []) ||
+            (typeof ctx.vm?.project?.getPlayerCharacters === 'function'
+                ? ctx.vm.project.getPlayerCharacters()
+                : [])
+        const projectPlayerCharacters = (
+            Array.isArray(rawPlayerCharacters) ? rawPlayerCharacters : [rawPlayerCharacters]
+        )
+            .filter(Boolean)
+            .map(p => (p && typeof p.toJSON === 'function' ? p.toJSON() : p))
+
         const allRules = [
             ...(ctx.projectStats || []).map(r => ({
                 ...(r && typeof r.toJSON === 'function' ? r.toJSON() : r),
@@ -123,6 +137,7 @@ export async function saveFullProject(ctx, options = {}) {
                 Locations: projectLocations,
                 Items: projectItems,
                 Rules: allRules,
+                PlayerCharacter: projectPlayerCharacters,
             },
             files: ctx.files || {},
         }

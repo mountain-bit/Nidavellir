@@ -16,6 +16,8 @@ import {
     Stat,
     Tag,
 } from '../../../../dist/ViewModel/MainWindowViewModel.js'
+import { saveFullProject } from '../../project/projectSaver.js'
+import { markProjectDirty } from '../../project/projectStateTracker.js'
 import { evaluateFormula } from '../npc/formulaEvaluator.js'
 import * as state from './heroState.js'
 
@@ -284,18 +286,61 @@ export function saveHeroCharacter(ctx, options = {}) {
     )
 
     // Synchronize Project memory
-    if (vm?.project && typeof vm.project.setPlayerCharacter === 'function') {
-        vm.project.setPlayerCharacter(hero)
+    const targetProject =
+        vm?.project ||
+        effectiveCtx?.project ||
+        (typeof window !== 'undefined' &&
+            window?.ProjectManager?.getInstance?.()?.getProject?.()) ||
+        (typeof globalThis !== 'undefined' &&
+            globalThis?.ProjectManager?.getInstance?.()?.getProject?.())
+
+    if (targetProject && typeof targetProject.setPlayerCharacter === 'function') {
+        targetProject.setPlayerCharacter(hero)
     }
+
     if (effectiveCtx.projectData) {
         effectiveCtx.projectData.playerCharacter = hero
+        if (!Array.isArray(effectiveCtx.projectData.playerCharacters)) {
+            effectiveCtx.projectData.playerCharacters = []
+        }
+        const existingIdx = effectiveCtx.projectData.playerCharacters.findIndex(
+            h => (typeof h.getId === 'function' ? h.getId() : h.id) === heroId
+        )
+        if (existingIdx >= 0) {
+            effectiveCtx.projectData.playerCharacters[existingIdx] = hero
+        } else {
+            effectiveCtx.projectData.playerCharacters.push(hero)
+        }
+    }
+
+    effectiveCtx.playerCharacter = hero
+    if (Array.isArray(effectiveCtx.playerCharacters)) {
+        const pIdx = effectiveCtx.playerCharacters.findIndex(
+            h => (typeof h.getId === 'function' ? h.getId() : h.id) === heroId
+        )
+        if (pIdx >= 0) {
+            effectiveCtx.playerCharacters[pIdx] = hero
+        } else {
+            effectiveCtx.playerCharacters.push(hero)
+        }
+    } else {
+        effectiveCtx.playerCharacters = [hero]
     }
 
     // Persist to disk via Electron IPC if available
     const projectPath =
         effectiveCtx.projectPath ||
         (typeof effectiveCtx.getProjectPath === 'function' ? effectiveCtx.getProjectPath() : '') ||
+        (typeof window !== 'undefined' ? window.currentProjectPath : '') ||
+        (typeof window !== 'undefined' &&
+            window?.ProjectManager?.getInstance?.()?.getProjectPath?.()) ||
+        (typeof globalThis !== 'undefined' &&
+            globalThis?.ProjectManager?.getInstance?.()?.getProjectPath?.()) ||
         ''
+
+    if (typeof markProjectDirty === 'function') {
+        markProjectDirty()
+    }
 
     if (
         projectPath &&
@@ -304,16 +349,23 @@ export function saveHeroCharacter(ctx, options = {}) {
         typeof window.electronAPI.createEntity === 'function'
     ) {
         const payloadData = typeof hero.toJSON === 'function' ? hero.toJSON() : hero
+        const cleanPayload = JSON.parse(JSON.stringify(payloadData))
         window.electronAPI
             .createEntity({
                 projectPath,
                 category: 'PlayerCharacter',
-                entityData: payloadData,
+                entityData: cleanPayload,
                 folderName: rawName,
             })
             .catch(err => {
                 console.warn('Could not persist PlayerCharacter via IPC:', err)
             })
+    }
+
+    if (projectPath && typeof saveFullProject === 'function') {
+        saveFullProject(effectiveCtx, { isAutoSave: true }).catch(err => {
+            console.warn('Could not saveFullProject after hero save:', err)
+        })
     }
 
     // Show toast

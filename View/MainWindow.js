@@ -7,6 +7,9 @@ import {
     t,
 } from '../dist/Utils/translate.js'
 import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
+if (typeof window !== 'undefined') {
+    window.ProjectManager = ProjectManager
+}
 import { extractProjectData, loadProjectData } from './projectData.js'
 import { renderDetailsPanel, renderHistoryBar } from './ui/detailsPanel/detailsPanel.js'
 import {
@@ -210,11 +213,30 @@ const appContext = {
     get playerCharacter() {
         return projectData.playerCharacter || null
     },
+    set playerCharacter(val) {
+        projectData.playerCharacter = val
+    },
     get playerCharacters() {
+        if (!Array.isArray(projectData.playerCharacters)) {
+            projectData.playerCharacters = projectData.playerCharacter
+                ? [projectData.playerCharacter]
+                : []
+        }
+        return projectData.playerCharacters
+    },
+    set playerCharacters(val) {
+        projectData.playerCharacters = val
+    },
+    get project() {
         return (
-            projectData.playerCharacters ||
-            (projectData.playerCharacter ? [projectData.playerCharacter] : [])
+            vm.project ||
+            (typeof ProjectManager !== 'undefined'
+                ? ProjectManager.getInstance().getProject()
+                : null)
         )
+    },
+    set project(p) {
+        vm.project = p
     },
     get storyGraphInstance() {
         return getStoryGraphInstance()
@@ -603,6 +625,8 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
 function applyLoadedProject(projectInstance, projectPath) {
     if (!projectInstance) return
 
+    vm.project = projectInstance
+    appContext.project = projectInstance
     const realData = extractProjectData(projectInstance, {})
     vm.ensureStartParagraph(realData.projectParagraphs)
     projectData = realData
@@ -624,6 +648,7 @@ function applyLoadedProject(projectInstance, projectPath) {
     renderScenesList(appContext)
     renderConnectionsList(appContext)
     renderCharactersList(appContext)
+    renderMainCharacter(appContext)
     renderLocationsList(appContext)
     renderTraitsList(appContext)
     renderTagsList(appContext)
@@ -837,6 +862,8 @@ async function initApp() {
                                 openRes.entities || {},
                                 openRes.path || cur
                             )
+                            vm.project = projectInstance
+                            appContext.project = projectInstance
                             projectData = extractProjectData(projectInstance, {})
                             vm.ensureStartParagraph(projectData.projectParagraphs)
                             markProjectClean()
@@ -857,6 +884,8 @@ async function initApp() {
 
         if (!projectLoaded && ProjectManager.getInstance().getProject()) {
             const existingProj = ProjectManager.getInstance().getProject()
+            vm.project = existingProj
+            appContext.project = existingProj
             projectData = extractProjectData(existingProj, {})
             vm.ensureStartParagraph(projectData.projectParagraphs)
             markProjectClean()

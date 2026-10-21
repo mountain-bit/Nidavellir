@@ -24,7 +24,8 @@ declare module '*/View/mockData.js' {
         projectParagraphs: Paragraph[]
         projectScenes: Scene[]
         projectTemplates: NPC_Template[]
-        playerCharacter?: unknown
+        playerCharacter?: any
+        playerCharacters?: any[]
     }
 
     export const mockFiles: Record<string, string>
@@ -1034,4 +1035,12 @@ declare module '*/View/ui/modals/index.js' {
 declare module '*/main/services/ExportService.js' {
     const ExportService: any
     export default ExportService
+}
+
+declare module '*/View/ui/drawer/drawerSearch.js' {
+    export function getActiveDrawerCategory(): string
+    export function setActiveDrawerCategory(category: string): void
+    export function renderDrawerSearchResults(ctx: any, query?: string | null): void
+    export function setupDrawerSearch(ctx: any): void
+    export function setupSectionSearchInputs(ctx: any): void
 }

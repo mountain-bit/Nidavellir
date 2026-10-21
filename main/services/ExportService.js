@@ -934,24 +934,33 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
     for (const sheet of sheets) {
         elements.push(
             new Paragraph({
-                text: `Karta Postaci: ${sheet.name || 'Bohater Gracza'}`,
+                text: sheet.name ? `Karta Postaci: ${sheet.name}` : 'Karta Postaci',
                 style: 'GamebookSectionTitle',
                 heading: HeadingLevel.HEADING_1,
             })
         )
 
-        // Basic Info: Name and Class
-        elements.push(
-            new Paragraph({
-                style: 'GamebookParagraph',
-                children: [
-                    new TextRun({ text: 'Imię bohatera: ', bold: true }),
-                    new TextRun({ text: sheet.name || '........................................' }),
-                    new TextRun({ text: '    |    Klasa: ', bold: true }),
-                    new TextRun({ text: sheet.characterClass || 'Brak' }),
-                ],
-            })
-        )
+        // Basic Info: Name and Class (only if set)
+        const basicRuns = []
+        if (sheet.name) {
+            basicRuns.push(new TextRun({ text: 'Imię bohatera: ', bold: true }))
+            basicRuns.push(new TextRun({ text: sheet.name }))
+        }
+        if (sheet.characterClass) {
+            if (basicRuns.length > 0) {
+                basicRuns.push(new TextRun({ text: '    |    ' }))
+            }
+            basicRuns.push(new TextRun({ text: 'Klasa: ', bold: true }))
+            basicRuns.push(new TextRun({ text: sheet.characterClass }))
+        }
+        if (basicRuns.length > 0) {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    children: basicRuns,
+                })
+            )
+        }
 
         // Summary / Narrative backstory
         if (sheet.summary) {
@@ -968,7 +977,7 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
             )
         }
 
-        // Parameters / Vitals (Zdrowie, Złoto, Zasoby)
+        // Parameters / Vitals (only if defined)
         if (sheet.parameters && sheet.parameters.length > 0) {
             const paramRuns = []
             sheet.parameters.forEach((p, idx) => {
@@ -977,23 +986,21 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
                 const cur =
                     p.currentValue !== undefined && p.currentValue !== ''
                         ? p.currentValue
-                        : p.value || '........'
+                        : (p.value ?? '')
                 const max = p.maxValue !== undefined && p.maxValue !== '' ? ` / ${p.maxValue}` : ''
-                paramRuns.push(new TextRun({ text: `[ ${cur}${max} ]` }))
+                const valStr = cur !== '' || max !== '' ? `[ ${cur}${max} ]` : ''
+                if (valStr) {
+                    paramRuns.push(new TextRun({ text: valStr }))
+                }
             })
-            elements.push(
-                new Paragraph({
-                    style: 'GamebookParagraph',
-                    children: paramRuns,
-                })
-            )
-        } else {
-            elements.push(
-                new Paragraph({
-                    style: 'GamebookParagraph',
-                    text: 'Zdrowie: [ ........ / ........ ]   |   Punkty Akcji: [ ........ ]   |   Złoto: [ ........ ]',
-                })
-            )
+            if (paramRuns.length > 0) {
+                elements.push(
+                    new Paragraph({
+                        style: 'GamebookParagraph',
+                        children: paramRuns,
+                    })
+                )
+            }
         }
 
         // Stats (Cechy główne)
@@ -1074,7 +1081,7 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
                 })
             )
             for (const sk of sheet.skills) {
-                const valStr = sk.value ? ` (${sk.value})` : ''
+                const valStr = sk.value !== undefined && sk.value !== '' ? ` (${sk.value})` : ''
                 elements.push(
                     new Paragraph({
                         style: 'GamebookList',
@@ -1113,7 +1120,7 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
             }
         }
 
-        // Inventory / Equipment
+        // Inventory / Equipment (only if defined)
         const inventories =
             sheet.inventories && sheet.inventories.length > 0 ? sheet.inventories : null
         if (inventories) {
@@ -1137,20 +1144,16 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
                 )
 
                 const invItems = inv.items || []
-                const numLines = inv.capacity > 0 ? inv.capacity : Math.max(5, invItems.length + 3)
-                for (let i = 0; i < numLines; i++) {
-                    const itemText = invItems[i]
-                        ? `${i + 1}. ${invItems[i].name}`
-                        : `${i + 1}. ............................................................................................`
+                for (let i = 0; i < invItems.length; i++) {
                     elements.push(
                         new Paragraph({
                             style: 'GamebookList',
-                            children: [new TextRun({ text: itemText })],
+                            children: [new TextRun({ text: `• ${invItems[i].name}` })],
                         })
                     )
                 }
             }
-        } else {
+        } else if (sheet.items && sheet.items.length > 0) {
             elements.push(
                 new Paragraph({
                     style: 'GamebookParagraph',
@@ -1165,19 +1168,28 @@ function renderDocxCharacterSheets(sheets, styleConfig) {
                 })
             )
 
-            const startItems = sheet.items || []
-            const totalLines = Math.max(6, startItems.length + 3)
-            for (let i = 0; i < totalLines; i++) {
-                const itemText = startItems[i]
-                    ? `${i + 1}. ${startItems[i].name}`
-                    : `${i + 1}. ............................................................................................`
+            for (const it of sheet.items) {
                 elements.push(
                     new Paragraph({
                         style: 'GamebookList',
-                        children: [new TextRun({ text: itemText })],
+                        children: [new TextRun({ text: `• ${it.name}` })],
                     })
                 )
             }
+        }
+
+        // Tags
+        if (sheet.tags && sheet.tags.length > 0) {
+            elements.push(
+                new Paragraph({
+                    style: 'GamebookParagraph',
+                    children: [
+                        new TextRun({ text: 'Tagi: ', bold: true, color: '666666' }),
+                        new TextRun({ text: sheet.tags.join(', '), color: '666666' }),
+                    ],
+                    spacing: { before: 120, after: 60 },
+                })
+            )
         }
 
         elements.push(new Paragraph({ children: [new PageBreak()] }))

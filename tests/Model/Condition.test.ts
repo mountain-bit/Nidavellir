@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest'
+
 import { Condition, ItemCondition, StatCondition, TextCondition } from '../../Model/Condition'
 
 describe('Condition Polymorphic Model', () => {

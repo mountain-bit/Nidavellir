@@ -796,6 +796,42 @@ Wybierz swój dalszy krok.
             expect(html).toContain('Wóz Kupiecki (Bez limitu)')
             expect(html).toContain('Beczka piwa')
         })
+
+        it('renders only elements explicitly set by the author, without unconfigured placeholders or default fillers', () => {
+            const minimalHero = {
+                id: 'min_hero',
+                getName: () => 'Samotny Wędrowiec',
+            }
+
+            const ctx = {
+                projectData: {
+                    projectName: 'Cicha Opowieść',
+                    projectParagraphs: [{ id: 'p1', number: 1, text: 'Wstęp' }],
+                    playerCharacters: [minimalHero],
+                },
+            }
+
+            const compiled = compileGamebook(ctx, {
+                includeCharacterSheet: true,
+            })
+
+            const html = generatePrintHtml(compiled)
+            expect(html).toContain('Karta Postaci: Samotny Wędrowiec')
+            expect(html).toContain('Imię:')
+            expect(html).toContain('Samotny Wędrowiec')
+
+            // Must NOT include placeholders for unset elements
+            expect(html).not.toContain('Klasa:')
+            expect(html).not.toContain('Zdrowie')
+            expect(html).not.toContain('Złoto')
+            expect(html).not.toContain('Ekwipunek max')
+            expect(html).not.toContain('Plecak i Wyposażenie')
+            expect(html).not.toContain('Umiejętności:')
+            expect(html).not.toContain('Zdolności i Atuty:')
+            expect(html).not.toContain(
+                '..................................................................................'
+            )
+        })
     })
 
     describe('Locations and NPCs Markdown Descriptions in Export', () => {
@@ -873,13 +909,14 @@ Wybierz swój dalszy krok.
             expect(checkbox?.checked).toBe(false)
         })
 
-        it('shows single hero indicator when exactly 1 player character exists', () => {
+        it('shows hero selection panel and indicator when exactly 1 player character exists', () => {
             document.body.innerHTML = `
                 <div id="modal-export-project">
                     <div id="export-container-character-sheet" class="hidden">
                         <input type="checkbox" id="export-opt-character-sheet" />
                         <span id="export-single-hero-indicator"></span>
                         <div id="export-heroes-selection-panel" class="hidden">
+                            <span id="export-heroes-selection-title"></span>
                             <button id="btn-export-toggle-all-heroes"></button>
                             <div id="export-heroes-list"></div>
                         </div>
@@ -904,11 +941,21 @@ Wybierz swój dalszy krok.
             ) as HTMLInputElement
             const indicator = document.getElementById('export-single-hero-indicator')
             const panel = document.getElementById('export-heroes-selection-panel')
+            const list = document.getElementById('export-heroes-list')
 
             expect(container?.classList.contains('hidden')).toBe(false)
             expect(checkbox?.checked).toBe(true)
             expect(indicator?.textContent).toContain('Thorgal')
-            expect(panel?.classList.contains('hidden')).toBe(true)
+            // User requested that hero selection place is always available
+            expect(panel?.classList.contains('hidden')).toBe(false)
+
+            const heroBoxes = list?.querySelectorAll(
+                '.export-hero-checkbox'
+            ) as NodeListOf<HTMLInputElement>
+            expect(heroBoxes.length).toBe(1)
+            expect(heroBoxes[0].checked).toBe(true)
+            expect(list?.textContent).toContain('Thorgal')
+            expect(list?.textContent).toContain('Wojownik Północy')
         })
 
         it('displays multi-selection list and toggle button when multiple player characters exist', () => {
@@ -918,6 +965,7 @@ Wybierz swój dalszy krok.
                         <input type="checkbox" id="export-opt-character-sheet" />
                         <span id="export-single-hero-indicator"></span>
                         <div id="export-heroes-selection-panel" class="hidden">
+                            <span id="export-heroes-selection-title"></span>
                             <button id="btn-export-toggle-all-heroes"></button>
                             <div id="export-heroes-list"></div>
                         </div>
@@ -968,6 +1016,40 @@ Wybierz swój dalszy krok.
             btnToggle?.click()
             expect(checkboxes[0].checked).toBe(true)
             expect(checkboxes[1].checked).toBe(true)
+        })
+
+        it('filters exported character sheets by selectedHeroIds', () => {
+            const ctx = {
+                projectData: {
+                    name: 'Gra Testowa',
+                    playerCharacters: [
+                        { getId: () => 'hero-1', getName: () => 'Bohater A' },
+                        { getId: () => 'hero-2', getName: () => 'Bohater B' },
+                    ],
+                },
+            }
+
+            // Select only hero-2
+            const result = compileGamebook(ctx, {
+                includeCharacterSheet: true,
+                selectedHeroIds: ['hero-2'],
+            })
+
+            expect(result.characterSheets).toHaveLength(1)
+            expect(result.characterSheets?.[0].name).toBe('Bohater B')
+
+            // Select none (empty array)
+            const resultEmpty = compileGamebook(ctx, {
+                includeCharacterSheet: true,
+                selectedHeroIds: [],
+            })
+            expect(resultEmpty.characterSheets).toHaveLength(0)
+
+            // Include all (undefined selectedHeroIds)
+            const resultAll = compileGamebook(ctx, {
+                includeCharacterSheet: true,
+            })
+            expect(resultAll.characterSheets).toHaveLength(2)
         })
     })
 })

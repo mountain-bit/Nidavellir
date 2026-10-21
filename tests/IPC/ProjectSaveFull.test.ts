@@ -221,4 +221,65 @@ describe('ProjectService.saveFullProject Integration Tests', () => {
         expect(res.success).toBe(false)
         expect(res.error).toContain('payload')
     })
+
+    it('zapisuje i poprawnie odczytuje bohatera gracza (PlayerCharacter)', async () => {
+        const payload = {
+            project: {
+                id: 'save_test_project',
+                name: 'Projekt z Bohaterem',
+            },
+            entities: {
+                PlayerCharacter: [
+                    {
+                        id: 'hero_geralt',
+                        name: 'Geralt z Rivii',
+                        type: 'PlayerCharacter',
+                        description: { text: 'Wiedźmin z Cechu Wilka', summary: 'Biały Wilk' },
+                        avatar: 'avatar_wolf',
+                        stats: [{ name: 'Zręczność', value: 16 }],
+                        skills: [{ name: 'Szermierka', value: '+3', statName: 'Zręczność' }],
+                        parameters: [{ name: 'Żywotność', value: 100, mode: 'direct' }],
+                        tags: [{ name: 'Wiedźmin', color: '#ff0000' }],
+                    },
+                ],
+            },
+        }
+
+        const saveRes = await ProjectService.saveFullProject(tempDir, payload)
+        expect(saveRes.success).toBe(true)
+
+        // Sprawdzenie na dysku
+        const heroFolder = path.join(tempDir, 'PlayerCharacter', 'hero_geralt')
+        expect(fs.existsSync(heroFolder)).toBe(true)
+        const heroFile = path.join(heroFolder, 'element.json')
+        expect(fs.existsSync(heroFile)).toBe(true)
+        const heroJson = JSON.parse(fs.readFileSync(heroFile, 'utf8'))
+        expect(heroJson.name).toBe('Geralt z Rivii')
+        expect(heroJson.avatar).toBe('avatar_wolf')
+
+        // Sprawdzenie w openProject
+        const openRes = await ProjectService.openProject(tempDir)
+        expect(openRes.success).toBe(true)
+        expect(openRes.entities.PlayerCharacter).toBeDefined()
+        expect(openRes.entities.PlayerCharacter).toHaveLength(1)
+        expect(openRes.entities.PlayerCharacter[0].name).toBe('Geralt z Rivii')
+
+        // Sprawdzenie po załadowaniu do instancji Projektu
+        const projectInstance = ProjectManager.getInstance().load(
+            openRes.project,
+            openRes.entities,
+            tempDir
+        )
+        const loadedHero = projectInstance.getPlayerCharacter()
+        expect(loadedHero).toBeDefined()
+        expect(loadedHero.getName()).toBe('Geralt z Rivii')
+        expect(loadedHero.getAvatar()).toBe('avatar_wolf')
+        expect(loadedHero.getDescription().getText()).toBe('Wiedźmin z Cechu Wilka')
+
+        // Sprawdzenie extractProjectData
+        const extracted = extractProjectData(projectInstance, openRes.files)
+        expect(extracted.playerCharacter).toBeDefined()
+        expect(extracted.playerCharacter.getName()).toBe('Geralt z Rivii')
+        expect(extracted.playerCharacters).toHaveLength(1)
+    })
 })

@@ -174,43 +174,88 @@ export function getAvailablePlayerCharacters(ctx) {
     const seenIds = new Set()
 
     const addHero = h => {
-        if (!h) return
-        const name = (typeof h.getName === 'function' ? h.getName() : h.name || '').trim()
-        if (!name) return
-        const id = (typeof h.getId === 'function' ? h.getId() : h.id) || name
-        if (seenIds.has(id)) return
-        seenIds.add(id)
+        if (!h || typeof h !== 'object') return
+        const rawName =
+            typeof h.getName === 'function'
+                ? h.getName()
+                : h.name || h.imie || h.title || h.label || ''
+        const name = typeof rawName === 'string' ? rawName.trim() : String(rawName || '').trim()
+        const rawId =
+            typeof h.getId === 'function' ? h.getId() : h.id || h.identifier || h.uuid || ''
+        const id = rawId !== undefined && rawId !== null ? String(rawId).trim() : ''
+
+        // Check if hero has any substance (stats, parameters, skills, class, items)
+        const hasStats =
+            (typeof h.getStats === 'function' ? h.getStats() : h.stats)?.length > 0 ||
+            (typeof h.getParameters === 'function' ? h.getParameters() : h.parameters)?.length >
+                0 ||
+            (typeof h.getSkills === 'function' ? h.getSkills() : h.skills)?.length > 0 ||
+            (typeof h.getItems === 'function' ? h.getItems() : h.items)?.length > 0 ||
+            Boolean(
+                typeof h.getCharacterClass === 'function' ? h.getCharacterClass() : h.characterClass
+            )
+
+        // Ignore empty objects that have no name, no id, and no stats
+        if (!name && !id && !hasStats) return
+
+        const effectiveKey = id || name || `hero_${heroes.length}`
+        if (seenIds.has(effectiveKey)) return
+        seenIds.add(effectiveKey)
         heroes.push(h)
     }
 
-    // 1. Check ctx.projectData.entities.PlayerCharacter or ctx.entities.PlayerCharacter
-    const rawEntities =
-        ctx?.projectData?.entities?.PlayerCharacter ||
-        ctx?.projectData?.entities?.PostacGracza ||
-        ctx?.entities?.PlayerCharacter ||
-        ctx?.entities?.PostacGracza ||
-        []
-    if (Array.isArray(rawEntities)) {
-        rawEntities.forEach(addHero)
+    // Inspect all candidate sources without short-circuiting on empty arrays:
+    const candidateSources = [
+        ctx?.projectData?.entities?.PlayerCharacter,
+        ctx?.projectData?.entities?.PostacGracza,
+        ctx?.entities?.PlayerCharacter,
+        ctx?.entities?.PostacGracza,
+        ctx?.projectData?.playerCharacters,
+        ctx?.playerCharacters,
+        typeof ctx?.vm?.project?.getPlayerCharacters === 'function'
+            ? ctx.vm.project.getPlayerCharacters()
+            : null,
+        typeof ctx?.project?.getPlayerCharacters === 'function'
+            ? ctx.project.getPlayerCharacters()
+            : null,
+        ctx?.projectData?.playerCharacter,
+        ctx?.playerCharacter,
+        typeof ctx?.vm?.project?.getPlayerCharacter === 'function'
+            ? ctx.vm.project.getPlayerCharacter()
+            : null,
+        typeof ctx?.project?.getPlayerCharacter === 'function'
+            ? ctx.project.getPlayerCharacter()
+            : null,
+    ]
+
+    // Also check ProjectManager singleton if accessible in window or global scope
+    try {
+        const pmProject =
+            (typeof window !== 'undefined' &&
+                window?.ProjectManager?.getInstance?.()?.getProject?.()) ||
+            (typeof globalThis !== 'undefined' &&
+                globalThis?.ProjectManager?.getInstance?.()?.getProject?.())
+        if (pmProject) {
+            if (typeof pmProject.getPlayerCharacters === 'function') {
+                candidateSources.push(pmProject.getPlayerCharacters())
+            }
+            if (typeof pmProject.getPlayerCharacter === 'function') {
+                candidateSources.push(pmProject.getPlayerCharacter())
+            }
+        }
+    } catch {
+        // ignore ProjectManager access error in restricted test environments
     }
 
-    // 2. Check ctx.projectData.playerCharacters or ctx.playerCharacters or vm.project.getPlayerCharacters
-    const pcList =
-        ctx?.projectData?.playerCharacters ||
-        ctx?.playerCharacters ||
-        (ctx?.vm?.project?.getPlayerCharacters ? ctx.vm.project.getPlayerCharacters() : null) ||
-        []
-    if (Array.isArray(pcList)) {
-        pcList.forEach(addHero)
-    }
-
-    // 3. Check single playerCharacter fallback
-    const singlePc =
-        ctx?.projectData?.playerCharacter ||
-        ctx?.playerCharacter ||
-        (ctx?.vm?.project?.getPlayerCharacter ? ctx.vm.project.getPlayerCharacter() : null)
-    if (singlePc) {
-        addHero(singlePc)
+    for (const src of candidateSources) {
+        if (!src) continue
+        if (Array.isArray(src)) {
+            for (const item of src) {
+                addHero(item)
+            }
+        } else {
+            addHero(src)
+        }
     }
 
     return heroes
@@ -225,8 +270,14 @@ export function getAvailablePlayerCharacters(ctx) {
  */
 export function compileCharacterSheet(hero) {
     if (!hero) return null
+    const rawName =
+        (typeof hero.getName === 'function'
+            ? hero.getName()
+            : hero.name || hero.imie || hero.title || hero.label) || ''
+    const rawId = (typeof hero.getId === 'function' ? hero.getId() : hero.id) || ''
     const name =
-        (typeof hero.getName === 'function' ? hero.getName() : hero.name) || 'Bezimienny Bohater'
+        (typeof rawName === 'string' ? rawName.trim() : String(rawName || '').trim()) ||
+        (rawId ? `Bohater (${rawId})` : 'Bohater')
 
     const charClassObj =
         typeof hero.getCharacterClass === 'function'
@@ -243,78 +294,96 @@ export function compileCharacterSheet(hero) {
             : hero.summary || hero.description?.summary || '') || ''
     const avatar = (typeof hero.getAvatar === 'function' ? hero.getAvatar() : hero.avatar) || ''
 
-    // Stats (cechy główne)
+    // Stats (cechy główne) - only those with a non-empty name
     const rawStats = (typeof hero.getStats === 'function' ? hero.getStats() : hero.stats) || []
-    const stats = rawStats.map(s => ({
-        name: (typeof s.getName === 'function' ? s.getName() : s.name) || 'Cecha',
-        value: typeof s.getValue === 'function' ? s.getValue() : (s.value ?? ''),
-    }))
+    const stats = rawStats
+        .map(s => ({
+            name: (typeof s.getName === 'function' ? s.getName() : s.name) || '',
+            value: typeof s.getValue === 'function' ? s.getValue() : (s.value ?? ''),
+        }))
+        .filter(s => s.name.trim() !== '')
 
     // Parameters (parametry życiowe i zasoby, np. Zdrowie, Złoto, Mana)
     const rawParams =
         (typeof hero.getParameters === 'function' ? hero.getParameters() : hero.parameters) || []
-    const parameters = rawParams.map(p => ({
-        name: (typeof p.getName === 'function' ? p.getName() : p.name) || 'Wskaźnik',
-        value: typeof p.getValue === 'function' ? p.getValue() : (p.value ?? ''),
-        currentValue:
-            typeof p.getCurrentValue === 'function' ? p.getCurrentValue() : (p.currentValue ?? ''),
-        maxValue: typeof p.getMaxValue === 'function' ? p.getMaxValue() : (p.maxValue ?? ''),
-    }))
+    const parameters = rawParams
+        .map(p => ({
+            name: (typeof p.getName === 'function' ? p.getName() : p.name) || '',
+            value: typeof p.getValue === 'function' ? p.getValue() : (p.value ?? ''),
+            currentValue:
+                typeof p.getCurrentValue === 'function'
+                    ? p.getCurrentValue()
+                    : (p.currentValue ?? ''),
+            maxValue: typeof p.getMaxValue === 'function' ? p.getMaxValue() : (p.maxValue ?? ''),
+        }))
+        .filter(p => p.name.trim() !== '')
 
     // Skills (umiejętności)
     const rawSkills = (typeof hero.getSkills === 'function' ? hero.getSkills() : hero.skills) || []
-    const skills = rawSkills.map(sk => ({
-        name: (typeof sk.getName === 'function' ? sk.getName() : sk.name) || 'Umiejętność',
-        value: typeof sk.getValue === 'function' ? sk.getValue() : (sk.value ?? ''),
-    }))
+    const skills = rawSkills
+        .map(sk => ({
+            name: (typeof sk.getName === 'function' ? sk.getName() : sk.name) || '',
+            value: typeof sk.getValue === 'function' ? sk.getValue() : (sk.value ?? ''),
+        }))
+        .filter(sk => sk.name.trim() !== '')
 
     // Features (cechy specjalne i atuty)
     const rawFeatures =
         (typeof hero.getFeatures === 'function' ? hero.getFeatures() : hero.features) || []
-    const features = rawFeatures.map(f => ({
-        name: (typeof f.getName === 'function' ? f.getName() : f.name) || 'Zdolność',
-        description:
-            (typeof f.getDescription === 'function'
-                ? f.getDescription()?.getText?.() || f.getDescription()?.getSummary?.()
-                : f.description) || '',
-    }))
+    const features = rawFeatures
+        .map(f => ({
+            name: (typeof f.getName === 'function' ? f.getName() : f.name) || '',
+            description:
+                (typeof f.getDescription === 'function'
+                    ? f.getDescription()?.getText?.() || f.getDescription()?.getSummary?.()
+                    : f.description) || '',
+        }))
+        .filter(f => f.name.trim() !== '')
 
     // Items (ekwipunek początkowy)
     const rawItems = (typeof hero.getItems === 'function' ? hero.getItems() : hero.items) || []
-    const items = rawItems.map(i => ({
-        name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
-    }))
+    const items = rawItems
+        .map(i => ({
+            name: (typeof i.getName === 'function' ? i.getName() : i.name) || '',
+        }))
+        .filter(i => i.name.trim() !== '')
 
     // Inventories (wielokrotny ekwipunek)
     const rawInventories =
         (typeof hero.getInventories === 'function' ? hero.getInventories() : hero.inventories) || []
-    const inventories = rawInventories.map(inv => {
-        const invName =
-            (typeof inv.getName === 'function' ? inv.getName() : inv.name) || 'Ekwipunek'
-        const invCapacity =
-            typeof inv.getCapacity === 'function' ? inv.getCapacity() : (inv.capacity ?? 0)
-        const invItemsRaw = (typeof inv.getItems === 'function' ? inv.getItems() : inv.items) || []
-        const invItems = invItemsRaw.map(i => ({
-            name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
-            description:
-                (typeof i.getDescription === 'function' ? i.getDescription() : i.description) || '',
-        }))
-        return {
-            id: (typeof inv.getId === 'function' ? inv.getId() : inv.id) || '',
-            name: invName,
-            capacity: Number(invCapacity) || 0,
-            items: invItems,
-        }
-    })
+    const inventories = rawInventories
+        .map(inv => {
+            const invName = (typeof inv.getName === 'function' ? inv.getName() : inv.name) || ''
+            const invCapacity =
+                typeof inv.getCapacity === 'function' ? inv.getCapacity() : (inv.capacity ?? 0)
+            const invItemsRaw =
+                (typeof inv.getItems === 'function' ? inv.getItems() : inv.items) || []
+            const invItems = invItemsRaw
+                .map(i => ({
+                    name: (typeof i.getName === 'function' ? i.getName() : i.name) || '',
+                    description:
+                        (typeof i.getDescription === 'function'
+                            ? i.getDescription()
+                            : i.description) || '',
+                }))
+                .filter(i => i.name.trim() !== '')
+            return {
+                id: (typeof inv.getId === 'function' ? inv.getId() : inv.id) || '',
+                name: invName,
+                capacity: Number(invCapacity) || 0,
+                items: invItems,
+            }
+        })
+        .filter(inv => inv.name.trim() !== '')
 
     // Tags
     const rawTags = (typeof hero.getTags === 'function' ? hero.getTags() : hero.tags) || []
-    const tags = rawTags.map(t =>
-        typeof t.getName === 'function' ? t.getName() : t.name || String(t)
-    )
+    const tags = rawTags
+        .map(t => (typeof t.getName === 'function' ? t.getName() : t.name || String(t)))
+        .filter(t => typeof t === 'string' && t.trim() !== '')
 
     return {
-        id: (typeof hero.getId === 'function' ? hero.getId() : hero.id) || name,
+        id: (typeof hero.getId === 'function' ? hero.getId() : hero.id) || name || 'hero',
         name,
         characterClass,
         summary,
@@ -468,18 +537,19 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
     let characterSheets = []
 
     if (options.includeCharacterSheet && availableHeroes.length > 0) {
-        if (Array.isArray(options.selectedHeroIds) && options.selectedHeroIds.length > 0) {
+        if (Array.isArray(options.selectedHeroIds)) {
+            const selIds = options.selectedHeroIds.map(String)
             const filtered = availableHeroes.filter(h => {
-                const hId =
-                    (typeof h.getId === 'function' ? h.getId() : h.id) ||
-                    (typeof h.getName === 'function' ? h.getName() : h.name)
-                return options.selectedHeroIds.includes(hId)
+                const hId = typeof h.getId === 'function' ? h.getId() : h.id
+                const hName = typeof h.getName === 'function' ? h.getName() : h.name
+                return (
+                    (hId !== undefined && hId !== null && selIds.includes(String(hId))) ||
+                    (hName !== undefined && hName !== null && selIds.includes(String(hName)))
+                )
             })
-            characterSheets = (filtered.length > 0 ? filtered : availableHeroes).map(
-                compileCharacterSheet
-            )
+            characterSheets = filtered.map(compileCharacterSheet).filter(Boolean)
         } else {
-            characterSheets = availableHeroes.map(compileCharacterSheet)
+            characterSheets = availableHeroes.map(compileCharacterSheet).filter(Boolean)
         }
     }
 
@@ -1302,6 +1372,26 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
     if (sheets.length > 0) {
         sheetHtml = sheets
             .map(sheet => {
+                const basicInfoParts = []
+                if (sheet.name) {
+                    basicInfoParts.push(
+                        `<div><strong>Imię:</strong> ${escapeHtml(sheet.name)}</div>`
+                    )
+                }
+                if (sheet.characterClass) {
+                    basicInfoParts.push(
+                        `<div><strong>Klasa:</strong> ${escapeHtml(sheet.characterClass)}</div>`
+                    )
+                }
+                const basicInfoHtml =
+                    basicInfoParts.length > 0
+                        ? `<div class="sheet-row">${basicInfoParts.join('')}</div>`
+                        : ''
+
+                const summaryHtml = sheet.summary
+                    ? `<p style="font-style: italic; font-size: 9pt; margin: 4px 0 8px 0; color: #555;">${escapeHtml(sheet.summary)}</p>`
+                    : ''
+
                 const statsHtml =
                     sheet.stats && sheet.stats.length > 0
                         ? `<div class="sheet-stats-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; margin: 8px 0;">
@@ -1312,18 +1402,40 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
                 const paramsHtml =
                     sheet.parameters && sheet.parameters.length > 0
                         ? `<div class="sheet-row stats-row" style="margin-top: 6px;">
-                            ${sheet.parameters.map(p => `<div><strong>${escapeHtml(p.name)}:</strong> [ ${escapeHtml(String(p.currentValue || p.value || ''))} / ${escapeHtml(String(p.maxValue || ''))} ]</div>`).join('')}
+                            ${sheet.parameters
+                                .map(p => {
+                                    const cur =
+                                        p.currentValue !== undefined && p.currentValue !== ''
+                                            ? p.currentValue
+                                            : (p.value ?? '')
+                                    const max =
+                                        p.maxValue !== undefined && p.maxValue !== ''
+                                            ? ` / ${escapeHtml(String(p.maxValue))}`
+                                            : ''
+                                    const valStr =
+                                        cur !== '' || max !== ''
+                                            ? ` [ ${escapeHtml(String(cur))}${max} ]`
+                                            : ''
+                                    return `<div><strong>${escapeHtml(p.name)}:</strong>${valStr}</div>`
+                                })
+                                .join('')}
                            </div>`
-                        : `<div class="sheet-row stats-row">
-                            <div><strong>Zdrowie:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
-                            <div><strong>Złoto:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
-                            <div><strong>Ekwipunek max:</strong> [ &nbsp; &nbsp; &nbsp; &nbsp; ]</div>
-                           </div>`
+                        : ''
 
                 const skillsHtml =
                     sheet.skills && sheet.skills.length > 0
                         ? `<div style="margin: 6px 0; font-size: 9pt;">
-                            <strong>Umiejętności:</strong> ${sheet.skills.map(sk => `${escapeHtml(sk.name)}${sk.value ? ` (${escapeHtml(String(sk.value))})` : ''}`).join(', ')}
+                            <strong>Umiejętności:</strong> ${sheet.skills.map(sk => `${escapeHtml(sk.name)}${sk.value !== undefined && sk.value !== '' ? ` (${escapeHtml(String(sk.value))})` : ''}`).join(', ')}
+                           </div>`
+                        : ''
+
+                const featuresHtml =
+                    sheet.features && sheet.features.length > 0
+                        ? `<div style="margin: 6px 0; font-size: 9pt;">
+                            <strong>Zdolności i Atuty:</strong>
+                            <ul style="margin: 4px 0 0 16px; padding: 0;">
+                                ${sheet.features.map(f => `<li><strong>${escapeHtml(f.name)}</strong>${f.description ? `: ${escapeHtml(f.description)}` : ''}</li>`).join('')}
+                            </ul>
                            </div>`
                         : ''
 
@@ -1336,55 +1448,52 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
                                     ? ` (Pojemność: ${inv.capacity} miejsc)`
                                     : ' (Bez limitu)'
                             const invItems = inv.items || []
-                            const numLines =
-                                inv.capacity > 0 ? inv.capacity : Math.max(5, invItems.length + 2)
-                            const lines = []
-                            for (let i = 0; i < numLines; i++) {
-                                const itemName = invItems[i]
-                                    ? invItems[i].name
-                                    : '..................................................................................'
-                                lines.push(`<li>${escapeHtml(itemName)}</li>`)
-                            }
+                            const itemsContent =
+                                invItems.length > 0
+                                    ? `<ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
+                                        ${invItems.map(it => `<li>${escapeHtml(it.name)}</li>`).join('')}
+                                       </ol>`
+                                    : ''
                             return `
                         <div class="sheet-box-inner" style="margin-top: 8px;">
                             <strong>${escapeHtml(inv.name || 'Ekwipunek')}${escapeHtml(capText)}:</strong>
-                            <ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
-                                ${lines.join('')}
-                            </ol>
+                            ${itemsContent}
                         </div>`
                         })
                         .join('')
-                } else {
-                    const itemsList = sheet.items && sheet.items.length > 0 ? sheet.items : []
-                    const itemLines = []
-                    for (let i = 0; i < Math.max(5, itemsList.length + 2); i++) {
-                        const itemName = itemsList[i]
-                            ? itemsList[i].name
-                            : '..................................................................................'
-                        itemLines.push(`<li>${escapeHtml(itemName)}</li>`)
-                    }
+                } else if (sheet.items && sheet.items.length > 0) {
                     inventoryHtml = `
                         <div class="sheet-box-inner" style="margin-top: 8px;">
-                            <strong>Plecak i Wyposażenie:</strong>
+                            <strong>Ekwipunek i Wyposażenie:</strong>
                             <ol class="backpack-lines" style="margin: 4px 0 0 16px; padding: 0;">
-                                ${itemLines.join('')}
+                                ${sheet.items.map(it => `<li>${escapeHtml(it.name)}</li>`).join('')}
                             </ol>
                         </div>`
                 }
 
+                const tagsHtml =
+                    sheet.tags && sheet.tags.length > 0
+                        ? `<div style="margin: 6px 0; font-size: 8.5pt; color: #666;">
+                            <strong>Tagi:</strong> ${sheet.tags.map(t => escapeHtml(String(t))).join(', ')}
+                           </div>`
+                        : ''
+
+                const titleText = sheet.name
+                    ? `Karta Postaci: ${escapeHtml(sheet.name)}`
+                    : 'Karta Postaci'
+
                 return `
                 <section class="character-sheet-section page-break-before">
-                    <h2>Karta Postaci: ${escapeHtml(sheet.name || 'Bohater')}</h2>
+                    <h2>${titleText}</h2>
                     <div class="sheet-box">
-                        <div class="sheet-row">
-                            <div><strong>Imię:</strong> ${escapeHtml(sheet.name || '...........................................')}</div>
-                            <div><strong>Klasa:</strong> ${escapeHtml(sheet.characterClass || '........................')}</div>
-                        </div>
-                        ${sheet.summary ? `<p style="font-style: italic; font-size: 9pt; margin: 4px 0 8px 0; color: #555;">${escapeHtml(sheet.summary)}</p>` : ''}
+                        ${basicInfoHtml}
+                        ${summaryHtml}
                         ${paramsHtml}
                         ${statsHtml}
                         ${skillsHtml}
+                        ${featuresHtml}
                         ${inventoryHtml}
+                        ${tagsHtml}
                     </div>
                 </section>
                 `

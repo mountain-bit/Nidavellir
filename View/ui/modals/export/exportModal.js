@@ -213,6 +213,7 @@ export function setupCharacterSheetUI(ctx) {
     const heroesPanel = document.getElementById('export-heroes-selection-panel')
     const heroesList = document.getElementById('export-heroes-list')
     const btnToggleAll = document.getElementById('btn-export-toggle-all-heroes')
+    const titleEl = document.getElementById('export-heroes-selection-title')
 
     if (!container || !sheetCheckbox) return
 
@@ -231,72 +232,68 @@ export function setupCharacterSheetUI(ctx) {
     container.classList.remove('hidden')
     sheetCheckbox.checked = true
 
-    if (availableHeroes.length === 1) {
-        const singleHero = availableHeroes[0]
-        const heroName =
-            (typeof singleHero.getName === 'function' ? singleHero.getName() : singleHero.name) ||
-            'Bohater'
-        const charClassObj =
-            typeof singleHero.getCharacterClass === 'function'
-                ? singleHero.getCharacterClass()
-                : singleHero.characterClass
-        const className =
-            (charClassObj && typeof charClassObj.getName === 'function'
-                ? charClassObj.getName()
-                : charClassObj?.name || (typeof charClassObj === 'string' ? charClassObj : '')) ||
-            ''
+    // Populate heroes selection list
+    if (heroesList) {
+        heroesList.innerHTML = ''
+        availableHeroes.forEach(h => {
+            const hName =
+                (typeof h.getName === 'function' ? h.getName() : h.name || h.imie || h.title) ||
+                'Bohater'
+            const hId = (typeof h.getId === 'function' ? h.getId() : h.id) || hName
+            const charClassObj =
+                typeof h.getCharacterClass === 'function' ? h.getCharacterClass() : h.characterClass
+            const className =
+                (charClassObj && typeof charClassObj.getName === 'function'
+                    ? charClassObj.getName()
+                    : charClassObj?.name ||
+                      (typeof charClassObj === 'string' ? charClassObj : '')) || ''
 
-        if (indicator) {
-            indicator.textContent = `(${heroName}${className ? ` - ${className}` : ''})`
-        }
-        if (heroesPanel) {
-            heroesPanel.classList.add('hidden')
-        }
-    } else {
-        // "a jeżeli jest więcej Bohaterów to daj opcje jakiego wybrać w tym daj opcje wyboru wielu"
-        if (indicator) {
-            indicator.textContent = `(Dostępnych: ${availableHeroes.length})`
-        }
+            const statsCount =
+                (typeof h.getStats === 'function' ? h.getStats() : h.stats)?.length || 0
+            const paramsCount =
+                (typeof h.getParameters === 'function' ? h.getParameters() : h.parameters)
+                    ?.length || 0
+            const itemsCount =
+                (typeof h.getItems === 'function' ? h.getItems() : h.items)?.length || 0
+            const details = []
+            if (statsCount > 0) details.push(`${statsCount} cech`)
+            if (paramsCount > 0) details.push(`${paramsCount} param.`)
+            if (itemsCount > 0) details.push(`${itemsCount} przedm.`)
+            const summaryBadge = details.length > 0 ? details.join(', ') : ''
 
-        if (heroesList) {
-            heroesList.innerHTML = ''
-            availableHeroes.forEach(h => {
-                const hName = (typeof h.getName === 'function' ? h.getName() : h.name) || 'Bohater'
-                const hId = (typeof h.getId === 'function' ? h.getId() : h.id) || hName
-                const charClassObj =
-                    typeof h.getCharacterClass === 'function'
-                        ? h.getCharacterClass()
-                        : h.characterClass
-                const className =
-                    (charClassObj && typeof charClassObj.getName === 'function'
-                        ? charClassObj.getName()
-                        : charClassObj?.name ||
-                          (typeof charClassObj === 'string' ? charClassObj : '')) || ''
+            const label = document.createElement('label')
+            label.className =
+                'flex items-center justify-between gap-2 text-zinc-300 text-xs cursor-pointer py-1.5 px-2 rounded hover:bg-[#202227] transition-colors border border-transparent hover:border-[#2e3037]'
+            label.innerHTML = `
+                <div class="flex items-center gap-2 overflow-hidden text-ellipsis">
+                    <input type="checkbox" class="export-hero-checkbox rounded accent-blue-600 export-reactive-input cursor-pointer" value="${escapeHtml(hId)}" checked />
+                    <span class="font-medium text-zinc-100 text-xs">${escapeHtml(hName)}</span>
+                    ${className ? `<span class="px-1.5 py-0.5 text-[10px] bg-blue-950/60 text-blue-300 border border-blue-800/40 rounded">${escapeHtml(className)}</span>` : ''}
+                </div>
+                ${summaryBadge ? `<span class="text-[10px] text-zinc-400 shrink-0">${escapeHtml(summaryBadge)}</span>` : ''}
+            `
+            heroesList.appendChild(label)
+        })
 
-                const label = document.createElement('label')
-                label.className =
-                    'flex items-center gap-2 text-zinc-300 text-xs cursor-pointer py-1 px-1.5 rounded hover:bg-[#202227] transition-colors'
-                label.innerHTML = `
-                    <input type="checkbox" class="export-hero-checkbox rounded accent-blue-600 export-reactive-input" value="${escapeHtml(hId)}" checked />
-                    <span class="font-medium text-zinc-200">${escapeHtml(hName)}</span>
-                    ${className ? `<span class="text-zinc-400 text-[11px]">(${escapeHtml(className)})</span>` : ''}
-                `
-                heroesList.appendChild(label)
+        // Bind change on hero checkboxes to refresh preview & indicator
+        heroesList.querySelectorAll('.export-hero-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => {
+                updateHeroIndicator()
+                updateMiniPreview()
             })
+        })
+    }
 
-            // Bind change on hero checkboxes to refresh preview
-            heroesList.querySelectorAll('.export-hero-checkbox').forEach(cb => {
-                cb.addEventListener('change', () => {
-                    updateMiniPreview()
-                })
-            })
-        }
+    if (titleEl) {
+        titleEl.textContent =
+            availableHeroes.length === 1
+                ? 'Wybierz bohatera do eksportu karty:'
+                : 'Wybierz bohaterów do wygenerowania kart:'
+    }
 
-        if (heroesPanel) {
-            heroesPanel.classList.toggle('hidden', !sheetCheckbox.checked)
-        }
-
-        if (btnToggleAll) {
+    if (btnToggleAll) {
+        if (availableHeroes.length > 1) {
+            btnToggleAll.classList.remove('hidden')
             btnToggleAll.onclick = () => {
                 if (!heroesList) return
                 const allCheckboxes = heroesList.querySelectorAll('.export-hero-checkbox')
@@ -304,18 +301,48 @@ export function setupCharacterSheetUI(ctx) {
                 allCheckboxes.forEach(cb => {
                     cb.checked = !allChecked
                 })
+                updateHeroIndicator()
                 updateMiniPreview()
             }
+        } else {
+            btnToggleAll.classList.add('hidden')
+        }
+    }
+
+    const updateHeroIndicator = () => {
+        if (!indicator) return
+        if (!sheetCheckbox.checked) {
+            indicator.textContent = '(Wyłączono)'
+            return
+        }
+        const checkedBoxes = heroesList
+            ? heroesList.querySelectorAll('.export-hero-checkbox:checked')
+            : []
+        const total = availableHeroes.length
+        const count = checkedBoxes.length
+        if (total === 1) {
+            const single = availableHeroes[0]
+            const name =
+                (typeof single.getName === 'function' ? single.getName() : single.name) || 'Bohater'
+            indicator.textContent = count === 1 ? `(${name})` : '(Brak wyboru)'
+        } else {
+            indicator.textContent = `(Wybrano: ${count} z ${total})`
         }
     }
 
     // Toggle panel visibility when main sheet checkbox changes
     sheetCheckbox.onchange = () => {
-        if (availableHeroes.length > 1 && heroesPanel) {
+        if (heroesPanel) {
             heroesPanel.classList.toggle('hidden', !sheetCheckbox.checked)
         }
+        updateHeroIndicator()
         updateMiniPreview()
     }
+
+    if (heroesPanel) {
+        heroesPanel.classList.toggle('hidden', !sheetCheckbox.checked)
+    }
+    updateHeroIndicator()
 }
 
 function initFormatSelection() {
@@ -499,24 +526,20 @@ async function executeExport() {
 
         let selectedHeroIds = []
         if (wantCharacterSheet) {
-            if (availableHeroes.length > 1) {
-                const heroBoxes = document.querySelectorAll(
-                    '#export-heroes-list .export-hero-checkbox:checked'
-                )
+            const heroBoxes = document.querySelectorAll(
+                '#export-heroes-list .export-hero-checkbox:checked'
+            )
+            const allHeroBoxes = document.querySelectorAll(
+                '#export-heroes-list .export-hero-checkbox'
+            )
+            if (allHeroBoxes.length > 0) {
                 selectedHeroIds = Array.from(heroBoxes).map(cb => cb.value)
-                if (selectedHeroIds.length === 0) {
-                    selectedHeroIds = availableHeroes.map(
-                        h =>
-                            (typeof h.getId === 'function' ? h.getId() : h.id) ||
-                            (typeof h.getName === 'function' ? h.getName() : h.name)
-                    )
-                }
-            } else if (availableHeroes.length === 1) {
-                const single = availableHeroes[0]
-                selectedHeroIds = [
-                    (typeof single.getId === 'function' ? single.getId() : single.id) ||
-                        (typeof single.getName === 'function' ? single.getName() : single.name),
-                ]
+            } else {
+                selectedHeroIds = availableHeroes.map(
+                    h =>
+                        (typeof h.getId === 'function' ? h.getId() : h.id) ||
+                        (typeof h.getName === 'function' ? h.getName() : h.name)
+                )
             }
         }
 
@@ -533,7 +556,7 @@ async function executeExport() {
             glossaryPlacement: getRadioVal('export-opt-glossary-place') || 'end',
             separatorType: chosenSep,
             shuffleParagraphs: isChecked('export-opt-shuffle'),
-            includeCharacterSheet: wantCharacterSheet,
+            includeCharacterSheet: wantCharacterSheet && selectedHeroIds.length > 0,
             selectedHeroIds,
             includeRules: isChecked('export-opt-rules'),
             includeCoverPage: isChecked('export-opt-cover'),
