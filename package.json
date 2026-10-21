@@ -21,6 +21,8 @@
         "lint:fix": "eslint \"**/*.{ts,js}\" --fix",
         "format": "prettier --write \"**/*.{ts,js}\"",
         "format:check": "prettier --check \"**/*.{ts,js}\"",
+        "pack": "pnpm run build && electron-builder --dir",
+        "dist": "pnpm run build && electron-builder --win",
         "prepare": "husky"
     },
     "lint-staged": {
@@ -54,6 +56,7 @@
         "@typescript-eslint/parser": "^7.0.0",
         "@vitest/coverage-v8": "^1.0.0",
         "electron": "41.5.0",
+        "electron-builder": "^26.18.0",
         "esbuild": "^0.28.2",
         "eslint": "^8.0.0",
         "eslint-config-prettier": "^9.0.0",
@@ -66,5 +69,43 @@
         "tailwindcss": "^4.3.3",
         "typescript": "^6.0.0",
         "vitest": "^1.0.0"
+    },
+    "build": {
+        "appId": "com.mountainbit.nidavelir",
+        "productName": "Nidavelir",
+        "directories": {
+            "output": "release-builds"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "main/**/*",
+            "View/**/*",
+            "Locales/**/*",
+            "Utils/**/*",
+            "dist/**/*",
+            "package.json",
+            "!**/tests/**",
+            "!**/*.test.*",
+            "!**/*.ts",
+            "!**/*.map"
+        ],
+        "win": {
+            "target": [
+                {
+                    "target": "nsis",
+                    "arch": [
+                        "x64"
+                    ]
+                }
+            ]
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "Nidavelir"
+        }
     }
 }
