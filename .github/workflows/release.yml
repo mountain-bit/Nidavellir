@@ -38,11 +38,11 @@ jobs:
       - name: Check license compliance
         run: pnpm run license:check
 
-      - name: Run unit tests
-        run: pnpm run test:run
-
       - name: Build assets (Tailwind, TypeScript, esbuild)
         run: pnpm run build
+
+      - name: Run unit tests
+        run: pnpm run test:run
 
       - name: Build Windows Installer (.exe)
         run: pnpm exec electron-builder --win --publish never
