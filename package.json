@@ -8,8 +8,8 @@
     },
     "main": "main.js",
     "scripts": {
-        "start": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && tsc --noEmit && node scripts/build-renderer.js && electron .",
-        "build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && tsc --noEmit && node scripts/build-renderer.js",
+        "start": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && node scripts/build-renderer.js && tsc --noEmit && electron .",
+        "build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify && node scripts/build-renderer.js && tsc --noEmit",
         "renderer:watch": "node scripts/build-renderer.js --watch",
         "css:build": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --minify",
         "css:watch": "tailwindcss -i ./View/MainWindow.css -o ./View/MainWindow.generated.css --watch",
