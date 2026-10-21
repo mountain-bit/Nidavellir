@@ -5,6 +5,7 @@
  */
 
 import { toast } from '../../../../dist/Utils/toast.js'
+import { applyTranslations, t } from '../../../../dist/Utils/translate.js'
 import { openStyleEditorModal } from '../styleEditor/styleEditorModal.js'
 import { getAllStyles, getStyleById } from './exportStyleService.js'
 import {
@@ -117,6 +118,9 @@ export function openExportModal(ctx) {
 
         // Show modal immediately so it is guaranteed visible
         modal.classList.remove('hidden')
+        if (typeof applyTranslations === 'function') {
+            applyTranslations()
+        }
 
         initFormatSelection()
         populateStylesDropdown()
@@ -256,9 +260,11 @@ export function setupCharacterSheetUI(ctx) {
             const itemsCount =
                 (typeof h.getItems === 'function' ? h.getItems() : h.items)?.length || 0
             const details = []
-            if (statsCount > 0) details.push(`${statsCount} cech`)
-            if (paramsCount > 0) details.push(`${paramsCount} param.`)
-            if (itemsCount > 0) details.push(`${itemsCount} przedm.`)
+            if (statsCount > 0)
+                details.push(t('export.details_traits_count', { count: statsCount }))
+            if (paramsCount > 0)
+                details.push(t('export.details_params_count', { count: paramsCount }))
+            if (itemsCount > 0) details.push(t('export.details_items_count', { count: itemsCount }))
             const summaryBadge = details.length > 0 ? details.join(', ') : ''
 
             const label = document.createElement('label')
@@ -287,8 +293,8 @@ export function setupCharacterSheetUI(ctx) {
     if (titleEl) {
         titleEl.textContent =
             availableHeroes.length === 1
-                ? 'Wybierz bohatera do eksportu karty:'
-                : 'Wybierz bohaterów do wygenerowania kart:'
+                ? t('export.heroes_selection_title_single')
+                : t('export.heroes_selection_title_plural')
     }
 
     if (btnToggleAll) {
@@ -312,7 +318,7 @@ export function setupCharacterSheetUI(ctx) {
     const updateHeroIndicator = () => {
         if (!indicator) return
         if (!sheetCheckbox.checked) {
-            indicator.textContent = '(Wyłączono)'
+            indicator.textContent = t('export.indicator_disabled')
             return
         }
         const checkedBoxes = heroesList
@@ -324,9 +330,9 @@ export function setupCharacterSheetUI(ctx) {
             const single = availableHeroes[0]
             const name =
                 (typeof single.getName === 'function' ? single.getName() : single.name) || 'Bohater'
-            indicator.textContent = count === 1 ? `(${name})` : '(Brak wyboru)'
+            indicator.textContent = count === 1 ? `(${name})` : t('export.indicator_no_selection')
         } else {
-            indicator.textContent = `(Wybrano: ${count} z ${total})`
+            indicator.textContent = t('export.indicator_selected_count', { count, total })
         }
     }
 
@@ -389,7 +395,10 @@ export function populateStylesDropdown() {
     all.forEach(s => {
         const opt = document.createElement('option')
         opt.value = s.id
-        opt.textContent = `${s.name} ${s.isBuiltIn ? '(Domyślny)' : '(Własny)'}`
+        const suffix = s.isBuiltIn
+            ? t('export.style_default_suffix')
+            : t('export.style_custom_suffix')
+        opt.textContent = `${s.name} ${suffix}`
         if (s.id === selectedStyleId) {
             opt.selected = true
         }
@@ -423,9 +432,11 @@ function updateProjectStatistics() {
         const statWordsEl = document.getElementById('export-stat-words')
         const statPagesEl = document.getElementById('export-stat-pages')
 
-        if (statCountEl) statCountEl.textContent = `${count} paragrafów`
-        if (statWordsEl) statWordsEl.textContent = `~${totalWords} słów`
-        if (statPagesEl) statPagesEl.textContent = `~${estimatedPages} str. (A5)`
+        if (statCountEl) statCountEl.textContent = t('export.stat_paragraphs_count', { count })
+        if (statWordsEl)
+            statWordsEl.textContent = t('export.stat_words_count', { count: totalWords })
+        if (statPagesEl)
+            statPagesEl.textContent = t('export.stat_pages_count', { count: estimatedPages })
     } catch (err) {
         console.warn('[ExportModal] Failed to calculate statistics:', err)
     }
@@ -511,7 +522,7 @@ async function executeExport() {
             btnConfirm.disabled = true
             btnConfirm.innerHTML = `
                 <span class="inline-block animate-spin mr-1.5">⏳</span>
-                <span>Eksportowanie...</span>
+                <span>${escapeHtml(t('export.btn_exporting'))}</span>
             `
         }
 
@@ -578,7 +589,10 @@ async function executeExport() {
 
         closeExportModal()
     } catch (err) {
-        toast.error(`Błąd podczas eksportu: ${err.message || String(err)}`, 'Eksport')
+        toast.error(
+            t('export.toast_error', { error: err.message || String(err) }),
+            t('export.toast_title_export')
+        )
     } finally {
         if (btnConfirm) {
             btnConfirm.disabled = false
@@ -594,7 +608,7 @@ async function handleZipExport(projectName, options) {
     }
 
     if (!projectDir) {
-        toast.error('Nie wykryto aktywnego folderu projektu do spakowania.', 'Eksport ZIP')
+        toast.error(t('export.toast_no_project_dir'), t('export.toast_title_zip'))
         return
     }
 
@@ -608,14 +622,11 @@ async function handleZipExport(projectName, options) {
 
     if (res?.success) {
         const sizeMb = res.bytes ? ` (${(res.bytes / 1024 / 1024).toFixed(2)} MB)` : ''
-        toast.success(
-            `Projekt został pomyślnie spakowany do pliku ZIP${sizeMb}!`,
-            'Kopia zapasowa ZIP'
-        )
+        toast.success(t('export.toast_zip_success', { size: sizeMb }), t('export.toast_title_zip'))
     } else {
         toast.error(
-            `Nie udało się utworzyć archiwum ZIP: ${res?.error || 'Nieznany błąd'}`,
-            'Błąd ZIP'
+            t('export.toast_zip_error', { error: res?.error || t('export.toast_error_unknown') }),
+            t('export.toast_title_zip_error')
         )
     }
 }
@@ -635,15 +646,15 @@ async function handlePdfExport(projectName, options, styleConfig) {
         if (res?.canceled) return
 
         if (res?.success) {
-            toast.success(`Książka PDF została pomyślnie wygenerowana!`, 'Eksport PDF')
+            toast.success(t('export.toast_pdf_success'), t('export.toast_title_pdf'))
         } else {
-            toast.error(`Błąd generowania PDF: ${res?.error || 'Nieznany błąd'}`, 'Błąd PDF')
+            toast.error(
+                t('export.toast_error', { error: res?.error || t('export.toast_error_unknown') }),
+                t('export.toast_title_pdf_error')
+            )
         }
     } else {
-        toast.error(
-            'Funkcja eksportu PDF wymaga środowiska aplikacji desktopowej.',
-            'Brak wsparcia'
-        )
+        toast.error(t('export.toast_pdf_desktop_required'), t('export.toast_title_no_support'))
     }
 }
 
@@ -668,15 +679,15 @@ async function handleDocxExport(projectName, options, styleConfig) {
         if (res?.canceled) return
 
         if (res?.success) {
-            toast.success(`Dokument Word (.docx) został pomyślnie wygenerowany!`, 'Eksport DOCX')
+            toast.success(t('export.toast_docx_success'), t('export.toast_title_docx'))
         } else {
-            toast.error(`Błąd generowania DOCX: ${res?.error || 'Nieznany błąd'}`, 'Błąd DOCX')
+            toast.error(
+                t('export.toast_error', { error: res?.error || t('export.toast_error_unknown') }),
+                t('export.toast_title_docx_error')
+            )
         }
     } else {
-        toast.error(
-            'Funkcja eksportu DOCX wymaga środowiska aplikacji desktopowej.',
-            'Brak wsparcia'
-        )
+        toast.error(t('export.toast_docx_desktop_required'), t('export.toast_title_no_support'))
     }
 }
 

@@ -19,6 +19,11 @@ import { renderFilesModule } from './modules/entityConfigModules.js'
  * @param {object} ctx
  */
 export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
+    const tr = (key, fallback) => {
+        const val = t(key)
+        return val && val !== key ? val : fallback
+    }
+
     const openModalFn = options => {
         if (typeof ctx.openHeroModal === 'function') {
             ctx.openHeroModal(options)
@@ -29,13 +34,13 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
 
     // 1. Header Module
     const typeKey = 'details.type_player_character'
-    const typeLabel = t(typeKey) !== typeKey ? t(typeKey) : 'BOHATER GRACZA'
+    const typeLabel = tr(typeKey, 'BOHATER GRACZA')
 
     const headerMod = createSection(
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="flex items-center justify-between">
-            <span class="text-[10px] uppercase font-bold tracking-widest text-[#71717a]">${t('details.type')}</span>
+            <span class="text-[10px] uppercase font-bold tracking-widest text-[#71717a]">${tr('details.type', 'Typ')}</span>
             <span class="px-2 py-0.5 text-[11px] rounded border ${getTypeBadgeColor(type)} font-medium">${escapeHtml(typeLabel)}</span>
         </div>
         <div class="text-[10px] text-gray-500 font-mono truncate">ID: ${escapeHtml(item.id || 'hero_player')}</div>
@@ -44,7 +49,7 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
     container.appendChild(headerMod)
 
     // 2. Action Module (Top Edit Button)
-    const editBtnText = t('hero.edit_hero') || 'Edytuj bohatera'
+    const editBtnText = tr('hero.edit_hero', tr('hero.edit_hero_btn', 'Edytuj bohatera'))
     const editActionMod = createSection(
         'border-b border-[#333338] p-3',
         `
@@ -86,13 +91,13 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.avatar')}</span>
-            <span class="text-[10px] text-amber-400 capitalize">${isCustomAvatar ? t('hero.avatar_custom') || 'Własny' : escapeHtml(avatarPreset?.category || '')}</span>
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('details.avatar', 'Awatar postaci')}</span>
+            <span class="text-[10px] text-amber-400 capitalize">${isCustomAvatar ? tr('hero.avatar_custom', 'Własny') : escapeHtml(avatarPreset?.category || '')}</span>
         </div>
         <div class="flex items-center gap-3">
             ${avatarHtml}
             <div class="flex-1 min-w-0">
-                <div class="text-xs font-semibold text-white truncate">${escapeHtml(isCustomAvatar ? t('hero.custom_portrait') || 'Własny portret' : avatarPreset?.name || avatarVal)}</div>
+                <div class="text-xs font-semibold text-white truncate">${escapeHtml(isCustomAvatar ? tr('hero.custom_portrait', tr('avatars.custom', 'Własny portret')) : avatarPreset?.name || avatarVal)}</div>
                 <div class="text-[10px] text-zinc-400 font-mono">${escapeHtml(isCustomAvatar ? 'custom' : avatarPreset?.id || '')}</div>
             </div>
         </div>
@@ -107,7 +112,7 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div>
-            <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide mb-1">${t('details.name')}</label>
+            <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide mb-1">${tr('details.name', 'Nazwa')}</label>
             <div id="details-name-display" class="w-full bg-[#18181b] border border-[#27272a] rounded px-2.5 py-1.5 text-xs text-white font-medium select-text">
                 ${escapeHtml(entityName)}
             </div>
@@ -134,18 +139,18 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="space-y-1">
-            <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.summary')}</label>
+            <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('details.summary', 'Streszczenie')}</label>
             ${
                 currentSummary
                     ? `<div class="w-full bg-[#18181b] border border-[#27272a] rounded p-2 text-xs text-[#d4d4d8] leading-relaxed whitespace-pre-wrap select-text">${escapeHtml(currentSummary)}</div>`
-                    : `<div class="text-xs text-gray-500 italic py-1">${t('details.no_summary')}</div>`
+                    : `<div class="text-xs text-gray-500 italic py-1">${tr('details.no_summary', 'Brak streszczenia')}</div>`
             }
         </div>
         ${
             currentNarrative && currentNarrative !== currentSummary
                 ? `
             <div class="space-y-1 pt-1">
-                <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('hero.narrative_chronicle') || 'Kronika Narracyjna'}</label>
+                <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('hero.narrative_chronicle', tr('hero.chronicle', 'Kronika Narracyjna'))}</label>
                 <div class="w-full bg-[#18181b] border border-[#27272a] rounded p-2 text-xs text-[#a1a1aa] leading-relaxed whitespace-pre-wrap select-text max-h-48 overflow-y-auto">${escapeHtml(currentNarrative)}</div>
             </div>
             `
@@ -163,13 +168,13 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.tags')}</span>
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('details.tags', 'Tagi')}</span>
             <span class="text-[10px] text-gray-500 font-mono">${currentTags.length}</span>
         </div>
         <div id="details-hero-tags-list" class="flex flex-wrap gap-1 min-h-[20px]">
             ${
                 currentTags.length === 0
-                    ? `<span class="text-xs text-gray-500 italic py-0.5">${t('left_panel.no_tags')}</span>`
+                    ? `<span class="text-xs text-gray-500 italic py-0.5">${tr('details.no_tags', tr('graph.node.no_tags', 'Brak tagów'))}</span>`
                     : ''
             }
         </div>
@@ -199,12 +204,12 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
                 <span class="text-amber-400 inline-flex items-center">${getIconSvg('stat', 'w-3.5 h-3.5')}</span>
-                <span>${t('hero.base_stats') || 'Cechy Główne'}</span>
+                <span>${tr('hero.base_stats', tr('hero.stats_title', 'Cechy Główne'))}</span>
             </span>
             <span class="text-[10px] text-gray-500 font-mono">${statsList.length}</span>
         </div>
         <div id="details-hero-stats-list" class="flex flex-col gap-1.5 min-h-[20px]">
-            ${statsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_traits')}</span>` : ''}
+            ${statsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${tr('details.no_traits', 'Brak zdefiniowanych cech')}</span>` : ''}
         </div>
     `
     )
@@ -241,12 +246,12 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
                 <span class="text-rose-400 inline-flex items-center">${getIconSvg('parameter', 'w-3.5 h-3.5')}</span>
-                <span>${t('hero.vitals') || 'Parametry Życiowe'}</span>
+                <span>${tr('hero.vitals', tr('hero.vitals_title', 'Parametry Życiowe'))}</span>
             </span>
             <span class="text-[10px] text-gray-500 font-mono">${paramsList.length}</span>
         </div>
         <div id="details-hero-params-list" class="flex flex-col gap-1.5 min-h-[20px]">
-            ${paramsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_parameters')}</span>` : ''}
+            ${paramsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${tr('details.no_parameters', 'Brak przypisanych parametrów')}</span>` : ''}
         </div>
     `
     )
@@ -291,12 +296,12 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
                 <span class="text-blue-400 inline-flex items-center">${getIconSvg('skill', 'w-3.5 h-3.5')}</span>
-                <span>${t('hero.skills') || 'Umiejętności'}</span>
+                <span>${tr('hero.skills', tr('hero.skills_title', 'Umiejętności'))}</span>
             </span>
             <span class="text-[10px] text-gray-500 font-mono">${skillsList.length}</span>
         </div>
         <div id="details-hero-skills-list" class="flex flex-col gap-1.5 min-h-[20px]">
-            ${skillsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_skills')}</span>` : ''}
+            ${skillsList.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${tr('details.no_skills', 'Brak przypisanych umiejętności')}</span>` : ''}
         </div>
     `
     )
@@ -343,11 +348,11 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('hero.inventories_title') || 'Ekwipunki i Przedmioty'}</span>
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('hero.inventories_title', 'Ekwipunki i Przedmioty')}</span>
             <span class="text-[10px] text-gray-500 font-mono">${invCount}</span>
         </div>
         <div id="details-hero-inventories-list" class="flex flex-col gap-2 min-h-[20px]">
-            ${invCount === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('hero.empty_inventories') || 'Brak ekwipunków'}</span>` : ''}
+            ${invCount === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${tr('hero.empty_inventories', 'Brak ekwipunków')}</span>` : ''}
         </div>
     `
     )
@@ -385,7 +390,7 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
                         .join('')}
                 </div>
             `
-                    : `<div class="text-[10px] text-zinc-500 italic pt-0.5">${escapeHtml(t('hero.empty_inv_items') || 'Pusty ekwipunek')}</div>`
+                    : `<div class="text-[10px] text-zinc-500 italic pt-0.5">${escapeHtml(tr('hero.empty_inv_items', 'Pusty ekwipunek'))}</div>`
             }
         `
         invListEl.appendChild(card)
@@ -401,11 +406,11 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
         'border-b border-[#333338] p-3 space-y-2',
         `
         <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('hero.identity_attributes') || 'Cechy Tożsamości'}</span>
+            <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('hero.identity_attributes', tr('hero.custom_attributes_title', 'Cechy Tożsamości'))}</span>
             <span class="text-[10px] text-gray-500 font-mono">${customAttrs.length}</span>
         </div>
         <div id="details-hero-custom-attrs-list" class="flex flex-col gap-1.5 min-h-[20px]">
-            ${customAttrs.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${t('details.no_custom_attributes')}</span>` : ''}
+            ${customAttrs.length === 0 ? `<span class="text-xs text-gray-500 italic py-0.5">${tr('details.no_custom_attributes', 'Brak atrybutów niestandardowych')}</span>` : ''}
         </div>
     `
     )
@@ -423,11 +428,11 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
     })
     container.appendChild(customMod)
 
-    // 11. Quick Actions Module (Bottom)
+    // 12. Quick Actions Module (Bottom)
     const actionsMod = createSection(
         'p-3 space-y-2',
         `
-        <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('right_panel.quick_actions')}</div>
+        <div class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${tr('right_panel.quick_actions', 'Szybkie akcje')}</div>
         <button id="btn-details-bottom-edit-hero" class="w-full py-2 px-3 rounded bg-amber-600/30 hover:bg-amber-600/50 border border-amber-500/40 text-xs text-left text-amber-200 flex items-center justify-between cursor-pointer transition-colors" type="button">
             <span>${escapeHtml(editBtnText)}</span>
             <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('edit', 'w-3.5 h-3.5')}</span>

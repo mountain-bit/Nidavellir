@@ -6213,10 +6213,10 @@
                             <app-icon name="export" class="w-4 h-4 text-blue-400"></app-icon>
                         </div>
                         <div>
-                            <h3 class="text-sm font-semibold text-zinc-100">
+                            <h3 class="text-sm font-semibold text-zinc-100" data-i18n="export.modal_title">
                                 Eksport Gry Paragrafowej
                             </h3>
-                            <p class="text-[11px] text-zinc-400">
+                            <p class="text-[11px] text-zinc-400" data-i18n="export.modal_subtitle">
                                 Publikacja książkowa (PDF/DOCX) lub backup projektu (ZIP)
                             </p>
                         </div>
@@ -6226,6 +6226,7 @@
                         id="btn-close-export-modal"
                         class="text-zinc-400 hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
                         title="Zamknij"
+                        data-i18n-title="export.btn_close"
                     >
                         <app-icon name="close" class="w-4 h-4"></app-icon>
                     </button>
@@ -6239,7 +6240,7 @@
                     <div class="md:col-span-7 space-y-4">
                         <!-- Krok 1: Wybór formatu docelowego -->
                         <div>
-                            <label class="block text-zinc-300 font-semibold mb-2"
+                            <label class="block text-zinc-300 font-semibold mb-2" data-i18n="export.format_target"
                                 >1. Format docelowy:</label
                             >
                             <div class="grid grid-cols-3 gap-2" id="export-format-selector">
@@ -6249,13 +6250,14 @@
                                     class="export-format-card p-2.5 rounded-lg border border-blue-500 bg-blue-950/25 ring-1 ring-blue-500 text-left cursor-pointer transition-all hover:bg-blue-950/40"
                                 >
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-bold text-zinc-100">Książka PDF</span>
+                                        <span class="font-bold text-zinc-100" data-i18n="export.format_pdf_title">Książka PDF</span>
                                         <span
                                             class="text-[10px] text-red-400 font-mono font-semibold"
+                                            data-i18n="export.format_pdf_ext"
                                             >.PDF</span
                                         >
                                     </div>
-                                    <p class="text-[10px] text-zinc-400 leading-tight">
+                                    <p class="text-[10px] text-zinc-400 leading-tight" data-i18n="export.format_pdf_desc">
                                         Gotowy skład do druku, A5/A4, linki
                                     </p>
                                 </button>
@@ -6265,13 +6267,14 @@
                                     class="export-format-card p-2.5 rounded-lg border border-[#2e3037] bg-[#18191c] text-left cursor-pointer transition-all hover:bg-[#23252a]"
                                 >
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-bold text-zinc-100">Dokument Word</span>
+                                        <span class="font-bold text-zinc-100" data-i18n="export.format_docx_title">Dokument Word</span>
                                         <span
                                             class="text-[10px] text-blue-400 font-mono font-semibold"
+                                            data-i18n="export.format_docx_ext"
                                             >.DOCX</span
                                         >
                                     </div>
-                                    <p class="text-[10px] text-zinc-400 leading-tight">
+                                    <p class="text-[10px] text-zinc-400 leading-tight" data-i18n="export.format_docx_desc">
                                         Do edycji i składu w Word / Writerze
                                     </p>
                                 </button>
@@ -6281,13 +6284,14 @@
                                     class="export-format-card p-2.5 rounded-lg border border-[#2e3037] bg-[#18191c] text-left cursor-pointer transition-all hover:bg-[#23252a]"
                                 >
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-bold text-zinc-100">Projekt (ZIP)</span>
+                                        <span class="font-bold text-zinc-100" data-i18n="export.format_zip_title">Projekt (ZIP)</span>
                                         <span
                                             class="text-[10px] text-amber-400 font-mono font-semibold"
+                                            data-i18n="export.format_zip_ext"
                                             >.ZIP</span
                                         >
                                     </div>
-                                    <p class="text-[10px] text-zinc-400 leading-tight">
+                                    <p class="text-[10px] text-zinc-400 leading-tight" data-i18n="export.format_zip_desc">
                                         Pełny backup do przeniesienia
                                     </p>
                                 </button>
@@ -6301,16 +6305,10 @@
                         >
                             <div class="flex items-center gap-2 text-zinc-200 font-medium">
                                 <app-icon name="open" class="w-4 h-4 text-amber-400"></app-icon>
-                                <span>Kopia całego projektu do archiwum ZIP</span>
+                                <span data-i18n="export.zip_title">Kopia całego projektu do archiwum ZIP</span>
                             </div>
-                            <p class="text-[11px] text-zinc-400 leading-normal">
-                                Archiwum zawiera strukturę katalogów projektu (<code
-                                    class="text-zinc-300"
-                                    >Paragraphs/</code
-                                >, <code class="text-zinc-300">NPC/</code>,
-                                <code class="text-zinc-300">Locations/</code>,
-                                <code class="text-zinc-300">project.json</code>). Po rozpakowaniu na
-                                innym komputerze można go bezpośrednio otworzyć w silniku Nidavelir.
+                            <p class="text-[11px] text-zinc-400 leading-normal" data-i18n="export.zip_desc">
+                                Archiwum zawiera strukturę katalogów projektu (Paragraphs/, NPC/, Locations/, project.json). Po rozpakowaniu na innym komputerze można go bezpośrednio otworzyć w silniku Nidavelir.
                             </p>
                             <label
                                 class="flex items-center gap-2 text-zinc-300 cursor-pointer pt-1 border-t border-[#2e3037]"
@@ -6321,11 +6319,8 @@
                                     checked
                                     class="rounded accent-blue-600"
                                 />
-                                <span
-                                    >Dołącz zasoby graficzne i załączniki (<code
-                                        class="text-zinc-400"
-                                        >Assets/Images</code
-                                    >)</span
+                                <span data-i18n="export.zip_images"
+                                    >Dołącz zasoby graficzne i załączniki (Assets/Images)</span
                                 >
                             </label>
                         </div>
@@ -6337,7 +6332,7 @@
                                 class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2.5"
                             >
                                 <div class="flex items-center justify-between">
-                                    <label class="text-zinc-200 font-medium"
+                                    <label class="text-zinc-200 font-medium" data-i18n="export.style_label"
                                         >Styl typograficzny i układ:</label
                                     >
                                     <button
@@ -6346,7 +6341,7 @@
                                         class="text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer transition-colors"
                                     >
                                         <app-icon name="edit" class="w-3.5 h-3.5"></app-icon>
-                                        <span>Zarządzaj stylami...</span>
+                                        <span data-i18n="export.manage_styles">Zarządzaj stylami...</span>
                                     </button>
                                 </div>
                                 <select
@@ -6359,21 +6354,21 @@
                             <div
                                 class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2"
                             >
-                                <label class="block text-zinc-200 font-medium"
+                                <label class="block text-zinc-200 font-medium" data-i18n="export.separator_label"
                                     >Sposób oddzielania paragrafów:</label
                                 >
                                 <select
                                     id="export-opt-separator"
                                     class="export-reactive-input w-full bg-[#18191c] border border-[#2e3037] rounded-lg px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 cursor-pointer"
                                 >
-                                    <option value="ornament">
+                                    <option value="ornament" data-i18n="export.separator_ornament">
                                         Ozdobna winieta / fleuron (❖ ❖ ❖ lub ❦)
                                     </option>
-                                    <option value="page-break">
+                                    <option value="page-break" data-i18n="export.separator_page_break">
                                         Każdy paragraf od nowej strony (Page Break)
                                     </option>
-                                    <option value="line">Stylizowana linia pozioma</option>
-                                    <option value="space">Odstęp pionowy bez linii</option>
+                                    <option value="line" data-i18n="export.separator_line">Stylizowana linia pozioma</option>
+                                    <option value="space" data-i18n="export.separator_space">Odstęp pionowy bez linii</option>
                                 </select>
                             </div>
 
@@ -6381,7 +6376,7 @@
                             <div
                                 class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2.5"
                             >
-                                <label class="block text-zinc-200 font-medium"
+                                <label class="block text-zinc-200 font-medium" data-i18n="export.additional_sections"
                                     >Sekcje dodatkowe i opisy encji:</label
                                 >
 
@@ -6396,7 +6391,7 @@
                                             checked
                                             class="rounded accent-blue-600 export-reactive-input"
                                         />
-                                        <span>Opisy Lokacji i Świata</span>
+                                        <span data-i18n="export.locations_desc">Opisy Lokacji i Świata</span>
                                     </label>
                                     <div class="flex items-center gap-2 text-[11px] text-zinc-400">
                                         <label class="cursor-pointer flex items-center gap-1">
@@ -6407,7 +6402,7 @@
                                                 checked
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na początku
+                                            <span data-i18n="export.place_start">Na początku</span>
                                         </label>
                                         <label class="cursor-pointer flex items-center gap-1">
                                             <input
@@ -6416,7 +6411,7 @@
                                                 value="end"
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na końcu
+                                            <span data-i18n="export.place_end">Na końcu</span>
                                         </label>
                                     </div>
                                 </div>
@@ -6432,7 +6427,7 @@
                                             checked
                                             class="rounded accent-blue-600 export-reactive-input"
                                         />
-                                        <span>Dossier Postaci i NPC</span>
+                                        <span data-i18n="export.npcs_desc">Dossier Postaci i NPC</span>
                                     </label>
                                     <div class="flex items-center gap-2 text-[11px] text-zinc-400">
                                         <label class="cursor-pointer flex items-center gap-1">
@@ -6442,7 +6437,7 @@
                                                 value="start"
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na początku
+                                            <span data-i18n="export.place_start">Na początku</span>
                                         </label>
                                         <label class="cursor-pointer flex items-center gap-1">
                                             <input
@@ -6452,7 +6447,7 @@
                                                 checked
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na końcu
+                                            <span data-i18n="export.place_end">Na końcu</span>
                                         </label>
                                     </div>
                                 </div>
@@ -6467,7 +6462,7 @@
                                             id="export-opt-items"
                                             class="rounded accent-blue-600 export-reactive-input"
                                         />
-                                        <span>Katalog Przedmiotów i Broni</span>
+                                        <span data-i18n="export.items_desc">Katalog Przedmiotów i Broni</span>
                                     </label>
                                     <div class="flex items-center gap-2 text-[11px] text-zinc-400">
                                         <label class="cursor-pointer flex items-center gap-1">
@@ -6477,7 +6472,7 @@
                                                 value="start"
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na początku
+                                            <span data-i18n="export.place_start">Na początku</span>
                                         </label>
                                         <label class="cursor-pointer flex items-center gap-1">
                                             <input
@@ -6487,7 +6482,7 @@
                                                 checked
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na końcu
+                                            <span data-i18n="export.place_end">Na końcu</span>
                                         </label>
                                     </div>
                                 </div>
@@ -6501,7 +6496,7 @@
                                             checked
                                             class="rounded accent-blue-600 export-reactive-input"
                                         />
-                                        <span>Glosariusz (Słowniczek pojęć)</span>
+                                        <span data-i18n="export.glossary_desc">Glosariusz (Słowniczek pojęć)</span>
                                     </label>
                                     <div class="flex items-center gap-2 text-[11px] text-zinc-400">
                                         <label class="cursor-pointer flex items-center gap-1">
@@ -6511,7 +6506,7 @@
                                                 value="start"
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na początku
+                                            <span data-i18n="export.place_start">Na początku</span>
                                         </label>
                                         <label class="cursor-pointer flex items-center gap-1">
                                             <input
@@ -6521,7 +6516,7 @@
                                                 checked
                                                 class="accent-blue-600 export-reactive-input"
                                             />
-                                            Na końcu
+                                            <span data-i18n="export.place_end">Na końcu</span>
                                         </label>
                                     </div>
                                 </div>
@@ -6531,7 +6526,7 @@
                             <div
                                 class="p-3.5 rounded-lg bg-[#202126] border border-[#2e3037] space-y-2"
                             >
-                                <label class="block text-zinc-200 font-medium"
+                                <label class="block text-zinc-200 font-medium" data-i18n="export.conveniences_label"
                                     >Udogodnienia dla gracza i publikacji:</label
                                 >
                                 <label class="flex items-start gap-2 text-zinc-300 cursor-pointer">
@@ -6542,11 +6537,11 @@
                                         class="mt-0.5 rounded accent-blue-600 export-reactive-input"
                                     />
                                     <div>
-                                        <span class="font-medium text-zinc-200"
+                                        <span class="font-medium text-zinc-200" data-i18n="export.shuffle_paragraphs"
                                             >Losowe przetasowanie numeracji paragrafów
                                             (Anti-Spoiler)</span
                                         >
-                                        <p class="text-[10px] text-zinc-400">
+                                        <p class="text-[10px] text-zinc-400" data-i18n="export.shuffle_hint">
                                             Automatycznie aktualizuje odnośniki w wyborach.
                                             Zachowuje numery zablokowane kłódką oraz § 1 jako start.
                                         </p>
@@ -6562,7 +6557,7 @@
                                             checked
                                             class="rounded accent-blue-600 export-reactive-input"
                                         />
-                                        <span>Strona tytułowa / Okładka</span>
+                                        <span data-i18n="export.cover_page">Strona tytułowa / Okładka</span>
                                     </label>
                                     <label
                                         class="flex items-center gap-2 text-zinc-300 cursor-pointer"
@@ -6573,7 +6568,7 @@
                                             checked
                                             class="rounded accent-blue-600 export-reactive-input"
                                         />
-                                        <span>Zasady gry i wprowadzenie</span>
+                                        <span data-i18n="export.rules_page">Zasady gry i wprowadzenie</span>
                                     </label>
                                 </div>
 
@@ -6592,7 +6587,7 @@
                                                 checked
                                                 class="rounded accent-blue-600 export-reactive-input"
                                             />
-                                            <span>Karta Postaci do druku</span>
+                                            <span data-i18n="export.character_sheet">Karta Postaci do druku</span>
                                         </label>
                                         <span
                                             id="export-single-hero-indicator"
@@ -6608,11 +6603,12 @@
                                         <div
                                             class="flex items-center justify-between text-[11px] text-zinc-400 mb-1 border-b border-[#282a30] pb-1"
                                         >
-                                            <span>Wybierz bohaterów do wygenerowania kart:</span>
+                                            <span id="export-heroes-selection-title" data-i18n="export.heroes_selection_title_plural">Wybierz bohaterów do wygenerowania kart:</span>
                                             <button
                                                 type="button"
                                                 id="btn-export-toggle-all-heroes"
                                                 class="text-blue-400 hover:text-blue-300 font-medium text-[10px] cursor-pointer"
+                                                data-i18n="export.toggle_all_heroes"
                                             >
                                                 Zaznacz / Odznacz wszystkich
                                             </button>
@@ -6638,12 +6634,12 @@
                             <div
                                 class="font-semibold text-zinc-200 text-xs flex items-center justify-between"
                             >
-                                <span>Szacunki publikacji</span>
+                                <span data-i18n="export.estimates_title">Szacunki publikacji</span>
                                 <span class="text-blue-400 text-[10px]">A5 Standard</span>
                             </div>
                             <div class="grid grid-cols-3 gap-2 text-center">
                                 <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
-                                    <div class="text-[10px] text-zinc-400">Paragrafy</div>
+                                    <div class="text-[10px] text-zinc-400" data-i18n="export.stat_paragraphs">Paragrafy</div>
                                     <div
                                         id="export-stat-count"
                                         class="font-bold text-zinc-200 text-xs mt-0.5"
@@ -6652,7 +6648,7 @@
                                     </div>
                                 </div>
                                 <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
-                                    <div class="text-[10px] text-zinc-400">Słowa</div>
+                                    <div class="text-[10px] text-zinc-400" data-i18n="export.stat_words">Słowa</div>
                                     <div
                                         id="export-stat-words"
                                         class="font-bold text-zinc-200 text-xs mt-0.5"
@@ -6661,7 +6657,7 @@
                                     </div>
                                 </div>
                                 <div class="p-2 rounded bg-[#18191c] border border-[#2a2c33]">
-                                    <div class="text-[10px] text-zinc-400">Objętość</div>
+                                    <div class="text-[10px] text-zinc-400" data-i18n="export.stat_volume">Objętość</div>
                                     <div
                                         id="export-stat-pages"
                                         class="font-bold text-emerald-400 text-xs mt-0.5"
@@ -6679,8 +6675,8 @@
                             <div
                                 class="font-semibold text-zinc-200 text-xs mb-2 flex items-center justify-between"
                             >
-                                <span>Podgląd układu i czcionek</span>
-                                <span class="text-[10px] text-zinc-500">Live Preview</span>
+                                <span data-i18n="export.preview_title">Podgląd układu i czcionek</span>
+                                <span class="text-[10px] text-zinc-500" data-i18n="export.preview_live">Live Preview</span>
                             </div>
                             <div
                                 class="flex-1 rounded border border-[#383a42] p-3.5 overflow-hidden shadow-inner flex flex-col justify-start"
@@ -6700,6 +6696,7 @@
                         type="button"
                         id="btn-cancel-export"
                         class="px-4 py-2 rounded-lg text-xs font-medium text-zinc-300 hover:text-white bg-[#222429] hover:bg-[#2c2e35] border border-[#2e3037] transition-colors cursor-pointer"
+                        data-i18n="export.btn_cancel"
                     >
                         Anuluj
                     </button>
@@ -6709,7 +6706,7 @@
                         class="px-5 py-2 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 transition-colors cursor-pointer shadow-md flex items-center gap-2"
                     >
                         <app-icon name="export" class="w-4 h-4"></app-icon>
-                        <span>Eksportuj publikację</span>
+                        <span data-i18n="export.btn_export">Eksportuj publikację</span>
                     </button>
                 </div>
             </div>
