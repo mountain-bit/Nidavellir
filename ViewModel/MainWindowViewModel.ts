@@ -116,6 +116,7 @@ export type LeftTab =
     | 'scenes'
     | 'characters'
     | 'locations'
+    | 'items'
     | 'stats'
     | 'traits'
     | 'skills'

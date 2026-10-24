@@ -22,6 +22,7 @@ export type IconName =
     | 'feature'
     | 'tag'
     | 'item'
+    | 'backpack'
     | 'class'
     | 'check'
     | 'close'
@@ -147,6 +148,10 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>',
     },
     item: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 21v-5a2 2 0 012-2h4a2 2 0 012 2v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h8"></path>',
+    },
+    backpack: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 21v-5a2 2 0 012-2h4a2 2 0 012 2v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h8"></path>',
     },

@@ -327,6 +327,17 @@
                     <button
                         class="icon-bar-item"
                         type="button"
+                        data-left-tab="items"
+                        data-i18n-title="left_panel.items"
+                    >
+                        <app-icon name="item" class="w-5 h-5"></app-icon>
+                        <span class="text-[9px] mt-0.5" data-i18n="left_bar.items"
+                            >Przedmioty</span
+                        >
+                    </button>
+                    <button
+                        class="icon-bar-item"
+                        type="button"
                         data-left-tab="traits"
                         data-i18n-title="left_panel.traits"
                     >
@@ -877,6 +888,72 @@
                             <div class="p-2 text-xs text-[#a1a1aa]" id="locations-list-container">
                                 <p class="italic text-gray-500" data-i18n="left_panel.no_locations">
                                     Brak lokacji w projekcie
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Content: Items -->
+                        <div class="left-tab-content hidden" id="left-content-items">
+                            <div
+                                class="flex items-center justify-between px-2 py-1 border-b border-[#2d2d32] mb-2 pb-1.5"
+                            >
+                                <span
+                                    class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wider"
+                                    data-i18n="left_panel.items"
+                                    >Przedmioty i Ekwipunek</span
+                                >
+                                <button
+                                    id="btn-add-item"
+                                    type="button"
+                                    class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                    data-i18n-title="left_panel.add_item"
+                                    title="Dodaj przedmiot"
+                                >
+                                    <span>+</span>
+                                </button>
+                            </div>
+                            <div class="px-1 py-1 space-y-1 mb-2">
+                                <input
+                                    type="text"
+                                    id="item-search-input"
+                                    placeholder="Szukaj przedmiotów..."
+                                    data-i18n-placeholder="left_panel.search_items_placeholder"
+                                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
+                                />
+                                <div
+                                    id="item-create-form"
+                                    class="hidden p-2 bg-[#18181b] border border-[#3f3f46] rounded flex flex-col gap-1.5"
+                                >
+                                    <input
+                                        type="text"
+                                        id="item-create-name"
+                                        placeholder="Nazwa przedmiotu (lub zostaw puste)"
+                                        data-i18n-placeholder="left_panel.item_name_placeholder"
+                                        class="w-full bg-[#202023] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white"
+                                    />
+                                    <div class="flex justify-end gap-1">
+                                        <button
+                                            id="item-create-cancel"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded text-[10px] text-gray-400 hover:text-white cursor-pointer"
+                                            data-i18n="buttons.cancel"
+                                        >
+                                            Anuluj
+                                        </button>
+                                        <button
+                                            id="item-create-submit"
+                                            type="button"
+                                            class="px-2 py-0.5 rounded bg-blue-600 hover:bg-blue-500 text-white text-[10px] cursor-pointer"
+                                            data-i18n="buttons.add"
+                                        >
+                                            Dodaj
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-2 text-xs text-[#a1a1aa]" id="items-list-container">
+                                <p class="italic text-gray-500" data-i18n="left_panel.no_items">
+                                    Brak przedmiotów w projekcie
                                 </p>
                             </div>
                         </div>
