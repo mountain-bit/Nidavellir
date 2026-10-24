@@ -453,6 +453,23 @@ declare module '*/View/ui/modals/hero/heroModal.js' {
 declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
+    export function renderItemsModule(
+        container: unknown,
+        entity: unknown,
+        type?: string,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/modules/itemsModule.js' {
+    export function renderItemsModule(
+        container: unknown,
+        entity: unknown,
+        type?: string,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
 }
 
 declare module '*/View/ui/editor/editorToolbar.js' {

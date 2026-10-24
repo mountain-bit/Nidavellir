@@ -33,6 +33,7 @@ import {
     renderParagraphRoleModule,
     renderSummaryModule,
 } from './modules/entityConfigModules.js'
+import { renderItemsModule } from './modules/itemsModule.js'
 import {
     renderParameterConfigModule,
     renderSkillConfigModule,
@@ -54,6 +55,7 @@ export {
     renderFeaturesModule,
     renderFilesModule,
     renderHeroReadOnlyDetails,
+    renderItemsModule,
     renderLocationsModule,
     renderNameModule,
     renderNpcReadOnlyDetails,
@@ -91,6 +93,7 @@ function resolveEntityScope(type, ctx) {
     if (type === 'character') return ctx.projectCharacters || []
     if (type === 'template') return ctx.projectTemplates || []
     if (type === 'location') return ctx.projectLocations || []
+    if (type === 'item') return ctx.projectItems || []
     if (type === 'stat' || type === 'trait') return ctx.projectStats || []
     if (type === 'parameter') return ctx.projectParameters || []
     if (type === 'skill') return ctx.projectSkills || []
@@ -162,6 +165,7 @@ export function renderDetailsPanel(ctx) {
     renderSkillsModule(container, entity, type, ctx, renderDetailsPanel)
     renderFeaturesModule(container, entity, type, ctx, renderDetailsPanel)
     renderCustomAttributesModule(container, entity, type, ctx, renderDetailsPanel)
+    renderItemsModule(container, entity, type, ctx, renderDetailsPanel)
     renderExitsModule(container, entity, type, ctx, renderDetailsPanel)
     renderCombatModule(container, entity, type, ctx, renderDetailsPanel)
     renderQuickActionsModule(container, item, type, ctx)
