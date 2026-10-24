@@ -45,6 +45,12 @@ import { CombatMarkdownService } from '../Services/CombatMarkdownService'
 import { CombatSyncService } from '../Services/CombatSyncService'
 import { DescriptionTransclusionService } from '../Services/DescriptionTransclusionService'
 import { EntityLinkUpdateService } from '../Services/EntityLinkUpdateService'
+import {
+    type IItemExportJSON,
+    type IItemExportOptions,
+    type IItemExportUsage,
+    ItemExportService,
+} from '../Services/ItemExportService'
 import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
 import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
@@ -72,12 +78,16 @@ export {
     type IChoiceDiceCheck,
     type IChoiceModifier,
     type IDiceBranch,
+    type IItemExportJSON,
+    type IItemExportOptions,
+    type IItemExportUsage,
     type IItemInventoryConfig,
     type IItemModifier,
     Inventory,
     type IParagraphItemAction,
     Item,
     ItemCondition,
+    ItemExportService,
     type ItemInventoryConfig,
     type ItemModifier,
     Location,
@@ -207,6 +217,9 @@ export interface IHistoryItem {
         | 'scene'
         | 'character'
         | 'template'
+        | 'player_character'
+        | 'playerCharacter'
+        | 'main-character'
         | 'location'
         | 'item'
         | 'stat'

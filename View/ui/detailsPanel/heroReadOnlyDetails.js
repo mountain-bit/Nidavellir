@@ -380,12 +380,21 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
                     ? `
                 <div class="flex flex-wrap gap-1 pt-1 border-t border-zinc-800/80">
                     ${items
-                        .map(it => {
+                        .map((it, idx) => {
                             const itName =
                                 typeof it.getName === 'function'
                                     ? it.getName()
                                     : it.name || String(it)
-                            return `<span class="px-1.5 py-0.5 rounded text-[10px] bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium">${escapeHtml(itName)}</span>`
+                            const itSlots =
+                                typeof it.getSlotSize === 'function'
+                                    ? it.getSlotSize()
+                                    : typeof it.slotSize === 'number'
+                                      ? it.slotSize
+                                      : 1
+                            return `<button type="button" data-inv-item-idx="${idx}" class="btn-hero-inspect-item px-1.5 py-0.5 rounded text-[10px] bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500/50 text-zinc-300 hover:text-amber-200 font-medium cursor-pointer transition-colors flex items-center gap-1">
+                                <span>${escapeHtml(itName)}</span>
+                                ${itSlots > 1 ? `<span class="text-[9px] text-zinc-500 font-mono">(${itSlots})</span>` : ''}
+                            </button>`
                         })
                         .join('')}
                 </div>
@@ -393,6 +402,27 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
                     : `<div class="text-[10px] text-zinc-500 italic pt-0.5">${escapeHtml(tr('hero.empty_inv_items', 'Pusty ekwipunek'))}</div>`
             }
         `
+
+        card.querySelectorAll('.btn-hero-inspect-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.invItemIdx, 10)
+                const it = items[idx]
+                if (!it) return
+                const itId = typeof it.getId === 'function' ? it.getId() : it.id || it.name
+                const projectItem =
+                    (ctx.projectItems || []).find(
+                        p =>
+                            (typeof p.getId === 'function' ? p.getId() : p.id) === itId ||
+                            (typeof p.getName === 'function' ? p.getName() : p.name) === itId
+                    ) || it
+                if (typeof ctx.selectEntity === 'function') {
+                    ctx.selectEntity(projectItem, 'item')
+                } else if (ctx.vm && typeof ctx.vm.selectElement === 'function') {
+                    ctx.vm.selectElement(projectItem, 'item')
+                }
+            })
+        })
+
         invListEl.appendChild(card)
     })
     container.appendChild(invMod)

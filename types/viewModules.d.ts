@@ -453,10 +453,37 @@ declare module '*/View/ui/modals/hero/heroModal.js' {
 declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
+    export function renderItemDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
     export function renderItemsModule(
         container: unknown,
         entity: unknown,
         type?: string,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/heroReadOnlyDetails.js' {
+    export function renderHeroReadOnlyDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        type?: string,
+        ctx?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/itemDetails.js' {
+    export function renderItemDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
         ctx?: unknown,
         onRefreshDetails?: unknown
     ): void
@@ -790,6 +817,7 @@ declare module '*/View/ui/workspace/quickSearch.js' {
         tags?: string[]
         locationName?: string
         charNames?: string[]
+        modifiers?: string[]
         entity: unknown
         number?: number
     }

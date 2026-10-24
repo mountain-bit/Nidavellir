@@ -13,6 +13,7 @@ import { renderCombatModule } from './combatModule.js'
 import { renderExitsModule } from './exitsModule.js'
 import { renderHeroReadOnlyDetails } from './heroReadOnlyDetails.js'
 import { renderHistoryBar as renderHistoryBarModule } from './historyBar.js'
+import { renderItemDetails } from './itemDetails.js'
 import {
     renderCharactersModule,
     renderFeaturesModule,
@@ -55,6 +56,7 @@ export {
     renderFeaturesModule,
     renderFilesModule,
     renderHeroReadOnlyDetails,
+    renderItemDetails,
     renderItemsModule,
     renderLocationsModule,
     renderNameModule,
@@ -132,6 +134,11 @@ export function renderDetailsPanel(ctx) {
 
     if (type === 'player_character' || type === 'playerCharacter' || type === 'main-character') {
         renderHeroReadOnlyDetails(container, entity, item, type, ctx)
+        return
+    }
+
+    if (type === 'item') {
+        renderItemDetails(container, entity, item, ctx, renderDetailsPanel)
         return
     }
 
