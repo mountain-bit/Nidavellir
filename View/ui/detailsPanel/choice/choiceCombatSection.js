@@ -47,7 +47,7 @@ export function createChoiceCombatSection(choice, ctx) {
                     `
                   })
                   .join('')
-            : `<div class="text-[11px] text-zinc-500 italic p-1.5 bg-zinc-900/40 rounded border border-zinc-800 text-center">Brak zdefiniowanych przeciwników</div>`
+            : `<div class="text-[11px] text-zinc-500 italic p-1.5 bg-zinc-900/40 rounded border border-zinc-800 text-center">${t('combat.no_opponents_defined') || 'Brak zdefiniowanych przeciwników'}</div>`
 
     const section = createSection(
         'border-b border-[#333338] p-3 space-y-2.5 bg-[#181216]/50',
@@ -64,15 +64,15 @@ export function createChoiceCombatSection(choice, ctx) {
 
         <div class="text-[11px] text-zinc-300 space-y-1">
             <div class="flex items-center gap-1.5 text-zinc-400 text-[10px]">
-                <span>Źródłowy paragraf walki:</span>
+                <span>${t('combat.source_paragraph') || 'Źródłowy paragraf walki:'}</span>
                 <span class="font-semibold text-white">§ ${escapeHtml(pTitle)}</span>
             </div>
-            ${combatName ? `<div class="text-[10px] text-zinc-400">Starcie: <span class="text-amber-300">${escapeHtml(combatName)}</span></div>` : ''}
+            ${combatName ? `<div class="text-[10px] text-zinc-400">${t('combat.encounter_label') || 'Starcie:'} <span class="text-amber-300">${escapeHtml(combatName)}</span></div>` : ''}
         </div>
 
         <div class="space-y-1">
             <label class="block text-[10px] text-zinc-400 uppercase font-semibold">
-                ${t('combat.opponents_title') || 'Przeciwnicy w tym starciu'} (${opponents.length})
+                ${t('combat.opponents_in_encounter') || t('combat.opponents_title') || 'Przeciwnicy w tym starciu'} (${opponents.length})
             </label>
             <div class="space-y-1">
                 ${opponentsListHtml}
@@ -81,7 +81,7 @@ export function createChoiceCombatSection(choice, ctx) {
 
         <button id="btn-choice-go-to-combat" type="button" class="w-full py-1.5 px-2 bg-rose-950/50 hover:bg-rose-900/60 border border-rose-800/60 hover:border-rose-600 rounded text-xs text-rose-200 font-medium cursor-pointer transition-colors flex items-center justify-center gap-1.5">
             <span>${getIconSvg('combat', 'w-3.5 h-3.5')}</span>
-            <span>Konfiguruj walkę w § ${escapeHtml(pTitle)}</span>
+            <span>${escapeHtml(t('combat.configure_in_paragraph', { title: pTitle }) || `Konfiguruj walkę w § ${pTitle}`)}</span>
         </button>
     `
     )

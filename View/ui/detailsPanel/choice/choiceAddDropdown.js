@@ -23,6 +23,7 @@ export function createChoiceAddDropdown(onSelectFeature) {
             <optgroup label="${t('details.condition_title', 'Warunek przeskoku')}">
                 <option value="cond-item">${t('details.condition_type_item', 'Wymagany przedmiot')}</option>
                 <option value="cond-stat">${t('details.condition_type_stat', 'Wymagana cecha / parametr')}</option>
+                <option value="cond-tag">${t('details.condition_type_tag', 'Wymagany tag / flaga')}</option>
                 <option value="cond-text">${t('condition.type_text', 'Pisemny warunek autora')}</option>
             </optgroup>
             <optgroup label="${t('details.gain_loss_group', 'Zysk / Strata')}">

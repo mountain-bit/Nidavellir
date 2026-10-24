@@ -22,12 +22,29 @@ export function ensureChoiceDatalists(container, ctx) {
             .map(s => escapeHtml((typeof s.getName === 'function' ? s.getName() : s.name) || ''))
             .filter(Boolean)
 
+        const tagsSet = new Set()
+        ;(ctx.projectTags || ctx.projectData?.projectTags || []).forEach(t => {
+            const name = (typeof t.getName === 'function' ? t.getName() : t.name) || ''
+            if (name) tagsSet.add(name)
+        })
+        ;(ctx.projectParagraphs || ctx.projectData?.projectParagraphs || []).forEach(p => {
+            const tags = (typeof p.getTags === 'function' ? p.getTags() : p.tags) || []
+            tags.forEach(t => {
+                const name = (typeof t.getName === 'function' ? t.getName() : t.name) || ''
+                if (name) tagsSet.add(name)
+            })
+        })
+        const tagsList = Array.from(tagsSet).map(escapeHtml)
+
         datalistsEl.innerHTML = `
             <datalist id="choice-items-datalist">
                 ${itemsList.map(name => `<option value="${name}"></option>`).join('')}
             </datalist>
             <datalist id="choice-stats-datalist">
                 ${statsList.map(name => `<option value="${name}"></option>`).join('')}
+            </datalist>
+            <datalist id="choice-tags-datalist">
+                ${tagsList.map(name => `<option value="${name}"></option>`).join('')}
             </datalist>
         `
         container.appendChild(datalistsEl)

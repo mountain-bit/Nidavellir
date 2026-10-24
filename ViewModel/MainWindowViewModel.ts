@@ -14,6 +14,7 @@ import {
     ItemCondition,
     type StatComparisonOperator,
     StatCondition,
+    TagCondition,
     TextCondition,
 } from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
@@ -81,6 +82,7 @@ export {
     type StatComparisonOperator,
     StatCondition,
     Tag,
+    TagCondition,
     TextCondition,
 }
 

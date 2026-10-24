@@ -1,6 +1,7 @@
 import {
     ItemCondition,
     StatCondition,
+    TagCondition,
     TextCondition,
 } from '../../../dist/ViewModel/MainWindowViewModel.js'
 import { createChoiceActionsSection } from './choice/choiceActionsSection.js'
@@ -192,6 +193,22 @@ export function renderChoiceDetails(container, choice, item, ctx, onRefreshDetai
             updateVisibility()
             conditionSection.sectionEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
             conditionSection.sectionEl.querySelector('#choice-cond-stat-name')?.focus()
+        } else if (val === 'cond-tag') {
+            conditionSection.setConditionType('tag')
+            const existingCond = choice.getCondition()
+            choice.setCondition(
+                new TagCondition(
+                    existingCond?.getId() || `cond_${Date.now()}`,
+                    'Wymagany tag',
+                    existingCond instanceof TagCondition ? existingCond.getTagName() : '',
+                    existingCond instanceof TagCondition ? existingCond.isNegated() : false
+                )
+            )
+            conditionSection.renderCondBody()
+            saveAllChoiceData()
+            updateVisibility()
+            conditionSection.sectionEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+            conditionSection.sectionEl.querySelector('#choice-cond-tag-name')?.focus()
         } else if (val === 'cond-text') {
             conditionSection.setConditionType('text')
             const existingCond = choice.getCondition()

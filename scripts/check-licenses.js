@@ -16,6 +16,7 @@ const allowedLicenses = new Set([
     'Python-2.0',
     'Zlib',
     'BlueOak-1.0.0',
+    'WTFPL',
 ])
 
 function isLicenseAllowed(licenseStr, allowedSet) {

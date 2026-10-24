@@ -3,6 +3,7 @@ import { t } from '../../../../dist/Utils/translate.js'
 import {
     ItemCondition,
     StatCondition,
+    TagCondition,
     TextCondition,
 } from '../../../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from '../../common/htmlTemplates.js'
@@ -30,6 +31,8 @@ export function createChoiceConditionSection({ choice, onSave, onRemove }) {
         currentCondType = 'item'
     } else if (initialCond instanceof StatCondition || initialCond?.getType?.() === 'stat') {
         currentCondType = 'stat'
+    } else if (initialCond instanceof TagCondition || initialCond?.getType?.() === 'tag') {
+        currentCondType = 'tag'
     } else if (initialCond) {
         currentCondType = 'text'
     }
@@ -46,6 +49,7 @@ export function createChoiceConditionSection({ choice, onSave, onRemove }) {
                 <select id="choice-condition-type-select" class="bg-[#18181b] border border-[#3f3f46] text-white text-[11px] rounded px-1.5 py-0.5 focus:outline-none focus:border-blue-500 cursor-pointer">
                     <option value="item" ${currentCondType === 'item' ? 'selected' : ''}>${t('details.condition_type_item')}</option>
                     <option value="stat" ${currentCondType === 'stat' ? 'selected' : ''}>${t('details.condition_type_stat')}</option>
+                    <option value="tag" ${currentCondType === 'tag' ? 'selected' : ''}>${t('details.condition_type_tag')}</option>
                     <option value="text" ${currentCondType === 'text' ? 'selected' : ''}>${t('condition.type_text')}</option>
                 </select>
                 <button type="button" id="btn-remove-choice-condition" class="p-1 text-gray-400 hover:text-red-400 rounded cursor-pointer transition-colors" title="${t('details.remove_condition', 'Usuń warunek')}">
@@ -82,6 +86,16 @@ export function createChoiceConditionSection({ choice, onSave, onRemove }) {
                 statName,
                 op,
                 val
+            )
+        } else if (currentCondType === 'tag') {
+            const rawTagName = sectionEl.querySelector('#choice-cond-tag-name')?.value.trim() || ''
+            const tagName = rawTagName.replace(/^#/, '')
+            const negated = sectionEl.querySelector('#choice-cond-tag-mode')?.value === 'not_has'
+            return new TagCondition(
+                choice.getCondition()?.getId() || `cond_${Date.now()}`,
+                negated ? 'Brak tagu' : 'Wymagany tag',
+                tagName,
+                negated
             )
         } else if (currentCondType === 'text') {
             const textVal = sectionEl.querySelector('#details-condition-text')?.value.trim() || ''
@@ -161,6 +175,36 @@ export function createChoiceConditionSection({ choice, onSave, onRemove }) {
             condBody.querySelector('#choice-cond-stat-name').addEventListener('input', onSave)
             condBody.querySelector('#choice-cond-stat-op').addEventListener('change', onSave)
             condBody.querySelector('#choice-cond-stat-val').addEventListener('input', onSave)
+        } else if (currentCondType === 'tag') {
+            const currentTagName =
+                currentCond instanceof TagCondition
+                    ? currentCond.getTagName()
+                    : currentCond?.tagName || ''
+            const isNegated =
+                currentCond instanceof TagCondition
+                    ? currentCond.isNegated()
+                    : Boolean(currentCond?.negated)
+            condBody.innerHTML = `
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="col-span-2">
+                        <label class="block text-[10px] text-gray-400 mb-1 uppercase font-semibold">${t('details.condition_tag_name')}</label>
+                        <div class="relative flex items-center">
+                            <span class="absolute left-2 text-zinc-500 text-xs">#</span>
+                            <input id="choice-cond-tag-name" type="text" list="choice-tags-datalist" value="${escapeHtml(currentTagName)}" placeholder="np. odwiedzil_zamek"
+                                class="w-full bg-[#18181b] border border-[#3f3f46] rounded pl-5 pr-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-gray-400 mb-1 uppercase font-semibold">${t('details.condition_tag_mode')}</label>
+                        <select id="choice-cond-tag-mode" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <option value="has" ${!isNegated ? 'selected' : ''}>${t('details.condition_tag_has')}</option>
+                            <option value="not_has" ${isNegated ? 'selected' : ''}>${t('details.condition_tag_not_has')}</option>
+                        </select>
+                    </div>
+                </div>
+            `
+            condBody.querySelector('#choice-cond-tag-name').addEventListener('input', onSave)
+            condBody.querySelector('#choice-cond-tag-mode').addEventListener('change', onSave)
         } else if (currentCondType === 'text') {
             const textVal =
                 currentCond instanceof TextCondition
@@ -196,6 +240,15 @@ export function createChoiceConditionSection({ choice, onSave, onRemove }) {
                     existingCond instanceof StatCondition ? existingCond.getStatName() : '',
                     existingCond instanceof StatCondition ? existingCond.getOperator() : '>=',
                     existingCond instanceof StatCondition ? existingCond.getValue() : 10
+                )
+            )
+        } else if (currentCondType === 'tag') {
+            choice.setCondition(
+                new TagCondition(
+                    existingCond?.getId() || `cond_${Date.now()}`,
+                    'Wymagany tag',
+                    existingCond instanceof TagCondition ? existingCond.getTagName() : '',
+                    existingCond instanceof TagCondition ? existingCond.isNegated() : false
                 )
             )
         } else if (currentCondType === 'text') {
