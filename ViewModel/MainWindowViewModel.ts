@@ -1152,6 +1152,7 @@ export class MainWindowViewModel {
     public getAllChoices(paragraphs: Paragraph[]): Choice[] {
         const all: Choice[] = []
         paragraphs.forEach(p => {
+            CombatSyncService.syncParagraphCombatChoices(p, this)
             const choices = p.getChoices ? p.getChoices() : []
             choices.forEach(c => {
                 if (!c.getFromParagraphId()) {
@@ -1195,8 +1196,18 @@ export class MainWindowViewModel {
             if (p.hasChoice && p.hasChoice(choiceId)) {
                 p.removeChoice(choiceId)
                 removed = true
-                break
             }
+            if (p.getHasCombat && p.getHasCombat()) {
+                const combat = p.getCombat ? p.getCombat() : null
+                if (combat && typeof combat.removeOutcome === 'function') {
+                    const beforeLen = combat.getOutcomes().length
+                    combat.removeOutcome(choiceId)
+                    if (combat.getOutcomes().length < beforeLen) {
+                        removed = true
+                    }
+                }
+            }
+            if (removed) break
         }
         if (this.selectedItem?.id === choiceId && this.selectedItem.type === 'choice') {
             this.closeHistoryItem(choiceId)
@@ -1362,7 +1373,15 @@ export class MainWindowViewModel {
             const fromMatch = fromP ? fromP.getTitle().toLowerCase().includes(query) : false
             const toMatch = toP ? toP.getTitle().toLowerCase().includes(query) : false
 
-            return nameMatch || condMatch || fromMatch || toMatch
+            const isCombat = Boolean(
+                (typeof c.getIsCombatOutcome === 'function' && c.getIsCombatOutcome()) ||
+                (c as any).isCombatOutcome
+            )
+            const combatMatch =
+                isCombat &&
+                ('walka'.includes(query) || 'po walce'.includes(query) || 'combat'.includes(query))
+
+            return nameMatch || condMatch || fromMatch || toMatch || combatMatch
         })
     }
 

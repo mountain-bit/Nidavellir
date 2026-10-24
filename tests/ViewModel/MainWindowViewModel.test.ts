@@ -646,6 +646,24 @@ describe('MainWindowViewModel', () => {
             expect(all).toContain(c3)
         })
 
+        it('getAllChoices zawiera również przeskoki po walce (combat outcomes)', () => {
+            const p1 = vm.createParagraph('Arena')
+            const p2 = vm.createParagraph('Zwycięstwo')
+            p1.setHasCombat(true)
+            const combat = p1.getCombat()
+            combat.addOutcome({
+                id: 'out_win',
+                name: 'Wygrana walka',
+                targetParagraphId: p2.getId(),
+            })
+
+            const all = vm.getAllChoices([p1, p2])
+            expect(all).toHaveLength(1)
+            expect(all[0].getName()).toBe('Wygrana walka')
+            expect(all[0].getToParagraphId()).toBe(p2.getId())
+            expect(all[0].getIsCombatOutcome()).toBe(true)
+        })
+
         it('usuwa połączenie ze źródłowego paragrafu oraz zamyka z historii jeśli było wybrane', () => {
             const p1 = vm.createParagraph('P1')
             const p2 = vm.createParagraph('P2')

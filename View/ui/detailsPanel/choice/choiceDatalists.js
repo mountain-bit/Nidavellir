@@ -1,0 +1,35 @@
+import { escapeHtml } from '../../common/htmlTemplates.js'
+
+/**
+ * Ensures shared datalists for choice inputs (items and stats) exist in the container.
+ *
+ * @param {HTMLElement} container
+ * @param {object} ctx
+ */
+export function ensureChoiceDatalists(container, ctx) {
+    let datalistsEl = container.querySelector('#choice-datalists-container')
+    if (!datalistsEl) {
+        datalistsEl = document.createElement('div')
+        datalistsEl.id = 'choice-datalists-container'
+        const itemsList = (ctx.projectItems || [])
+            .map(i => escapeHtml((typeof i.getName === 'function' ? i.getName() : i.name) || ''))
+            .filter(Boolean)
+        const statsList = [
+            ...(ctx.projectStats || []),
+            ...(ctx.projectParameters || []),
+            ...(ctx.projectSkills || []),
+        ]
+            .map(s => escapeHtml((typeof s.getName === 'function' ? s.getName() : s.name) || ''))
+            .filter(Boolean)
+
+        datalistsEl.innerHTML = `
+            <datalist id="choice-items-datalist">
+                ${itemsList.map(name => `<option value="${name}"></option>`).join('')}
+            </datalist>
+            <datalist id="choice-stats-datalist">
+                ${statsList.map(name => `<option value="${name}"></option>`).join('')}
+            </datalist>
+        `
+        container.appendChild(datalistsEl)
+    }
+}

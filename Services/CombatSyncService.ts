@@ -112,18 +112,81 @@ export class CombatSyncService {
             const ch = vm.createChoice(sourceParagraph, targetParagraph, outcomeName, outcomeName)
             if (ch && typeof ch.getId === 'function') {
                 choiceId = ch.getId()
+                if (typeof ch.setIsCombatOutcome === 'function') {
+                    ch.setIsCombatOutcome(true)
+                }
             }
         } else {
             const newChoice = new Choice(
                 choiceId,
                 outcomeName,
                 sourceParagraph.getId(),
-                targetParagraphId
+                targetParagraphId,
+                null,
+                undefined,
+                [],
+                [],
+                null,
+                true
             )
             sourceParagraph.addChoice(newChoice)
         }
 
         return choiceId
+    }
+
+    /**
+     * Ensures all combat outcomes from paragraph's combat are represented as choices in the paragraph.
+     */
+    public static syncParagraphCombatChoices(paragraph: Paragraph, vm?: any): void {
+        const hasCombat =
+            typeof paragraph.getHasCombat === 'function' ? paragraph.getHasCombat() : false
+        if (!hasCombat) return
+
+        const combat = typeof paragraph.getCombat === 'function' ? paragraph.getCombat() : null
+        const outcomes =
+            combat && typeof combat.getOutcomes === 'function' ? combat.getOutcomes() : []
+        const choices = paragraph.getChoices ? paragraph.getChoices() : []
+
+        outcomes.forEach(outcome => {
+            if (!outcome || !outcome.targetParagraphId) return
+            const outcomeId = outcome.id || ''
+            const existingChoice = choices.find(c => {
+                const cId = typeof c.getId === 'function' ? c.getId() : (c as any).id
+                return (
+                    (cId && outcomeId && cId === outcomeId) ||
+                    (c.getToParagraphId() === outcome.targetParagraphId &&
+                        c.getName() === outcome.name)
+                )
+            })
+
+            if (existingChoice) {
+                if (typeof existingChoice.setIsCombatOutcome === 'function') {
+                    existingChoice.setIsCombatOutcome(true)
+                }
+                ;(existingChoice as any).isCombatOutcome = true
+            } else {
+                const choiceId =
+                    outcome.id ||
+                    (vm && typeof vm.idGenerator === 'function'
+                        ? vm.idGenerator('choice')
+                        : `choice_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`)
+                outcome.id = choiceId
+                const newChoice = new Choice(
+                    choiceId,
+                    outcome.name || 'Wynik walki',
+                    paragraph.getId(),
+                    outcome.targetParagraphId,
+                    null,
+                    undefined,
+                    [],
+                    [],
+                    null,
+                    true
+                )
+                paragraph.addChoice(newChoice)
+            }
+        })
     }
 
     /**

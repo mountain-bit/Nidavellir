@@ -255,7 +255,13 @@ export class StoryGraph {
                             outcomeObj.id,
                             outcomeObj.name,
                             sourceId,
-                            targetId
+                            targetId,
+                            null,
+                            undefined,
+                            [],
+                            [],
+                            null,
+                            true
                         )
                         this.options.onSelectChoice(fallbackChoice, sourceP, targetP)
                     }

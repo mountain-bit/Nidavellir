@@ -611,11 +611,22 @@ export function renderConnectionsList(ctx) {
                    </span>`
                 : ''
 
+            const isCombat = Boolean(
+                (typeof c.getIsCombatOutcome === 'function' && c.getIsCombatOutcome()) ||
+                c.isCombatOutcome
+            )
+            const combatBadge = isCombat
+                ? `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] bg-rose-950/60 text-rose-300 border border-rose-800/40 truncate max-w-full">
+                    <span class="text-rose-400 shrink-0">${getIconSvg('swords', 'w-2.5 h-2.5')}</span>
+                    <span class="truncate">${t('details.combat_outcome') || 'Po walce'}</span>
+                   </span>`
+                : ''
+
             return `
             <div class="drawer-item group p-2 rounded bg-[#18181b] border border-[#27272a] hover:border-blue-500/50 mb-1.5 cursor-pointer transition-colors" data-item-type="choice" data-item-id="${escapeHtml(c.getId())}">
                 <div class="flex items-center justify-between gap-1">
                     <span class="font-medium text-white text-xs truncate flex items-center gap-1.5 min-w-0">
-                        <span class="text-teal-400 shrink-0">${getIconSvg('choice', 'w-3.5 h-3.5')}</span>
+                        <span class="${isCombat ? 'text-rose-400' : 'text-teal-400'} shrink-0">${getIconSvg(isCombat ? 'swords' : 'choice', 'w-3.5 h-3.5')}</span>
                         <span class="truncate">${escapeHtml(c.getName() || c.getId())}</span>
                     </span>
                     <button type="button" class="btn-delete-choice opacity-0 group-hover:opacity-100 hover:text-red-400 p-0.5 rounded text-gray-400 cursor-pointer inline-flex items-center transition-opacity" data-choice-id="${escapeHtml(c.getId())}" title="${t('buttons.delete')}">
@@ -627,7 +638,7 @@ export function renderConnectionsList(ctx) {
                     <span class="text-blue-400 shrink-0 inline-flex items-center">${getIconSvg('arrow-right', 'w-3 h-3')}</span>
                     <span class="truncate text-[#a1a1aa]">§ ${escapeHtml(toTitle)}</span>
                 </div>
-                ${condBadge ? `<div class="mt-1 flex items-center">${condBadge}</div>` : ''}
+                ${combatBadge || condBadge ? `<div class="mt-1 flex flex-wrap items-center gap-1">${combatBadge}${condBadge}</div>` : ''}
             </div>
             `
         })
