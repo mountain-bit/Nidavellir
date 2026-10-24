@@ -46,6 +46,8 @@
         "combat": "Walka"
     },
     "combat": {
+        "detail_title": "Szczegóły walki",
+        "details_title": "Szczegóły walki",
         "title": "Starcie z przeciwnikami",
         "badge": "Walka",
         "enable": "Włącz walkę w tym paragrafie",

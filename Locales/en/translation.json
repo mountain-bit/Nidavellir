@@ -46,6 +46,8 @@
         "combat": "Combat"
     },
     "combat": {
+        "detail_title": "Combat Details",
+        "details_title": "Combat Details",
         "title": "Enemy Encounter",
         "badge": "Combat",
         "enable": "Enable combat in this paragraph",

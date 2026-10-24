@@ -5,6 +5,7 @@ import {
 } from '../../../dist/ViewModel/MainWindowViewModel.js'
 import { createChoiceActionsSection } from './choice/choiceActionsSection.js'
 import { createChoiceAddDropdown } from './choice/choiceAddDropdown.js'
+import { createChoiceCombatSection } from './choice/choiceCombatSection.js'
 import { createChoiceConditionSection } from './choice/choiceConditionSection.js'
 import { createChoiceCostsSection } from './choice/choiceCostsSection.js'
 import { ensureChoiceDatalists } from './choice/choiceDatalists.js'
@@ -32,6 +33,12 @@ export function renderChoiceDetails(container, choice, item, ctx, onRefreshDetai
     container.appendChild(headerMod)
     container.appendChild(nameMod)
     container.appendChild(nodesMod)
+
+    // 1b. Szczegóły walki (jeśli przeskok pochodzi ze starcia po walce)
+    const combatMod = createChoiceCombatSection(choice, ctx)
+    if (combatMod) {
+        container.appendChild(combatMod)
+    }
 
     // 2. Datalisty do podpowiedzi (przedmioty, cechy)
     ensureChoiceDatalists(container, ctx)

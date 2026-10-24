@@ -249,18 +249,13 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
 
             const exitNameInput = card.querySelector('.exit-name-input')
             const exitTargetSelect = card.querySelector('.exit-target-select')
-            const exitCondInput = card.querySelector('.exit-condition-input')
             const inspectBtn = card.querySelector('.btn-inspect-exit')
             const deleteBtn = card.querySelector('.btn-delete-exit')
 
             exitNameInput.addEventListener('input', () => {
                 const newName = exitNameInput.value.trim()
                 if (newName) {
-                    ctx.vm.updateChoiceDetails(
-                        choice,
-                        newName,
-                        exitCondInput ? exitCondInput.value : undefined
-                    )
+                    ctx.vm.updateChoiceDetails(choice, newName)
                     if (isCombat) {
                         CombatSyncService.updateOutcomeChoiceName(entity, choice.getId(), newName)
                     }
@@ -273,11 +268,7 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                 if (!newName) {
                     exitNameInput.value = choice.getName()
                 } else {
-                    ctx.vm.updateChoiceDetails(
-                        choice,
-                        newName,
-                        exitCondInput ? exitCondInput.value : undefined
-                    )
+                    ctx.vm.updateChoiceDetails(choice, newName)
                     if (isCombat) {
                         CombatSyncService.updateOutcomeChoiceName(entity, choice.getId(), newName)
                     }
@@ -301,12 +292,6 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                     if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
                     toast.success(t('toast.target_updated'))
                 }
-            })
-
-            exitCondInput.addEventListener('input', () => {
-                ctx.vm.updateChoiceDetails(choice, choice.getName(), exitCondInput.value)
-                ctx.renderConnectionsList()
-                if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
             })
 
             inspectBtn.addEventListener('click', () => {
