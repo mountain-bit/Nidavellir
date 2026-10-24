@@ -58,8 +58,32 @@ export class Inventory {
         this.items = Array.isArray(items) ? items : []
     }
 
+    public getUsedSlots(): number {
+        return this.items.reduce((acc, it) => {
+            const size =
+                typeof it.getSlotSize === 'function'
+                    ? it.getSlotSize()
+                    : typeof (it as { slotSize?: number }).slotSize === 'number'
+                      ? (it as { slotSize?: number }).slotSize!
+                      : 1
+            return acc + (typeof size === 'number' && size >= 0 ? size : 1)
+        }, 0)
+    }
+
+    public canAddItem(item: Item): boolean {
+        if (this.isUnlimited()) return true
+        const size =
+            typeof item.getSlotSize === 'function'
+                ? item.getSlotSize()
+                : typeof (item as { slotSize?: number }).slotSize === 'number'
+                  ? (item as { slotSize?: number }).slotSize!
+                  : 1
+        const needed = typeof size === 'number' && size >= 0 ? size : 1
+        return this.getUsedSlots() + needed <= this.capacity
+    }
+
     public addItem(item: Item): boolean {
-        if (!this.isUnlimited() && this.items.length >= this.capacity) {
+        if (!this.canAddItem(item)) {
             return false
         }
         this.items.push(item)
@@ -76,12 +100,12 @@ export class Inventory {
 
     public getFreeSlots(): number {
         if (this.isUnlimited()) return Infinity
-        return Math.max(0, this.capacity - this.items.length)
+        return Math.max(0, this.capacity - this.getUsedSlots())
     }
 
     public isFull(): boolean {
         if (this.isUnlimited()) return false
-        return this.items.length >= this.capacity
+        return this.getUsedSlots() >= this.capacity
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

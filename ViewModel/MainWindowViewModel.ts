@@ -21,11 +21,18 @@ import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Mo
 import { Description } from '../Model/Description'
 import { Feature } from '../Model/Feature'
 import { Inventory } from '../Model/Inventory'
-import { Item } from '../Model/Item'
+import {
+    DEFAULT_ITEM_INVENTORY_CONFIG,
+    type IItemInventoryConfig,
+    type IItemModifier,
+    Item,
+    type ItemInventoryConfig,
+    type ItemModifier,
+} from '../Model/Item'
 import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
 import { NPC_Template } from '../Model/NPC_Template'
-import { Paragraph } from '../Model/Paragraph'
+import { type IParagraphItemAction, Paragraph, type ParagraphItemAction } from '../Model/Paragraph'
 import { Parameter } from '../Model/Parameter'
 import { PlayerCharacter } from '../Model/PlayerCharacter'
 import { Project } from '../Model/Project'
@@ -53,6 +60,7 @@ export {
     CombatMarkdownService,
     CombatSyncService,
     Condition,
+    DEFAULT_ITEM_INVENTORY_CONFIG,
     DEFAULT_SCENE_COLOR,
     DEFAULT_TAG_COLOR,
     Description,
@@ -64,13 +72,19 @@ export {
     type IChoiceDiceCheck,
     type IChoiceModifier,
     type IDiceBranch,
+    type IItemInventoryConfig,
+    type IItemModifier,
     Inventory,
+    type IParagraphItemAction,
     Item,
     ItemCondition,
+    type ItemInventoryConfig,
+    type ItemModifier,
     Location,
     NPC,
     NPC_Template,
     Paragraph,
+    type ParagraphItemAction,
     ParagraphNumberingService,
     Parameter,
     PlayerCharacter,
@@ -173,6 +187,16 @@ export interface IIdentifiableEntity {
     hasLocation?: (id: string) => boolean
     getLocation?: () => Location | null
     setLocation?: (location: Location | null) => void
+    getModifiers?: () => IItemModifier[]
+    setModifiers?: (modifiers: IItemModifier[]) => void
+    addModifier?: (modifier: IItemModifier) => void
+    removeModifier?: (id: string) => void
+    getInventoryConfig?: () => IItemInventoryConfig
+    setInventoryConfig?: (config: Partial<IItemInventoryConfig>) => void
+    getItemActions?: () => IParagraphItemAction[]
+    setItemActions?: (actions: IParagraphItemAction[]) => void
+    addItemAction?: (action: IParagraphItemAction) => void
+    removeItemAction?: (id: string) => void
 }
 
 export interface IHistoryItem {
@@ -678,6 +702,59 @@ export class MainWindowViewModel {
         }
     }
 
+    public addTagToSelectedItem(tag: Tag): void {
+        this.addTagToSelected(tag)
+    }
+
+    public removeTagFromSelectedItem(tagIdOrName: string): void {
+        this.removeTagFromSelected(tagIdOrName)
+    }
+
+    public addModifierToSelectedItem(modifier: IItemModifier): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).addModifier === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).addModifier(modifier)
+        }
+    }
+
+    public removeModifierFromSelectedItem(id: string): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).removeModifier === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).removeModifier(id)
+        }
+    }
+
+    public updateSelectedItemInventoryConfig(config: Partial<IItemInventoryConfig>): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).setInventoryConfig === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).setInventoryConfig(config)
+        }
+    }
+
+    public addItemActionToSelectedParagraph(action: IParagraphItemAction): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).addItemAction === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).addItemAction(action)
+        }
+    }
+
+    public removeItemActionFromSelectedParagraph(idOrItemId: string): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).removeItemAction === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).removeItemAction(idOrItemId)
+        }
+    }
+
     public openOrCreateDescriptionFile(_fileType?: 'text' | string): {
         fileName: string
         content: string
@@ -1030,10 +1107,15 @@ export class MainWindowViewModel {
         return new Scene(id, name)
     }
 
-    public createItem(nameInput?: string, defaultName: string = 'New item'): Item {
+    public createItem(
+        nameInput?: string,
+        defaultName: string = 'New item',
+        category: string = 'misc',
+        description?: Description
+    ): Item {
         const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('item')
-        return new Item(id, name)
+        return new Item(id, name, description || new Description(), [], [], { category })
     }
 
     public createCharacterClass(

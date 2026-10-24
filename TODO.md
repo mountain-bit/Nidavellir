@@ -215,9 +215,6 @@ This document serves as a comprehensive registry of implemented features, archit
 - [ ] **External Formats Importer & Exporter**
   - [ ] Twine (Harlowe/SugarCube HTML) import & export.
   - [ ] Ink (Inkle) script generator.
-- [ ] **Audio & Ambient Sound Manager**
-  - [ ] Project soundboard for ambient music and sound effects linked to scenes/paragraphs.
-  - [ ] Sound playback in Playtester modal.
 - [ ] **Advanced Graph Layouts & Sub-graphs**
   - [ ] Hierarchical Dagre/CoSE automatic re-layout with user layout saving.
   - [ ] Nested sub-graph collapsing for multi-chapter books.
