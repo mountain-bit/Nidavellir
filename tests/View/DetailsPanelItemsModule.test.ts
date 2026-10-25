@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { initTranslationsWithLocale } from '../../dist/Utils/translate.js'
 import { Description } from '../../Model/Description'
 import { Item } from '../../Model/Item'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
+import { initTranslationsWithLocale } from '../../Utils/translate'
 import { renderDetailsPanel } from '../../View/ui/detailsPanel/detailsPanel.js'
 import { renderItemsModule } from '../../View/ui/detailsPanel/modules/itemsModule.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
