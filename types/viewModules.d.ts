@@ -1010,6 +1010,21 @@ declare module '*/View/ui/detailsPanel/combatModule.js' {
     ): void
 }
 
+declare module '*/View/ui/detailsPanel/combat/combatOutcomesSection.js' {
+    import type { Combat } from '../Model/Combat'
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export function renderCombatOutcomesSection(
+        container: HTMLElement,
+        entity: Paragraph,
+        combat: Combat,
+        allParagraphs: Paragraph[],
+        ctx: unknown,
+        onModify: () => void,
+        onFullRefresh: () => void
+    ): void
+}
+
 declare module '*/View/ui/graph/index.js' {
     export function getStoryGraphInstance(): unknown
     export function setStoryGraphInstance(instance: unknown): void

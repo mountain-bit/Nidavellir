@@ -227,15 +227,18 @@ describe('CombatOutcomesSection Component', () => {
             (p: Paragraph) => p.getTitle() === 'Nagroda za pokonanie Trolla'
         )
         expect(newP).toBeDefined()
-        expect(outcomes[0].targetParagraphId).toBe(newP.getId())
+        expect(outcomes[0].targetParagraphId).toBe(newP?.getId())
 
         // Verify position was computed relative to source paragraph
-        const pos = newP.getPosition()
-        expect(pos.x).toBe(sourceParagraph.getPosition().x + 260)
-        expect(pos.y).toBe(sourceParagraph.getPosition().y + 0)
+        const pos = newP?.getPosition()
+        const sourcePos = sourceParagraph.getPosition()
+        expect(pos?.x).toBe((sourcePos?.x ?? 0) + 260)
+        expect(pos?.y).toBe((sourcePos?.y ?? 0) + 0)
 
         // Verify combat outcome choice was created and connected
-        const choice = sourceParagraph.getChoices().find(c => c.getToParagraphId() === newP.getId())
+        const choice = sourceParagraph
+            .getChoices()
+            .find(c => c.getToParagraphId() === newP?.getId())
         expect(choice).toBeDefined()
         expect(choice?.getName()).toBe('Zwycięstwo')
         expect(choice?.getIsCombatOutcome()).toBe(true)
