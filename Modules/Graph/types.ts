@@ -42,6 +42,7 @@ export interface IStoryGraphOptions {
     t: (key: string, options?: Record<string, unknown>) => string
     customStyles?: ICytoscapeStyleRule[]
     wheelSensitivity?: number
+    ctrlWheelMultiplier?: number
     onZoomChange?: (zoomLevel: number) => void
     onGraphModified?: () => void
 }

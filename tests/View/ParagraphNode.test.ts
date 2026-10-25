@@ -483,6 +483,37 @@ describe('StoryGraph focusOnElement', () => {
             expect(mockCy._private.options.wheelSensitivity).toBe(0.35)
             expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
 
+            // Test getCtrlWheelMultiplier and setCtrlWheelMultiplier
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(2.5)
+            storyGraph.setCtrlWheelMultiplier(3.0)
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(3.0)
+            storyGraph.setCtrlWheelMultiplier(0.5)
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(1.0)
+            storyGraph.setCtrlWheelMultiplier(2.5)
+
+            // Test wheel event on canvasContainer with and without ctrlKey
+            const normalWheelEv = new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: 100,
+                ctrlKey: false,
+            })
+            canvasContainer.dispatchEvent(normalWheelEv)
+            expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
+
+            const ctrlWheelEv = new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: 100,
+            })
+            Object.defineProperty(ctrlWheelEv, 'ctrlKey', {
+                value: true,
+                configurable: true,
+            })
+            canvasContainer.dispatchEvent(ctrlWheelEv)
+            expect(ctrlWheelEv.defaultPrevented).toBe(true)
+            expect(mockCy._private.renderer.wheelSensitivity).toBeCloseTo(0.35 * 2.5)
+
             // Test zoomIn
             storyGraph.zoomIn(1.2)
             expect(currentZoomLevel).toBeCloseTo(1.2)

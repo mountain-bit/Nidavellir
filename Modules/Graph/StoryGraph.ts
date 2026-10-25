@@ -56,6 +56,7 @@ export class StoryGraph {
     private cy: ICytoscapeInstance | null = null
     private boundSyncTransform: () => void
     private boundNodesLayerWheel: (e: WheelEvent) => void
+    private boundCanvasContainerWheel: (e: WheelEvent) => void
     private dragLineSvg: SVGSVGElement | null = null
 
     constructor(options: IStoryGraphOptions) {
@@ -64,8 +65,15 @@ export class StoryGraph {
         this.options = options
         this.boundSyncTransform = this.syncTransform.bind(this)
         this.boundNodesLayerWheel = this.handleNodesLayerWheel.bind(this)
+        this.boundCanvasContainerWheel = this.handleCanvasContainerWheel.bind(this)
         if (this.nodesLayer) {
             this.nodesLayer.addEventListener('wheel', this.boundNodesLayerWheel, {
+                passive: false,
+            })
+        }
+        if (this.canvasContainer) {
+            this.canvasContainer.addEventListener('wheel', this.boundCanvasContainerWheel, {
+                capture: true,
                 passive: false,
             })
         }
@@ -1324,6 +1332,14 @@ export class StoryGraph {
         return this.options.wheelSensitivity ?? GRAPH_THEME.zoom.wheelSensitivity
     }
 
+    public getCtrlWheelMultiplier(): number {
+        return this.options.ctrlWheelMultiplier ?? GRAPH_THEME.zoom.ctrlWheelMultiplier ?? 2.5
+    }
+
+    public setCtrlWheelMultiplier(multiplier: number): void {
+        this.options.ctrlWheelMultiplier = Math.max(1.0, multiplier)
+    }
+
     public zoomTo(targetZoom: number, animate: boolean = true): void {
         if (!this.cy) return
         const clampedZoom = Math.max(
@@ -1447,6 +1463,23 @@ export class StoryGraph {
         }
     }
 
+    public handleCanvasContainerWheel(e: WheelEvent): void {
+        if (!this.cy || !this.canvasContainer) return
+        const isCtrl = e.ctrlKey || e.metaKey
+        if (isCtrl) {
+            e.preventDefault()
+        }
+        const baseSensitivity = this.getWheelSensitivity()
+        const multiplier = isCtrl ? this.getCtrlWheelMultiplier() : 1.0
+        const effectiveSensitivity = baseSensitivity * multiplier
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cyAny = this.cy as any
+        if (cyAny._private?.renderer) {
+            cyAny._private.renderer.wheelSensitivity = effectiveSensitivity
+        }
+    }
+
     public handleNodesLayerWheel(e: WheelEvent): void {
         if (!this.cy || !this.canvasContainer) return
         e.preventDefault()
@@ -1472,6 +1505,26 @@ export class StoryGraph {
             altKey: e.altKey,
             metaKey: e.metaKey,
         })
+        try {
+            Object.defineProperty(clonedEvent, 'ctrlKey', {
+                value: !!e.ctrlKey,
+                configurable: true,
+            })
+            Object.defineProperty(clonedEvent, 'metaKey', {
+                value: !!e.metaKey,
+                configurable: true,
+            })
+            Object.defineProperty(clonedEvent, 'shiftKey', {
+                value: !!e.shiftKey,
+                configurable: true,
+            })
+            Object.defineProperty(clonedEvent, 'altKey', {
+                value: !!e.altKey,
+                configurable: true,
+            })
+        } catch {
+            // Already defined
+        }
 
         const initialZoom = typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1
         this.canvasContainer.dispatchEvent(clonedEvent)
@@ -1485,7 +1538,10 @@ export class StoryGraph {
                 x: containerRect ? e.clientX - containerRect.left : e.clientX,
                 y: containerRect ? e.clientY - containerRect.top : e.clientY,
             }
-            const sensitivity = this.getWheelSensitivity()
+            const baseSensitivity = this.getWheelSensitivity()
+            const isCtrl = e.ctrlKey || e.metaKey
+            const multiplier = isCtrl ? this.getCtrlWheelMultiplier() : 1.0
+            const sensitivity = baseSensitivity * multiplier
             let diff = (e.deltaY / -250) * sensitivity
             if (e.deltaMode === 1) {
                 diff *= 33
@@ -1511,6 +1567,11 @@ export class StoryGraph {
     public destroy(): void {
         if (this.nodesLayer && this.boundNodesLayerWheel) {
             this.nodesLayer.removeEventListener('wheel', this.boundNodesLayerWheel)
+        }
+        if (this.canvasContainer && this.boundCanvasContainerWheel) {
+            this.canvasContainer.removeEventListener('wheel', this.boundCanvasContainerWheel, {
+                capture: true,
+            })
         }
         if (this.cy) {
             this.cy.removeListener('pan zoom', this.boundSyncTransform)

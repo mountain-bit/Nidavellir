@@ -101,9 +101,7 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                     ? ctx.vm.getConnectionLineStyle()
                     : 'curved',
             wheelSensitivity:
-                typeof ctx.vm.getZoomSensitivity === 'function'
-                    ? ctx.vm.getZoomSensitivity()
-                    : 0.15,
+                typeof ctx.vm.getZoomSensitivity === 'function' ? ctx.vm.getZoomSensitivity() : 0.2,
             onZoomChange: lvl => updateZoomToolbarUI(_storyGraphInstance, lvl),
             getParagraphs: () => ctx.projectParagraphs || ctx.projectData?.projectParagraphs || [],
             getScenes: () => ctx.projectScenes || ctx.projectData?.projectScenes || [],
