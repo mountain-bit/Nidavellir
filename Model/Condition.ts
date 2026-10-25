@@ -1,4 +1,4 @@
-export type ConditionType = 'text' | 'item' | 'stat' | 'skill' | 'variable' | 'custom'
+export type ConditionType = 'text' | 'item' | 'stat' | 'skill' | 'variable' | 'tag' | 'custom'
 
 export abstract class Condition {
     protected id: string = ''
@@ -58,6 +58,9 @@ export abstract class Condition {
         }
         if (type === 'stat' || type === 'skill' || type === 'parameter') {
             return StatCondition.fromJSON(json)
+        }
+        if (type === 'tag') {
+            return TagCondition.fromJSON(json)
         }
         return TextCondition.fromJSON(json)
     }
@@ -245,5 +248,74 @@ export class StatCondition extends Condition {
                 : '>='
         const value = typeof json.value === 'number' ? json.value : 0
         return new StatCondition(id, name, statName, operator, value)
+    }
+}
+
+export class TagCondition extends Condition {
+    private tagName: string = ''
+    private negated: boolean = false
+
+    constructor(
+        id: string = '',
+        name: string = '',
+        tagName: string = '',
+        negated: boolean = false
+    ) {
+        super(id, name, 'tag')
+        this.tagName = tagName
+        this.negated = Boolean(negated)
+    }
+
+    public getTagName(): string {
+        return this.tagName
+    }
+
+    public setTagName(tagName: string): void {
+        this.tagName = tagName
+    }
+
+    public isNegated(): boolean {
+        return this.negated
+    }
+
+    public getNegated(): boolean {
+        return this.negated
+    }
+
+    public setNegated(negated: boolean): void {
+        this.negated = Boolean(negated)
+    }
+
+    public override getSummary(): string {
+        const tagStr = this.tagName ? `#${this.tagName}` : this.name || 'Tag'
+        return this.negated ? `Brak tagu: ${tagStr}` : `Posiada tag: ${tagStr}`
+    }
+
+    public override toJSON(): Record<string, unknown> {
+        return {
+            id: this.id,
+            name: this.name,
+            type: this.type,
+            tagName: this.tagName,
+            negated: this.negated,
+        }
+    }
+
+    public static override fromJSON(
+        json: Record<string, unknown> | null | undefined
+    ): TagCondition {
+        if (!json) return new TagCondition('', '', '', false)
+        const id = typeof json.id === 'string' ? json.id : ''
+        const name = typeof json.name === 'string' ? json.name : ''
+        const tagName =
+            typeof json.tagName === 'string'
+                ? json.tagName
+                : typeof json.tag === 'string'
+                  ? json.tag
+                  : typeof json.name === 'string'
+                    ? json.name
+                    : ''
+        const negated = Boolean(json.negated ?? json.not ?? json.isNegated ?? false)
+        return new TagCondition(id, name, tagName, negated)
     }
 }

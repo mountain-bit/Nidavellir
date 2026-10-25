@@ -13,6 +13,7 @@ import { renderCombatModule } from './combatModule.js'
 import { renderExitsModule } from './exitsModule.js'
 import { renderHeroReadOnlyDetails } from './heroReadOnlyDetails.js'
 import { renderHistoryBar as renderHistoryBarModule } from './historyBar.js'
+import { renderItemDetails } from './itemDetails.js'
 import {
     renderCharactersModule,
     renderFeaturesModule,
@@ -33,6 +34,7 @@ import {
     renderParagraphRoleModule,
     renderSummaryModule,
 } from './modules/entityConfigModules.js'
+import { renderItemsModule } from './modules/itemsModule.js'
 import {
     renderParameterConfigModule,
     renderSkillConfigModule,
@@ -54,6 +56,8 @@ export {
     renderFeaturesModule,
     renderFilesModule,
     renderHeroReadOnlyDetails,
+    renderItemDetails,
+    renderItemsModule,
     renderLocationsModule,
     renderNameModule,
     renderNpcReadOnlyDetails,
@@ -91,6 +95,7 @@ function resolveEntityScope(type, ctx) {
     if (type === 'character') return ctx.projectCharacters || []
     if (type === 'template') return ctx.projectTemplates || []
     if (type === 'location') return ctx.projectLocations || []
+    if (type === 'item') return ctx.projectItems || []
     if (type === 'stat' || type === 'trait') return ctx.projectStats || []
     if (type === 'parameter') return ctx.projectParameters || []
     if (type === 'skill') return ctx.projectSkills || []
@@ -132,6 +137,11 @@ export function renderDetailsPanel(ctx) {
         return
     }
 
+    if (type === 'item') {
+        renderItemDetails(container, entity, item, ctx, renderDetailsPanel)
+        return
+    }
+
     const isStartNode =
         type === 'paragraph' &&
         (Boolean(entity.getIsStart && entity.getIsStart()) || entity.isStart === true)
@@ -162,6 +172,7 @@ export function renderDetailsPanel(ctx) {
     renderSkillsModule(container, entity, type, ctx, renderDetailsPanel)
     renderFeaturesModule(container, entity, type, ctx, renderDetailsPanel)
     renderCustomAttributesModule(container, entity, type, ctx, renderDetailsPanel)
+    renderItemsModule(container, entity, type, ctx, renderDetailsPanel)
     renderExitsModule(container, entity, type, ctx, renderDetailsPanel)
     renderCombatModule(container, entity, type, ctx, renderDetailsPanel)
     renderQuickActionsModule(container, item, type, ctx)

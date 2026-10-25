@@ -8,6 +8,7 @@ import {
 import {
     renderCharactersList,
     renderConnectionsList,
+    renderItemsList,
     renderLocationsList,
     renderScenesList,
     renderTagsList,
@@ -288,6 +289,21 @@ export function setupSectionSearchInputs(ctx) {
             ctx.vm.setParameterSearchQuery(query)
             ctx.vm.setFeatureSearchQuery(query)
             renderTraitsList(ctx)
+        })
+    }
+
+    // 7. Items search
+    const itemSearch = document.getElementById('item-search-input')
+    if (itemSearch) {
+        itemSearch.addEventListener('input', () => {
+            if (typeof ctx.vm.setItemSearchQuery === 'function') {
+                ctx.vm.setItemSearchQuery(itemSearch.value)
+            }
+            if (typeof ctx.renderItemsList === 'function') {
+                ctx.renderItemsList()
+            } else {
+                renderItemsList(ctx)
+            }
         })
     }
 }

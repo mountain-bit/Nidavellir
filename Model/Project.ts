@@ -256,12 +256,12 @@ export class Project {
         this.items = this.items.filter(p => p.getId() !== id)
     }
 
-    public getItem(id: string): Item | undefined {
-        return this.items.find(p => p.getId() === id)
+    public getItem(idOrName: string): Item | undefined {
+        return this.items.find(p => p.getId() === idOrName || p.getName() === idOrName)
     }
 
-    public hasItem(id: string): boolean {
-        return this.items.some(p => p.getId() === id)
+    public hasItem(idOrName: string): boolean {
+        return this.items.some(p => p.getId() === idOrName || p.getName() === idOrName)
     }
 
     public getCharacterClasses(): CharacterClass[] {

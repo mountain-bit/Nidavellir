@@ -14,17 +14,25 @@ import {
     ItemCondition,
     type StatComparisonOperator,
     StatCondition,
+    TagCondition,
     TextCondition,
 } from '../Model/Condition'
 import { DEFAULT_SCENE_COLOR, DEFAULT_TAG_COLOR, ENTITY_CATEGORIES } from '../Model/constants'
 import { Description } from '../Model/Description'
 import { Feature } from '../Model/Feature'
 import { Inventory } from '../Model/Inventory'
-import { Item } from '../Model/Item'
+import {
+    DEFAULT_ITEM_INVENTORY_CONFIG,
+    type IItemInventoryConfig,
+    type IItemModifier,
+    Item,
+    type ItemInventoryConfig,
+    type ItemModifier,
+} from '../Model/Item'
 import { Location } from '../Model/Location'
 import { NPC } from '../Model/NPC'
 import { NPC_Template } from '../Model/NPC_Template'
-import { Paragraph } from '../Model/Paragraph'
+import { type IParagraphItemAction, Paragraph, type ParagraphItemAction } from '../Model/Paragraph'
 import { Parameter } from '../Model/Parameter'
 import { PlayerCharacter } from '../Model/PlayerCharacter'
 import { Project } from '../Model/Project'
@@ -37,6 +45,12 @@ import { CombatMarkdownService } from '../Services/CombatMarkdownService'
 import { CombatSyncService } from '../Services/CombatSyncService'
 import { DescriptionTransclusionService } from '../Services/DescriptionTransclusionService'
 import { EntityLinkUpdateService } from '../Services/EntityLinkUpdateService'
+import {
+    type IItemExportJSON,
+    type IItemExportOptions,
+    type IItemExportUsage,
+    ItemExportService,
+} from '../Services/ItemExportService'
 import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
 import { ProjectManager } from '../Services/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
@@ -52,6 +66,7 @@ export {
     CombatMarkdownService,
     CombatSyncService,
     Condition,
+    DEFAULT_ITEM_INVENTORY_CONFIG,
     DEFAULT_SCENE_COLOR,
     DEFAULT_TAG_COLOR,
     Description,
@@ -63,13 +78,23 @@ export {
     type IChoiceDiceCheck,
     type IChoiceModifier,
     type IDiceBranch,
+    type IItemExportJSON,
+    type IItemExportOptions,
+    type IItemExportUsage,
+    type IItemInventoryConfig,
+    type IItemModifier,
     Inventory,
+    type IParagraphItemAction,
     Item,
     ItemCondition,
+    ItemExportService,
+    type ItemInventoryConfig,
+    type ItemModifier,
     Location,
     NPC,
     NPC_Template,
     Paragraph,
+    type ParagraphItemAction,
     ParagraphNumberingService,
     Parameter,
     PlayerCharacter,
@@ -81,6 +106,7 @@ export {
     type StatComparisonOperator,
     StatCondition,
     Tag,
+    TagCondition,
     TextCondition,
 }
 
@@ -90,6 +116,7 @@ export type LeftTab =
     | 'scenes'
     | 'characters'
     | 'locations'
+    | 'items'
     | 'stats'
     | 'traits'
     | 'skills'
@@ -171,6 +198,16 @@ export interface IIdentifiableEntity {
     hasLocation?: (id: string) => boolean
     getLocation?: () => Location | null
     setLocation?: (location: Location | null) => void
+    getModifiers?: () => IItemModifier[]
+    setModifiers?: (modifiers: IItemModifier[]) => void
+    addModifier?: (modifier: IItemModifier) => void
+    removeModifier?: (id: string) => void
+    getInventoryConfig?: () => IItemInventoryConfig
+    setInventoryConfig?: (config: Partial<IItemInventoryConfig>) => void
+    getItemActions?: () => IParagraphItemAction[]
+    setItemActions?: (actions: IParagraphItemAction[]) => void
+    addItemAction?: (action: IParagraphItemAction) => void
+    removeItemAction?: (id: string) => void
 }
 
 export interface IHistoryItem {
@@ -181,6 +218,9 @@ export interface IHistoryItem {
         | 'scene'
         | 'character'
         | 'template'
+        | 'player_character'
+        | 'playerCharacter'
+        | 'main-character'
         | 'location'
         | 'item'
         | 'stat'
@@ -676,6 +716,59 @@ export class MainWindowViewModel {
         }
     }
 
+    public addTagToSelectedItem(tag: Tag): void {
+        this.addTagToSelected(tag)
+    }
+
+    public removeTagFromSelectedItem(tagIdOrName: string): void {
+        this.removeTagFromSelected(tagIdOrName)
+    }
+
+    public addModifierToSelectedItem(modifier: IItemModifier): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).addModifier === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).addModifier(modifier)
+        }
+    }
+
+    public removeModifierFromSelectedItem(id: string): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).removeModifier === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).removeModifier(id)
+        }
+    }
+
+    public updateSelectedItemInventoryConfig(config: Partial<IItemInventoryConfig>): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).setInventoryConfig === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).setInventoryConfig(config)
+        }
+    }
+
+    public addItemActionToSelectedParagraph(action: IParagraphItemAction): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).addItemAction === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).addItemAction(action)
+        }
+    }
+
+    public removeItemActionFromSelectedParagraph(idOrItemId: string): void {
+        if (!this.selectedItem?.entity) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (this.selectedItem.entity as any).removeItemAction === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.selectedItem.entity as any).removeItemAction(idOrItemId)
+        }
+    }
+
     public openOrCreateDescriptionFile(_fileType?: 'text' | string): {
         fileName: string
         content: string
@@ -1028,10 +1121,15 @@ export class MainWindowViewModel {
         return new Scene(id, name)
     }
 
-    public createItem(nameInput?: string, defaultName: string = 'New item'): Item {
+    public createItem(
+        nameInput?: string,
+        defaultName: string = 'New item',
+        category: string = 'misc',
+        description?: Description
+    ): Item {
         const name = (nameInput ?? '').trim() || defaultName
         const id = this.idGenerator('item')
-        return new Item(id, name)
+        return new Item(id, name, description || new Description(), [], [], { category })
     }
 
     public createCharacterClass(
@@ -1152,6 +1250,7 @@ export class MainWindowViewModel {
     public getAllChoices(paragraphs: Paragraph[]): Choice[] {
         const all: Choice[] = []
         paragraphs.forEach(p => {
+            CombatSyncService.syncParagraphCombatChoices(p, this)
             const choices = p.getChoices ? p.getChoices() : []
             choices.forEach(c => {
                 if (!c.getFromParagraphId()) {
@@ -1195,8 +1294,18 @@ export class MainWindowViewModel {
             if (p.hasChoice && p.hasChoice(choiceId)) {
                 p.removeChoice(choiceId)
                 removed = true
-                break
             }
+            if (p.getHasCombat && p.getHasCombat()) {
+                const combat = p.getCombat ? p.getCombat() : null
+                if (combat && typeof combat.removeOutcome === 'function') {
+                    const beforeLen = combat.getOutcomes().length
+                    combat.removeOutcome(choiceId)
+                    if (combat.getOutcomes().length < beforeLen) {
+                        removed = true
+                    }
+                }
+            }
+            if (removed) break
         }
         if (this.selectedItem?.id === choiceId && this.selectedItem.type === 'choice') {
             this.closeHistoryItem(choiceId)
@@ -1362,7 +1471,15 @@ export class MainWindowViewModel {
             const fromMatch = fromP ? fromP.getTitle().toLowerCase().includes(query) : false
             const toMatch = toP ? toP.getTitle().toLowerCase().includes(query) : false
 
-            return nameMatch || condMatch || fromMatch || toMatch
+            const isCombat = Boolean(
+                (typeof c.getIsCombatOutcome === 'function' && c.getIsCombatOutcome()) ||
+                (c as any).isCombatOutcome
+            )
+            const combatMatch =
+                isCombat &&
+                ('walka'.includes(query) || 'po walce'.includes(query) || 'combat'.includes(query))
+
+            return nameMatch || condMatch || fromMatch || toMatch || combatMatch
         })
     }
 
