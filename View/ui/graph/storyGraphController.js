@@ -156,6 +156,15 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                 return newP
             },
             onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
+                const existingChoices = fromParagraph.getChoices ? fromParagraph.getChoices() : []
+                const toId = toParagraph.getId()
+                const alreadyExists = existingChoices.some(
+                    c =>
+                        c.getToParagraphId() === toId && (!choiceName || c.getName() === choiceName)
+                )
+                if (alreadyExists) {
+                    return null
+                }
                 const choice = ctx.vm.createChoice(fromParagraph, toParagraph, choiceName)
                 markProjectDirty()
                 if (typeof ctx.renderConnectionsList === 'function') {

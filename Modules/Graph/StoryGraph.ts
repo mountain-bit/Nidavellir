@@ -22,6 +22,7 @@ export interface ICytoscapeInstance {
     center: (eles?: unknown) => void
     fit: (eles?: unknown, padding?: number) => void
     animate: (options: unknown, params?: unknown) => void
+    stop?: (clearQueue?: boolean, jumpToEnd?: boolean) => void
     resize: () => void
     destroy: () => void
     nodes?: (selector?: string) => any
@@ -307,19 +308,24 @@ export class StoryGraph {
             const targetId = choice.getToParagraphId()
             if (!targetId) return
             const chId = choice.getId() || `edge_${sourceP.getId()}_${targetId}_${i}`
+            const choiceIsCombat =
+                typeof choice.getIsCombatOutcome === 'function'
+                    ? choice.getIsCombatOutcome()
+                    : Boolean((choice as any).isCombatOutcome)
             const matchingOutcome =
                 hasCombat &&
                 combatOutcomes.find(
                     (o: any) =>
                         o.id === chId ||
-                        (o.targetParagraphId === targetId && o.name === choice.getName())
+                        (o.targetParagraphId === targetId && o.name === choice.getName()) ||
+                        (o.targetParagraphId === targetId && choiceIsCombat)
                 )
-            const isCombat = Boolean(matchingOutcome)
+            const isCombat = Boolean(matchingOutcome) || choiceIsCombat
 
             transitions.push({
                 id: chId,
                 targetId,
-                label: choice.getName() || '',
+                label: (matchingOutcome && matchingOutcome.name) || choice.getName() || '',
                 choiceObj: choice,
                 outcomeObj: matchingOutcome,
                 isCombatOutcome: isCombat,
@@ -334,7 +340,8 @@ export class StoryGraph {
                 if (!targetId) return
                 const alreadyExists = transitions.some(
                     t =>
-                        t.id === outcome.id || (t.targetId === targetId && t.label === outcome.name)
+                        t.id === outcome.id ||
+                        (t.targetId === targetId && (t.isCombatOutcome || t.label === outcome.name))
                 )
                 if (!alreadyExists) {
                     transitions.push({
@@ -1136,6 +1143,9 @@ export class StoryGraph {
         if (!this.cy) return
 
         this.cy.resize()
+        if (typeof this.cy.stop === 'function') {
+            this.cy.stop()
+        }
 
         const cyEle = this.cy.getElementById(elementId)
         const isCyEleFound = Boolean(

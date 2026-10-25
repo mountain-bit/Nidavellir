@@ -27,9 +27,6 @@ export function renderQuickActionsModule(container, item, type, ctx) {
         const targetId = item.id
         if (ctx.storyGraphInstance) {
             ctx.storyGraphInstance.focusOnElement(targetId)
-            requestAnimationFrame(() => {
-                if (ctx.storyGraphInstance) ctx.storyGraphInstance.focusOnElement(targetId)
-            })
         }
         if (type === 'scene') {
             ctx.renderScenesList()

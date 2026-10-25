@@ -322,6 +322,11 @@ export class Paragraph {
         if (!choice.getFromParagraphId() && this.id) {
             choice.setFromParagraphId(this.id)
         }
+        const existingIdx = this.choices.findIndex(p => p.getId() === choice.getId())
+        if (existingIdx !== -1) {
+            this.choices[existingIdx] = choice
+            return
+        }
         this.choices.push(choice)
     }
 
@@ -400,13 +405,19 @@ export class Paragraph {
         const content = json.content as Record<string, unknown> | undefined
         const rawChoices = Array.isArray(json.choices) ? json.choices : []
         const paragraphId = typeof json.id === 'string' ? json.id : ''
-        const choices = rawChoices.map(rawChoice => {
+        const seenChoiceIds = new Set<string>()
+        const choices: Choice[] = []
+        for (const rawChoice of rawChoices) {
             const ch = Choice.fromJSON(rawChoice as Record<string, unknown>)
             if (!ch.getFromParagraphId() && paragraphId) {
                 ch.setFromParagraphId(paragraphId)
             }
-            return ch
-        })
+            if (ch.getId() && seenChoiceIds.has(ch.getId())) {
+                continue
+            }
+            if (ch.getId()) seenChoiceIds.add(ch.getId())
+            choices.push(ch)
+        }
         const hasCombat = typeof json.hasCombat === 'boolean' ? json.hasCombat : false
         const combatData = json.combat as Record<string, unknown> | undefined
 

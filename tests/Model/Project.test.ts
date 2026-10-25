@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { NPC } from '../../Model/NPC'
+import { NPC_Template } from '../../Model/NPC_Template'
 import { Project } from '../../Model/Project'
 import { Scene } from '../../Model/Scene'
 
@@ -58,5 +60,29 @@ describe('Project', () => {
         const reconstructed = Project.fromJSON(json)
         expect(reconstructed.getCustomStyles()).toEqual(styles)
         expect(reconstructed.getCustomFonts()).toEqual(fonts)
+    })
+
+    it('powinien dodawać postać i ignorować duplikaty o tym samym ID', () => {
+        const npc1 = new NPC('char-1', 'Strażnik')
+        const npc2 = new NPC('char-1', 'Strażnik Kopia')
+        project.addCharacter(npc1)
+        expect(project.getCharacters()).toHaveLength(1)
+        expect(project.hasCharacter('char-1')).toBe(true)
+
+        project.addCharacter(npc2)
+        expect(project.getCharacters()).toHaveLength(1)
+        expect(project.getCharacters()[0].getName()).toBe('Strażnik')
+    })
+
+    it('powinien dodawać szablon i ignorować duplikaty o tym samym ID', () => {
+        const tpl1 = new NPC_Template('tpl-1', 'Bandyta')
+        const tpl2 = new NPC_Template('tpl-1', 'Bandyta Kopia')
+        project.addTemplate(tpl1)
+        expect(project.getTemplates()).toHaveLength(1)
+        expect(project.hasTemplate('tpl-1')).toBe(true)
+
+        project.addTemplate(tpl2)
+        expect(project.getTemplates()).toHaveLength(1)
+        expect(project.getTemplates()[0].getName()).toBe('Bandyta')
     })
 })

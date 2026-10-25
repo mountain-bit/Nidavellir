@@ -106,6 +106,33 @@ export class CombatSyncService {
         targetParagraphId: string,
         vm?: any
     ): string {
+        const choices = sourceParagraph.getChoices ? sourceParagraph.getChoices() : []
+
+        // 1. Look for existing choice matching this outcome
+        const existingChoice = choices.find(c => {
+            const cId = typeof c.getId === 'function' ? c.getId() : (c as any).id
+            const isCombat =
+                typeof c.getIsCombatOutcome === 'function'
+                    ? c.getIsCombatOutcome()
+                    : (c as any).isCombatOutcome
+            return (
+                (outcomeId && cId === outcomeId) ||
+                (c.getToParagraphId() === targetParagraphId &&
+                    (c.getName() === outcomeName || isCombat))
+            )
+        })
+
+        if (existingChoice) {
+            if (outcomeName && typeof existingChoice.setName === 'function') {
+                existingChoice.setName(outcomeName)
+            }
+            if (typeof existingChoice.setIsCombatOutcome === 'function') {
+                existingChoice.setIsCombatOutcome(true)
+            }
+            ;(existingChoice as any).isCombatOutcome = true
+            return existingChoice.getId()
+        }
+
         let choiceId = outcomeId
 
         if (targetParagraph && vm && typeof vm.createChoice === 'function') {
@@ -115,6 +142,7 @@ export class CombatSyncService {
                 if (typeof ch.setIsCombatOutcome === 'function') {
                     ch.setIsCombatOutcome(true)
                 }
+                ;(ch as any).isCombatOutcome = true
             }
         } else {
             const newChoice = new Choice(
@@ -144,19 +172,41 @@ export class CombatSyncService {
         if (!hasCombat) return
 
         const combat = typeof paragraph.getCombat === 'function' ? paragraph.getCombat() : null
+        if (!combat) return
+
         const outcomes =
             combat && typeof combat.getOutcomes === 'function' ? combat.getOutcomes() : []
+
+        // 1. Deduplicate outcomes inside combat
+        const seenOutcomeKeys = new Set<string>()
+        const uniqueOutcomes: any[] = []
+        outcomes.forEach(o => {
+            if (!o || !o.targetParagraphId) return
+            const key = o.id ? `id:${o.id}` : `target:${o.targetParagraphId}:${o.name || ''}`
+            if (seenOutcomeKeys.has(key)) return
+            seenOutcomeKeys.add(key)
+            uniqueOutcomes.push(o)
+        })
+        if (typeof combat.setOutcomes === 'function') {
+            combat.setOutcomes(uniqueOutcomes)
+        }
+
         const choices = paragraph.getChoices ? paragraph.getChoices() : []
 
-        outcomes.forEach(outcome => {
+        // 2. Ensure each outcome has a corresponding choice
+        uniqueOutcomes.forEach(outcome => {
             if (!outcome || !outcome.targetParagraphId) return
             const outcomeId = outcome.id || ''
             const existingChoice = choices.find(c => {
                 const cId = typeof c.getId === 'function' ? c.getId() : (c as any).id
+                const isCombat =
+                    typeof c.getIsCombatOutcome === 'function'
+                        ? c.getIsCombatOutcome()
+                        : (c as any).isCombatOutcome
                 return (
                     (cId && outcomeId && cId === outcomeId) ||
                     (c.getToParagraphId() === outcome.targetParagraphId &&
-                        c.getName() === outcome.name)
+                        (c.getName() === outcome.name || isCombat))
                 )
             })
 
@@ -165,6 +215,14 @@ export class CombatSyncService {
                     existingChoice.setIsCombatOutcome(true)
                 }
                 ;(existingChoice as any).isCombatOutcome = true
+                if (outcome.name && typeof existingChoice.setName === 'function') {
+                    existingChoice.setName(outcome.name)
+                }
+                if (outcome.id && outcome.id !== existingChoice.getId()) {
+                    outcome.id = existingChoice.getId()
+                } else if (!outcome.id) {
+                    outcome.id = existingChoice.getId()
+                }
             } else {
                 const choiceId =
                     outcome.id ||
@@ -187,6 +245,38 @@ export class CombatSyncService {
                 paragraph.addChoice(newChoice)
             }
         })
+
+        // 3. Deduplicate choices in paragraph
+        const seenChoiceIds = new Set<string>()
+        const seenCombatTargets = new Set<string>()
+        const deduplicatedChoices: Choice[] = []
+
+        const currentChoices = paragraph.getChoices ? paragraph.getChoices() : []
+        currentChoices.forEach(c => {
+            const cId = c.getId()
+            if (cId && seenChoiceIds.has(cId)) {
+                return
+            }
+            const isCombat =
+                typeof c.getIsCombatOutcome === 'function'
+                    ? c.getIsCombatOutcome()
+                    : Boolean((c as any).isCombatOutcome)
+
+            if (isCombat) {
+                const targetKey = `${c.getToParagraphId()}_${c.getName()}`
+                if (seenCombatTargets.has(targetKey)) {
+                    return
+                }
+                seenCombatTargets.add(targetKey)
+            }
+
+            if (cId) seenChoiceIds.add(cId)
+            deduplicatedChoices.push(c)
+        })
+
+        if (typeof paragraph.setChoices === 'function') {
+            paragraph.setChoices(deduplicatedChoices)
+        }
     }
 
     /**
@@ -197,9 +287,30 @@ export class CombatSyncService {
         outcomeId: string,
         newName: string
     ): void {
-        const existingChoice = paragraph.getChoice ? paragraph.getChoice(outcomeId) : null
+        const choices = paragraph.getChoices ? paragraph.getChoices() : []
+        const existingChoice =
+            choices.find(c => {
+                const cId = typeof c.getId === 'function' ? c.getId() : (c as any).id
+                return cId === outcomeId
+            }) || (paragraph.getChoice ? paragraph.getChoice(outcomeId) : null)
+
         if (existingChoice && typeof existingChoice.setName === 'function') {
             existingChoice.setName(newName)
+        }
+
+        // Also update combat outcome name if combat is present
+        if (paragraph.getHasCombat && paragraph.getHasCombat()) {
+            const combat = paragraph.getCombat ? paragraph.getCombat() : null
+            if (combat) {
+                if (typeof combat.updateOutcome === 'function') {
+                    combat.updateOutcome(outcomeId, { name: newName })
+                } else if (Array.isArray((combat as any).outcomes)) {
+                    const outcome = (combat as any).outcomes.find((o: any) => o.id === outcomeId)
+                    if (outcome) {
+                        outcome.name = newName
+                    }
+                }
+            }
         }
     }
 
@@ -212,11 +323,20 @@ export class CombatSyncService {
         allParagraphs: Paragraph[] = [],
         vm?: any
     ): void {
+        const choices = paragraph.getChoices ? paragraph.getChoices() : []
+        const targetChoice = choices.find(
+            c => c.getId() === outcomeId || (outcomeId && (c as any).id === outcomeId)
+        )
+        const effectiveId = targetChoice ? targetChoice.getId() : outcomeId
+
         if (typeof paragraph.removeChoice === 'function') {
-            paragraph.removeChoice(outcomeId)
+            paragraph.removeChoice(effectiveId)
+            if (effectiveId !== outcomeId) {
+                paragraph.removeChoice(outcomeId)
+            }
         }
         if (vm && typeof vm.deleteChoice === 'function') {
-            vm.deleteChoice(outcomeId, allParagraphs)
+            vm.deleteChoice(effectiveId, allParagraphs)
         }
     }
 

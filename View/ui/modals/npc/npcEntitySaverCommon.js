@@ -47,9 +47,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                           },
                       }
                 if (globalStat.setValue) globalStat.setValue(s.value)
-                effectiveCtx.projectStats.push(globalStat)
                 if (vm?.project && typeof vm.project.addStat === 'function') {
                     vm.project.addStat(globalStat)
+                }
+                const alreadyExists = effectiveCtx.projectStats.some(
+                    ps =>
+                        (typeof ps.getName === 'function'
+                            ? ps.getName()
+                            : ps.name || ''
+                        ).toLowerCase() === sName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectStats.push(globalStat)
                 }
             }
         })
@@ -107,9 +116,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                         },
                     }
                 }
-                effectiveCtx.projectParameters.push(globalParam)
                 if (vm?.project && typeof vm.project.addGlobalParameter === 'function') {
                     vm.project.addGlobalParameter(globalParam)
+                }
+                const alreadyExists = effectiveCtx.projectParameters.some(
+                    pp =>
+                        (typeof pp.getName === 'function'
+                            ? pp.getName()
+                            : pp.name || ''
+                        ).toLowerCase() === pName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectParameters.push(globalParam)
                 }
             }
         })
@@ -173,9 +191,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                         },
                     }
                 }
-                effectiveCtx.projectSkills.push(globalSkill)
                 if (vm?.project && typeof vm.project.addSkill === 'function') {
                     vm.project.addSkill(globalSkill)
+                }
+                const alreadyExists = effectiveCtx.projectSkills.some(
+                    ps =>
+                        (typeof ps.getName === 'function'
+                            ? ps.getName()
+                            : ps.name || ''
+                        ).toLowerCase() === skName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectSkills.push(globalSkill)
                 }
             }
         })
@@ -210,9 +237,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                               return this.color
                           },
                       }
-                effectiveCtx.projectTags.push(globalTag)
                 if (vm?.project && typeof vm.project.addTag === 'function') {
                     vm.project.addTag(globalTag)
+                }
+                const alreadyExists = effectiveCtx.projectTags.some(
+                    pt =>
+                        (typeof pt.getName === 'function'
+                            ? pt.getName()
+                            : pt.name || ''
+                        ).toLowerCase() === tName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectTags.push(globalTag)
                 }
             }
         })
@@ -247,9 +283,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                               return this.value
                           },
                       }
-                effectiveCtx.projectFeatures.push(globalFeat)
                 if (vm?.project && typeof vm.project.addFeature === 'function') {
                     vm.project.addFeature(globalFeat)
+                }
+                const alreadyExists = effectiveCtx.projectFeatures.some(
+                    pf =>
+                        (typeof pf.getName === 'function'
+                            ? pf.getName()
+                            : pf.name || ''
+                        ).toLowerCase() === aName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectFeatures.push(globalFeat)
                 }
             }
         })
@@ -969,6 +1014,27 @@ export function saveNpcEntity(config, ctx, options = {}) {
         effectiveCtx.projectPath ||
         (typeof effectiveCtx.getProjectPath === 'function' ? effectiveCtx.getProjectPath() : '') ||
         ''
+    const actualEntityId =
+        (typeof createdEntity.getId === 'function' ? createdEntity.getId() : createdEntity.id) ||
+        entityId
+
+    if (config.ipcCategory) {
+        /* eslint-disable-next-line no-control-regex */
+        const cleanName = (name || 'element').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+        const descFileName = `Description_${config.ipcCategory}_${cleanName}.md`
+        const descRelPath = `./${config.ipcCategory}/${actualEntityId}/${descFileName}`
+        if (createdEntity.description && typeof createdEntity.description === 'object') {
+            createdEntity.description.filePath = descRelPath
+            createdEntity.description.textPath = descRelPath
+        } else if (typeof createdEntity.getDescription === 'function') {
+            const desc = createdEntity.getDescription()
+            if (desc) {
+                desc.filePath = descRelPath
+                desc.textPath = descRelPath
+            }
+        }
+    }
+
     if (
         config.ipcCategory &&
         projectPath &&
@@ -983,7 +1049,24 @@ export function saveNpcEntity(config, ctx, options = {}) {
                 projectPath,
                 category: config.ipcCategory,
                 entityData: payloadData,
-                folderName: name,
+                folderName: actualEntityId,
+            })
+            .then(res => {
+                if (res && res.success && res.entity && res.entity.description) {
+                    if (
+                        createdEntity.description &&
+                        typeof createdEntity.description === 'object'
+                    ) {
+                        createdEntity.description.filePath = res.entity.description.filePath
+                        createdEntity.description.textPath = res.entity.description.textPath
+                    } else if (typeof createdEntity.getDescription === 'function') {
+                        const desc = createdEntity.getDescription()
+                        if (desc) {
+                            desc.filePath = res.entity.description.filePath
+                            desc.textPath = res.entity.description.textPath
+                        }
+                    }
+                }
             })
             .catch(err => {
                 console.warn(`Could not persist ${config.entityType} to disk via IPC:`, err)

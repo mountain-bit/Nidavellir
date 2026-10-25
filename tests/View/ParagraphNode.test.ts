@@ -371,6 +371,7 @@ describe('StoryGraph focusOnElement', () => {
         })
 
         let animatedCenterEles: unknown = null
+        const mockStop = vi.fn()
         const mockCy = {
             pan: () => ({ x: 0, y: 0 }),
             zoom: () => 1,
@@ -378,6 +379,7 @@ describe('StoryGraph focusOnElement', () => {
             destroy: () => {},
             on: () => {},
             removeListener: () => {},
+            stop: mockStop,
             getElementById: (id: string) => {
                 if (id === 'p-focus-1') {
                     return {
@@ -401,6 +403,7 @@ describe('StoryGraph focusOnElement', () => {
         storyGraph.render(true)
         storyGraph.focusOnElement('p-focus-1')
 
+        expect(mockStop).toHaveBeenCalled()
         expect(animatedCenterEles).not.toBeNull()
         storyGraph.destroy()
         canvasContainer.remove()

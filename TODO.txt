@@ -1,0 +1,4 @@
+1. na ctrl scroll powinien działać szybciej
+2. przy definiowaniu wyniku walki musi być możliwość stworzenia paragrafu, tak jak zdefiniowaniu warunków.
+3. przezuwanie na grafie powinno być przez prawy przycisk myszy
+4. możliwość zaznaczenia kilku paragrafów na grafie i ich przesunięcia oraz szybszego ustawienia sceny

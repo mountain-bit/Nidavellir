@@ -127,7 +127,9 @@ export function renderCombatOutcomesSection(
         addOutcomeForm?.classList.add('hidden')
     })
 
-    submitAddOutcomeBtn?.addEventListener('click', () => {
+    let isSubmittingOutcome = false
+    const handleAddOutcome = () => {
+        if (isSubmittingOutcome) return
         const nameVal = outcomeNameInput?.value?.trim()
         const targetId = outcomeTargetSelect?.value
 
@@ -142,32 +144,45 @@ export function renderCombatOutcomesSection(
             return
         }
 
-        const fallbackOutcomeId =
-            'outcome_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)
-        const targetP = allParagraphs.find(
-            p => (typeof p.getId === 'function' ? p.getId() : p.id) === targetId
-        )
+        isSubmittingOutcome = true
+        try {
+            const fallbackOutcomeId =
+                'outcome_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)
+            const targetP = allParagraphs.find(
+                p => (typeof p.getId === 'function' ? p.getId() : p.id) === targetId
+            )
 
-        // Delegate choice creation to CombatSyncService
-        const choiceId = CombatSyncService.createOutcomeChoice(
-            entity,
-            targetP,
-            fallbackOutcomeId,
-            nameVal,
-            targetId,
-            ctx.vm
-        )
+            // Delegate choice creation to CombatSyncService
+            const choiceId = CombatSyncService.createOutcomeChoice(
+                entity,
+                targetP,
+                fallbackOutcomeId,
+                nameVal,
+                targetId,
+                ctx.vm
+            )
 
-        const newOutcome = {
-            id: choiceId,
-            name: nameVal,
-            targetParagraphId: targetId,
-            description: '',
+            const newOutcome = {
+                id: choiceId,
+                name: nameVal,
+                targetParagraphId: targetId,
+                description: '',
+            }
+
+            combat.addOutcome(newOutcome)
+            onFullRefresh()
+            toast.success(`${t('buttons.add') || 'Dodano wynik'}: ${nameVal}`)
+        } finally {
+            isSubmittingOutcome = false
         }
+    }
 
-        combat.addOutcome(newOutcome)
-        onFullRefresh()
-        toast.success(`${t('buttons.add') || 'Dodano wynik'}: ${nameVal}`)
+    submitAddOutcomeBtn?.addEventListener('click', handleAddOutcome)
+    outcomeNameInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            handleAddOutcome()
+        }
     })
 
     // Render individual outcomes

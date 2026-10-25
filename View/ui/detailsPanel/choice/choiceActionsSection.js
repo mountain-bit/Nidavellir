@@ -43,9 +43,6 @@ export function createChoiceActionsSection({ choice, ctx, onRefreshDetails }) {
         const targetId = choice.getFromParagraphId() || choice.getId()
         if (ctx.storyGraphInstance) {
             ctx.storyGraphInstance.focusOnElement(targetId)
-            requestAnimationFrame(() => {
-                if (ctx.storyGraphInstance) ctx.storyGraphInstance.focusOnElement(targetId)
-            })
         }
     })
 

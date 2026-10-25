@@ -426,9 +426,6 @@ export function renderNpcReadOnlyDetails(container, entity, item, type, ctx) {
             ctx.updateMainWorkspaceUI()
             if (ctx.storyGraphInstance) {
                 ctx.storyGraphInstance.focusOnElement(item.id)
-                requestAnimationFrame(() => {
-                    if (ctx.storyGraphInstance) ctx.storyGraphInstance.focusOnElement(item.id)
-                })
             }
         })
     }

@@ -1249,10 +1249,14 @@ export class MainWindowViewModel {
 
     public getAllChoices(paragraphs: Paragraph[]): Choice[] {
         const all: Choice[] = []
+        const seenChoiceIds = new Set<string>()
         paragraphs.forEach(p => {
             CombatSyncService.syncParagraphCombatChoices(p, this)
             const choices = p.getChoices ? p.getChoices() : []
             choices.forEach(c => {
+                const cId = c.getId()
+                if (cId && seenChoiceIds.has(cId)) return
+                if (cId) seenChoiceIds.add(cId)
                 if (!c.getFromParagraphId()) {
                     c.setFromParagraphId(p.getId())
                 }
