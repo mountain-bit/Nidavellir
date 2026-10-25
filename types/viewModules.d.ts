@@ -418,6 +418,7 @@ declare module '*/View/ui/drawer/drawerLists.js' {
     export function getTemplatesSectionCollapsed(): boolean
     export function setTemplatesSectionCollapsed(collapsed: boolean): void
     export function renderLocationsList(ctx?: unknown): void
+    export function renderItemsList(ctx?: unknown): void
     export function renderTagsList(ctx?: unknown): void
     export function attachItemSelectionListeners(
         container: HTMLElement,
@@ -453,6 +454,74 @@ declare module '*/View/ui/modals/hero/heroModal.js' {
 declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
+    export function renderItemDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
+    export function renderItemsModule(
+        container: unknown,
+        entity: unknown,
+        type?: string,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/heroReadOnlyDetails.js' {
+    export function renderHeroReadOnlyDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        type?: string,
+        ctx?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/itemDetails.js' {
+    export function renderItemDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
+    export function syncPlayerCharacterStartingInventory(
+        itemEntity: unknown,
+        inStarting: boolean,
+        targetInvId?: string,
+        ctx?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/item/index.js' {
+    export function createItemHeaderSection(...args: unknown[]): HTMLElement
+    export function createItemNameSection(...args: unknown[]): HTMLElement
+    export function createItemCategorySection(...args: unknown[]): HTMLElement
+    export function createItemInventorySection(...args: unknown[]): HTMLElement
+    export function createItemTagsSection(...args: unknown[]): HTMLElement
+    export function createItemModifiersSection(...args: unknown[]): HTMLElement
+    export function createItemDescriptionSection(...args: unknown[]): HTMLElement
+    export function createItemUsagesSection(...args: unknown[]): HTMLElement
+    export function createItemExportSection(...args: unknown[]): HTMLElement
+    export function syncPlayerCharacterStartingInventory(
+        itemEntity: unknown,
+        inStarting: boolean,
+        targetInvId?: string,
+        ctx?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/modules/itemsModule.js' {
+    export function renderItemsModule(
+        container: unknown,
+        entity: unknown,
+        type?: string,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): void
 }
 
 declare module '*/View/ui/editor/editorToolbar.js' {
@@ -773,6 +842,7 @@ declare module '*/View/ui/workspace/quickSearch.js' {
         tags?: string[]
         locationName?: string
         charNames?: string[]
+        modifiers?: string[]
         entity: unknown
         number?: number
     }

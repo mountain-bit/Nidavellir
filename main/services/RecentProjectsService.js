@@ -2,6 +2,8 @@ const path = require('path')
 const fs = require('fs')
 const os = require('os')
 
+const { atomicWriteJsonSync } = require('../../Utils/fsSecurity')
+
 let _app = null
 try {
     const electron = require('electron')
@@ -22,10 +24,11 @@ class RecentProjectsService {
     }
 
     static getRecentProjectsPath() {
+        const poolSuffix = process.env.VITEST_POOL_ID ? `-${process.env.VITEST_POOL_ID}` : ''
         const userDataPath =
             _app && typeof _app.getPath === 'function'
                 ? _app.getPath('userData')
-                : path.join(os.tmpdir(), 'sgp-test-userData')
+                : path.join(os.tmpdir(), `sgp-test-userData${poolSuffix}`)
         return path.join(userDataPath, 'recent-projects.json')
     }
 
@@ -34,6 +37,7 @@ class RecentProjectsService {
         if (fs.existsSync(filePath)) {
             try {
                 const data = fs.readFileSync(filePath, 'utf8')
+                if (!data || !data.trim()) return []
                 return JSON.parse(data)
             } catch (err) {
                 console.error('Error reading recent projects:', err)
@@ -54,11 +58,7 @@ class RecentProjectsService {
         if (projects.length > 10) projects = projects.slice(0, 10)
 
         try {
-            const parentDir = path.dirname(filePath)
-            if (!fs.existsSync(parentDir)) {
-                fs.mkdirSync(parentDir, { recursive: true })
-            }
-            fs.writeFileSync(filePath, JSON.stringify(projects, null, 2))
+            atomicWriteJsonSync(filePath, projects)
         } catch (err) {
             console.error('Error saving recent projects:', err)
         }

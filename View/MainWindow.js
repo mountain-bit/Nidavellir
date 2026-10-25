@@ -18,6 +18,7 @@ import {
     renderConnectionsList,
     renderDrawerSearchResults,
     renderFilterTags,
+    renderItemsList,
     renderLocationsList,
     renderMainCharacter,
     renderParagraphsList,
@@ -252,6 +253,7 @@ const appContext = {
     renderCharactersList: () => renderCharactersList(appContext),
     renderMainCharacter: () => renderMainCharacter(appContext),
     renderLocationsList: () => renderLocationsList(appContext),
+    renderItemsList: () => renderItemsList(appContext),
     renderTraitsList: () => renderTraitsList(appContext),
     renderDynamicSuggestions: () => renderDynamicSuggestions(appContext),
     updateTraitsCounterUI: () => updateTraitsCounterUI(appContext),
@@ -296,6 +298,7 @@ function updateLeftDrawerTitle() {
         scenes: 'left_panel.scenes',
         characters: 'left_panel.characters',
         locations: 'left_panel.locations',
+        items: 'left_panel.items',
         traits: 'left_panel.traits',
         'main-character': 'left_panel.main_character',
         tags: 'left_panel.tags',
@@ -366,6 +369,7 @@ function updateLeftDrawerUI() {
         else if (activeLeftTab === 'connections') renderConnectionsList(appContext)
         else if (activeLeftTab === 'characters') renderCharactersList(appContext)
         else if (activeLeftTab === 'locations') renderLocationsList(appContext)
+        else if (activeLeftTab === 'items') renderItemsList(appContext)
         else if (activeLeftTab === 'traits') renderTraitsList(appContext)
         else if (activeLeftTab === 'tags') renderTagsList(appContext)
         else if (activeLeftTab === 'main-character') renderMainCharacter(appContext)
@@ -384,6 +388,10 @@ function refreshActiveSection(type) {
         renderFilterTags(appContext)
         renderParagraphsList(appContext)
         renderScenesList(appContext)
+        renderItemsList(appContext)
+    }
+    if (type === 'item') {
+        renderItemsList(appContext)
     }
     if (
         type === 'character' ||

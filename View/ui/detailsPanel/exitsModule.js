@@ -1,7 +1,11 @@
 import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
-import { Paragraph, TextCondition } from '../../../dist/ViewModel/MainWindowViewModel.js'
+import {
+    CombatSyncService,
+    Paragraph,
+    TextCondition,
+} from '../../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from '../common/htmlTemplates.js'
 import { createSection } from './common/domHelpers.js'
 import { renderHistoryBar } from './historyBar.js'
@@ -25,6 +29,8 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
             ctx.renderDetailsPanel(ctx)
         }
     }
+
+    CombatSyncService.syncParagraphCombatChoices(entity, ctx.vm)
 
     const exitsMod = createSection('border-b border-[#333338] p-3 space-y-2')
     const choices = entity.getChoices() || []
@@ -169,7 +175,17 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                 })
                 .join('')
 
+            const isCombat = Boolean(
+                (typeof choice.getIsCombatOutcome === 'function' && choice.getIsCombatOutcome()) ||
+                choice.isCombatOutcome
+            )
+
             const exitBadges = []
+            if (isCombat) {
+                exitBadges.push(
+                    `<span class="px-1.5 py-0.2 rounded text-[9px] bg-rose-950/60 text-rose-300 border border-rose-800/40 font-mono inline-flex items-center gap-1">${getIconSvg('swords', 'w-2.5 h-2.5')} ${t('details.combat_outcome') || 'Po walce'}</span>`
+                )
+            }
             if (choiceCondText) {
                 exitBadges.push(
                     `<span class="px-1.5 py-0.2 rounded text-[9px] bg-amber-950/60 text-amber-300 border border-amber-800/40 font-mono truncate max-w-full">Warunek: ${escapeHtml(choiceCondText)}</span>`
@@ -233,14 +249,16 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
 
             const exitNameInput = card.querySelector('.exit-name-input')
             const exitTargetSelect = card.querySelector('.exit-target-select')
-            const exitCondInput = card.querySelector('.exit-condition-input')
             const inspectBtn = card.querySelector('.btn-inspect-exit')
             const deleteBtn = card.querySelector('.btn-delete-exit')
 
             exitNameInput.addEventListener('input', () => {
                 const newName = exitNameInput.value.trim()
                 if (newName) {
-                    ctx.vm.updateChoiceDetails(choice, newName, exitCondInput.value)
+                    ctx.vm.updateChoiceDetails(choice, newName)
+                    if (isCombat) {
+                        CombatSyncService.updateOutcomeChoiceName(entity, choice.getId(), newName)
+                    }
                     ctx.renderConnectionsList()
                     if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
                 }
@@ -250,7 +268,10 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                 if (!newName) {
                     exitNameInput.value = choice.getName()
                 } else {
-                    ctx.vm.updateChoiceDetails(choice, newName, exitCondInput.value)
+                    ctx.vm.updateChoiceDetails(choice, newName)
+                    if (isCombat) {
+                        CombatSyncService.updateOutcomeChoiceName(entity, choice.getId(), newName)
+                    }
                     ctx.renderConnectionsList()
                     if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
                 }
@@ -260,17 +281,17 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                 const newTargetId = exitTargetSelect.value
                 if (newTargetId && newTargetId !== choice.getToParagraphId()) {
                     choice.setToParagraphId(newTargetId)
+                    if (isCombat && entity.getHasCombat && entity.getHasCombat()) {
+                        const combat = entity.getCombat ? entity.getCombat() : null
+                        if (combat && typeof combat.updateOutcome === 'function') {
+                            combat.updateOutcome(choice.getId(), { targetParagraphId: newTargetId })
+                        }
+                    }
                     refreshDetails()
                     ctx.renderConnectionsList()
                     if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
                     toast.success(t('toast.target_updated'))
                 }
-            })
-
-            exitCondInput.addEventListener('input', () => {
-                ctx.vm.updateChoiceDetails(choice, choice.getName(), exitCondInput.value)
-                ctx.renderConnectionsList()
-                if (ctx.storyGraphInstance) ctx.storyGraphInstance.render(true)
             })
 
             inspectBtn.addEventListener('click', () => {

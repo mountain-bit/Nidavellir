@@ -22,6 +22,7 @@ export type IconName =
     | 'feature'
     | 'tag'
     | 'item'
+    | 'backpack'
     | 'class'
     | 'check'
     | 'close'
@@ -74,6 +75,7 @@ export type IconName =
     | 'help'
     | 'swords'
     | 'combat'
+    | 'dice'
 
 export interface IIconConfig {
     viewBox?: string
@@ -81,6 +83,10 @@ export interface IIconConfig {
 }
 
 export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
+    dice: {
+        viewBox: '0 0 24 24',
+        path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="16" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="16" r="1.5" fill="currentColor"></circle><circle cx="16" cy="16" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>',
+    },
     swords: {
         viewBox: '0 0 24 24',
         path: '<polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"></polyline><line x1="13" y1="19" x2="19" y2="13"></line><line x1="16" y1="16" x2="20" y2="20"></line><line x1="19" y1="21" x2="21" y2="19"></line><polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"></polyline><line x1="5" y1="14" x2="9" y2="18"></line><line x1="7" y1="17" x2="4" y2="20"></line><line x1="3" y1="19" x2="5" y2="21"></line>',
@@ -142,6 +148,10 @@ export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>',
     },
     item: {
+        viewBox: '0 0 24 24',
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 21v-5a2 2 0 012-2h4a2 2 0 012 2v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h8"></path>',
+    },
+    backpack: {
         viewBox: '0 0 24 24',
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 10a4 4 0 014-4h8a4 4 0 014 4v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 21v-5a2 2 0 012-2h4a2 2 0 012 2v5"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h8"></path>',
     },

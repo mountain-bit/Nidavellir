@@ -224,6 +224,37 @@ describe('QuickSearch', () => {
             const stat = items.find(i => i.id === 'stat-1')
             expect(stat?.type).toBe('stat')
         })
+
+        it('indexes item tags, category, and modifiers correctly', () => {
+            const mockCtx = {
+                projectItems: [
+                    {
+                        getId: () => 'magic-sword',
+                        getName: () => 'Miecz Płomieni',
+                        getDescription: () => 'Ognisty oręż',
+                        getCategory: () => 'weapon',
+                        getTags: () => [{ getName: () => 'artefakt' }],
+                        getModifiers: () => [{ targetName: 'Siła', operator: '+', value: 3 }],
+                    },
+                ],
+            }
+
+            const items = getAllProjectObjects(mockCtx)
+            const sword = items.find(i => i.id === 'magic-sword')
+            expect(sword).toBeDefined()
+            expect(sword?.typeLabel).toBe('Przedmiot (weapon)')
+            expect(sword?.tags).toEqual(['artefakt'])
+            expect(sword?.modifiers).toEqual(['Siła +3'])
+
+            // Test search matching by tag and modifier
+            const byTag = searchProjectObjects(mockCtx, 'artefakt')
+            expect(byTag.length).toBe(1)
+            expect(byTag[0].id).toBe('magic-sword')
+
+            const byModifier = searchProjectObjects(mockCtx, 'Siła')
+            expect(byModifier.length).toBe(1)
+            expect(byModifier[0].id).toBe('magic-sword')
+        })
     })
 
     describe('executeQuickSearchAction', () => {

@@ -5,11 +5,23 @@ import { Location } from './Location'
 import { NPC } from './NPC'
 import { Tag } from './Tag'
 
+export interface IParagraphItemAction {
+    id?: string
+    itemId: string
+    itemName?: string
+    action: 'give' | 'require' | 'remove'
+    quantity?: number
+    targetInventoryId?: string
+    description?: string
+}
+export type ParagraphItemAction = IParagraphItemAction
+
 export class Paragraph {
     private id: string = ''
     private tags: Tag[] = []
     private characters: NPC[] = []
     private locations: Location[] = []
+    private itemActions: IParagraphItemAction[] = []
     private number: number = 0
     private randomizedNumber: number = 0
     private isNumberLocked: boolean = false
@@ -31,7 +43,8 @@ export class Paragraph {
         combat: Combat = new Combat('', ''),
         tags: Tag[] = [],
         characters: NPC[] = [],
-        locations: Location[] | Location | null = []
+        locations: Location[] | Location | null = [],
+        itemActions: IParagraphItemAction[] = []
     ) {
         this.id = id
         this.title = title
@@ -41,6 +54,7 @@ export class Paragraph {
         this.combat = combat
         this.tags = tags
         this.characters = characters
+        this.itemActions = Array.isArray(itemActions) ? itemActions : []
         if (Array.isArray(locations)) {
             this.locations = locations
         } else if (locations) {
@@ -205,6 +219,51 @@ export class Paragraph {
         }
     }
 
+    public getItemActions(): IParagraphItemAction[] {
+        return this.isStart ? [] : this.itemActions
+    }
+
+    public setItemActions(actions: IParagraphItemAction[]): void {
+        if (this.isStart) {
+            this.itemActions = []
+            return
+        }
+        this.itemActions = Array.isArray(actions) ? actions : []
+    }
+
+    public addItemAction(action: IParagraphItemAction): void {
+        if (this.isStart || !action) return
+        const existingIdx = this.itemActions.findIndex(
+            a =>
+                (action.id && a.id === action.id) ||
+                (a.itemId && a.itemId === action.itemId && a.action === action.action)
+        )
+        if (existingIdx >= 0) {
+            this.itemActions[existingIdx] = action
+        } else {
+            this.itemActions.push(action)
+        }
+    }
+
+    public removeItemAction(idOrItemId: string): void {
+        this.itemActions = this.itemActions.filter(
+            a => a.id !== idOrItemId && a.itemId !== idOrItemId && a.itemName !== idOrItemId
+        )
+    }
+
+    public hasItemAction(idOrItemId: string): boolean {
+        return (
+            !this.isStart &&
+            this.itemActions.some(
+                a => a.id === idOrItemId || a.itemId === idOrItemId || a.itemName === idOrItemId
+            )
+        )
+    }
+
+    public getItems(): IParagraphItemAction[] {
+        return this.getItemActions()
+    }
+
     public getNumber(): number {
         return this.number
     }
@@ -364,6 +423,31 @@ export class Paragraph {
             }
         }
 
+        const rawItemActions = json.itemActions ?? json.items ?? json.przedmioty ?? []
+        const itemActionsParsed: IParagraphItemAction[] = Array.isArray(rawItemActions)
+            ? rawItemActions.map((it: any, idx: number) => {
+                  if (typeof it === 'string') {
+                      return {
+                          id: `act_${idx}_${Date.now()}`,
+                          itemId: it,
+                          itemName: it,
+                          action: 'give',
+                          quantity: 1,
+                      }
+                  }
+                  return {
+                      id: it.id || `act_${idx}_${Date.now()}`,
+                      itemId: it.itemId || it.id || '',
+                      itemName: it.itemName || it.name || '',
+                      action:
+                          it.action === 'require' || it.action === 'remove' ? it.action : 'give',
+                      quantity: typeof it.quantity === 'number' ? it.quantity : 1,
+                      targetInventoryId: it.targetInventoryId || '',
+                      description: it.description || '',
+                  }
+              })
+            : []
+
         const p = new Paragraph(
             paragraphId,
             title,
@@ -373,7 +457,8 @@ export class Paragraph {
             combatData ? Combat.fromJSON(combatData) : new Combat('', ''),
             tagsParsed,
             charactersParsed,
-            locationsParsed
+            locationsParsed,
+            itemActionsParsed
         )
         if (typeof json.number === 'number') p.number = json.number
         if (typeof json.randomizedNumber === 'number') p.randomizedNumber = json.randomizedNumber
@@ -392,6 +477,7 @@ export class Paragraph {
             p.tags = []
             p.characters = []
             p.locations = []
+            p.itemActions = []
             if (p.content) {
                 if (typeof p.content.setSummary === 'function') p.content.setSummary('')
                 if (typeof p.content.setText === 'function') p.content.setText('')
@@ -421,6 +507,8 @@ export class Paragraph {
             characters: this.characters.map(c => c.toJSON()),
             locations: this.locations.map(l => l.toJSON()),
             location: this.locations.length > 0 ? this.locations[0].toJSON() : null,
+            itemActions: this.itemActions,
+            items: this.itemActions,
             number: this.number,
             randomizedNumber: this.randomizedNumber,
             isNumberLocked: this.isNumberLocked,

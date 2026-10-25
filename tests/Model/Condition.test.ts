@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { Condition, ItemCondition, StatCondition, TextCondition } from '../../Model/Condition'
+import {
+    Condition,
+    ItemCondition,
+    StatCondition,
+    TagCondition,
+    TextCondition,
+} from '../../Model/Condition'
 
 describe('Condition Polymorphic Model', () => {
     it('should create TextCondition with correct type and text', () => {
@@ -51,6 +57,30 @@ describe('Condition Polymorphic Model', () => {
         const restored = Condition.fromJSON(json)
         expect(restored).toBeInstanceOf(StatCondition)
         expect(restored.getSummary()).toBe('Siła >= 14')
+    })
+
+    it('should create TagCondition with tag name and summary (positive and negated)', () => {
+        const tagCond = new TagCondition('tc1', 'Wymóg tagu', 'odwiedzil_zamek', false)
+        expect(tagCond.getId()).toBe('tc1')
+        expect(tagCond.getType()).toBe('tag')
+        expect(tagCond.getTagName()).toBe('odwiedzil_zamek')
+        expect(tagCond.isNegated()).toBe(false)
+        expect(tagCond.getSummary()).toBe('Posiada tag: #odwiedzil_zamek')
+
+        tagCond.setNegated(true)
+        expect(tagCond.isNegated()).toBe(true)
+        expect(tagCond.getSummary()).toBe('Brak tagu: #odwiedzil_zamek')
+
+        const json = tagCond.toJSON()
+        expect(json.type).toBe('tag')
+        expect(json.tagName).toBe('odwiedzil_zamek')
+        expect(json.negated).toBe(true)
+
+        const restored = Condition.fromJSON(json)
+        expect(restored).toBeInstanceOf(TagCondition)
+        expect(restored.getSummary()).toBe('Brak tagu: #odwiedzil_zamek')
+        expect((restored as TagCondition).isNegated()).toBe(true)
+        expect((restored as TagCondition).getTagName()).toBe('odwiedzil_zamek')
     })
 
     it('should serialize and deserialize TextCondition polymorphic from Condition.fromJSON', () => {

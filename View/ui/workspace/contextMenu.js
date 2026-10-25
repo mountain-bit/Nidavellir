@@ -44,7 +44,7 @@ export function openContextMenu(x, y, target) {
     if (ctxAddTraitChevron) ctxAddTraitChevron.innerHTML = getIconSvg('chevron-right', 'w-3 h-3')
 
     if (ctxAddTagGroup) {
-        if (target.type === 'character' || target.type === 'location') {
+        if (target.type === 'character' || target.type === 'location' || target.type === 'item') {
             ctxAddTagGroup.classList.remove('hidden')
         } else {
             ctxAddTagGroup.classList.add('hidden')
@@ -239,6 +239,17 @@ export function setupSectionControlsAndContextMenu(ctx) {
             getDefaultName: () => t('location.default_name'),
         },
         {
+            type: 'item',
+            btnId: 'btn-add-item',
+            formId: 'item-create-form',
+            inputId: 'item-create-name',
+            submitId: 'item-create-submit',
+            cancelId: 'item-create-cancel',
+            searchId: 'item-search-input',
+            getDefaultName: () =>
+                t('left_panel.default_item_name') || t('items.default_name') || 'Nowy przedmiot',
+        },
+        {
             type: 'trait',
             btnId: 'btn-add-trait',
             formId: 'trait-create-form',
@@ -299,6 +310,19 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     category = ENTITY_CATEGORIES.LOCATIONS
                     ctx.projectLocations.push(createdItem)
                     ctx.renderLocationsList()
+                    markProjectDirty()
+                } else if (sec.type === 'item') {
+                    createdItem = ctx.vm.createItem(name, defaultName)
+                    category = ENTITY_CATEGORIES.ITEMS
+                    if (!Array.isArray(ctx.projectItems)) ctx.projectItems = []
+                    ctx.projectItems.push(createdItem)
+                    const proj =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+                    if (proj?.addItem) proj.addItem(createdItem)
+                    if (ctx.renderItemsList) ctx.renderItemsList()
                     markProjectDirty()
                 } else if (sec.type === 'trait') {
                     const typeSelect = document.getElementById('trait-create-type')
@@ -484,6 +508,11 @@ export function setupSectionControlsAndContextMenu(ctx) {
                 } else if (sec.type === 'location') {
                     ctx.vm.setLocationSearchQuery(val)
                     ctx.renderLocationsList()
+                } else if (sec.type === 'item') {
+                    if (typeof ctx.vm.setItemSearchQuery === 'function') {
+                        ctx.vm.setItemSearchQuery(val)
+                    }
+                    if (ctx.renderItemsList) ctx.renderItemsList()
                 } else if (sec.type === 'trait') {
                     ctx.vm.setStatSearchQuery(val)
                     if (typeof ctx.vm.setParameterSearchQuery === 'function') {
@@ -647,6 +676,17 @@ export function setupSectionControlsAndContextMenu(ctx) {
                 } else if (activeContextMenuTarget.type === 'location') {
                     const idx = ctx.projectLocations.findIndex(l => l.getId() === id)
                     if (idx !== -1) ctx.projectLocations.splice(idx, 1)
+                } else if (activeContextMenuTarget.type === 'item') {
+                    const idx = (ctx.projectItems || []).findIndex(
+                        it => (typeof it.getId === 'function' ? it.getId() : it.id) === id
+                    )
+                    if (idx !== -1) ctx.projectItems.splice(idx, 1)
+                    const proj =
+                        (typeof ProjectManager !== 'undefined' &&
+                            ProjectManager?.getInstance?.()?.getProject?.()) ||
+                        ctx.vm?.project ||
+                        ctx.projectData?.project
+                    if (proj?.removeItem) proj.removeItem(id)
                 } else if (
                     activeContextMenuTarget.type === 'trait' ||
                     activeContextMenuTarget.type === 'stat'

@@ -37,6 +37,7 @@ export class Choice {
     private costs: ChoiceModifier[] = []
     private rewards: ChoiceModifier[] = []
     private diceCheck: ChoiceDiceCheck | null = null
+    private isCombatOutcome: boolean = false
 
     constructor(
         id: string = '',
@@ -47,7 +48,8 @@ export class Choice {
         description: Description = new Description(),
         costs: ChoiceModifier[] = [],
         rewards: ChoiceModifier[] = [],
-        diceCheck: ChoiceDiceCheck | null = null
+        diceCheck: ChoiceDiceCheck | null = null,
+        isCombatOutcome: boolean = false
     ) {
         this.id = id
         this.name = name
@@ -58,6 +60,7 @@ export class Choice {
         this.costs = Array.isArray(costs) ? costs : []
         this.rewards = Array.isArray(rewards) ? rewards : []
         this.diceCheck = diceCheck || null
+        this.isCombatOutcome = Boolean(isCombatOutcome)
     }
 
     public getId(): string {
@@ -150,6 +153,14 @@ export class Choice {
 
     public setRewards(rewards: ChoiceModifier[]): void {
         this.rewards = Array.isArray(rewards) ? rewards : []
+    }
+
+    public getIsCombatOutcome(): boolean {
+        return this.isCombatOutcome
+    }
+
+    public setIsCombatOutcome(isCombatOutcome: boolean): void {
+        this.isCombatOutcome = Boolean(isCombatOutcome)
     }
 
     public addReward(reward: ChoiceModifier): void {
@@ -268,6 +279,9 @@ export class Choice {
                 branches,
             })
         }
+        if (typeof json.isCombatOutcome === 'boolean') {
+            choice.setIsCombatOutcome(json.isCombatOutcome)
+        }
         return choice
     }
 
@@ -282,6 +296,7 @@ export class Choice {
             costs: this.costs,
             rewards: this.rewards,
             diceCheck: this.diceCheck,
+            isCombatOutcome: this.isCombatOutcome,
         }
     }
 }

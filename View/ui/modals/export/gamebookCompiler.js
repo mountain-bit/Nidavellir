@@ -499,12 +499,34 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
         const itemSection = {
             title: 'Katalog Przedmiotów i Artefaktów',
             type: 'items',
-            items: rawItems.map(i => ({
-                id: (typeof i.getId === 'function' ? i.getId() : i.id) || '',
-                name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
-                description: extractEntityMarkdown(i, ctx),
-                filePath: getEntityFilePath(i),
-            })),
+            items: rawItems.map(i => {
+                const category =
+                    typeof i.getCategory === 'function' ? i.getCategory() : i.category || 'misc'
+                const slotSize =
+                    typeof i.getSlotSize === 'function' ? i.getSlotSize() : (i.slotSize ?? 1)
+                const weight = typeof i.getWeight === 'function' ? i.getWeight() : (i.weight ?? 1)
+                const isConsumable =
+                    typeof i.isConsumable === 'function'
+                        ? i.isConsumable()
+                        : Boolean(i.isConsumable)
+                const tags = (typeof i.getTags === 'function' ? i.getTags() : i.tags || []).map(
+                    t => (typeof t.getName === 'function' ? t.getName() : t.name || String(t))
+                )
+                const modifiers =
+                    typeof i.getModifiers === 'function' ? i.getModifiers() : i.modifiers || []
+                return {
+                    id: (typeof i.getId === 'function' ? i.getId() : i.id) || '',
+                    name: (typeof i.getName === 'function' ? i.getName() : i.name) || 'Przedmiot',
+                    category,
+                    slotSize,
+                    weight,
+                    isConsumable,
+                    tags,
+                    modifiers,
+                    description: extractEntityMarkdown(i, ctx),
+                    filePath: getEntityFilePath(i),
+                }
+            }),
         }
         if (options.itemsPlacement === 'start') startSections.push(itemSection)
         else endSections.push(itemSection)
@@ -1341,14 +1363,57 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
                 <h2>${escapeHtml(sec.title)}</h2>
                 <div class="extra-items-grid">
                     ${(sec.items || [])
-                        .map(
-                            item => `
+                        .map(item => {
+                            const metaParts = []
+                            if (sec.type === 'items') {
+                                if (item.category)
+                                    metaParts.push(`Kategoria: ${escapeHtml(item.category)}`)
+                                if (item.slotSize !== undefined)
+                                    metaParts.push(
+                                        `${item.slotSize} ${item.slotSize === 1 ? 'slot' : 'sloty'}`
+                                    )
+                                if (item.weight) metaParts.push(`${item.weight} kg`)
+                                if (item.isConsumable) metaParts.push('Jednorazowy')
+                            }
+                            const metaHtml =
+                                metaParts.length > 0
+                                    ? `<div class="item-meta" style="font-size: 8.5pt; color: #666; margin: 2pt 0 4pt 0;">${metaParts.join(' • ')}</div>`
+                                    : ''
+
+                            const modsHtml =
+                                sec.type === 'items' &&
+                                Array.isArray(item.modifiers) &&
+                                item.modifiers.length > 0
+                                    ? `<div class="item-mods" style="font-size: 8.5pt; margin: 2pt 0 4pt 0;"><strong>Modyfikatory:</strong> ${item.modifiers
+                                          .map(m => {
+                                              const sign =
+                                                  m.operator === '+' && Number(m.value) > 0
+                                                      ? '+'
+                                                      : ''
+                                              return `${escapeHtml(m.targetName)}: ${sign}${escapeHtml(String(m.value))}`
+                                          })
+                                          .join(', ')}</div>`
+                                    : ''
+
+                            const tagsHtml =
+                                sec.type === 'items' &&
+                                Array.isArray(item.tags) &&
+                                item.tags.length > 0
+                                    ? `<div class="item-tags" style="font-size: 8pt; color: #888; margin: 2pt 0 4pt 0;">${item.tags
+                                          .map(t => `#${escapeHtml(t)}`)
+                                          .join(' ')}</div>`
+                                    : ''
+
+                            return `
                         <article class="extra-item">
                             <h3 class="item-name">${escapeHtml(item.name)}</h3>
+                            ${metaHtml}
+                            ${modsHtml}
+                            ${tagsHtml}
                             ${item.description ? `<div class="item-desc">${markdownToHtml(item.description, bookData.paragraphMap || {})}</div>` : '<p class="item-desc italic text-gray-500">(Brak opisu)</p>'}
                         </article>
                     `
-                        )
+                        })
                         .join('')}
                 </div>
             </section>

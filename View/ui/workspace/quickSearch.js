@@ -226,6 +226,13 @@ export function getAllProjectObjects(ctx) {
         if (!it) return
         const title = (it.getName && it.getName()) || it.name || it.id || 'Przedmiot'
         const desc = getEntityText(it.getDescription ? it.getDescription() : it.description)
+        const tags = (it.getTags ? it.getTags() : it.tags || [])
+            .map(tg => (tg.getName ? tg.getName() : tg.name))
+            .filter(Boolean)
+        const category = (it.getCategory ? it.getCategory() : it.category) || ''
+        const modifiers = (it.getModifiers ? it.getModifiers() : it.modifiers || [])
+            .map(m => `${m.targetName || m.name || ''} ${m.operator || ''}${m.value ?? ''}`.trim())
+            .filter(Boolean)
 
         items.push({
             id: it.getId ? it.getId() : String(it.id || ''),
@@ -233,10 +240,12 @@ export function getAllProjectObjects(ctx) {
             description: desc,
             category: 'items',
             type: 'item',
-            typeLabel: 'Przedmiot',
+            typeLabel: category ? `Przedmiot (${category})` : 'Przedmiot',
             icon: 'item',
             badgeColor: 'text-amber-300 bg-amber-500/10 border-amber-500/30',
             actionText: 'Otwórz szczegóły i opis',
+            tags,
+            modifiers,
             entity: it,
         })
     })
@@ -452,6 +461,11 @@ export function scoreCandidate(candidate, rawQuery) {
     const loc = (candidate.locationName || '').toLowerCase()
     if (loc.startsWith(q) || loc.includes(q)) {
         return { matched: true, tier: 5, score: 600 }
+    }
+
+    const modifiersList = Array.isArray(candidate.modifiers) ? candidate.modifiers : []
+    if (modifiersList.some(m => m.toLowerCase().includes(q))) {
+        return { matched: true, tier: 5, score: 650 }
     }
 
     return { matched: false, tier: 999, score: 9999 }
