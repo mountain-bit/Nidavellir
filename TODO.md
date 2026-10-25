@@ -157,6 +157,7 @@ This document serves as a comprehensive registry of implemented features, archit
   - [x] Rich protagonist character sheet appendix with stats, parameters, formulas, inventory, and skills.
   - [x] Bestiary / Dramatis Personae appendix with NPC stat blocks, portraits, and descriptions.
   - [x] Table of Contents and rules reference sheets.
+  - [x] Author's Game Rules integration: automatic inclusion of `Rules/GameRules.md` in HTML, PDF, and DOCX publications, plus standalone HTML handout export via `Services/RulesExportService.ts` and editor toolbar button.
 - [x] **Multi-Format Export Handlers (`main/services/ExportService.js`, `main/ipc/exportIpc.js`)**
   - [x] **HTML Standalone**: Single-file export with embedded styles, ready for web distribution.
   - [x] **PDF Export**: Print-ready layout generated via Electron Chromium `printToPDF` with `@page` styling, headers, and footers.
@@ -244,6 +245,7 @@ This document serves as a comprehensive registry of implemented features, archit
   - [x] Clean SVG icons (`Utils/icons.ts`) and full multilingual localization (PL, EN, DE).
 - [x] **Full Feature Integration**
   - [x] Quick save and dirty indicator.
+  - [x] Game rules file launcher (`data-action="open-game-rules"`, shortcut `F3`) with amber book icon, active tab highlight, and starter template scaffolding.
   - [x] Graph validation trigger with badge counter.
   - [x] Playtester launcher (`data-action="open-playtest"`).
   - [x] Export modal launcher (`data-action="open-export"`).

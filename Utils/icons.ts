@@ -76,6 +76,7 @@ export type IconName =
     | 'swords'
     | 'combat'
     | 'dice'
+    | 'book'
 
 export interface IIconConfig {
     viewBox?: string
@@ -83,6 +84,10 @@ export interface IIconConfig {
 }
 
 export const ICON_REGISTRY: Record<IconName, IIconConfig> = {
+    book: {
+        viewBox: '0 0 24 24',
+        path: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>',
+    },
     dice: {
         viewBox: '0 0 24 24',
         path: '<rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.8"></rect><circle cx="8" cy="8" r="1.5" fill="currentColor"></circle><circle cx="16" cy="8" r="1.5" fill="currentColor"></circle><circle cx="8" cy="16" r="1.5" fill="currentColor"></circle><circle cx="16" cy="16" r="1.5" fill="currentColor"></circle><circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>',

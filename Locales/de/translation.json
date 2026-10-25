@@ -582,6 +582,8 @@
             "validate_graph": "Graph validieren",
             "validation_clean": "0 Fehler",
             "zoom_fit": "Graph anpassen",
+            "game_rules": "Spielregeln",
+            "game_rules_tooltip": "Spielregeln (F3)",
             "playtest": "Spiel testen",
             "export": "Exportieren",
             "left_panel": "Linke Leiste (Ctrl+B)",
@@ -590,6 +592,17 @@
             "settings": "Einstellungen",
             "help": "Hilfe & Tastenkürzel"
         }
+    },
+    "rules": {
+        "title": "Spielregeln & Einführung",
+        "opened_toast": "Spielregeln geöffnet",
+        "tab_name": "Spielregeln",
+        "export_btn": "Regeln exportieren",
+        "export_standalone_pdf": "Regeln als PDF exportieren",
+        "export_standalone_html": "Regeln als HTML exportieren",
+        "export_standalone_markdown": "Regeln als Markdown exportieren",
+        "export_success": "Spielregeln erfolgreich exportiert",
+        "template": "# Spielregeln\n\n## Einführung\nWillkommen zu diesem Spielbuch-Abenteuer! Hier findest du die grundlegenden Regeln und Mechanismen.\n\n## Spielablauf\nLies die Abschnitte und triff deine Entscheidungen. Am Ende jedes Abschnitts findest du Optionen, die zu den nächsten Paragraphennummern (§) führen.\n\n## Attribute & Charakterwerte\nWährend deines Abenteuers stützt sich dein Charakter auf Eigenschaften und Vitalwerte:\n- **Lebenspunkte / Ausdauer**: Sinkt dieser Wert auf null, ist das Spiel verloren.\n- **Hauptattribute**: Werden für Eigenschaftsproben verwendet.\n\n## Würfelproben\nWenn das Spiel eine Probe verlangt, würfle und vergleiche das Ergebnis mit deinem Attributwert.\n\n## Kampf\nKämpfe gegen Gegner werden nach den Anweisungen in den Kampfabschnitten abgehandelt.\n\n## Ausrüstung\nNotiere gefundene Gegenstände und Waffen in deinem Rucksack.\n"
     },
     "ribbon": {
         "tabs": {

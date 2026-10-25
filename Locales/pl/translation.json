@@ -597,6 +597,8 @@
             "validate_graph": "Waliduj graf",
             "validation_clean": "0 błędów",
             "zoom_fit": "Dopasuj widok grafu",
+            "game_rules": "Zasady gry",
+            "game_rules_tooltip": "Zasady gry (F3)",
             "playtest": "Testuj grę",
             "export": "Eksportuj",
             "left_panel": "Panel lewy (Ctrl+B)",
@@ -605,6 +607,17 @@
             "settings": "Ustawienia",
             "help": "Pomoc i skróty"
         }
+    },
+    "rules": {
+        "title": "Zasady Gry i Wprowadzenie",
+        "opened_toast": "Otwarto plik zasad gry",
+        "tab_name": "Zasady gry",
+        "export_btn": "Eksportuj zasady",
+        "export_standalone_pdf": "Eksportuj zasady do PDF",
+        "export_standalone_html": "Eksportuj zasady do HTML",
+        "export_standalone_markdown": "Eksportuj zasady do Markdown",
+        "export_success": "Zasady gry zostały pomyślnie wyeksportowane",
+        "template": "# Zasady Gry\n\n## Wprowadzenie\nWitaj w grze paragrafowej! Poniżej znajdziesz podstawowe reguły i mechaniki niezbędne do przejścia przygody.\n\n## Jak czytać grę\nCzytaj kolejne fragmenty i podejmuj decyzje. Na końcu każdego paragrafu znajdziesz wybory prowadzące do kolejnych numerów paragrafów (§).\n\n## Cechy i Statystyki Bohatera\nW trakcie rozgrywki Twoja postać opiera się na swoich atrybutach i parametrach:\n- **Punkty Życia / Kondycja**: Monitoruj ich poziom – ich utrata oznacza klęskę.\n- **Cechy główne**: Wykorzystywane przy testach umiejętności.\n\n## Testy i Rzuty Kośćmi\nGdy gra wymaga wykonania testu (np. *Test Zręczności*), wykonaj rzut kośćmi i porównaj wynik z wartością cechy bohatera.\n\n## Walka\nStarcia z przeciwnikami rozgrywane są według zasad podanych w ramkach potyczek.\n\n## Ekwipunek\nZapisuj zdobyty rynsztunek i przedmioty fabularne w wolnych slotach ekwipunku.\n"
     },
     "ribbon": {
         "tabs": {

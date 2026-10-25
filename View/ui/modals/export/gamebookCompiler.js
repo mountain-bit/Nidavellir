@@ -548,10 +548,20 @@ export function compileGamebook(ctx, options = {}, styleConfig = {}) {
 
     // Rules
     let rulesContent = ''
-    if (options.includeRules && rawRules.length > 0) {
-        rulesContent = rawRules
-            .map(r => `${r.title || r.name || 'Zasada'}:\n${r.content || r.description || ''}`)
-            .join('\n\n')
+    if (options.includeRules) {
+        const dedicatedRules =
+            ctx?.files?.['Rules/GameRules.md'] ||
+            ctx?.files?.['GameRules.md'] ||
+            ctx?.projectData?.files?.['Rules/GameRules.md'] ||
+            ctx?.projectData?.files?.['GameRules.md']
+
+        if (typeof dedicatedRules === 'string' && dedicatedRules.trim().length > 0) {
+            rulesContent = dedicatedRules.trim()
+        } else if (rawRules.length > 0) {
+            rulesContent = rawRules
+                .map(r => `${r.title || r.name || 'Zasada'}:\n${r.content || r.description || ''}`)
+                .join('\n\n')
+        }
     }
 
     // Character Sheet(s)
@@ -1566,6 +1576,21 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
             .join('')
     }
 
+    let rulesSectionHtml = ''
+    if (bookData.rulesContent && bookData.rulesContent.trim().length > 0) {
+        const rulesBodyHtml = markdownToHtml(bookData.rulesContent, bookData.paragraphMap || {})
+        rulesSectionHtml = `
+        <section class="gamebook-rules-section page-break-before" style="margin-bottom: 24pt;">
+            <header class="rules-header" style="margin-bottom: 12pt; border-bottom: 2pt solid ${accentColor}; padding-bottom: 4pt;">
+                <h2 style="font-family: ${headerFontFamily}; color: ${accentColor}; font-size: ${headerFontSize * 1.3}pt; margin: 0;">Zasady Gry i Wprowadzenie</h2>
+            </header>
+            <div class="paragraph-body rules-body">
+                ${rulesBodyHtml}
+            </div>
+        </section>
+        `
+    }
+
     return `<!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -1881,6 +1906,25 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
             color: ${accentColor};
         }
 
+        /* Rules section */
+        .gamebook-rules-section {
+            break-before: page;
+            page-break-before: always;
+        }
+        .rules-body p {
+            margin: 0 0 ${pSpacing}pt 0;
+            text-align: justify;
+            text-indent: ${pIndent}mm;
+        }
+        .rules-body p:first-child {
+            text-indent: 0;
+        }
+        .rules-body h2, .rules-body h3, .rules-body h4 {
+            font-family: ${headerFontFamily};
+            color: ${accentColor};
+            margin: 10pt 0 4pt 0;
+        }
+
         /* Character sheet */
         .sheet-box {
             border: 1pt solid ${accentColor};
@@ -1913,6 +1957,7 @@ export function generatePrintHtml(bookData, styleConfig = {}) {
     }
 
     ${sheetHtml}
+    ${rulesSectionHtml}
     ${startSectionsHtml}
 
     <div class="book-content-container">

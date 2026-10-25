@@ -171,8 +171,21 @@
 
                 <div class="topbar-divider hidden sm:block"></div>
 
-                <!-- Grupa 5: Testowanie Gry (Playtest) -->
+                <!-- Grupa 5: Zasady Gry & Testowanie Gry (Playtest) -->
                 <div class="topbar-group">
+                    <button
+                        class="topbar-btn hover:text-amber-400"
+                        type="button"
+                        data-action="open-game-rules"
+                        data-i18n-title="topbar.buttons.game_rules_tooltip"
+                        title="Zasady gry (F3)"
+                    >
+                        <app-icon name="book" class="w-3.5 h-3.5 text-amber-400"></app-icon>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.game_rules"
+                            >Zasady gry</span
+                        >
+                    </button>
+
                     <button
                         class="topbar-btn hover:text-emerald-400"
                         type="button"
@@ -1466,6 +1479,15 @@
                             <span id="save-status" class="text-[11px] text-zinc-400"></span>
                         </div>
                         <div class="flex items-center gap-3">
+                            <button
+                                id="btn-export-game-rules"
+                                type="button"
+                                class="hidden px-2.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                                title="Eksportuj zasady gry (HTML / Markdown)"
+                            >
+                                <app-icon name="export" class="w-3 h-3 text-amber-400"></app-icon>
+                                <span data-i18n="rules.export_btn">Eksportuj zasady</span>
+                            </button>
                             <span id="editor-stats" class="text-[11px] text-zinc-500"
                                 >0 słów · 0 znaków</span
                             >
@@ -7302,6 +7324,15 @@
                             Narzędzia i Gra
                         </h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
+                                <span>Zasady gry</span>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >F3</kbd
+                                >
+                            </div>
                             <div
                                 class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
                             >

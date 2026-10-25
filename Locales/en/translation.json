@@ -597,6 +597,8 @@
             "validate_graph": "Validate Graph",
             "validation_clean": "0 issues",
             "zoom_fit": "Fit Graph to View",
+            "game_rules": "Game Rules",
+            "game_rules_tooltip": "Game rules (F3)",
             "playtest": "Playtest Game",
             "export": "Export",
             "left_panel": "Left Panel (Ctrl+B)",
@@ -605,6 +607,17 @@
             "settings": "Settings",
             "help": "Help & Shortcuts"
         }
+    },
+    "rules": {
+        "title": "Game Rules & Introduction",
+        "opened_toast": "Opened game rules file",
+        "tab_name": "Game Rules",
+        "export_btn": "Export rules",
+        "export_standalone_pdf": "Export rules to PDF",
+        "export_standalone_html": "Export rules to HTML",
+        "export_standalone_markdown": "Export rules to Markdown",
+        "export_success": "Game rules exported successfully",
+        "template": "# Game Rules\n\n## Introduction\nWelcome to this gamebook adventure! Below you will find the fundamental rules and mechanics required to play.\n\n## How to Play\nRead each paragraph and make your choices. At the end of each passage, you will find options leading to subsequent paragraph numbers (§).\n\n## Character Traits & Stats\nDuring your journey, your character relies on attributes and parameters:\n- **Health / Condition**: Keep track of your vitals — reaching zero means defeat.\n- **Primary Stats**: Used when rolling skill and trait checks.\n\n## Dice Rolls & Checks\nWhen the game calls for a test (e.g., *Agility Check*), roll your dice and compare the result against your character stat.\n\n## Combat\nEncounters with opponents follow the guidelines provided in paragraph combat blocks.\n\n## Inventory\nRecord acquired weapons, armor, and quest items in your backpack slots.\n"
     },
     "ribbon": {
         "tabs": {

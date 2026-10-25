@@ -17,6 +17,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
                 <button data-action="switch-markdown" class="topbar-segmented-btn">Edytor</button>
                 <button data-action="validate-graph">Waliduj</button>
                 <button data-action="zoom-fit">Dopasuj</button>
+                <button data-action="open-game-rules">Zasady</button>
                 <button data-action="run-game">Testuj</button>
                 <button data-action="toggle-left-drawer" class="active">Panel L</button>
                 <button data-action="toggle-right-sidebar" class="active">Panel P</button>
@@ -306,5 +307,80 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
 
         const modal = document.getElementById('asset-manager-modal')
         expect(modal?.classList.contains('hidden')).toBe(false)
+    })
+
+    it('highlights open-game-rules button when game rules file is active in markdown view', () => {
+        const mockCtx = {
+            vm: {
+                getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+            },
+        }
+
+        updateTopBarUI(mockCtx)
+
+        const rulesBtn = document.querySelector('[data-action="open-game-rules"]')
+        expect(rulesBtn?.classList.contains('active')).toBe(true)
+
+        // When another file is active
+        mockCtx.vm.getActiveFile.mockReturnValue('Description_Paragraph_Scene1.md')
+        updateTopBarUI(mockCtx)
+        expect(rulesBtn?.classList.contains('active')).toBe(false)
+    })
+
+    it('opens game rules file when open-game-rules button is clicked', async () => {
+        const { openGameRules } = await import('../../View/ui/workspace/topBar.js')
+
+        const setFileDisplayNameSpy = vi.fn()
+        const setActiveFileSpy = vi.fn()
+        const setActiveMainViewSpy = vi.fn()
+        const updateMainWorkspaceUISpy = vi.fn()
+
+        const mockCtx = {
+            files: {} as Record<string, string>,
+            updateMainWorkspaceUI: updateMainWorkspaceUISpy,
+            vm: {
+                setFileDisplayName: setFileDisplayNameSpy,
+                setActiveFile: setActiveFileSpy,
+                setActiveMainView: setActiveMainViewSpy,
+                getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+            },
+        }
+
+        await openGameRules(mockCtx)
+
+        expect(mockCtx.files['Rules/GameRules.md']).toContain('Zasady')
+        expect(setFileDisplayNameSpy).toHaveBeenCalledWith('Rules/GameRules.md', expect.any(String))
+        expect(setActiveFileSpy).toHaveBeenCalledWith('Rules/GameRules.md')
+        expect(setActiveMainViewSpy).toHaveBeenCalledWith('markdown')
+        expect(updateMainWorkspaceUISpy).toHaveBeenCalled()
+    })
+
+    it('opens game rules file when F3 shortcut is pressed', async () => {
+        const setActiveFileSpy = vi.fn()
+        const setActiveMainViewSpy = vi.fn()
+
+        const mockCtx = {
+            files: {} as Record<string, string>,
+            updateMainWorkspaceUI: vi.fn(),
+            vm: {
+                setFileDisplayName: vi.fn(),
+                setActiveFile: setActiveFileSpy,
+                setActiveMainView: setActiveMainViewSpy,
+                getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+            },
+        }
+
+        initTopBar(mockCtx)
+
+        const event = new KeyboardEvent('keydown', { key: 'F3', bubbles: true, cancelable: true })
+        window.dispatchEvent(event)
+
+        expect(setActiveFileSpy).toHaveBeenCalledWith('Rules/GameRules.md')
+        expect(setActiveMainViewSpy).toHaveBeenCalledWith('markdown')
     })
 })

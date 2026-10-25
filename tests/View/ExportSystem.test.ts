@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import ExportService from '../../main/services/ExportService.js'
+import { RulesExportService } from '../../Services/RulesExportService'
 import { setupCharacterSheetUI } from '../../View/ui/modals/export/exportModal.js'
 import {
     deleteCustomStyle,
@@ -258,6 +259,58 @@ describe('Export System Tests', () => {
             expect(html).toContain('❖ ❖ ❖')
             expect(html).toContain('Początek przygody w lesie.')
             expect(html).toContain('Glosariusz i Słowniczek')
+        })
+
+        it('compiles dedicated game rules file and includes it in print HTML export', () => {
+            const rulesCtx = {
+                projectData: {
+                    projectParagraphs: [
+                        { id: 'p1', number: 1, isStartNode: true, text: 'Początek.' },
+                    ],
+                },
+                files: {
+                    'Rules/GameRules.md':
+                        '# Oficjalne Zasady\n\nJak grać: Rzuć kośćmi przed walką.',
+                },
+            }
+
+            const compiled = compileGamebook(rulesCtx, {
+                includeRules: true,
+            })
+
+            expect(compiled.rulesContent).toContain('Oficjalne Zasady')
+            expect(compiled.rulesContent).toContain('Rzuć kośćmi przed walką.')
+
+            const html = generatePrintHtml(compiled, getStyleById('classic-fantasy'))
+            expect(html).toContain('gamebook-rules-section')
+            expect(html).toContain('Zasady Gry i Wprowadzenie')
+            expect(html).toContain('Oficjalne Zasady')
+        })
+
+        it('RulesExportService correctly formats standalone HTML and Markdown handouts', () => {
+            const htmlHandout = RulesExportService.exportToHtml({
+                title: 'Zasady Świata',
+                author: 'Mistrz Gry',
+                version: '2.0',
+                content: '# Reguły\n\n- Punkt 1\n- Punkt 2',
+            })
+
+            expect(htmlHandout).toContain('<!DOCTYPE html>')
+            expect(htmlHandout).toContain('Zasady Świata')
+            expect(htmlHandout).toContain('Mistrz Gry')
+            expect(htmlHandout).toContain('<li>Punkt 1</li>')
+
+            const mdHandout = RulesExportService.exportToMarkdown({
+                title: 'Zasady Świata',
+                author: 'Mistrz Gry',
+                version: '2.0',
+                content: '# Reguły\n\nTreść reguł.',
+            })
+
+            expect(mdHandout).toContain('---')
+            expect(mdHandout).toContain('title: "Zasady Świata"')
+            expect(mdHandout).toContain('author: "Mistrz Gry"')
+            expect(mdHandout).toContain('Treść reguł.')
         })
 
         it('compiles choices with conditions, costs, rewards, and branching dice checks', () => {

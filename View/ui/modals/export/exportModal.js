@@ -105,6 +105,29 @@ async function loadAllProjectMarkdownFiles(ctx) {
             }
         }
     }
+
+    // Preload Game Rules file if present
+    const rulesPaths = ['Rules/GameRules.md', 'GameRules.md']
+    for (const rp of rulesPaths) {
+        if (!ctx.files[rp]) {
+            try {
+                const res = await window.electronAPI.readMarkdownFile(projectPath, rp)
+                if (
+                    res &&
+                    res.success &&
+                    typeof res.content === 'string' &&
+                    res.content.length > 0
+                ) {
+                    ctx.files[rp] = res.content
+                    ctx.files['Rules/GameRules.md'] = res.content
+                    ctx.files['GameRules.md'] = res.content
+                    break
+                }
+            } catch {
+                // Ignore if missing
+            }
+        }
+    }
 }
 
 export function openExportModal(ctx) {

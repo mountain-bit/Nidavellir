@@ -822,6 +822,7 @@ declare module '*/View/ui/workspace/topBar.js' {
     export function runGraphValidation(ctx: unknown): unknown
     export function openPlaytestSimulator(ctx: unknown): void
     export function openExportModal(ctx: unknown): void
+    export function openGameRules(ctx: unknown): Promise<void>
     export function initTopBar(ctx: unknown): void
     export function openQuickSearch(ctx: unknown): void
     export function centerGraphView(ctx: unknown): void
