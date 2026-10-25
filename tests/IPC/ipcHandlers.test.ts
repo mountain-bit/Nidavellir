@@ -27,9 +27,13 @@ describe('Main Process Services & File System Operations', () => {
 
     beforeEach(() => {
         tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'silnik-ipc-test-'))
+        RecentProjectsService.setApp({
+            getPath: () => tempDir,
+        })
     })
 
     afterEach(() => {
+        RecentProjectsService.setApp(null)
         try {
             if (fs.existsSync(tempDir)) {
                 fs.rmSync(tempDir, { recursive: true, force: true })
