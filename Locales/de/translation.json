@@ -808,6 +808,15 @@
             "paragraphs_count": "{{count}} Absätze",
             "drag_hint": "Ziehen, um die Szene zu verschieben",
             "change_color": "Szenenfarbe ändern"
+        },
+        "selection": {
+            "selected_count": "Ausgewählt: {{count}}",
+            "create_scene": "Szene erstellen",
+            "create_scene_title": "Neue Szene für ausgewählte Absätze erstellen (Ctrl+G)",
+            "clear_selection": "Auswahl aufheben",
+            "clear_selection_title": "Auswahl aufheben (Esc)",
+            "scene_created": "Szene „{{name}}” mit {{count}} Absätzen erstellt",
+            "default_scene_name": "Neue Szene"
         }
     },
     "right_panel": {

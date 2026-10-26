@@ -29,11 +29,19 @@ export interface IStoryGraphOptions {
         targetParagraph?: Paragraph
     ) => void
     onCreateParagraph: (title: string, parentParagraph: Paragraph) => Paragraph
+    onCreateScene?: (
+        name: string,
+        position: { x: number; y: number },
+        width: number,
+        height: number,
+        assignedParagraphs?: Paragraph[]
+    ) => Scene | null
     onCreateConnection?: (
         sourceParagraph: Paragraph,
         targetParagraph: Paragraph,
         name?: string
     ) => Choice | null
+    onSelectionChange?: (selectedParagraphIds: string[]) => void
     onToast: (
         type: 'success' | 'info' | 'error' | 'warning',
         message: string,

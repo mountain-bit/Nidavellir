@@ -823,6 +823,15 @@
             "paragraphs_count": "{{count}} paragraphs",
             "drag_hint": "Drag to move scene",
             "change_color": "Change scene color"
+        },
+        "selection": {
+            "selected_count": "Selected: {{count}}",
+            "create_scene": "Create scene",
+            "create_scene_title": "Create a new scene enclosing selected paragraphs (Ctrl+G)",
+            "clear_selection": "Deselect",
+            "clear_selection_title": "Clear selection (Esc)",
+            "scene_created": "Created scene \"{{name}}\" enclosing {{count}} paragraphs",
+            "default_scene_name": "New scene"
         }
     },
     "right_panel": {

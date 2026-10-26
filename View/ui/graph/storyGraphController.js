@@ -153,6 +153,22 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                 if (typeof ctx.renderParagraphsList === 'function') ctx.renderParagraphsList()
                 return newP
             },
+            onCreateScene: (name, position, width, height, assignedParagraphs) => {
+                const newScene = ctx.vm.createScene(name)
+                if (position) newScene.setPosition(position)
+                if (width) newScene.setWidth(width)
+                if (height) newScene.setHeight(height)
+                if (Array.isArray(assignedParagraphs)) {
+                    assignedParagraphs.forEach(p => newScene.addParagraph(p))
+                }
+                const targetScenes = ctx.projectScenes || ctx.projectData?.projectScenes
+                if (Array.isArray(targetScenes) && !targetScenes.includes(newScene)) {
+                    targetScenes.push(newScene)
+                }
+                markProjectDirty()
+                if (typeof ctx.renderScenesList === 'function') ctx.renderScenesList()
+                return newScene
+            },
             onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
                 const existingChoices = fromParagraph.getChoices ? fromParagraph.getChoices() : []
                 const toId = toParagraph.getId()

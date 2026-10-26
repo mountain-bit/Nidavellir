@@ -18,6 +18,7 @@ import { IStoryGraphOptions } from './types'
 
 export interface ICytoscapeInstance {
     pan: (pos?: { x: number; y: number }) => { x: number; y: number }
+    panBy?: (pos: { x: number; y: number }) => void
     zoom: (level?: number) => number
     center: (eles?: unknown) => void
     fit: (eles?: unknown, padding?: number) => void
@@ -57,7 +58,29 @@ export class StoryGraph {
     private boundSyncTransform: () => void
     private boundNodesLayerWheel: (e: WheelEvent) => void
     private boundCanvasContainerWheel: (e: WheelEvent) => void
+    private boundGraphPointerDown: (e: PointerEvent | MouseEvent) => void
+    private boundGraphPointerMove: (e: PointerEvent | MouseEvent) => void
+    private boundGraphPointerUp: (e: PointerEvent | MouseEvent) => void
+    private boundContextMenu: (e: MouseEvent) => void
+    private isRmbPanning = false
+    private rmbPanMoved = false
+    private rmbPanStartX = 0
+    private rmbPanStartY = 0
+    private rmbPanLastX = 0
+    private rmbPanLastY = 0
     private dragLineSvg: SVGSVGElement | null = null
+
+    // Multi-selection & Marquee state
+    private selectedParagraphIds: Set<string> = new Set()
+    private isMarqueeCandidate = false
+    private isMarqueeActive = false
+    private marqueeStartX = 0
+    private marqueeStartY = 0
+    private marqueeShiftMode = false
+    private boundCanvasPointerDown: (e: PointerEvent | MouseEvent) => void
+    private boundWindowPointerMove: (e: PointerEvent | MouseEvent) => void
+    private boundWindowPointerUp: (e: PointerEvent | MouseEvent) => void
+    private boundWindowKeyDown: (e: KeyboardEvent) => void
 
     constructor(options: IStoryGraphOptions) {
         this.canvasContainer = options.canvasContainer
@@ -66,16 +89,67 @@ export class StoryGraph {
         this.boundSyncTransform = this.syncTransform.bind(this)
         this.boundNodesLayerWheel = this.handleNodesLayerWheel.bind(this)
         this.boundCanvasContainerWheel = this.handleCanvasContainerWheel.bind(this)
+        this.boundGraphPointerDown = this.handleGraphPointerDown.bind(this)
+        this.boundGraphPointerMove = this.handleGraphPointerMove.bind(this)
+        this.boundGraphPointerUp = this.handleGraphPointerUp.bind(this)
+        this.boundContextMenu = this.handleContextMenu.bind(this)
+        this.boundCanvasPointerDown = this.handleCanvasPointerDown.bind(this)
+        this.boundWindowPointerMove = this.handleWindowPointerMove.bind(this)
+        this.boundWindowPointerUp = this.handleWindowPointerUp.bind(this)
+        this.boundWindowKeyDown = this.handleWindowKeyDown.bind(this)
+
         if (this.nodesLayer) {
             this.nodesLayer.addEventListener('wheel', this.boundNodesLayerWheel, {
                 passive: false,
             })
+            this.nodesLayer.addEventListener(
+                'pointerdown',
+                this.boundGraphPointerDown as EventListener
+            )
+            this.nodesLayer.addEventListener(
+                'mousedown',
+                this.boundGraphPointerDown as EventListener
+            )
+            this.nodesLayer.addEventListener(
+                'pointerdown',
+                this.boundCanvasPointerDown as EventListener
+            )
+            this.nodesLayer.addEventListener(
+                'mousedown',
+                this.boundCanvasPointerDown as EventListener
+            )
+            this.nodesLayer.addEventListener('contextmenu', this.boundContextMenu)
         }
         if (this.canvasContainer) {
             this.canvasContainer.addEventListener('wheel', this.boundCanvasContainerWheel, {
                 capture: true,
                 passive: false,
             })
+            this.canvasContainer.addEventListener(
+                'pointerdown',
+                this.boundGraphPointerDown as EventListener
+            )
+            this.canvasContainer.addEventListener(
+                'mousedown',
+                this.boundGraphPointerDown as EventListener
+            )
+            this.canvasContainer.addEventListener(
+                'pointerdown',
+                this.boundCanvasPointerDown as EventListener
+            )
+            this.canvasContainer.addEventListener(
+                'mousedown',
+                this.boundCanvasPointerDown as EventListener
+            )
+            this.canvasContainer.addEventListener('contextmenu', this.boundContextMenu)
+
+            const wrapper = this.canvasContainer.parentElement
+            if (wrapper && wrapper !== document.body) {
+                wrapper.addEventListener('contextmenu', this.boundContextMenu)
+            }
+        }
+        if (typeof window !== 'undefined') {
+            window.addEventListener('keydown', this.boundWindowKeyDown)
         }
     }
 
@@ -228,12 +302,35 @@ export class StoryGraph {
             return
         }
 
+        let previousPan: { x: number; y: number } | null = null
+        let previousZoom: number | null = null
+
         if (this.cy) {
+            try {
+                if (typeof this.cy.pan === 'function') {
+                    const currentPan = this.cy.pan()
+                    if (
+                        currentPan &&
+                        typeof currentPan.x === 'number' &&
+                        typeof currentPan.y === 'number'
+                    ) {
+                        previousPan = { x: currentPan.x, y: currentPan.y }
+                    }
+                }
+                if (typeof this.cy.zoom === 'function') {
+                    const currentZoom = this.cy.zoom()
+                    if (typeof currentZoom === 'number' && !Number.isNaN(currentZoom)) {
+                        previousZoom = currentZoom
+                    }
+                }
+            } catch (_) {
+                // Ignore if cy was in an invalid state
+            }
             this.cy.destroy()
             this.cy = null
         }
 
-        this.cy = window.cytoscape({
+        const cyOptions: Record<string, unknown> = {
             container: this.canvasContainer,
             elements,
             style: getStoryGraphStylesheet(lineStyle, this.options.customStyles),
@@ -241,11 +338,30 @@ export class StoryGraph {
             minZoom: GRAPH_THEME.zoom.min,
             maxZoom: GRAPH_THEME.zoom.max,
             wheelSensitivity: this.options.wheelSensitivity ?? GRAPH_THEME.zoom.wheelSensitivity,
-        })
+            userPanningEnabled: false,
+            boxSelectionEnabled: false,
+        }
+
+        if (previousPan) {
+            cyOptions.pan = previousPan
+        }
+        if (typeof previousZoom === 'number') {
+            cyOptions.zoom = previousZoom
+        }
+
+        this.cy = window.cytoscape(cyOptions)
 
         window.cyInstance = this.cy
 
-        this.cy.on('pan zoom', this.boundSyncTransform)
+        if (this.cy) {
+            if (previousPan && typeof this.cy.pan === 'function') {
+                this.cy.pan(previousPan)
+            }
+            if (typeof previousZoom === 'number' && typeof this.cy.zoom === 'function') {
+                this.cy.zoom(previousZoom)
+            }
+            this.cy.on('pan zoom', this.boundSyncTransform)
+        }
 
         // Edge click / select handler
         this.cy.on('tap', 'edge', (evt: { target: { data: (key?: string) => unknown } }) => {
@@ -280,6 +396,8 @@ export class StoryGraph {
 
         this.renderCustomNodes(paragraphs, scenes)
         this.syncTransform()
+        this.updateSelectionVisuals()
+        this.updateSelectionToolbar()
     }
 
     /**
@@ -511,6 +629,7 @@ export class StoryGraph {
             let activeChildScenes: Scene[] = []
 
             const onScenePointerDown = (e: PointerEvent | MouseEvent): void => {
+                if (e.button !== 0) return
                 const target = e.target as HTMLElement
                 if (
                     target.closest('.scene-resize-handle') ||
@@ -758,15 +877,21 @@ export class StoryGraph {
             nodeEl.setPosition(pos.x, pos.y)
             nodeEl.dataset.nodeId = p.getId()
 
-            // Drag handling
+            if (this.selectedParagraphIds.has(p.getId())) {
+                nodeEl.classList.add('is-selected')
+                const inner = nodeEl.querySelector('.paragraph-node')
+                if (inner) inner.classList.add('is-selected')
+            }
+
+            // Drag handling (supports multi-selection group dragging)
             let isDragging = false
             let startX = 0
             let startY = 0
-            let nodeStartX = pos.x
-            let nodeStartY = pos.y
             let hasMoved = false
+            const groupStartPositions = new Map<string, { x: number; y: number }>()
 
             const onPointerDown = (e: PointerEvent | MouseEvent): void => {
+                if (e.button !== 0) return
                 const target = e.target as HTMLElement
                 if (
                     target.closest('.paragraph-node-socket') ||
@@ -779,13 +904,31 @@ export class StoryGraph {
 
                 e.stopPropagation()
 
+                if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                    return
+                }
+
                 isDragging = true
                 hasMoved = false
                 startX = e.clientX
                 startY = e.clientY
-                const currentPos = p.getPosition() || pos
-                nodeStartX = currentPos.x
-                nodeStartY = currentPos.y
+
+                if (!this.selectedParagraphIds.has(p.getId())) {
+                    this.selectedParagraphIds.clear()
+                    this.selectedParagraphIds.add(p.getId())
+                    this.updateSelectionVisuals()
+                    this.updateSelectionToolbar()
+                }
+
+                groupStartPositions.clear()
+                const paras = this.options.getParagraphs()
+                this.selectedParagraphIds.forEach(id => {
+                    const targetP = paras.find(x => x.getId() === id)
+                    if (targetP) {
+                        const curPos = targetP.getPosition() || pos
+                        groupStartPositions.set(id, { x: curPos.x, y: curPos.y })
+                    }
+                })
 
                 window.addEventListener('pointermove', onPointerMove)
                 window.addEventListener('pointerup', onPointerUp)
@@ -802,24 +945,34 @@ export class StoryGraph {
                 }
 
                 if (hasMoved) {
-                    const newX = Math.round(nodeStartX + dx)
-                    const newY = Math.round(nodeStartY + dy)
-                    nodeEl.setPosition(newX, newY)
-
-                    if (this.cy) {
-                        const cyNode = this.cy.getElementById(p.getId())
-                        if (cyNode) {
-                            cyNode.position({ x: newX, y: newY })
-                        }
-                    }
-                    p.setPosition({ x: newX, y: newY })
                     const paras = this.options.getParagraphs()
-                    preventChoiceLineCrossings(paras, p.getId())
+                    groupStartPositions.forEach((startPPos, id) => {
+                        const newX = Math.round(startPPos.x + dx)
+                        const newY = Math.round(startPPos.y + dy)
+                        const targetNodeEl = this.nodesLayer.querySelector(
+                            `paragraph-node[data-node-id="${id}"]`
+                        ) as ParagraphNode | null
+                        if (targetNodeEl) {
+                            targetNodeEl.setPosition(newX, newY)
+                        }
+
+                        if (this.cy) {
+                            const cyNode = this.cy.getElementById(id)
+                            if (cyNode) {
+                                cyNode.position({ x: newX, y: newY })
+                            }
+                        }
+                        const para = paras.find(x => x.getId() === id)
+                        if (para) {
+                            para.setPosition({ x: newX, y: newY })
+                            preventChoiceLineCrossings(paras, id)
+                        }
+                    })
                     this.updateEdgeGeometry(paras)
                 }
             }
 
-            const onPointerUp = (e: PointerEvent | MouseEvent): void => {
+            const onPointerUp = (_e: PointerEvent | MouseEvent): void => {
                 if (!isDragging) return
                 isDragging = false
                 window.removeEventListener('pointermove', onPointerMove)
@@ -841,44 +994,40 @@ export class StoryGraph {
                         nodeEl.removeEventListener('click', interceptClick, { capture: true })
                     }, 300)
 
-                    const zoom = this.cy ? this.cy.zoom() : 1
-                    const dx = (e.clientX - startX) / zoom
-                    const dy = (e.clientY - startY) / zoom
-                    const finalPos = {
-                        x: Math.round(nodeStartX + dx),
-                        y: Math.round(nodeStartY + dy),
-                    }
-                    p.setPosition(finalPos)
-
-                    if (this.cy) {
-                        const cyNode = this.cy.getElementById(p.getId())
-                        if (cyNode) {
-                            cyNode.position(finalPos)
-                        }
-                    }
-
                     const paras = this.options.getParagraphs()
                     const allScenes = this.options.getScenes()
                     this.syncParagraphSceneAssignments(paras, allScenes)
                     this.updateParagraphNodeColors(paras, allScenes)
                     this.updateSceneNodeBadges(allScenes)
 
-                    preventChoiceLineCrossings(paras, p.getId())
+                    groupStartPositions.forEach((_, id) => {
+                        preventChoiceLineCrossings(paras, id)
+                    })
                     this.updateEdgeGeometry(paras)
 
                     if (this.options.onSceneAssignmentChange) {
-                        const containingScenes = allScenes.filter(s => s.hasParagraph(p.getId()))
-                        containingScenes.forEach(s => {
-                            if (this.options.onSceneAssignmentChange) {
-                                this.options.onSceneAssignmentChange(s, s.getParagraphs())
-                            }
+                        groupStartPositions.forEach((_, id) => {
+                            const containingScenes = allScenes.filter(s => s.hasParagraph(id))
+                            containingScenes.forEach(s => {
+                                if (this.options.onSceneAssignmentChange) {
+                                    this.options.onSceneAssignmentChange(s, s.getParagraphs())
+                                }
+                            })
                         })
                     }
                     this.options.onGraphModified?.()
+                    this.updateSelectionToolbar()
                 }
             }
 
             nodeEl.addEventListener('pointerdown', onPointerDown as EventListener)
+
+            // Shift/Ctrl selection toggle event
+            nodeEl.addEventListener('node-toggle-select', (e: Event) => {
+                const customEvent = e as CustomEvent<{ paragraph: Paragraph }>
+                const targetP = customEvent.detail?.paragraph || p
+                this.toggleParagraphSelection(targetP.getId())
+            })
 
             // Selection / Details event (triggered on double click)
             const openDetails = (): void => {
@@ -886,9 +1035,10 @@ export class StoryGraph {
                 containingScenes.sort((a, b) => a.getArea() - b.getArea())
                 const currentPScene = containingScenes[0]
                 this.options.onSelectParagraph(p, currentPScene)
-                this.nodesLayer.querySelectorAll('.paragraph-node').forEach(n => {
-                    n.classList.toggle('is-selected', n === nodeEl.querySelector('.paragraph-node'))
-                })
+                this.selectedParagraphIds.clear()
+                this.selectedParagraphIds.add(p.getId())
+                this.updateSelectionVisuals()
+                this.updateSelectionToolbar()
             }
             nodeEl.addEventListener('node-open-details', openDetails)
             nodeEl.addEventListener('node-select', openDetails)
@@ -912,6 +1062,7 @@ export class StoryGraph {
                     originalEvent: PointerEvent | MouseEvent
                 }>
                 const { paragraph: srcParagraph, socketElement, originalEvent } = customEvent.detail
+                if (originalEvent && originalEvent.button !== 0) return
                 this.startConnectionDrag(srcParagraph, socketElement, originalEvent)
             })
 
@@ -1302,6 +1453,16 @@ export class StoryGraph {
             })
         }
 
+        if (elementId) {
+            const paragraphs = this.options.getParagraphs()
+            const isParagraph = paragraphs.some(p => p.getId() === elementId)
+            if (isParagraph) {
+                this.selectedParagraphIds.clear()
+                this.selectedParagraphIds.add(elementId)
+                this.updateSelectionToolbar()
+            }
+        }
+
         this.syncTransform()
     }
 
@@ -1564,15 +1725,585 @@ export class StoryGraph {
         }
     }
 
-    public destroy(): void {
-        if (this.nodesLayer && this.boundNodesLayerWheel) {
-            this.nodesLayer.removeEventListener('wheel', this.boundNodesLayerWheel)
+    public isPanningWithRmb(): boolean {
+        return this.isRmbPanning
+    }
+
+    public handleGraphPointerDown(e: PointerEvent | MouseEvent): void {
+        if (e.button !== 2) return // Only right mouse button (RMB)
+        if (this.isRmbPanning) return
+
+        const target = e.target as HTMLElement | null
+        if (target && target.closest('input, textarea, select')) return
+
+        e.preventDefault()
+        e.stopPropagation()
+
+        this.isRmbPanning = true
+        this.rmbPanMoved = false
+        this.rmbPanStartX = e.clientX
+        this.rmbPanStartY = e.clientY
+        this.rmbPanLastX = e.clientX
+        this.rmbPanLastY = e.clientY
+
+        const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+        if (wrapper) {
+            wrapper.classList.add('is-panning')
         }
-        if (this.canvasContainer && this.boundCanvasContainerWheel) {
-            this.canvasContainer.removeEventListener('wheel', this.boundCanvasContainerWheel, {
-                capture: true,
+
+        window.addEventListener('pointermove', this.boundGraphPointerMove as EventListener)
+        window.addEventListener('pointerup', this.boundGraphPointerUp as EventListener)
+        window.addEventListener('pointercancel', this.boundGraphPointerUp as EventListener)
+        window.addEventListener('mousemove', this.boundGraphPointerMove as EventListener)
+        window.addEventListener('mouseup', this.boundGraphPointerUp as EventListener)
+    }
+
+    public handleGraphPointerMove(e: PointerEvent | MouseEvent): void {
+        if (!this.isRmbPanning || !this.cy) return
+        e.preventDefault()
+
+        const dx = e.clientX - this.rmbPanLastX
+        const dy = e.clientY - this.rmbPanLastY
+
+        if (
+            !this.rmbPanMoved &&
+            Math.hypot(e.clientX - this.rmbPanStartX, e.clientY - this.rmbPanStartY) > 2
+        ) {
+            this.rmbPanMoved = true
+        }
+
+        if (dx !== 0 || dy !== 0) {
+            this.rmbPanLastX = e.clientX
+            this.rmbPanLastY = e.clientY
+
+            if (typeof this.cy.panBy === 'function') {
+                this.cy.panBy({ x: dx, y: dy })
+            } else if (typeof this.cy.pan === 'function') {
+                const curPan = this.cy.pan() || { x: 0, y: 0 }
+                this.cy.pan({ x: curPan.x + dx, y: curPan.y + dy })
+            }
+            this.syncTransform()
+        }
+    }
+
+    public handleGraphPointerUp(e: PointerEvent | MouseEvent): void {
+        if (e.type === 'pointercancel' || e.button === 2) {
+            if (!this.isRmbPanning) return
+            this.isRmbPanning = false
+
+            const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+            if (wrapper) {
+                wrapper.classList.remove('is-panning')
+            }
+
+            window.removeEventListener('pointermove', this.boundGraphPointerMove as EventListener)
+            window.removeEventListener('pointerup', this.boundGraphPointerUp as EventListener)
+            window.removeEventListener('pointercancel', this.boundGraphPointerUp as EventListener)
+            window.removeEventListener('mousemove', this.boundGraphPointerMove as EventListener)
+            window.removeEventListener('mouseup', this.boundGraphPointerUp as EventListener)
+        }
+    }
+
+    public handleContextMenu(e: MouseEvent): void {
+        const target = e.target as HTMLElement | null
+        if (
+            target &&
+            typeof target.closest === 'function' &&
+            target.closest('input, textarea, select')
+        )
+            return
+        e.preventDefault()
+        e.stopPropagation()
+    }
+
+    public getSelectedParagraphIds(): string[] {
+        return Array.from(this.selectedParagraphIds)
+    }
+
+    public setSelectedParagraphIds(ids: string[]): void {
+        this.selectedParagraphIds = new Set(ids)
+        this.updateSelectionVisuals()
+        this.updateSelectionToolbar()
+    }
+
+    public selectAllParagraphs(): void {
+        const paragraphs = this.options.getParagraphs()
+        this.selectedParagraphIds.clear()
+        paragraphs.forEach(p => {
+            if (p && p.getId()) {
+                this.selectedParagraphIds.add(p.getId())
+            }
+        })
+        this.updateSelectionVisuals()
+        this.updateSelectionToolbar()
+    }
+
+    public clearSelection(): void {
+        this.selectedParagraphIds.clear()
+        this.updateSelectionVisuals()
+        this.updateSelectionToolbar()
+    }
+
+    public toggleParagraphSelection(id: string): void {
+        if (this.selectedParagraphIds.has(id)) {
+            this.selectedParagraphIds.delete(id)
+        } else {
+            this.selectedParagraphIds.add(id)
+        }
+        this.updateSelectionVisuals()
+        this.updateSelectionToolbar()
+    }
+
+    public updateSelectionVisuals(): void {
+        if (!this.nodesLayer) return
+        this.nodesLayer.querySelectorAll('paragraph-node').forEach(el => {
+            const nodeEl = el as ParagraphNode
+            const pId = nodeEl.dataset.nodeId
+            const isSelected = Boolean(pId && this.selectedParagraphIds.has(pId))
+            const innerNode = nodeEl.querySelector('.paragraph-node')
+            if (innerNode) {
+                innerNode.classList.toggle('is-selected', isSelected)
+            }
+            nodeEl.classList.toggle('is-selected', isSelected)
+        })
+        if (this.options.onSelectionChange) {
+            this.options.onSelectionChange(Array.from(this.selectedParagraphIds))
+        }
+    }
+
+    private getOrCreateMarqueeElement(): HTMLElement {
+        const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+        let marquee = wrapper
+            ? (wrapper.querySelector('#graph-selection-marquee') as HTMLElement | null)
+            : null
+        if (!marquee) {
+            marquee = document.createElement('div')
+            marquee.id = 'graph-selection-marquee'
+            marquee.className =
+                'hidden pointer-events-none absolute z-20 border border-dashed border-blue-400 bg-blue-500/15 rounded'
+            if (wrapper) {
+                wrapper.appendChild(marquee)
+            }
+        }
+        return marquee
+    }
+
+    private getOrCreateSelectionToolbar(): HTMLElement | null {
+        const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+        if (!wrapper) return null
+        let toolbar = wrapper.querySelector('#graph-selection-toolbar') as HTMLElement | null
+        if (!toolbar) {
+            toolbar = document.createElement('div')
+            toolbar.id = 'graph-selection-toolbar'
+            toolbar.className =
+                'hidden absolute top-4 left-1/2 -translate-x-1/2 z-30 items-center bg-[#202023]/95 backdrop-blur-md border border-blue-500/40 rounded-lg shadow-2xl p-1.5 px-3 gap-2.5 select-none'
+            toolbar.setAttribute('role', 'toolbar')
+            toolbar.setAttribute('aria-label', 'Pasek akcji zaznaczonych paragrafów')
+            toolbar.innerHTML = `
+                <div class="flex items-center gap-1.5 text-xs font-medium text-zinc-300 pr-2 border-r border-zinc-700">
+                    <app-icon name="paragraph" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                    <span id="graph-selection-count-text">Zaznaczono: 0</span>
+                </div>
+                <button
+                    id="btn-selection-create-scene"
+                    type="button"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all cursor-pointer shadow-sm"
+                    title="${this.options.t('graph.selection.create_scene_title') || 'Utwórz nową scenę obejmującą zaznaczone paragrafy (Ctrl+G)'}"
+                >
+                    <app-icon name="scene" class="w-3.5 h-3.5 text-white"></app-icon>
+                    <span>${this.options.t('graph.selection.create_scene') || 'Utwórz scenę'}</span>
+                    <span class="text-[10px] opacity-75 font-normal">(Ctrl+G)</span>
+                </button>
+                <button
+                    id="btn-selection-clear"
+                    type="button"
+                    class="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
+                    title="${this.options.t('graph.selection.clear_selection_title') || 'Wyczyść zaznaczenie (Esc)'}"
+                    aria-label="Wyczyść zaznaczenie"
+                >
+                    <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                </button>
+            `
+            wrapper.appendChild(toolbar)
+        }
+
+        const btnCreate = toolbar.querySelector(
+            '#btn-selection-create-scene'
+        ) as HTMLButtonElement | null
+        if (btnCreate && !btnCreate.dataset.bound) {
+            btnCreate.dataset.bound = 'true'
+            btnCreate.addEventListener('click', e => {
+                e.stopPropagation()
+                this.createSceneFromSelection()
             })
         }
+        const btnClear = toolbar.querySelector('#btn-selection-clear') as HTMLButtonElement | null
+        if (btnClear && !btnClear.dataset.bound) {
+            btnClear.dataset.bound = 'true'
+            btnClear.addEventListener('click', e => {
+                e.stopPropagation()
+                this.clearSelection()
+            })
+        }
+
+        return toolbar
+    }
+
+    public updateSelectionToolbar(): void {
+        const toolbar = this.getOrCreateSelectionToolbar()
+        if (!toolbar) return
+
+        if (this.selectedParagraphIds.size >= 2) {
+            const countTextEl = toolbar.querySelector('#graph-selection-count-text')
+            if (countTextEl) {
+                const countMsg = this.options.t
+                    ? this.options.t('graph.selection.selected_count', {
+                          count: this.selectedParagraphIds.size,
+                      })
+                    : `Zaznaczono: ${this.selectedParagraphIds.size}`
+                countTextEl.textContent = countMsg
+            }
+            toolbar.classList.remove('hidden')
+            toolbar.style.display = 'flex'
+        } else {
+            toolbar.classList.add('hidden')
+            toolbar.style.display = 'none'
+        }
+    }
+
+    public createSceneFromSelection(sceneName?: string): Scene | null {
+        const paragraphs = this.options.getParagraphs()
+        const selected = paragraphs.filter(p => this.selectedParagraphIds.has(p.getId()))
+        if (selected.length === 0) return null
+
+        let minX = Infinity
+        let minY = Infinity
+        let maxX = -Infinity
+        let maxY = -Infinity
+        const nodeW = GRAPH_THEME.dimensions.nodeWidth
+        const nodeH = GRAPH_THEME.dimensions.nodeHeight
+
+        selected.forEach(p => {
+            const pos = p.getPosition() || { x: 0, y: 0 }
+            minX = Math.min(minX, pos.x)
+            minY = Math.min(minY, pos.y)
+            maxX = Math.max(maxX, pos.x + nodeW)
+            maxY = Math.max(maxY, pos.y + nodeH)
+        })
+
+        const paddingX = 40
+        const paddingTop = 60
+        const paddingBottom = 40
+
+        const sX = Math.round(minX - paddingX)
+        const sY = Math.round(minY - paddingTop)
+        const sW = Math.max(
+            GRAPH_THEME.dimensions.sceneMinWidth,
+            Math.round(maxX - minX + paddingX * 2)
+        )
+        const sH = Math.max(
+            GRAPH_THEME.dimensions.sceneMinHeight,
+            Math.round(maxY - minY + paddingTop + paddingBottom)
+        )
+
+        const defaultName = this.options.t
+            ? this.options.t('graph.selection.default_scene_name')
+            : 'Nowa scena'
+        const name = sceneName || defaultName
+
+        let newScene: Scene
+        if (this.options.onCreateScene) {
+            const created = this.options.onCreateScene(name, { x: sX, y: sY }, sW, sH, selected)
+            if (created) {
+                newScene = created
+            } else {
+                newScene = new Scene(
+                    '',
+                    name,
+                    undefined,
+                    selected,
+                    [],
+                    null,
+                    [],
+                    '',
+                    { x: sX, y: sY },
+                    sW,
+                    sH
+                )
+                this.options.getScenes().push(newScene)
+            }
+        } else {
+            newScene = new Scene(
+                '',
+                name,
+                undefined,
+                selected,
+                [],
+                null,
+                [],
+                '',
+                { x: sX, y: sY },
+                sW,
+                sH
+            )
+            this.options.getScenes().push(newScene)
+        }
+
+        const allScenes = this.options.getScenes()
+        this.syncParagraphSceneAssignments(paragraphs, allScenes)
+        this.options.onToast(
+            'success',
+            this.options.t('graph.selection.scene_created', {
+                name: newScene.getName() || defaultName,
+                count: selected.length,
+            }),
+            this.options.t('toast.element_created_title')
+        )
+        this.options.onGraphModified?.()
+        this.clearSelection()
+        this.render(true)
+        return newScene
+    }
+
+    public handleCanvasPointerDown(e: PointerEvent | MouseEvent): void {
+        if (e.button !== 0) return // Only primary button (LMB)
+        if (this.isRmbPanning) return
+        if (this.isMarqueeCandidate || this.isMarqueeActive) return
+
+        const target = e.target as HTMLElement | null
+        if (
+            target &&
+            typeof target.closest === 'function' &&
+            (target.closest('paragraph-node') ||
+                target.closest('.paragraph-node-socket') ||
+                target.closest('.paragraph-node-add-container') ||
+                target.closest('.scene-resize-handle') ||
+                target.closest('.scene-node-lock-btn') ||
+                target.closest('button') ||
+                target.closest('input') ||
+                target.closest('textarea') ||
+                target.closest('select'))
+        ) {
+            return
+        }
+
+        this.isMarqueeCandidate = true
+        this.isMarqueeActive = false
+        this.marqueeStartX = e.clientX
+        this.marqueeStartY = e.clientY
+        this.marqueeShiftMode = Boolean(e.shiftKey || e.ctrlKey || e.metaKey)
+
+        window.addEventListener('pointermove', this.boundWindowPointerMove as EventListener)
+        window.addEventListener('pointerup', this.boundWindowPointerUp as EventListener)
+        window.addEventListener('pointercancel', this.boundWindowPointerUp as EventListener)
+        window.addEventListener('mousemove', this.boundWindowPointerMove as EventListener)
+        window.addEventListener('mouseup', this.boundWindowPointerUp as EventListener)
+    }
+
+    public handleWindowPointerMove(e: PointerEvent | MouseEvent): void {
+        if (!this.isMarqueeCandidate && !this.isMarqueeActive) return
+
+        const dx = e.clientX - this.marqueeStartX
+        const dy = e.clientY - this.marqueeStartY
+
+        if (this.isMarqueeCandidate && Math.hypot(dx, dy) > 4) {
+            this.isMarqueeCandidate = false
+            this.isMarqueeActive = true
+            if (!this.marqueeShiftMode) {
+                this.selectedParagraphIds.clear()
+            }
+        }
+
+        if (this.isMarqueeActive) {
+            e.preventDefault()
+            const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+            const wrapperRect = wrapper.getBoundingClientRect()
+
+            const screenMinX = Math.min(this.marqueeStartX, e.clientX)
+            const screenMaxX = Math.max(this.marqueeStartX, e.clientX)
+            const screenMinY = Math.min(this.marqueeStartY, e.clientY)
+            const screenMaxY = Math.max(this.marqueeStartY, e.clientY)
+
+            const marqueeEl = this.getOrCreateMarqueeElement()
+            marqueeEl.classList.remove('hidden')
+            marqueeEl.style.display = 'block'
+            marqueeEl.style.left = `${screenMinX - wrapperRect.left}px`
+            marqueeEl.style.top = `${screenMinY - wrapperRect.top}px`
+            marqueeEl.style.width = `${screenMaxX - screenMinX}px`
+            marqueeEl.style.height = `${screenMaxY - screenMinY}px`
+
+            // Convert screen rectangle to graph coordinates
+            const pan = this.cy ? this.cy.pan() : { x: 0, y: 0 }
+            const zoom = this.cy ? this.cy.zoom() : 1
+            const graphMinX = (screenMinX - wrapperRect.left - pan.x) / zoom
+            const graphMaxX = (screenMaxX - wrapperRect.left - pan.x) / zoom
+            const graphMinY = (screenMinY - wrapperRect.top - pan.y) / zoom
+            const graphMaxY = (screenMaxY - wrapperRect.top - pan.y) / zoom
+
+            const nodeW = GRAPH_THEME.dimensions.nodeWidth
+            const nodeH = GRAPH_THEME.dimensions.nodeHeight
+            const paragraphs = this.options.getParagraphs()
+
+            paragraphs.forEach(p => {
+                const pos = p.getPosition()
+                if (!pos) return
+                const intersects = !(
+                    pos.x + nodeW < graphMinX ||
+                    pos.x > graphMaxX ||
+                    pos.y + nodeH < graphMinY ||
+                    pos.y > graphMaxY
+                )
+                if (intersects) {
+                    this.selectedParagraphIds.add(p.getId())
+                } else if (!this.marqueeShiftMode) {
+                    this.selectedParagraphIds.delete(p.getId())
+                }
+            })
+            this.updateSelectionVisuals()
+        }
+    }
+
+    public handleWindowPointerUp(_e: PointerEvent | MouseEvent): void {
+        if (this.isMarqueeActive) {
+            this.isMarqueeActive = false
+            const marqueeEl = this.getOrCreateMarqueeElement()
+            marqueeEl.classList.add('hidden')
+            marqueeEl.style.display = 'none'
+            this.updateSelectionToolbar()
+        } else if (this.isMarqueeCandidate) {
+            this.isMarqueeCandidate = false
+            this.clearSelection()
+        }
+
+        window.removeEventListener('pointermove', this.boundWindowPointerMove as EventListener)
+        window.removeEventListener('pointerup', this.boundWindowPointerUp as EventListener)
+        window.removeEventListener('pointercancel', this.boundWindowPointerUp as EventListener)
+        window.removeEventListener('mousemove', this.boundWindowPointerMove as EventListener)
+        window.removeEventListener('mouseup', this.boundWindowPointerUp as EventListener)
+    }
+
+    public handleWindowKeyDown(e: KeyboardEvent): void {
+        const target = e.target as HTMLElement | null
+        if (
+            target &&
+            typeof target.closest === 'function' &&
+            (target.closest('input') ||
+                target.closest('textarea') ||
+                target.closest('[contenteditable="true"]'))
+        ) {
+            return
+        }
+
+        if (e.key === 'Escape') {
+            if (this.selectedParagraphIds.size > 0) {
+                e.preventDefault()
+                this.clearSelection()
+            }
+        } else if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault()
+            this.selectAllParagraphs()
+        } else if ((e.ctrlKey || e.metaKey) && (e.key === 'g' || e.key === 'G')) {
+            if (this.selectedParagraphIds.size >= 2) {
+                e.preventDefault()
+                this.createSceneFromSelection()
+            }
+        }
+    }
+
+    public destroy(): void {
+        if (this.boundWindowKeyDown) {
+            window.removeEventListener('keydown', this.boundWindowKeyDown)
+        }
+        if (this.boundWindowPointerMove) {
+            window.removeEventListener('pointermove', this.boundWindowPointerMove as EventListener)
+            window.removeEventListener('mousemove', this.boundWindowPointerMove as EventListener)
+        }
+        if (this.boundWindowPointerUp) {
+            window.removeEventListener('pointerup', this.boundWindowPointerUp as EventListener)
+            window.removeEventListener('pointercancel', this.boundWindowPointerUp as EventListener)
+            window.removeEventListener('mouseup', this.boundWindowPointerUp as EventListener)
+        }
+        if (this.nodesLayer) {
+            if (this.boundNodesLayerWheel) {
+                this.nodesLayer.removeEventListener('wheel', this.boundNodesLayerWheel)
+            }
+            if (this.boundGraphPointerDown) {
+                this.nodesLayer.removeEventListener(
+                    'pointerdown',
+                    this.boundGraphPointerDown as EventListener
+                )
+                this.nodesLayer.removeEventListener(
+                    'mousedown',
+                    this.boundGraphPointerDown as EventListener
+                )
+            }
+            if (this.boundCanvasPointerDown) {
+                this.nodesLayer.removeEventListener(
+                    'pointerdown',
+                    this.boundCanvasPointerDown as EventListener
+                )
+                this.nodesLayer.removeEventListener(
+                    'mousedown',
+                    this.boundCanvasPointerDown as EventListener
+                )
+            }
+            if (this.boundContextMenu) {
+                this.nodesLayer.removeEventListener('contextmenu', this.boundContextMenu)
+            }
+        }
+        if (this.canvasContainer) {
+            if (this.boundCanvasContainerWheel) {
+                this.canvasContainer.removeEventListener('wheel', this.boundCanvasContainerWheel, {
+                    capture: true,
+                })
+            }
+            if (this.boundGraphPointerDown) {
+                this.canvasContainer.removeEventListener(
+                    'pointerdown',
+                    this.boundGraphPointerDown as EventListener
+                )
+                this.canvasContainer.removeEventListener(
+                    'mousedown',
+                    this.boundGraphPointerDown as EventListener
+                )
+            }
+            if (this.boundCanvasPointerDown) {
+                this.canvasContainer.removeEventListener(
+                    'pointerdown',
+                    this.boundCanvasPointerDown as EventListener
+                )
+                this.canvasContainer.removeEventListener(
+                    'mousedown',
+                    this.boundCanvasPointerDown as EventListener
+                )
+            }
+            if (this.boundContextMenu) {
+                this.canvasContainer.removeEventListener('contextmenu', this.boundContextMenu)
+            }
+            const wrapper = this.canvasContainer.parentElement
+            if (wrapper && wrapper !== document.body && this.boundContextMenu) {
+                wrapper.removeEventListener('contextmenu', this.boundContextMenu)
+            }
+        }
+        if (this.boundGraphPointerMove) {
+            window.removeEventListener('pointermove', this.boundGraphPointerMove as EventListener)
+            window.removeEventListener('mousemove', this.boundGraphPointerMove as EventListener)
+        }
+        if (this.boundGraphPointerUp) {
+            window.removeEventListener('pointerup', this.boundGraphPointerUp as EventListener)
+            window.removeEventListener('pointercancel', this.boundGraphPointerUp as EventListener)
+            window.removeEventListener('mouseup', this.boundGraphPointerUp as EventListener)
+        }
+        const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+        if (wrapper) {
+            wrapper.classList.remove('is-panning')
+        }
+        this.isRmbPanning = false
+        this.selectedParagraphIds.clear()
+        const marqueeEl = document.getElementById('graph-selection-marquee')
+        if (marqueeEl) marqueeEl.remove()
+        const toolbar = document.getElementById('graph-selection-toolbar')
+        if (toolbar) toolbar.remove()
         if (this.cy) {
             this.cy.removeListener('pan zoom', this.boundSyncTransform)
             this.cy.destroy()

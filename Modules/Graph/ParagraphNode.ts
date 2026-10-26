@@ -124,6 +124,18 @@ export class ParagraphNode extends HTMLElement {
             ) {
                 return
             }
+            const mouseEv = e as MouseEvent
+            if (mouseEv.shiftKey || mouseEv.ctrlKey || mouseEv.metaKey) {
+                e.stopPropagation()
+                this.dispatchEvent(
+                    new CustomEvent('node-toggle-select', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { paragraph: this._paragraph },
+                    })
+                )
+                return
+            }
             if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
                 this.dispatchEvent(
                     new CustomEvent('node-select', {
@@ -172,6 +184,7 @@ export class ParagraphNode extends HTMLElement {
         body.addEventListener('dblclick', handleNodeDblClick)
 
         socketBtn.addEventListener('pointerdown', e => {
+            if (e.button !== 0) return
             e.stopPropagation()
             this.dispatchEvent(
                 new CustomEvent('node-socket-pointerdown', {

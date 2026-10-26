@@ -2,3 +2,8 @@
 2. przy definiowaniu wyniku walki musi być możliwość stworzenia paragrafu, tak jak zdefiniowaniu warunków.
 3. przezuwanie na grafie powinno być przez prawy przycisk myszy
 4. możliwość zaznaczenia kilku paragrafów na grafie i ich przesunięcia oraz szybszego ustawienia sceny
+5.zmienić węzeł startowy 
+6. ze szczegółów usunąć przycisk losuj
+7. przy dodaniu elementu przez drag&drop widom ma się nie resetować (ma zosatwać na miejscu)
+
+

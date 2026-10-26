@@ -823,6 +823,15 @@
             "paragraphs_count": "{{count}} paragrafów",
             "drag_hint": "Przeciągnij, aby przenieść scenę",
             "change_color": "Zmień kolor sceny"
+        },
+        "selection": {
+            "selected_count": "Zaznaczono: {{count}}",
+            "create_scene": "Utwórz scenę",
+            "create_scene_title": "Utwórz nową scenę obejmującą zaznaczone paragrafy (Ctrl+G)",
+            "clear_selection": "Odznacz",
+            "clear_selection_title": "Wyczyść zaznaczenie (Esc)",
+            "scene_created": "Utworzono scenę „{{name}}” obejmującą {{count}} paragrafów",
+            "default_scene_name": "Nowa scena"
         }
     },
     "right_panel": {
