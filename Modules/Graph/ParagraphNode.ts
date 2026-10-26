@@ -414,11 +414,7 @@ export class ParagraphNode extends HTMLElement {
             }
             instructionEl.innerHTML = `
                 <div class="start-node-badge">
-                    <span class="start-node-dot"></span>
-                    <span>${t('graph.start_node_entry_point') || 'PUNKT STARTOWY'}</span>
-                </div>
-                <div class="start-node-hint">
-                    ${t('graph.start_node_technical_hint') || 'Tu rozpoczyna się historia. Przeciągnij połączenie z prawego gniazda lub użyj (+), aby utworzyć pierwszy paragraf.'}
+                    <span>${t('graph.start_node_entry_point') || 'Punkt startowy'}</span>
                 </div>
             `
 

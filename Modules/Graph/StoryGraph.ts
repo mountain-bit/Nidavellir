@@ -642,6 +642,18 @@ export class StoryGraph {
 
                 e.stopPropagation()
 
+                // Ensure marquee selection never activates when interacting with scenes
+                this.isMarqueeCandidate = false
+                this.isMarqueeActive = false
+                const wrapper = this.canvasContainer?.parentElement || this.canvasContainer
+                const marquee = wrapper?.querySelector(
+                    '#graph-selection-marquee'
+                ) as HTMLElement | null
+                if (marquee) {
+                    marquee.classList.add('hidden')
+                    marquee.style.display = 'none'
+                }
+
                 isDragging = true
                 hasMoved = false
                 startX = e.clientX
@@ -680,6 +692,8 @@ export class StoryGraph {
 
                 window.addEventListener('pointermove', onScenePointerMove)
                 window.addEventListener('pointerup', onScenePointerUp)
+                window.addEventListener('mousemove', onScenePointerMove)
+                window.addEventListener('mouseup', onScenePointerUp)
             }
 
             const onScenePointerMove = (e: PointerEvent | MouseEvent): void => {
@@ -752,8 +766,12 @@ export class StoryGraph {
             const onScenePointerUp = (e: PointerEvent | MouseEvent): void => {
                 if (!isDragging) return
                 isDragging = false
+                this.isMarqueeCandidate = false
+                this.isMarqueeActive = false
                 window.removeEventListener('pointermove', onScenePointerMove)
                 window.removeEventListener('pointerup', onScenePointerUp)
+                window.removeEventListener('mousemove', onScenePointerMove)
+                window.removeEventListener('mouseup', onScenePointerUp)
 
                 if (hasMoved) {
                     const zoom = this.cy ? this.cy.zoom() : 1
@@ -818,6 +836,7 @@ export class StoryGraph {
             }
 
             sceneNodeEl.addEventListener('pointerdown', onScenePointerDown as EventListener)
+            sceneNodeEl.addEventListener('mousedown', onScenePointerDown as EventListener)
 
             // Resize events from SceneNode handles
             const handleSceneResize = (): void => {
@@ -1624,105 +1643,75 @@ export class StoryGraph {
         }
     }
 
-    public handleCanvasContainerWheel(e: WheelEvent): void {
+    private applyWheelZoom(e: WheelEvent): void {
         if (!this.cy || !this.canvasContainer) return
-        const isCtrl = e.ctrlKey || e.metaKey
-        if (isCtrl) {
+        if (this.isRmbPanning || this.isMarqueeActive) {
             e.preventDefault()
+            return
         }
+
+        e.preventDefault()
+
         const baseSensitivity = this.getWheelSensitivity()
+        const isCtrl = e.ctrlKey || e.metaKey
         const multiplier = isCtrl ? this.getCtrlWheelMultiplier() : 1.0
-        const effectiveSensitivity = baseSensitivity * multiplier
+        const sensitivity = baseSensitivity * multiplier
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const cyAny = this.cy as any
         if (cyAny._private?.renderer) {
-            cyAny._private.renderer.wheelSensitivity = effectiveSensitivity
-        }
-    }
-
-    public handleNodesLayerWheel(e: WheelEvent): void {
-        if (!this.cy || !this.canvasContainer) return
-        e.preventDefault()
-        e.stopPropagation()
-
-        // 1. Forward the exact WheelEvent to Cytoscape's canvas container so Cytoscape's internal
-        // wheel listener handles the event natively with 100% identical math, speed and sensitivity.
-        const clonedEvent = new WheelEvent('wheel', {
-            bubbles: true,
-            cancelable: true,
-            composed: true,
-            view: window,
-            clientX: e.clientX,
-            clientY: e.clientY,
-            screenX: e.screenX,
-            screenY: e.screenY,
-            deltaX: e.deltaX,
-            deltaY: e.deltaY,
-            deltaZ: e.deltaZ,
-            deltaMode: e.deltaMode,
-            ctrlKey: e.ctrlKey,
-            shiftKey: e.shiftKey,
-            altKey: e.altKey,
-            metaKey: e.metaKey,
-        })
-        try {
-            Object.defineProperty(clonedEvent, 'ctrlKey', {
-                value: !!e.ctrlKey,
-                configurable: true,
-            })
-            Object.defineProperty(clonedEvent, 'metaKey', {
-                value: !!e.metaKey,
-                configurable: true,
-            })
-            Object.defineProperty(clonedEvent, 'shiftKey', {
-                value: !!e.shiftKey,
-                configurable: true,
-            })
-            Object.defineProperty(clonedEvent, 'altKey', {
-                value: !!e.altKey,
-                configurable: true,
-            })
-        } catch {
-            // Already defined
+            cyAny._private.renderer.wheelSensitivity = sensitivity
         }
 
         const initialZoom = typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1
-        this.canvasContainer.dispatchEvent(clonedEvent)
+        const containerRect =
+            typeof this.canvasContainer.getBoundingClientRect === 'function'
+                ? this.canvasContainer.getBoundingClientRect()
+                : null
+        const renderedPosition = {
+            x: containerRect ? e.clientX - containerRect.left : e.clientX,
+            y: containerRect ? e.clientY - containerRect.top : e.clientY,
+        }
 
-        // 2. Fallback in case Cytoscape DOM listener is not triggered (e.g. In unit test mocks):
-        // use Cytoscape's exact official formula: diff = (delta / -250) * sensitivity, newZoom = zoom * 10^diff
-        const afterZoom = typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1
-        if (afterZoom === initialZoom && typeof this.cy.zoom === 'function') {
-            const containerRect = this.canvasContainer.getBoundingClientRect()
-            const renderedPosition = {
-                x: containerRect ? e.clientX - containerRect.left : e.clientX,
-                y: containerRect ? e.clientY - containerRect.top : e.clientY,
-            }
-            const baseSensitivity = this.getWheelSensitivity()
-            const isCtrl = e.ctrlKey || e.metaKey
-            const multiplier = isCtrl ? this.getCtrlWheelMultiplier() : 1.0
-            const sensitivity = baseSensitivity * multiplier
-            let diff = (e.deltaY / -250) * sensitivity
-            if (e.deltaMode === 1) {
-                diff *= 33
-            }
-            const newZoom = Math.max(
-                GRAPH_THEME.zoom.min,
-                Math.min(GRAPH_THEME.zoom.max, initialZoom * Math.pow(10, diff))
-            )
+        let diff = (e.deltaY / -250) * sensitivity
+        if (e.deltaMode === 1) {
+            diff *= 33
+        }
 
-            try {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                ;(this.cy as any).zoom({
-                    level: newZoom,
-                    renderedPosition,
-                })
-            } catch {
+        const newZoom = Math.max(
+            GRAPH_THEME.zoom.min,
+            Math.min(GRAPH_THEME.zoom.max, initialZoom * Math.pow(10, diff))
+        )
+
+        const prevZoom = typeof this.cy.zoom === 'function' ? this.cy.zoom() : 1
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ;(this.cy as any).zoom({
+                level: newZoom,
+                renderedPosition,
+            })
+        } catch {
+            if (typeof this.cy.zoom === 'function') {
                 this.cy.zoom(newZoom)
             }
-            this.syncTransform()
         }
+        if (
+            typeof this.cy.zoom === 'function' &&
+            this.cy.zoom() === prevZoom &&
+            newZoom !== prevZoom
+        ) {
+            this.cy.zoom(newZoom)
+        }
+        this.syncTransform()
+    }
+
+    public handleCanvasContainerWheel(e: WheelEvent): void {
+        this.applyWheelZoom(e)
+    }
+
+    public handleNodesLayerWheel(e: WheelEvent): void {
+        e.stopPropagation()
+        this.applyWheelZoom(e)
     }
 
     public isPanningWithRmb(): boolean {
@@ -1985,10 +1974,26 @@ export class StoryGraph {
 
         selected.forEach(p => {
             const pos = p.getPosition() || { x: 0, y: 0 }
-            minX = Math.min(minX, pos.x)
-            minY = Math.min(minY, pos.y)
-            maxX = Math.max(maxX, pos.x + nodeW)
-            maxY = Math.max(maxY, pos.y + nodeH)
+            let w: number = nodeW
+            let h: number = nodeH
+            const el = this.nodesLayer?.querySelector(
+                `paragraph-node[data-node-id="${p.getId()}"]`
+            ) as HTMLElement | null
+            if (el) {
+                const rectW = el.offsetWidth || el.getBoundingClientRect?.().width
+                const rectH = el.offsetHeight || el.getBoundingClientRect?.().height
+                if (rectW && rectW > 0) w = rectW
+                if (rectH && rectH > 0) h = rectH
+            }
+            const left = pos.x - w / 2
+            const top = pos.y - h / 2
+            const right = pos.x + w / 2
+            const bottom = pos.y + h / 2
+
+            minX = Math.min(minX, left)
+            minY = Math.min(minY, top)
+            maxX = Math.max(maxX, right)
+            maxY = Math.max(maxY, bottom)
         })
 
         const paddingX = 40
@@ -2075,8 +2080,11 @@ export class StoryGraph {
             target &&
             typeof target.closest === 'function' &&
             (target.closest('paragraph-node') ||
+                target.closest('.paragraph-node') ||
                 target.closest('.paragraph-node-socket') ||
                 target.closest('.paragraph-node-add-container') ||
+                target.closest('scene-node') ||
+                target.closest('.scene-node') ||
                 target.closest('.scene-resize-handle') ||
                 target.closest('.scene-node-lock-btn') ||
                 target.closest('button') ||
@@ -2147,11 +2155,15 @@ export class StoryGraph {
             paragraphs.forEach(p => {
                 const pos = p.getPosition()
                 if (!pos) return
+                const pLeft = pos.x - nodeW / 2
+                const pRight = pos.x + nodeW / 2
+                const pTop = pos.y - nodeH / 2
+                const pBottom = pos.y + nodeH / 2
                 const intersects = !(
-                    pos.x + nodeW < graphMinX ||
-                    pos.x > graphMaxX ||
-                    pos.y + nodeH < graphMinY ||
-                    pos.y > graphMaxY
+                    pRight < graphMinX ||
+                    pLeft > graphMaxX ||
+                    pBottom < graphMinY ||
+                    pTop > graphMaxY
                 )
                 if (intersects) {
                     this.selectedParagraphIds.add(p.getId())

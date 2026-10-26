@@ -167,15 +167,13 @@ describe('ParagraphNode Web Component', () => {
         const summaryContainer = node.querySelector('.paragraph-node-summary')
         expect(summaryContainer?.classList.contains('hidden')).toBe(true)
 
-        // Technical instruction card is rendered
+        // Simplified label is rendered
         const instructionEl = node.querySelector('.start-node-instruction')
         expect(instructionEl).not.toBeNull()
         expect(node.querySelector('.start-node-badge')?.textContent).toContain(
             t('graph.start_node_entry_point')
         )
-        expect(node.querySelector('.start-node-hint')?.textContent).toContain(
-            t('graph.start_node_technical_hint')
-        )
+        expect(node.querySelector('.start-node-hint')).toBeNull()
 
         // START node cannot be expanded
         expect(node.isExpanded).toBe(false)
@@ -513,6 +511,11 @@ describe('StoryGraph focusOnElement', () => {
             canvasContainer.dispatchEvent(ctrlWheelEv)
             expect(ctrlWheelEv.defaultPrevented).toBe(true)
             expect(mockCy._private.renderer.wheelSensitivity).toBeCloseTo(0.35 * 2.5)
+            expect(currentZoomLevel).toBeLessThan(1.0)
+
+            // Reset zoom to 1.0 before testing zoomIn / zoomOut
+            storyGraph.resetZoom()
+            expect(currentZoomLevel).toBe(1.0)
 
             // Test zoomIn
             storyGraph.zoomIn(1.2)

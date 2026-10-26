@@ -525,17 +525,18 @@ describe('StoryGraph Multi-Selection, Group Dragging & Quick Scene Creation', ()
             expect(createdSceneReceived).toBe(scene)
             expect(scene?.getName()).toBe('Scena Testowa')
 
-            // Bounding box:
-            // minX = 100, minY = 100
-            // maxX = 500 + 220 = 720
-            // maxY = 300 + 80 = 380
+            // Bounding box with centered paragraph coordinates:
+            // p1 is at (100, 100), nodeW=220, nodeH=80 => left=-10, top=60, right=210, bottom=140
+            // p2 is at (500, 300), nodeW=220, nodeH=80 => left=390, top=260, right=610, bottom=340
+            // minX = -10, minY = 60
+            // maxX = 610, maxY = 340
             // paddingX = 40, paddingTop = 60, paddingBottom = 40
-            // sX = 100 - 40 = 60
-            // sY = 100 - 60 = 40
-            // sW = (720 - 100) + 80 = 700
-            // sH = (380 - 100) + 60 + 40 = 380
+            // sX = -10 - 40 = -50
+            // sY = 60 - 60 = 0
+            // sW = (610 - (-10)) + 40*2 = 700
+            // sH = (340 - 60) + 60 + 40 = 380
             const pos = scene?.getPosition()
-            expect(pos).toEqual({ x: 60, y: 40 })
+            expect(pos).toEqual({ x: -50, y: 0 })
             expect(scene?.getWidth()).toBe(700)
             expect(scene?.getHeight()).toBe(380)
 
@@ -544,6 +545,85 @@ describe('StoryGraph Multi-Selection, Group Dragging & Quick Scene Creation', ()
             expect(scene?.hasParagraph('p2')).toBe(true)
 
             // Selection is cleared after scene creation
+            expect(graph.getSelectedParagraphIds()).toEqual([])
+
+            graph.destroy()
+        })
+
+        it('should NOT trigger marquee selection when dragging or clicking on a scene node', () => {
+            const p1 = new Paragraph('p1', 'Paragraf 1')
+            p1.setPosition({ x: 200, y: 200 })
+            const s1 = new Scene(
+                's1',
+                'Scena 1',
+                undefined,
+                [p1],
+                [],
+                null,
+                [],
+                '',
+                { x: 50, y: 50 },
+                400,
+                300
+            )
+
+            const graph = createStoryGraph([p1], [s1])
+            graph.render(true)
+
+            const sceneNodeEl = nodesLayer.querySelector(
+                'scene-node[data-scene-id="s1"]'
+            ) as HTMLElement
+            expect(sceneNodeEl).not.toBeNull()
+
+            // Simulate pointer down on the scene node
+            sceneNodeEl.dispatchEvent(
+                new PointerEvent('pointerdown', {
+                    bubbles: true,
+                    cancelable: true,
+                    button: 0,
+                    clientX: 80,
+                    clientY: 80,
+                })
+            )
+
+            // Simulate dragging the mouse
+            window.dispatchEvent(
+                new PointerEvent('pointermove', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: 200,
+                    clientY: 200,
+                })
+            )
+
+            const marqueeEl = wrapper.querySelector(
+                '#graph-selection-marquee'
+            ) as HTMLElement | null
+            if (marqueeEl) {
+                expect(marqueeEl.classList.contains('hidden')).toBe(true)
+                expect(marqueeEl.style.display).not.toBe('block')
+            } else {
+                expect(marqueeEl).toBeNull()
+            }
+            expect(graph.getSelectedParagraphIds()).toEqual([])
+
+            window.dispatchEvent(
+                new PointerEvent('pointerup', {
+                    bubbles: true,
+                    cancelable: true,
+                    clientX: 200,
+                    clientY: 200,
+                })
+            )
+
+            const finalMarqueeEl = wrapper.querySelector(
+                '#graph-selection-marquee'
+            ) as HTMLElement | null
+            if (finalMarqueeEl) {
+                expect(finalMarqueeEl.classList.contains('hidden')).toBe(true)
+            } else {
+                expect(finalMarqueeEl).toBeNull()
+            }
             expect(graph.getSelectedParagraphIds()).toEqual([])
 
             graph.destroy()

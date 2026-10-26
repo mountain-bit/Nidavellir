@@ -454,6 +454,13 @@ declare module '*/View/ui/modals/hero/heroModal.js' {
 declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
+    export function renderStartNodeDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        ctx?: unknown,
+        onRefresh?: unknown
+    ): void
     export function renderItemDetails(
         container: unknown,
         entity: unknown,
@@ -1129,4 +1136,26 @@ declare module '*/View/ui/drawer/drawerSearch.js' {
     export function renderDrawerSearchResults(ctx: any, query?: string | null): void
     export function setupDrawerSearch(ctx: any): void
     export function setupSectionSearchInputs(ctx: any): void
+}
+
+declare module '*/View/ui/detailsPanel/modules/entityConfigModules.js' {
+    export function renderParagraphNumberModule(
+        container: HTMLElement,
+        entity: unknown,
+        type: string,
+        ctx: unknown
+    ): void
+    export function renderParagraphRoleModule(
+        container: HTMLElement,
+        entity: unknown,
+        type: string,
+        ctx: unknown,
+        onRefresh?: () => void
+    ): void
+    export function renderHeaderModule(
+        container: HTMLElement,
+        item: unknown,
+        type: string,
+        ctx: unknown
+    ): void
 }

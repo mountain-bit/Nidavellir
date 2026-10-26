@@ -4,6 +4,7 @@ import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { Tag } from '../../Model/Tag'
+import type { TranslationKey } from '../../Utils/translate'
 import { ConnectionLineStyle, ICytoscapeStyleRule } from './StoryGraphStyles'
 
 export interface IStoryGraphOptions {
@@ -47,7 +48,7 @@ export interface IStoryGraphOptions {
         message: string,
         title?: string
     ) => void
-    t: (key: string, options?: Record<string, unknown>) => string
+    t: (key: TranslationKey, options?: Record<string, unknown>) => string
     customStyles?: ICytoscapeStyleRule[]
     wheelSensitivity?: number
     ctrlWheelMultiplier?: number
