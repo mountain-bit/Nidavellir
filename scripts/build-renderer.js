@@ -61,6 +61,12 @@ const config = {
             'Services',
             'ItemExportService.ts'
         ),
+        'Services/RulesExportService': path.join(
+            __dirname,
+            '..',
+            'Services',
+            'RulesExportService.ts'
+        ),
         'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
         'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
         'Modules/ImageEditor/index': path.join(

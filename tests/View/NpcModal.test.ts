@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Description } from '../../Model/Description'
 import { Feature } from '../../Model/Feature'
@@ -1785,6 +1785,48 @@ describe('NpcModal Floating Window Controller', () => {
             expect(projectTemplates).toHaveLength(1)
             expect(projectTemplates[0].getName()).toBe('Szablon Rozbójnika')
             expect(refreshed).toBe(true)
+        })
+
+        it('zapisuje szablon z folderName równym ID szablonu (a nie nazwie), zapobiegając duplikatom', async () => {
+            setupNpcModal()
+            openNpcTemplateModal()
+
+            let createdPayload: any = null
+            ;(window as any).electronAPI = {
+                createEntity: vi.fn().mockImplementation((opts: any) => {
+                    createdPayload = opts
+                    return Promise.resolve({
+                        success: true,
+                        entity: {
+                            ...opts.entityData,
+                            description: {
+                                filePath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
+                                textPath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
+                            },
+                        },
+                    })
+                }),
+            }
+
+            const ctx = {
+                projectPath: 'C:/Projekty/Gra',
+                projectTemplates: [],
+                renderCharactersList: vi.fn(),
+                renderTraitsList: vi.fn(),
+            }
+
+            setNpcName('Bandyta')
+            setNpcSummary('Opis bandyty')
+
+            const tpl = saveNpcTemplate(ctx)
+            expect(tpl).toBeTruthy()
+            expect(createdPayload).toBeTruthy()
+            expect(createdPayload.category).toBe('Templates')
+            expect(createdPayload.folderName).toBe(tpl.getId())
+            expect(createdPayload.folderName).not.toBe('Bandyta')
+            expect(tpl.getDescription().filePath).toBe(
+                `./Templates/${tpl.getId()}/Description_Templates_Bandyta.md`
+            )
         })
     })
 

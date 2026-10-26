@@ -2,6 +2,7 @@ node_modules
 dist
 coverage
 View/MainWindow.generated.css
+release-builds
 
 .vscode
 Plan.md

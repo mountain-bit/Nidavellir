@@ -167,15 +167,13 @@ describe('ParagraphNode Web Component', () => {
         const summaryContainer = node.querySelector('.paragraph-node-summary')
         expect(summaryContainer?.classList.contains('hidden')).toBe(true)
 
-        // Technical instruction card is rendered
+        // Simplified label is rendered
         const instructionEl = node.querySelector('.start-node-instruction')
         expect(instructionEl).not.toBeNull()
         expect(node.querySelector('.start-node-badge')?.textContent).toContain(
             t('graph.start_node_entry_point')
         )
-        expect(node.querySelector('.start-node-hint')?.textContent).toContain(
-            t('graph.start_node_technical_hint')
-        )
+        expect(node.querySelector('.start-node-hint')).toBeNull()
 
         // START node cannot be expanded
         expect(node.isExpanded).toBe(false)
@@ -371,6 +369,7 @@ describe('StoryGraph focusOnElement', () => {
         })
 
         let animatedCenterEles: unknown = null
+        const mockStop = vi.fn()
         const mockCy = {
             pan: () => ({ x: 0, y: 0 }),
             zoom: () => 1,
@@ -378,6 +377,7 @@ describe('StoryGraph focusOnElement', () => {
             destroy: () => {},
             on: () => {},
             removeListener: () => {},
+            stop: mockStop,
             getElementById: (id: string) => {
                 if (id === 'p-focus-1') {
                     return {
@@ -401,6 +401,7 @@ describe('StoryGraph focusOnElement', () => {
         storyGraph.render(true)
         storyGraph.focusOnElement('p-focus-1')
 
+        expect(mockStop).toHaveBeenCalled()
         expect(animatedCenterEles).not.toBeNull()
         storyGraph.destroy()
         canvasContainer.remove()
@@ -479,6 +480,42 @@ describe('StoryGraph focusOnElement', () => {
             expect(storyGraph.getWheelSensitivity()).toBe(0.35)
             expect(mockCy._private.options.wheelSensitivity).toBe(0.35)
             expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
+
+            // Test getCtrlWheelMultiplier and setCtrlWheelMultiplier
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(2.5)
+            storyGraph.setCtrlWheelMultiplier(3.0)
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(3.0)
+            storyGraph.setCtrlWheelMultiplier(0.5)
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(1.0)
+            storyGraph.setCtrlWheelMultiplier(2.5)
+
+            // Test wheel event on canvasContainer with and without ctrlKey
+            const normalWheelEv = new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: 100,
+                ctrlKey: false,
+            })
+            canvasContainer.dispatchEvent(normalWheelEv)
+            expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
+
+            const ctrlWheelEv = new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: 100,
+            })
+            Object.defineProperty(ctrlWheelEv, 'ctrlKey', {
+                value: true,
+                configurable: true,
+            })
+            canvasContainer.dispatchEvent(ctrlWheelEv)
+            expect(ctrlWheelEv.defaultPrevented).toBe(true)
+            expect(mockCy._private.renderer.wheelSensitivity).toBeCloseTo(0.35 * 2.5)
+            expect(currentZoomLevel).toBeLessThan(1.0)
+
+            // Reset zoom to 1.0 before testing zoomIn / zoomOut
+            storyGraph.resetZoom()
+            expect(currentZoomLevel).toBe(1.0)
 
             // Test zoomIn
             storyGraph.zoomIn(1.2)

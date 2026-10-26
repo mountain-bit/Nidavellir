@@ -124,6 +124,18 @@ export class ParagraphNode extends HTMLElement {
             ) {
                 return
             }
+            const mouseEv = e as MouseEvent
+            if (mouseEv.shiftKey || mouseEv.ctrlKey || mouseEv.metaKey) {
+                e.stopPropagation()
+                this.dispatchEvent(
+                    new CustomEvent('node-toggle-select', {
+                        bubbles: true,
+                        composed: true,
+                        detail: { paragraph: this._paragraph },
+                    })
+                )
+                return
+            }
             if (this._paragraph && this._paragraph.getIsStart && this._paragraph.getIsStart()) {
                 this.dispatchEvent(
                     new CustomEvent('node-select', {
@@ -172,6 +184,7 @@ export class ParagraphNode extends HTMLElement {
         body.addEventListener('dblclick', handleNodeDblClick)
 
         socketBtn.addEventListener('pointerdown', e => {
+            if (e.button !== 0) return
             e.stopPropagation()
             this.dispatchEvent(
                 new CustomEvent('node-socket-pointerdown', {
@@ -401,11 +414,7 @@ export class ParagraphNode extends HTMLElement {
             }
             instructionEl.innerHTML = `
                 <div class="start-node-badge">
-                    <span class="start-node-dot"></span>
-                    <span>${t('graph.start_node_entry_point') || 'PUNKT STARTOWY'}</span>
-                </div>
-                <div class="start-node-hint">
-                    ${t('graph.start_node_technical_hint') || 'Tu rozpoczyna się historia. Przeciągnij połączenie z prawego gniazda lub użyj (+), aby utworzyć pierwszy paragraf.'}
+                    <span>${t('graph.start_node_entry_point') || 'Punkt startowy'}</span>
                 </div>
             `
 

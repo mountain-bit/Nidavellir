@@ -175,6 +175,7 @@ export class SceneNode extends HTMLElement {
             const handleType = handleEl.dataset.handle || 'se'
 
             const onHandlePointerDown = (e: PointerEvent | MouseEvent): void => {
+                if (e.button !== 0) return
                 e.stopPropagation()
                 e.preventDefault()
                 if (!this._scene) return

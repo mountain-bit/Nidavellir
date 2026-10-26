@@ -349,7 +349,12 @@ export function renderColorModule(container, entity, type, ctx) {
  * @param {object} ctx
  */
 export function renderParagraphNumberModule(container, entity, type, ctx) {
-    if (type !== 'paragraph' || !(entity instanceof Paragraph)) return
+    if (
+        type !== 'paragraph' ||
+        !entity ||
+        (typeof entity.getNumber !== 'function' && !(entity instanceof Paragraph))
+    )
+        return
 
     const isLocked = Boolean(entity.getIsNumberLocked && entity.getIsNumberLocked())
     const customNum = entity.getNumber ? entity.getNumber() : 0
@@ -360,24 +365,13 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
         `
         <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${t('details.paragraph_number')}</span>
-            <div class="flex items-center gap-1.5">
-                <span id="details-number-mode-badge" class="text-[10px] font-medium px-2 py-0.5 rounded ${
-                    isLocked
-                        ? 'bg-amber-900/50 text-amber-300 border border-amber-700/50'
-                        : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
-                }">
-                    ${isLocked ? `#${customNum || 1} (${t('details.custom_number')})` : `#${activeDispNum} (${t('details.auto_number')})`}
-                </span>
-                <button
-                    type="button"
-                    id="btn-details-reroll-number"
-                    class="${isLocked ? 'hidden' : 'flex'} items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#24262c] hover:bg-[#2e313a] text-zinc-300 border border-[#3e424c] transition-colors cursor-pointer"
-                    title="Wylosuj inny unikalny numer dla tego paragrafu"
-                >
-                    <span>🎲</span>
-                    <span>Losuj</span>
-                </button>
-            </div>
+            <span id="details-number-mode-badge" class="text-[10px] font-medium px-2 py-0.5 rounded ${
+                isLocked
+                    ? 'bg-amber-900/50 text-amber-300 border border-amber-700/50'
+                    : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+            }">
+                ${isLocked ? `#${customNum || 1} (${t('details.custom_number')})` : `#${activeDispNum} (${t('details.auto_number')})`}
+            </span>
         </div>
         <div class="flex items-center gap-2 pt-1">
             <label class="flex items-center gap-1.5 text-xs text-[#d4d4d8] cursor-pointer select-none">
@@ -395,7 +389,6 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
     const lockCheckbox = numMod.querySelector('#details-number-lock')
     const customNumInput = numMod.querySelector('#details-custom-number')
     const modeBadge = numMod.querySelector('#details-number-mode-badge')
-    const btnReroll = numMod.querySelector('#btn-details-reroll-number')
     const numberError = numMod.querySelector('#details-number-error')
 
     const validateNumber = val => {
@@ -420,19 +413,6 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
         validateNumber(customNum)
     }
 
-    if (btnReroll) {
-        btnReroll.addEventListener('click', () => {
-            const newNum = ctx.vm.rerollParagraphNumber(entity, ctx.projectParagraphs)
-            if (modeBadge) {
-                modeBadge.textContent = `#${newNum} (${t('details.auto_number')})`
-            }
-            if (customNumInput) {
-                customNumInput.placeholder = String(newNum)
-            }
-            ctx.renderParagraphsList()
-        })
-    }
-
     lockCheckbox.addEventListener('change', () => {
         const locked = lockCheckbox.checked
         customNumInput.disabled = !locked
@@ -441,7 +421,6 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
             ctx.vm.updateCustomNumber(0, ctx.projectParagraphs)
             customNumInput.value = ''
             validateNumber(0)
-            if (btnReroll) btnReroll.classList.remove('hidden')
             const currentDisp = entity.getDisplayNumber ? entity.getDisplayNumber() : 1
             if (modeBadge) {
                 modeBadge.className =
@@ -456,7 +435,6 @@ export function renderParagraphNumberModule(container, entity, type, ctx) {
             ctx.vm.updateCustomNumber(parsed, ctx.projectParagraphs)
             customNumInput.value = String(parsed)
             validateNumber(parsed)
-            if (btnReroll) btnReroll.classList.add('hidden')
             if (modeBadge) {
                 modeBadge.className =
                     'text-[10px] font-medium px-2 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50'

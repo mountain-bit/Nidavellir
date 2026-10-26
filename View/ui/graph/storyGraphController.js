@@ -101,9 +101,7 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                     ? ctx.vm.getConnectionLineStyle()
                     : 'curved',
             wheelSensitivity:
-                typeof ctx.vm.getZoomSensitivity === 'function'
-                    ? ctx.vm.getZoomSensitivity()
-                    : 0.15,
+                typeof ctx.vm.getZoomSensitivity === 'function' ? ctx.vm.getZoomSensitivity() : 0.2,
             onZoomChange: lvl => updateZoomToolbarUI(_storyGraphInstance, lvl),
             getParagraphs: () => ctx.projectParagraphs || ctx.projectData?.projectParagraphs || [],
             getScenes: () => ctx.projectScenes || ctx.projectData?.projectScenes || [],
@@ -155,7 +153,32 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                 if (typeof ctx.renderParagraphsList === 'function') ctx.renderParagraphsList()
                 return newP
             },
+            onCreateScene: (name, position, width, height, assignedParagraphs) => {
+                const newScene = ctx.vm.createScene(name)
+                if (position) newScene.setPosition(position)
+                if (width) newScene.setWidth(width)
+                if (height) newScene.setHeight(height)
+                if (Array.isArray(assignedParagraphs)) {
+                    assignedParagraphs.forEach(p => newScene.addParagraph(p))
+                }
+                const targetScenes = ctx.projectScenes || ctx.projectData?.projectScenes
+                if (Array.isArray(targetScenes) && !targetScenes.includes(newScene)) {
+                    targetScenes.push(newScene)
+                }
+                markProjectDirty()
+                if (typeof ctx.renderScenesList === 'function') ctx.renderScenesList()
+                return newScene
+            },
             onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
+                const existingChoices = fromParagraph.getChoices ? fromParagraph.getChoices() : []
+                const toId = toParagraph.getId()
+                const alreadyExists = existingChoices.some(
+                    c =>
+                        c.getToParagraphId() === toId && (!choiceName || c.getName() === choiceName)
+                )
+                if (alreadyExists) {
+                    return null
+                }
                 const choice = ctx.vm.createChoice(fromParagraph, toParagraph, choiceName)
                 markProjectDirty()
                 if (typeof ctx.renderConnectionsList === 'function') {

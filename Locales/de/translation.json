@@ -69,6 +69,12 @@
         "add_outcome": "Kampfergebnis hinzufügen",
         "outcome_name_placeholder": "z. B. Sieg, Flucht, Niederlage...",
         "target_paragraph": "Zielabsatz",
+        "target_mode_existing": "Bestehender",
+        "target_mode_new": "+ Neuer Absatz",
+        "new_paragraph_title_placeholder": "Titel des neuen Absatzes (z. B. Belohnung, Sieg)...",
+        "new_paragraph_hint": "Ein neuer Knoten wird im Diagramm erstellt und mit diesem Kampfergebnis verknüpft.",
+        "new_paragraph_title_required": "Geben Sie den Titel des neuen Absatzes ein!",
+        "outcome_created_with_paragraph": "Absatz „{{title}}“ erstellt und Kampfergebnis verknüpft: {{outcome}}",
         "select_target_placeholder": "-- Zielabsatz auswählen --",
         "no_outcomes": "Keine Ergebnisse definiert. Fügen Sie mindestens einen Ausgang hinzu.",
         "remove_outcome": "Ergebnis entfernen",
@@ -582,6 +588,8 @@
             "validate_graph": "Graph validieren",
             "validation_clean": "0 Fehler",
             "zoom_fit": "Graph anpassen",
+            "game_rules": "Spielregeln",
+            "game_rules_tooltip": "Spielregeln (F3)",
             "playtest": "Spiel testen",
             "export": "Exportieren",
             "left_panel": "Linke Leiste (Ctrl+B)",
@@ -590,6 +598,17 @@
             "settings": "Einstellungen",
             "help": "Hilfe & Tastenkürzel"
         }
+    },
+    "rules": {
+        "title": "Spielregeln & Einführung",
+        "opened_toast": "Spielregeln geöffnet",
+        "tab_name": "Spielregeln",
+        "export_btn": "Regeln exportieren",
+        "export_standalone_pdf": "Regeln als PDF exportieren",
+        "export_standalone_html": "Regeln als HTML exportieren",
+        "export_standalone_markdown": "Regeln als Markdown exportieren",
+        "export_success": "Spielregeln erfolgreich exportiert",
+        "template": "# Spielregeln\n\n## Einführung\nWillkommen zu diesem Spielbuch-Abenteuer! Hier findest du die grundlegenden Regeln und Mechanismen.\n\n## Spielablauf\nLies die Abschnitte und triff deine Entscheidungen. Am Ende jedes Abschnitts findest du Optionen, die zu den nächsten Paragraphennummern (§) führen.\n\n## Attribute & Charakterwerte\nWährend deines Abenteuers stützt sich dein Charakter auf Eigenschaften und Vitalwerte:\n- **Lebenspunkte / Ausdauer**: Sinkt dieser Wert auf null, ist das Spiel verloren.\n- **Hauptattribute**: Werden für Eigenschaftsproben verwendet.\n\n## Würfelproben\nWenn das Spiel eine Probe verlangt, würfle und vergleiche das Ergebnis mit deinem Attributwert.\n\n## Kampf\nKämpfe gegen Gegner werden nach den Anweisungen in den Kampfabschnitten abgehandelt.\n\n## Ausrüstung\nNotiere gefundene Gegenstände und Waffen in deinem Rucksack.\n"
     },
     "ribbon": {
         "tabs": {
@@ -760,8 +779,8 @@
         "start_node_desc": "Startknoten der Geschichte",
         "start_node_cannot_be_deleted": "Der START-Knoten kann nicht gelöscht werden.",
         "start_node_cannot_be_renamed": "Der Name des START-Knotens kann nicht geändert werden.",
-        "start_node_entry_point": "Startpunkt der Geschichte",
-        "start_node_technical_hint": "Hier beginnt die Geschichte. Ziehen Sie eine Verbindung oder klicken Sie auf (+), um den ersten Absatz zu erstellen.",
+        "start_node_entry_point": "Startpunkt",
+        "start_node_technical_hint": "Startpunkt der Geschichte. Mit dem ersten Absatz verbinden.",
         "start_node_socket_title": "Startbuchse (zum ersten Absatz ziehen)",
         "start_node_details_title": "Technischer Startpunkt",
         "start_node_details_desc": "Dieser Knoten hat keinen narrativen Text, keine Markdown-Dateien, keine Tags oder Orte. Er dient ausschließlich als technischer Einstiegspunkt.",
@@ -789,6 +808,15 @@
             "paragraphs_count": "{{count}} Absätze",
             "drag_hint": "Ziehen, um die Szene zu verschieben",
             "change_color": "Szenenfarbe ändern"
+        },
+        "selection": {
+            "selected_count": "Ausgewählt: {{count}}",
+            "create_scene": "Szene erstellen",
+            "create_scene_title": "Neue Szene für ausgewählte Absätze erstellen (Ctrl+G)",
+            "clear_selection": "Auswahl aufheben",
+            "clear_selection_title": "Auswahl aufheben (Esc)",
+            "scene_created": "Szene „{{name}}” mit {{count}} Absätzen erstellt",
+            "default_scene_name": "Neue Szene"
         }
     },
     "right_panel": {
@@ -873,6 +901,7 @@
         "type_choice": "Sprung",
         "choice_combat_badge": "Sprung (Nach dem Kampf)",
         "combat_outcome": "Nach dem Kampf",
+        "type_start": "Start",
         "type_paragraph": "Absatz",
         "type_scene": "Szene",
         "type_location": "Ort",

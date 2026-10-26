@@ -39,12 +39,21 @@ export function saveNpcTemplate(ctx, options = {}) {
                       ? vm.createCharacter(name)
                       : null,
             addToProject: (effectiveCtx, vm, entity) => {
-                if (!Array.isArray(effectiveCtx.projectTemplates)) {
-                    effectiveCtx.projectTemplates = []
-                }
-                effectiveCtx.projectTemplates.push(entity)
                 if (vm?.project && typeof vm.project.addTemplate === 'function') {
                     vm.project.addTemplate(entity)
+                }
+                if (Array.isArray(effectiveCtx.projectTemplates)) {
+                    const exists = effectiveCtx.projectTemplates.some(
+                        t =>
+                            t === entity ||
+                            (typeof t.getId === 'function' ? t.getId() : t.id) ===
+                                (typeof entity.getId === 'function' ? entity.getId() : entity.id)
+                    )
+                    if (!exists) {
+                        effectiveCtx.projectTemplates.push(entity)
+                    }
+                } else if (!vm?.project) {
+                    effectiveCtx.projectTemplates = [entity]
                 }
             },
             ipcCategory: 'Templates',

@@ -53,6 +53,9 @@ export const PRESET_COLORS = [
  */
 export function getTypeBadgeColor(type) {
     switch (type) {
+        case 'start':
+        case 'start_node':
+            return 'bg-emerald-950/70 text-emerald-300 border-emerald-700/50'
         case 'paragraph':
             return 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50'
         case 'scene':

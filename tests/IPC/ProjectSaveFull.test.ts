@@ -282,4 +282,79 @@ describe('ProjectService.saveFullProject Integration Tests', () => {
         expect(extracted.playerCharacter.getName()).toBe('Geralt z Rivii')
         expect(extracted.playerCharacters).toHaveLength(1)
     })
+
+    it('zapisuje szablony (Templates) w folderze o nazwie ID a nie nazwy i usuwa stary zdublowany katalog po nazwie', async () => {
+        // Symulacja: istniał stary folder po nazwie 'bandyta' z tym samym ID szablonu
+        const oldLegacyFolder = path.join(tempDir, 'Templates', 'bandyta')
+        fs.mkdirSync(oldLegacyFolder, { recursive: true })
+        fs.writeFileSync(
+            path.join(oldLegacyFolder, 'element.json'),
+            JSON.stringify({
+                id: 'template_bandit_1',
+                name: 'Bandyta',
+                description: {
+                    filePath: './Templates/bandyta/Description_Templates_Bandyta.md',
+                    text: 'Stary opis',
+                },
+            }),
+            'utf8'
+        )
+
+        const metaPath = path.join(tempDir, 'Templates', 'meta.json')
+        fs.writeFileSync(
+            metaPath,
+            JSON.stringify({
+                description: 'Folder for Templates',
+                path: './Templates',
+                descriptionPaths: [],
+                imagePaths: [],
+                elements: ['./bandyta/element.json'],
+            }),
+            'utf8'
+        )
+
+        // Zapis pełnego projektu z encją o id 'template_bandit_1'
+        const payload = {
+            project: {
+                id: 'save_test_project',
+                name: 'Projekt Test',
+                author: 'Autor',
+                version: '1.0.0',
+            },
+            paragraphs: [],
+            scenes: [],
+            entities: {
+                Templates: [
+                    {
+                        id: 'template_bandit_1',
+                        name: 'Bandyta',
+                        description: {
+                            filePath: './Templates/bandyta/Description_Templates_Bandyta.md',
+                            text: 'Nowy opis bandyty',
+                        },
+                    },
+                ],
+            },
+        }
+
+        const saveRes = await ProjectService.saveFullProject(tempDir, payload)
+        expect(saveRes.success).toBe(true)
+
+        // Sprawdzenie: nowy folder po ID istnieje
+        const idFolder = path.join(tempDir, 'Templates', 'template_bandit_1')
+        expect(fs.existsSync(idFolder)).toBe(true)
+        expect(fs.existsSync(path.join(idFolder, 'element.json'))).toBe(true)
+
+        // Sprawdzenie: stary folder po nazwie został usunięty (brak duplikatów / klonów na dysku)
+        expect(fs.existsSync(oldLegacyFolder)).toBe(false)
+
+        // Sprawdzenie meta.json: zawiera tylko ścieżkę po ID
+        const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'))
+        expect(meta.elements).toEqual(['./template_bandit_1/element.json'])
+
+        // Sprawdzenie openProject: wczytuje dokładnie 1 szablon bez klonów
+        const openRes = await ProjectService.openProject(tempDir)
+        expect(openRes.entities.Templates).toHaveLength(1)
+        expect(openRes.entities.Templates[0].id).toBe('template_bandit_1')
+    })
 })

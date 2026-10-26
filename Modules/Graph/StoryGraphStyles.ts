@@ -43,6 +43,7 @@ export const GRAPH_THEME = {
         min: 0.05,
         max: 4.0,
         wheelSensitivity: 0.2,
+        ctrlWheelMultiplier: 2.5,
     },
 } as const
 

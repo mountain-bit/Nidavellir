@@ -69,6 +69,12 @@
         "add_outcome": "Dodaj wynik walki",
         "outcome_name_placeholder": "np. Zwycięstwo, Ucieczka, Porażka...",
         "target_paragraph": "Docelowy paragraf",
+        "target_mode_existing": "Istniejący",
+        "target_mode_new": "+ Nowy paragraf",
+        "new_paragraph_title_placeholder": "Tytuł nowego paragrafu (np. Nagroda, Pokonanie wrogów)...",
+        "new_paragraph_hint": "Zostanie utworzony nowy węzeł na grafie i połączony z tym wynikiem walki.",
+        "new_paragraph_title_required": "Wpisz tytuł nowego paragrafu!",
+        "outcome_created_with_paragraph": "Utworzono paragraf „{{title}}” i połączono wynik walki: {{outcome}}",
         "select_target_placeholder": "-- Wybierz docelowy paragraf --",
         "no_outcomes": "Brak zdefiniowanych wyników. Dodaj przynajmniej jedno wyjście z walki.",
         "remove_outcome": "Usuń wynik",
@@ -597,6 +603,8 @@
             "validate_graph": "Waliduj graf",
             "validation_clean": "0 błędów",
             "zoom_fit": "Dopasuj widok grafu",
+            "game_rules": "Zasady gry",
+            "game_rules_tooltip": "Zasady gry (F3)",
             "playtest": "Testuj grę",
             "export": "Eksportuj",
             "left_panel": "Panel lewy (Ctrl+B)",
@@ -605,6 +613,17 @@
             "settings": "Ustawienia",
             "help": "Pomoc i skróty"
         }
+    },
+    "rules": {
+        "title": "Zasady Gry i Wprowadzenie",
+        "opened_toast": "Otwarto plik zasad gry",
+        "tab_name": "Zasady gry",
+        "export_btn": "Eksportuj zasady",
+        "export_standalone_pdf": "Eksportuj zasady do PDF",
+        "export_standalone_html": "Eksportuj zasady do HTML",
+        "export_standalone_markdown": "Eksportuj zasady do Markdown",
+        "export_success": "Zasady gry zostały pomyślnie wyeksportowane",
+        "template": "# Zasady Gry\n\n## Wprowadzenie\nWitaj w grze paragrafowej! Poniżej znajdziesz podstawowe reguły i mechaniki niezbędne do przejścia przygody.\n\n## Jak czytać grę\nCzytaj kolejne fragmenty i podejmuj decyzje. Na końcu każdego paragrafu znajdziesz wybory prowadzące do kolejnych numerów paragrafów (§).\n\n## Cechy i Statystyki Bohatera\nW trakcie rozgrywki Twoja postać opiera się na swoich atrybutach i parametrach:\n- **Punkty Życia / Kondycja**: Monitoruj ich poziom – ich utrata oznacza klęskę.\n- **Cechy główne**: Wykorzystywane przy testach umiejętności.\n\n## Testy i Rzuty Kośćmi\nGdy gra wymaga wykonania testu (np. *Test Zręczności*), wykonaj rzut kośćmi i porównaj wynik z wartością cechy bohatera.\n\n## Walka\nStarcia z przeciwnikami rozgrywane są według zasad podanych w ramkach potyczek.\n\n## Ekwipunek\nZapisuj zdobyty rynsztunek i przedmioty fabularne w wolnych slotach ekwipunku.\n"
     },
     "ribbon": {
         "tabs": {
@@ -775,8 +794,8 @@
         "start_node_desc": "Węzeł startowy opowieści",
         "start_node_cannot_be_deleted": "Węzeł START nie może zostać usunięty.",
         "start_node_cannot_be_renamed": "Nazwa węzła START nie może być zmieniana.",
-        "start_node_entry_point": "Punkt startowy opowieści",
-        "start_node_technical_hint": "Tu rozpoczyna się historia. Przeciągnij połączenie z prawego gniazda lub użyj (+), aby utworzyć pierwszy paragraf.",
+        "start_node_entry_point": "Punkt startowy",
+        "start_node_technical_hint": "Punkt wyjścia historii. Połącz z pierwszym paragrafem.",
         "start_node_socket_title": "Gniazdo początkowe (przeciągnij do pierwszego paragrafu)",
         "start_node_details_title": "Techniczny punkt startowy",
         "start_node_details_desc": "Ten węzeł nie posiada treści narracyjnej, plików Markdown, tagów ani lokacji. Służy wyłącznie jako techniczny punkt wyjścia dla pierwszej sceny lub pierwszego paragrafu.",
@@ -804,6 +823,15 @@
             "paragraphs_count": "{{count}} paragrafów",
             "drag_hint": "Przeciągnij, aby przenieść scenę",
             "change_color": "Zmień kolor sceny"
+        },
+        "selection": {
+            "selected_count": "Zaznaczono: {{count}}",
+            "create_scene": "Utwórz scenę",
+            "create_scene_title": "Utwórz nową scenę obejmującą zaznaczone paragrafy (Ctrl+G)",
+            "clear_selection": "Odznacz",
+            "clear_selection_title": "Wyczyść zaznaczenie (Esc)",
+            "scene_created": "Utworzono scenę „{{name}}” obejmującą {{count}} paragrafów",
+            "default_scene_name": "Nowa scena"
         }
     },
     "right_panel": {
@@ -889,6 +917,7 @@
         "type_choice": "Przeskok",
         "choice_combat_badge": "Przeskok (Po walce)",
         "combat_outcome": "Po walce",
+        "type_start": "Start",
         "type_paragraph": "Paragraf",
         "type_scene": "Scena",
         "type_location": "Lokacja",

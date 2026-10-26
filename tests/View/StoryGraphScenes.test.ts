@@ -325,8 +325,26 @@ describe('StoryGraph Scene Integration', () => {
         })
         sceneNodeEl.dispatchEvent(wheelEv)
 
-        expect(currentZoomLevel).toBeLessThan(1.0)
+        const normalZoomLevel = currentZoomLevel
+        expect(normalZoomLevel).toBeLessThan(1.0)
         expect(zoomPositionPassed).not.toBeNull()
+
+        // Reset zoom to 1.0 and wheel down with Ctrl held (should zoom out faster)
+        currentZoomLevel = 1.0
+        const wheelEvCtrl = new WheelEvent('wheel', {
+            deltaY: 100,
+            bubbles: true,
+            cancelable: true,
+            clientX: 150,
+            clientY: 150,
+        })
+        Object.defineProperty(wheelEvCtrl, 'ctrlKey', {
+            value: true,
+            configurable: true,
+        })
+        sceneNodeEl.dispatchEvent(wheelEvCtrl)
+
+        expect(currentZoomLevel).toBeLessThan(normalZoomLevel)
 
         storyGraph.destroy()
         canvasContainer.remove()

@@ -57,6 +57,23 @@ export function updateTopBarUI(ctx) {
             btnToggleRight.classList.remove('active')
         }
     }
+
+    // Update game rules button active state
+    const activeFile = typeof ctx.vm.getActiveFile === 'function' ? ctx.vm.getActiveFile() : null
+    const isRulesActive =
+        activeView === 'markdown' &&
+        activeFile &&
+        (activeFile === 'Rules/GameRules.md' ||
+            activeFile === 'GameRules.md' ||
+            activeFile.endsWith('GameRules.md'))
+    const btnRules = document.querySelector('[data-action="open-game-rules"]')
+    if (btnRules) {
+        if (isRulesActive) {
+            btnRules.classList.add('active')
+        } else {
+            btnRules.classList.remove('active')
+        }
+    }
 }
 
 /**
@@ -300,6 +317,106 @@ export function openExportModal(ctx) {
 }
 
 /**
+ * Handles opening or creating the Game Rules markdown file (Rules/GameRules.md).
+ *
+ * @param {object} ctx - Application context
+ */
+export async function openGameRules(ctx) {
+    if (!ctx || !ctx.vm) return
+
+    const rulesPath = 'Rules/GameRules.md'
+    const fallbackPath = 'GameRules.md'
+
+    if (!ctx.files) {
+        ctx.files = {}
+    }
+
+    // 1. Check if already loaded in memory
+    let content = ctx.files[rulesPath] || ctx.files[fallbackPath]
+
+    // 2. If not in memory, try reading from disk via Electron API
+    if (typeof content !== 'string') {
+        const projectPath =
+            ctx.projectPath ||
+            (typeof window !== 'undefined' ? window.currentProjectPath : '') ||
+            (typeof window !== 'undefined' &&
+            window.electronAPI &&
+            typeof window.electronAPI.getCurrentProject === 'function'
+                ? await window.electronAPI.getCurrentProject()
+                : '')
+
+        if (
+            projectPath &&
+            typeof window !== 'undefined' &&
+            window.electronAPI &&
+            typeof window.electronAPI.readMarkdownFile === 'function'
+        ) {
+            try {
+                let res = await window.electronAPI.readMarkdownFile(projectPath, rulesPath)
+                if (
+                    res &&
+                    res.success &&
+                    typeof res.content === 'string' &&
+                    res.content.length > 0
+                ) {
+                    content = res.content
+                } else {
+                    res = await window.electronAPI.readMarkdownFile(projectPath, fallbackPath)
+                    if (
+                        res &&
+                        res.success &&
+                        typeof res.content === 'string' &&
+                        res.content.length > 0
+                    ) {
+                        content = res.content
+                    }
+                }
+            } catch (err) {
+                console.warn('[TopBar] Error reading game rules from disk:', err)
+            }
+        }
+    }
+
+    // 3. If still empty, initialize with default starter template
+    if (typeof content !== 'string' || content.trim().length === 0) {
+        const defaultTemplate =
+            typeof t === 'function' && t('rules.template') !== 'rules.template'
+                ? t('rules.template')
+                : '# Zasady Gry\n\n## Wprowadzenie\nWitaj w grze paragrafowej!\n'
+        content = defaultTemplate
+    }
+
+    ctx.files[rulesPath] = content
+    ctx.files[fallbackPath] = content
+
+    const displayName =
+        (typeof t === 'function' ? t('topbar.buttons.game_rules') : '') || 'Zasady gry'
+
+    if (typeof ctx.vm.setFileDisplayName === 'function') {
+        ctx.vm.setFileDisplayName(rulesPath, displayName)
+        ctx.vm.setFileDisplayName(fallbackPath, displayName)
+    }
+
+    if (typeof ctx.vm.setActiveFile === 'function') {
+        ctx.vm.setActiveFile(rulesPath)
+    }
+
+    if (typeof ctx.vm.setActiveMainView === 'function') {
+        ctx.vm.setActiveMainView('markdown')
+    }
+
+    if (typeof ctx.updateMainWorkspaceUI === 'function') {
+        ctx.updateMainWorkspaceUI(ctx)
+    }
+
+    updateTopBarUI(ctx)
+
+    const openedToast =
+        (typeof t === 'function' ? t('rules.opened_toast') : '') || 'Otwarto plik zasad gry'
+    toast.info(openedToast, displayName)
+}
+
+/**
  * Escapes HTML characters for safe rendering.
  */
 function escapeHtml(str) {
@@ -336,6 +453,13 @@ function registerGlobalShortcuts(ctx) {
         if (e.key === 'F5') {
             e.preventDefault()
             openPlaytestSimulator(ctx)
+            return
+        }
+
+        // F3: Zasady gry
+        if (e.key === 'F3') {
+            e.preventDefault()
+            openGameRules(ctx)
             return
         }
 
@@ -640,6 +764,14 @@ export function initTopBar(ctx) {
     document.querySelectorAll('[data-action="run-game"]').forEach(btn => {
         btn.addEventListener('click', () => {
             openPlaytestSimulator(ctx)
+        })
+    })
+
+    // Game rules button
+    document.querySelectorAll('[data-action="open-game-rules"]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
+            openGameRules(ctx)
         })
     })
     const btnClosePlaytest = document.getElementById('btn-close-playtest-modal')
