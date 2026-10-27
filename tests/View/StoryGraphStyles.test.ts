@@ -9,7 +9,7 @@ import {
     GRAPH_THEME,
     preventChoiceLineCrossings,
     reorderChoicesToPreventCrossings,
-} from '../../Modules/Graph/StoryGraphStyles'
+} from '../../Modules/Graph/styles/StoryGraphStyles'
 
 describe('StoryGraphStyles and GRAPH_THEME', () => {
     it('should define consistent theme tokens for colors and dimensions', () => {

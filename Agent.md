@@ -113,14 +113,12 @@ main.js (bootstrap)
 
 ### 3.6. Story Graph Subsystem (`Modules/Graph/`)
 
-| File                    | Purpose                                                            |
-| ----------------------- | ------------------------------------------------------------------ |
-| `StoryGraph.ts`         | Cytoscape.js coordinator — layout, zoom, drag, edge management     |
-| `ParagraphNode.ts/html` | Custom Web Component `<paragraph-node>` for graph paragraph nodes  |
-| `SceneNode.ts/html`     | Custom Web Component `<scene-node>` for scene container nodes      |
-| `StoryGraphStyles.ts`   | Edge styles (straight, bezier, taxi), collision prevention          |
-| `types.ts`              | `IStoryGraphOptions` configuration interface                       |
-| `index.ts`              | Public re-exports                                                  |
+The Graph subsystem is structured into modular subpackages:
+- **`core/`** (`StoryGraph.ts`): Cytoscape.js coordinator — layout, zooming, pan (LMB + RMB pan), multi-selection & marquee selection, drag-and-drop connections, edge routing, and combat outcome transitions.
+- **`nodes/`** (`ParagraphNode.ts/html/Template.ts`, `SceneNode.ts/html/Template.ts`): Custom Web Components `<paragraph-node>` and `<scene-node>` with extracted DOM templates, badges, pills, and full localization support (`graph.end_node_badge`, `graph.node.combat`).
+- **`styles/`** (`StoryGraphStyles.ts`): Unbundled bezier curve control distances, dynamic fanout, high-contrast text calculation (`getContrastTextColor`), and edge crossing prevention (`preventChoiceLineCrossings`).
+- **`types.ts`**: `IStoryGraphOptions` and drag state interfaces.
+- **`index.ts`**: Module facade re-exporting core, nodes, styles, and types for bundling.
 
 The graph subsystem is bundled by esbuild and consumed via `dist/Modules/Graph/index.js`.
 

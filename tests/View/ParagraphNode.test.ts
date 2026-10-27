@@ -5,9 +5,12 @@ import { Location } from '../../Model/Location'
 import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { getContrastTextColor, ParagraphNode } from '../../Modules/Graph/ParagraphNode'
-import { instantiateParagraphNodeTemplate } from '../../Modules/Graph/ParagraphNodeTemplate'
-import { StoryGraph } from '../../Modules/Graph/StoryGraph'
+import { StoryGraph } from '../../Modules/Graph/core/StoryGraph'
+import { getContrastTextColor, ParagraphNode } from '../../Modules/Graph/nodes/ParagraphNode'
+import {
+    createCombatPill,
+    instantiateParagraphNodeTemplate,
+} from '../../Modules/Graph/nodes/ParagraphNodeTemplate'
 import { initTranslationsWithLocale, setLanguage, t } from '../../Utils/translate'
 
 describe('getContrastTextColor utility', () => {
@@ -588,6 +591,64 @@ describe('StoryGraph focusOnElement', () => {
             storyGraph.destroy()
             canvasContainer.remove()
             nodesLayer.remove()
+        })
+    })
+
+    describe('Localization of badges and pills', () => {
+        it('should localize combat pill in different languages', async () => {
+            await initTranslationsWithLocale('pl')
+            const plPill = createCombatPill(0)
+            expect(plPill.textContent).toBe('Walka')
+            expect(plPill.title).toBe('Starcie z przeciwnikami (Walka)')
+
+            const plCountPill = createCombatPill(3)
+            expect(plCountPill.textContent).toBe('Walka (3)')
+
+            await initTranslationsWithLocale('en')
+            const enPill = createCombatPill(0)
+            expect(enPill.textContent).toBe('Combat')
+            expect(enPill.title).toBe('Combat encounter')
+
+            const enCountPill = createCombatPill(2)
+            expect(enCountPill.textContent).toBe('Combat (2)')
+
+            await initTranslationsWithLocale('de')
+            const dePill = createCombatPill(0)
+            expect(dePill.textContent).toBe('Kampf')
+            expect(dePill.title).toBe('Kampfbegegnung')
+
+            const deCountPill = createCombatPill(4)
+            expect(deCountPill.textContent).toBe('Kampf (4)')
+        })
+
+        it('should localize end node badge text and title on ParagraphNode', async () => {
+            const node = new ParagraphNode()
+            document.body.appendChild(node)
+
+            const p = new Paragraph('p-end', 'Ending')
+            p.setIsEnd(true)
+
+            await initTranslationsWithLocale('pl')
+            node.paragraph = p
+            let badge = node.querySelector('.end-node-badge') as HTMLElement
+            const titleEl = node.querySelector('.paragraph-node-title') as HTMLElement
+            expect(badge).not.toBeNull()
+            expect(badge.textContent).toBe('KONIEC')
+            expect(titleEl.title).toContain('Finał opowieści')
+
+            await initTranslationsWithLocale('en')
+            node.render()
+            badge = node.querySelector('.end-node-badge') as HTMLElement
+            expect(badge.textContent).toBe('END')
+            expect(titleEl.title).toContain('Story finale')
+
+            await initTranslationsWithLocale('de')
+            node.render()
+            badge = node.querySelector('.end-node-badge') as HTMLElement
+            expect(badge.textContent).toBe('ENDE')
+            expect(titleEl.title).toContain('Finale der Geschichte')
+
+            node.remove()
         })
     })
 })

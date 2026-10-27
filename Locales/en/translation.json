@@ -896,6 +896,8 @@
         "start_node_guide_step2": "Or click the (+) button on the node to create and connect a new paragraph immediately.",
         "start_node_initial_exits": "Initial exits from START:",
         "start_node_no_exits": "No outgoing connections. Connect this node to the first story paragraph.",
+        "end_node_badge": "END",
+        "end_node_title": "Story finale",
         "node": {
             "default_title": "Paragraph",
             "default_tag": "Tag",
@@ -906,7 +908,10 @@
             "add_btn_title": "Add new connected paragraph",
             "add_btn_aria_label": "Add paragraph",
             "add_input_placeholder": "Paragraph title...",
-            "add_submit_title": "Confirm"
+            "add_submit_title": "Confirm",
+            "combat": "Combat",
+            "combat_with_count": "Combat ({{count}})",
+            "combat_title": "Combat encounter"
         },
         "scene": {
             "default_name": "Scene",

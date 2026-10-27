@@ -1,14 +1,14 @@
-import '../../Utils/icons'
+import '../../../Utils/icons'
 
-import { Scene } from '../../Model/Scene'
-import { t } from '../../Utils/translate'
+import { Scene } from '../../../Model/Scene'
+import { t } from '../../../Utils/translate'
+import { getContrastTextColor, GRAPH_THEME } from '../styles/StoryGraphStyles'
 import {
     createSceneMoreTagsBadge,
     createSceneTagBadge,
     instantiateSceneNodeTemplate,
     ISceneNodeElements,
 } from './SceneNodeTemplate'
-import { getContrastTextColor, GRAPH_THEME } from './StoryGraphStyles'
 
 export class SceneNode extends HTMLElement {
     private _scene: Scene | null = null

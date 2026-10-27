@@ -1,11 +1,12 @@
-import './ParagraphNode'
-import './SceneNode'
+import '../nodes/ParagraphNode'
+import '../nodes/SceneNode'
 
-import { Choice } from '../../Model/Choice'
-import { Paragraph } from '../../Model/Paragraph'
-import { Scene } from '../../Model/Scene'
-import { ParagraphNode } from './ParagraphNode'
-import { SceneNode } from './SceneNode'
+import { Choice } from '../../../Model/Choice'
+import { ICombatOutcome } from '../../../Model/Combat'
+import { Paragraph } from '../../../Model/Paragraph'
+import { Scene } from '../../../Model/Scene'
+import { ParagraphNode } from '../nodes/ParagraphNode'
+import { SceneNode } from '../nodes/SceneNode'
 import {
     calculateCurvedEdgeControlPointDistance,
     calculateEdgeSourceOffsets,
@@ -13,8 +14,17 @@ import {
     getStoryGraphStylesheet,
     GRAPH_THEME,
     preventChoiceLineCrossings,
-} from './StoryGraphStyles'
-import { IStoryGraphOptions } from './types'
+} from '../styles/StoryGraphStyles'
+import { IStoryGraphOptions } from '../types'
+
+export interface ICytoscapeElementCollection {
+    nonempty?: () => boolean
+    empty?: () => boolean
+    length?: number
+    position?: (pos?: { x: number; y: number }) => { x: number; y: number }
+    data?: (key?: string, val?: unknown) => unknown
+    [key: string]: unknown
+}
 
 export interface ICytoscapeInstance {
     pan: (pos?: { x: number; y: number }) => { x: number; y: number }
@@ -26,8 +36,8 @@ export interface ICytoscapeInstance {
     stop?: (clearQueue?: boolean, jumpToEnd?: boolean) => void
     resize: () => void
     destroy: () => void
-    nodes?: (selector?: string) => any
-    elements?: (selector?: string) => any
+    nodes?: (selector?: string) => ICytoscapeElementCollection
+    elements?: (selector?: string) => ICytoscapeElementCollection
     on: (events: string, selectorOrHandler: unknown, handler?: unknown) => void
     removeListener: (events: string, handler: unknown) => void
     getElementById: (id: string) =>
@@ -374,7 +384,7 @@ export class StoryGraph {
                 if (choiceObj) {
                     this.options.onSelectChoice(choiceObj, sourceP, targetP)
                 } else {
-                    const outcomeObj = evt.target.data('outcomeObj') as any
+                    const outcomeObj = evt.target.data('outcomeObj') as ICombatOutcome | undefined
                     if (outcomeObj) {
                         const fallbackChoice = new Choice(
                             outcomeObj.id,
@@ -408,14 +418,14 @@ export class StoryGraph {
         targetId: string
         label: string
         choiceObj?: Choice
-        outcomeObj?: any
+        outcomeObj?: ICombatOutcome
         isCombatOutcome: boolean
         hasCondition: boolean
     }> {
         const choices = sourceP.getChoices ? sourceP.getChoices() : []
         const hasCombat = Boolean(sourceP.getHasCombat && sourceP.getHasCombat())
         const combat = sourceP.getCombat ? sourceP.getCombat() : null
-        const combatOutcomes =
+        const combatOutcomes: ICombatOutcome[] =
             hasCombat && combat && typeof combat.getOutcomes === 'function'
                 ? combat.getOutcomes()
                 : []
@@ -425,7 +435,7 @@ export class StoryGraph {
             targetId: string
             label: string
             choiceObj?: Choice
-            outcomeObj?: any
+            outcomeObj?: ICombatOutcome
             isCombatOutcome: boolean
             hasCondition: boolean
         }> = []
@@ -437,11 +447,11 @@ export class StoryGraph {
             const choiceIsCombat =
                 typeof choice.getIsCombatOutcome === 'function'
                     ? choice.getIsCombatOutcome()
-                    : Boolean((choice as any).isCombatOutcome)
+                    : Boolean((choice as unknown as { isCombatOutcome?: boolean }).isCombatOutcome)
             const matchingOutcome =
                 hasCombat &&
                 combatOutcomes.find(
-                    (o: any) =>
+                    (o: ICombatOutcome) =>
                         o.id === chId ||
                         (o.targetParagraphId === targetId && o.name === choice.getName()) ||
                         (o.targetParagraphId === targetId && choiceIsCombat)
@@ -453,7 +463,7 @@ export class StoryGraph {
                 targetId,
                 label: (matchingOutcome && matchingOutcome.name) || choice.getName() || '',
                 choiceObj: choice,
-                outcomeObj: matchingOutcome,
+                outcomeObj: matchingOutcome || undefined,
                 isCombatOutcome: isCombat,
                 hasCondition: Boolean(choice.getCondition()),
             })
@@ -461,7 +471,7 @@ export class StoryGraph {
 
         // Also include any combat outcomes not yet present in choices
         if (hasCombat) {
-            combatOutcomes.forEach((outcome: any, i: number) => {
+            combatOutcomes.forEach((outcome: ICombatOutcome, i: number) => {
                 const targetId = outcome.targetParagraphId
                 if (!targetId) return
                 const alreadyExists = transitions.some(
@@ -1330,8 +1340,8 @@ export class StoryGraph {
             cyEle &&
             (typeof cyEle.nonempty === 'function'
                 ? cyEle.nonempty()
-                : typeof (cyEle as any).empty === 'function'
-                  ? !(cyEle as any).empty()
+                : typeof cyEle.empty === 'function'
+                  ? !cyEle.empty()
                   : cyEle.length === undefined || cyEle.length > 0)
         )
 
@@ -1391,8 +1401,8 @@ export class StoryGraph {
                             cySrcEle &&
                             (typeof cySrcEle.nonempty === 'function'
                                 ? cySrcEle.nonempty()
-                                : typeof (cySrcEle as any).empty === 'function'
-                                  ? !(cySrcEle as any).empty()
+                                : typeof cySrcEle.empty === 'function'
+                                  ? !cySrcEle.empty()
                                   : cySrcEle.length === undefined || cySrcEle.length > 0)
                         )
                         if (isSrcFound && cySrcEle) {
@@ -1599,7 +1609,7 @@ export class StoryGraph {
         this.cy.resize()
 
         const nodes =
-            typeof this.cy.nodes === 'function' && this.cy.nodes().length > 0
+            typeof this.cy.nodes === 'function' && (this.cy.nodes().length ?? 0) > 0
                 ? this.cy.nodes()
                 : typeof this.cy.elements === 'function'
                   ? this.cy.elements()
@@ -1609,7 +1619,7 @@ export class StoryGraph {
             nodes &&
             (typeof nodes.nonempty === 'function'
                 ? nodes.nonempty()
-                : (nodes as any).length === undefined || (nodes as any).length > 0)
+                : nodes.length === undefined || (nodes.length ?? 0) > 0)
         )
 
         if (hasNodes && nodes) {

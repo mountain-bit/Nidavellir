@@ -896,6 +896,8 @@
         "start_node_guide_step2": "Możesz też użyć przycisku (+) przy węźle na grafie, aby od razu utworzyć powiązany paragraf.",
         "start_node_initial_exits": "Początkowe połączenia z węzła START:",
         "start_node_no_exits": "Brak połączeń wyjściowych. Połącz ten węzeł z pierwszym paragrafem opowieści.",
+        "end_node_badge": "KONIEC",
+        "end_node_title": "Finał opowieści",
         "node": {
             "default_title": "Paragraf",
             "default_tag": "Tag",
@@ -906,7 +908,10 @@
             "add_btn_title": "Dodaj nowy powiązany paragraf",
             "add_btn_aria_label": "Dodaj paragraf",
             "add_input_placeholder": "Tytuł paragrafu...",
-            "add_submit_title": "Zatwierdź"
+            "add_submit_title": "Zatwierdź",
+            "combat": "Walka",
+            "combat_with_count": "Walka ({{count}})",
+            "combat_title": "Starcie z przeciwnikami (Walka)"
         },
         "scene": {
             "default_name": "Scena",

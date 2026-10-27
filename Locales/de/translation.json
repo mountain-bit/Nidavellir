@@ -881,6 +881,8 @@
         "start_node_guide_step2": "Oder klicken Sie auf (+), um sofort einen verbundenen Absatz zu erstellen.",
         "start_node_initial_exits": "Ausgehende Verbindungen von START:",
         "start_node_no_exits": "Keine ausgehenden Verbindungen. Verbinden Sie diesen Knoten mit dem ersten Absatz der Geschichte.",
+        "end_node_badge": "ENDE",
+        "end_node_title": "Finale der Geschichte",
         "node": {
             "default_title": "Absatz",
             "default_tag": "Tag",
@@ -891,7 +893,10 @@
             "add_btn_title": "Neuen verknüpften Absatz hinzufügen",
             "add_btn_aria_label": "Absatz hinzufügen",
             "add_input_placeholder": "Absatztitel...",
-            "add_submit_title": "Bestätigen"
+            "add_submit_title": "Bestätigen",
+            "combat": "Kampf",
+            "combat_with_count": "Kampf ({{count}})",
+            "combat_title": "Kampfbegegnung"
         },
         "scene": {
             "default_name": "Szene",

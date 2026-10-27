@@ -1,7 +1,8 @@
-import { Paragraph } from '../../Model/Paragraph'
-import { Tag } from '../../Model/Tag'
-import { getIconSvg } from '../../Utils/icons'
-import { t } from '../../Utils/translate'
+import { Paragraph } from '../../../Model/Paragraph'
+import { Tag } from '../../../Model/Tag'
+import { getIconSvg } from '../../../Utils/icons'
+import { t } from '../../../Utils/translate'
+import { getContrastTextColor, GRAPH_THEME } from '../styles/StoryGraphStyles'
 import {
     createCharacterPill,
     createCombatPill,
@@ -12,7 +13,6 @@ import {
     instantiateParagraphNodeTemplate,
     IParagraphNodeElements,
 } from './ParagraphNodeTemplate'
-import { getContrastTextColor, GRAPH_THEME } from './StoryGraphStyles'
 
 export { getContrastTextColor }
 
@@ -111,7 +111,6 @@ export class ParagraphNode extends HTMLElement {
     private _setupEventListeners(): void {
         if (!this._elements) return
         const { header, body, socketBtn, addBtn, addSubmitBtn, addInput } = this._elements
-
         const handleNodeClick = (e: Event): void => {
             if (this.preventNextClick) {
                 this.preventNextClick = false
@@ -443,8 +442,10 @@ export class ParagraphNode extends HTMLElement {
         const isEnd = Boolean(p.getIsEnd && p.getIsEnd())
         if (isEnd) {
             this.classList.add('is-end-node')
-            this._elements.title.innerHTML = `<span class="end-node-badge">${getIconSvg('flag', 'w-2.5 h-2.5 inline-block shrink-0')}<span>KONIEC</span></span><span>§ ${displayTitle}</span>`
-            this._elements.title.title = `${displayTitle} (Finał opowieści)`
+            const endBadgeText = t('graph.end_node_badge') || 'KONIEC'
+            const endTitleSuffix = t('graph.end_node_title') || 'Finał opowieści'
+            this._elements.title.innerHTML = `<span class="end-node-badge">${getIconSvg('flag', 'w-2.5 h-2.5 inline-block shrink-0')}<span>${endBadgeText}</span></span><span>§ ${displayTitle}</span>`
+            this._elements.title.title = `${displayTitle} (${endTitleSuffix})`
         } else {
             this.classList.remove('is-end-node')
             this._elements.title.textContent = `§ ${displayTitle}`

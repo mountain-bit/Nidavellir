@@ -265,7 +265,11 @@ To maintain high code modularity and maintainability, `View/MainWindow.js` acts 
 
 ## 5. Story Graph Subsystem (`Modules/Graph/`)
 
-The visual story graph is powered by Cytoscape.js coupled with Custom Web Components:
+The visual story graph is powered by Cytoscape.js coupled with Custom Web Components, organized into focused subpackages:
+- **`core/`** (`StoryGraph.ts`): Orchestrates viewport state, canvas event routing, Cytoscape pan/zoom synchronization, drag-and-drop link creation, multi-selection marquee, and typed combat outcome edges.
+- **`nodes/`** (`ParagraphNode`, `SceneNode`): Custom Web Components (`<paragraph-node>`, `<scene-node>`) with HTML templates and typed DOM element factories. Fully localized via `Locales/{pl,en,de}/translation.json` (`graph.end_node_badge`, `graph.node.combat`).
+- **`styles/`** (`StoryGraphStyles.ts`): Theme tokens (`GRAPH_THEME`), accessible contrast calculation (`getContrastTextColor`), unbundled bezier edge routing with dynamic fanout, and crossing prevention algorithms.
+- **`types.ts` & `index.ts`**: Unified configuration interfaces and facade entry point consumed by `scripts/build-renderer.js`.
 
 ```text
 ┌────────────────────────────────────────────────────────┐
@@ -289,7 +293,7 @@ The visual story graph is powered by Cytoscape.js coupled with Custom Web Compon
 ## 6. Frontend Testing Strategy
 
 The presentation layer is thoroughly covered by automated unit and integration tests using **Vitest** and **happy-dom**:
-- **76 test files, 821 automated tests passing.**
+- **88 test files, 975 automated tests passing.**
 - **Domain Model Tests** (`tests/Model/`): Validates entity creation, mutations, choice management, and deserialization via `Project.fromJSON()`.
 - **ViewModel Tests** (`tests/ViewModel/`): Validates search algorithms, drawer toggling, history navigation, and launcher validation rules without spinning up Electron windows.
 - **View & DOM Tests** (`tests/View/`): Verifies Web Component lifecycle events (`<paragraph-node>`, `<scene-node>`), HTML template instantiation, and UI controller interactions.

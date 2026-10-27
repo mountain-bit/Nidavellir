@@ -4,6 +4,7 @@
  * Provides the extracted DOM template and element references for the <paragraph-node> Web Component.
  */
 
+import { t } from '../../../Utils/translate'
 import paragraphNodeHtml from './ParagraphNode.html'
 
 export interface IParagraphNodeElements {
@@ -98,11 +99,23 @@ export function createCharacterPill(name: string, title?: string): HTMLSpanEleme
     return pill
 }
 
-export function createCombatPill(opponentsCount: number = 0): HTMLSpanElement {
+export function createCombatPill(
+    opponentsCount: number = 0,
+    customLabel?: string,
+    customTitle?: string
+): HTMLSpanElement {
     const pill = document.createElement('span')
     pill.className = 'node-combat-pill'
-    pill.title = 'Starcie z przeciwnikami (Walka)'
-    pill.textContent = opponentsCount > 0 ? `Walka (${opponentsCount})` : 'Walka'
+    pill.title = customTitle || t('graph.node.combat_title') || 'Combat encounter'
+    if (customLabel) {
+        pill.textContent = customLabel
+    } else if (opponentsCount > 0) {
+        pill.textContent =
+            t('graph.node.combat_with_count', { count: opponentsCount }) ||
+            `Combat (${opponentsCount})`
+    } else {
+        pill.textContent = t('graph.node.combat') || 'Combat'
+    }
     return pill
 }
 

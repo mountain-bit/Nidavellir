@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
-import { ParagraphNode } from '../../Modules/Graph/ParagraphNode'
-import { StoryGraph } from '../../Modules/Graph/StoryGraph'
+import { StoryGraph } from '../../Modules/Graph/core/StoryGraph'
+import { ParagraphNode } from '../../Modules/Graph/nodes/ParagraphNode'
 import { initTranslationsWithLocale } from '../../Utils/translate'
 
 describe('StoryGraph Scene Integration', () => {

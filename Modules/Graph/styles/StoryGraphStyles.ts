@@ -1,5 +1,5 @@
-import { Paragraph } from '../../Model/Paragraph'
-import { Scene } from '../../Model/Scene'
+import { Paragraph } from '../../../Model/Paragraph'
+import { Scene } from '../../../Model/Scene'
 
 export type ConnectionLineStyle = 'curved'
 
