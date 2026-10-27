@@ -47,3 +47,16 @@ Katalog `Modules/Editor/extensions/` zawiera autorskie rozszerzenia TipTap (węz
 ### 7. `EntityMention.ts`
 - **Co robi:** Zapewnia obsługę wzmianek encji wywoływanych znakiem `@` lub łączonych z menu kontekstowego.
 - **Kluczowe cechy:** Wstawia klikalną odznakę encji z ikoną i typem (lokacja, postać, przedmiot, cecha, tag), bezpiecznie koduje/dekoduje URI (`entity://type/id`), oczyszcza nawiasy kwadratowe.
+
+---
+
+## Komponenty UI Edytora (`Modules/Editor/ui/`)
+
+### 1. `MentionSuggestionRenderer.ts`
+- **Co robi:** Zarządza cyklem życia, interfejsem DOM oraz obsługą zdarzeń popupu podpowiedzi encji wywoływanego przy wpisywaniu `@` (używany przez `EntityMention.ts`).
+- **Kluczowe cechy:**
+  - **Dynamiczne pozycjonowanie:** Precyzyjnie oblicza i koryguje pozycję okienka względem kursora i krawędzi okna aplikacji (`viewportHeight`, `viewportWidth`).
+  - **Nawigacja klawiaturą:** Pełna obsługa klawiszy `ArrowUp`/`ArrowDown` z cyklicznym przełączaniem (wrap-around), zatwierdzanie przez `Enter` lub `Tab`, natychmiastowe zamykanie przez `Escape`.
+  - **Bezpieczeństwo i sanitizacja:** Automatyczne uciekanie encji HTML (`escapeHtml` z obsługą znaków specjalnych i apostrofów), bezpieczne wywołanie przewijania (`scrollIntoView?.()`).
+  - **Prezentacja typów encji:** Dedykowane ikony SVG, uniwersalne techniczne odznaki typów (`LOCATION`, `CHARACTER`, `ITEM`, `TRAIT`, `TAG`) oraz komunikat o braku pasujących słów.
+

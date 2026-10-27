@@ -2,25 +2,55 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
 
-import { DescriptionTransclusionService } from '../../Services/DescriptionTransclusionService'
-import { CustomStylesService } from './CustomStylesService'
-import { EntitySyncService } from './EntitySyncService'
-import { CombatBlock } from './extensions/CombatBlock'
-import { CustomImage } from './extensions/CustomImage'
-import { CustomStyleMark } from './extensions/CustomStyleMark'
-import { CustomUnderline } from './extensions/CustomUnderline'
-import { DescriptionEmbed } from './extensions/DescriptionEmbed'
-import { DialogBlock } from './extensions/DialogBlock'
-import { createEntitySuggestionConfig, EntityMention } from './extensions/EntityMention'
+import { DescriptionTransclusionService } from '../../../Services/DescriptionTransclusionService'
+import { t } from '../../../Utils/translate'
+import { CombatBlock } from '../extensions/CombatBlock'
+import { CustomImage } from '../extensions/CustomImage'
+import { CustomStyleMark } from '../extensions/CustomStyleMark'
+import { CustomUnderline } from '../extensions/CustomUnderline'
+import { DescriptionEmbed } from '../extensions/DescriptionEmbed'
+import { DialogBlock } from '../extensions/DialogBlock'
+import { createEntitySuggestionConfig, EntityMention } from '../extensions/EntityMention'
+import { EntitySyncService } from '../services/EntitySyncService'
+import { CustomStylesService } from '../styles/CustomStylesService'
 import {
     DescriptionEmbedType,
     DescriptionEmbedVariant,
     IActiveFormatting,
+    ICustomTextStyle,
     IDescriptionEmbedAttrs,
     IDocumentEntities,
     IEntityMentionItem,
     IMarkdownEditorOptions,
-} from './types'
+} from '../types'
+
+/**
+ * Wyciąga czystą nazwę encji usuwając prefiks przed dwukropkiem (np. "Opis: Miecz" -> "Miecz").
+ */
+function extractEntityName(text: string): string {
+    if (!text || typeof text !== 'string') return ''
+    const trimmed = text.trim()
+    const colonIndex = trimmed.indexOf(':')
+    if (colonIndex > 0 && colonIndex < trimmed.length - 1) {
+        return trimmed.slice(colonIndex + 1).trim()
+    }
+    return trimmed
+}
+
+/**
+ * Zwraca zlokalizowany prefiks opisu dla aktywnego języka (np. "Opis:", "Description:").
+ */
+function getLocalizedDescriptionPrefix(): string {
+    try {
+        const desc = t('project.description')
+        if (desc && desc !== 'project.description') {
+            return `${desc}:`
+        }
+    } catch {
+        // Fallback w środowiskach bez i18n
+    }
+    return 'Opis:'
+}
 
 interface IMarkdownStorage {
     markdown?: {
@@ -174,20 +204,36 @@ export class MarkdownEditor {
         })
     }
 
+    public isReady(): boolean {
+        return Boolean(this.editor && !this.editor.isDestroyed)
+    }
+
+    /**
+     * Dynamicznie aktualizuje wstrzyknięte style niestandardowe dla edytora.
+     */
+    public updateCustomStyles(styles?: ICustomTextStyle[]): void {
+        const customStyles =
+            styles ||
+            (this.options.getCustomStyles
+                ? this.options.getCustomStyles()
+                : CustomStylesService.getStyles())
+        CustomStylesService.injectStyleSheet(customStyles)
+    }
+
     public getMarkdown(): string {
-        if (!this.editor) return ''
+        if (!this.isReady() || !this.editor) return ''
         const storage = (this.editor.storage as IMarkdownStorage).markdown
         let md = ''
         if (storage && typeof storage.getMarkdown === 'function') {
-            md = storage.getMarkdown()
+            md = storage.getMarkdown() || ''
         } else {
-            md = this.editor.getText()
+            md = this.editor.getText() || ''
         }
         return DescriptionTransclusionService.postprocessFromEditor(md)
     }
 
     public setMarkdown(content: string): void {
-        if (!this.editor) return
+        if (!this.isReady() || !this.editor) return
         this.isUpdatingInternally = true
         try {
             const preprocessed = DescriptionTransclusionService.preprocessForEditor(content || '')
@@ -198,9 +244,10 @@ export class MarkdownEditor {
     }
 
     public insertDescriptionEmbed(attrs: IDescriptionEmbedAttrs): boolean {
-        if (!this.editor) return false
-        const cleanName = (attrs.name || attrs.id).replace(/^Opis:\s*/i, '')
-        const label = attrs.label || `Opis: ${cleanName}`
+        if (!this.isReady() || !this.editor) return false
+        const cleanName = extractEntityName(attrs.name || attrs.id)
+        const prefix = getLocalizedDescriptionPrefix()
+        const label = attrs.label || `${prefix} ${cleanName}`
         return (
             this.editor
                 .chain()
@@ -221,32 +268,37 @@ export class MarkdownEditor {
     }
 
     public updateDescriptionEmbed(pos: number, attrs: Partial<IDescriptionEmbedAttrs>): boolean {
-        if (!this.editor) return false
-        const cleanName = attrs.name ? attrs.name.replace(/^Opis:\s*/i, '') : undefined
+        if (!this.isReady() || !this.editor) return false
+        const targetPos = this.findNodePos(pos, 'descriptionEmbed') ?? pos
+        const cleanName = attrs.name ? extractEntityName(attrs.name) : undefined
         const updateAttrs: Record<string, unknown> = { ...attrs }
         if (cleanName) {
             updateAttrs.name = cleanName
             if (!updateAttrs.label) {
-                updateAttrs.label = `Opis: ${cleanName}`
+                const prefix = getLocalizedDescriptionPrefix()
+                updateAttrs.label = `${prefix} ${cleanName}`
             }
         }
         return (
             this.editor
                 .chain()
                 .focus()
-                .setNodeSelection(pos)
+                .setNodeSelection(targetPos)
                 .updateAttributes('descriptionEmbed', updateAttrs)
                 .run() ?? false
         )
     }
 
     public removeDescriptionEmbed(pos: number): boolean {
-        if (!this.editor) return false
-        return this.editor.chain().focus().setNodeSelection(pos).deleteSelection().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        const targetPos = this.findNodePos(pos, 'descriptionEmbed') ?? pos
+        return (
+            this.editor.chain().focus().setNodeSelection(targetPos).deleteSelection().run() ?? false
+        )
     }
 
     public getExtractedEntities(): IDocumentEntities {
-        if (!this.editor) {
+        if (!this.isReady() || !this.editor) {
             return { locations: [], characters: [], tags: [], traits: [] }
         }
         return EntitySyncService.extractReferencedEntities(this.editor)
@@ -257,14 +309,14 @@ export class MarkdownEditor {
     }
 
     public getSelectedText(): string {
-        if (!this.editor) return ''
+        if (!this.isReady() || !this.editor) return ''
         const { from, to } = this.editor.state.selection
         if (from === to) return ''
         return this.editor.state.doc.textBetween(from, to, ' ')
     }
 
     public insertEntity(item: IEntityMentionItem, customLabel?: string): void {
-        if (!this.editor) return
+        if (!this.isReady() || !this.editor) return
         const label = customLabel?.trim() || item.name
         this.editor
             .chain()
@@ -282,7 +334,7 @@ export class MarkdownEditor {
     }
 
     public linkSelectionToEntity(item: IEntityMentionItem, customLabel?: string): boolean {
-        if (!this.editor) return false
+        if (!this.isReady() || !this.editor) return false
         const label = customLabel?.trim() || this.getSelectedText().trim() || item.name
         return (
             this.editor
@@ -305,7 +357,7 @@ export class MarkdownEditor {
         item: { id: string; name: string; type: string },
         newLabel: string
     ): boolean {
-        if (!this.editor) return false
+        if (!this.isReady() || !this.editor) return false
         const targetPos = this.findMentionPos(pos)
         if (targetPos === null) return false
         return (
@@ -326,7 +378,7 @@ export class MarkdownEditor {
     }
 
     public unlinkEntityMention(pos: number, fallbackText?: string): boolean {
-        if (!this.editor) return false
+        if (!this.isReady() || !this.editor) return false
         const targetPos = this.findMentionPos(pos)
         if (targetPos === null) return false
         const node = this.editor.state.doc.nodeAt(targetPos)
@@ -337,82 +389,101 @@ export class MarkdownEditor {
         )
     }
 
-    private findMentionPos(pos: number): number | null {
-        if (!this.editor) return null
+    /**
+     * Wyszukuje dokładną pozycję węzła atomowego (np. 'mention' lub 'descriptionEmbed')
+     * w pobliżu wskazanego indeksu pozycji z ProseMirror/DOM handleClick.
+     */
+    private findNodePos(pos: number, nodeTypeName: string): number | null {
+        if (!this.isReady() || !this.editor) return null
         const doc = this.editor.state.doc
         if (pos >= 0 && pos < doc.content.size) {
             const node = doc.nodeAt(pos)
-            if (node && node.type.name === 'mention') return pos
+            if (node && node.type.name === nodeTypeName) return pos
         }
         if (pos > 0) {
             const prevNode = doc.nodeAt(pos - 1)
-            if (prevNode && prevNode.type.name === 'mention') return pos - 1
+            if (prevNode && prevNode.type.name === nodeTypeName) return pos - 1
         }
         const $pos = doc.resolve(Math.min(pos, doc.content.size))
-        if ($pos.nodeAfter && $pos.nodeAfter.type.name === 'mention') {
+        if ($pos.nodeAfter && $pos.nodeAfter.type.name === nodeTypeName) {
             return $pos.pos
         }
-        if ($pos.nodeBefore && $pos.nodeBefore.type.name === 'mention') {
+        if ($pos.nodeBefore && $pos.nodeBefore.type.name === nodeTypeName) {
             return $pos.pos - $pos.nodeBefore.nodeSize
         }
         return null
     }
 
+    private findMentionPos(pos: number): number | null {
+        return this.findNodePos(pos, 'mention')
+    }
+
     // Formatting Toolbar Helpers
     public setParagraph(): boolean {
-        return this.editor?.chain().focus().setParagraph().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().setParagraph().run() ?? false
     }
 
     public toggleBold(): boolean {
-        return this.editor?.chain().focus().toggleBold().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleBold().run() ?? false
     }
 
     public toggleItalic(): boolean {
-        return this.editor?.chain().focus().toggleItalic().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleItalic().run() ?? false
     }
 
     public toggleUnderline(): boolean {
+        if (!this.isReady() || !this.editor) return false
         return (
-            (this.editor?.chain().focus() as unknown as IEditorChainedCommands)
+            (this.editor.chain().focus() as unknown as IEditorChainedCommands)
                 .toggleUnderline()
                 .run() ?? false
         )
     }
 
     public toggleStrike(): boolean {
-        return this.editor?.chain().focus().toggleStrike().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleStrike().run() ?? false
     }
 
     public toggleHeading(level: 1 | 2 | 3 | 4 | 5): boolean {
-        return this.editor?.chain().focus().toggleHeading({ level }).run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleHeading({ level }).run() ?? false
     }
 
     public toggleBulletList(): boolean {
-        return this.editor?.chain().focus().toggleBulletList().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleBulletList().run() ?? false
     }
 
     public toggleOrderedList(): boolean {
-        return this.editor?.chain().focus().toggleOrderedList().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleOrderedList().run() ?? false
     }
 
     public toggleBlockquote(): boolean {
-        return this.editor?.chain().focus().toggleBlockquote().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().toggleBlockquote().run() ?? false
     }
 
     public toggleDialog(): boolean {
-        this.editor?.commands.focus()
-        return (this.editor?.commands as unknown as IEditorCommands).toggleDialog?.() ?? false
+        if (!this.isReady() || !this.editor) return false
+        this.editor.commands.focus()
+        return (this.editor.commands as unknown as IEditorCommands).toggleDialog?.() ?? false
     }
 
     public setImage(options: { src: string; alt?: string; title?: string }): boolean {
-        return this.editor?.chain().focus().setImage(options).run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().setImage(options).run() ?? false
     }
 
     public updateImage(
         pos: number,
         options: { src: string; alt?: string; title?: string }
     ): boolean {
-        if (!this.editor) return false
+        if (!this.isReady() || !this.editor) return false
         return (
             this.editor
                 .chain()
@@ -424,41 +495,46 @@ export class MarkdownEditor {
     }
 
     public toggleCustomStyle(styleId: string): boolean {
+        if (!this.isReady() || !this.editor) return false
         return (
-            (this.editor?.chain().focus() as unknown as IEditorChainedCommands)
+            (this.editor.chain().focus() as unknown as IEditorChainedCommands)
                 ?.toggleCustomStyle(styleId)
                 .run() ?? false
         )
     }
 
     public unsetCustomStyle(): boolean {
+        if (!this.isReady() || !this.editor) return false
         return (
-            (this.editor?.chain().focus() as unknown as IEditorChainedCommands)
+            (this.editor.chain().focus() as unknown as IEditorChainedCommands)
                 ?.unsetCustomStyle()
                 .run() ?? false
         )
     }
 
     public getActiveCustomStyle(): string | null {
-        if (!this.editor) return null
+        if (!this.isReady() || !this.editor) return null
         const attrs = this.editor.getAttributes('customStyle')
         return attrs?.styleId || null
     }
 
     public undo(): boolean {
-        return this.editor?.chain().focus().undo().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().undo().run() ?? false
     }
 
     public redo(): boolean {
-        return this.editor?.chain().focus().redo().run() ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.chain().focus().redo().run() ?? false
     }
 
     public isActive(name: string, attrs?: Record<string, unknown>): boolean {
-        return this.editor?.isActive(name, attrs) ?? false
+        if (!this.isReady() || !this.editor) return false
+        return this.editor.isActive(name, attrs) ?? false
     }
 
     public getActiveFormatting(): IActiveFormatting {
-        if (!this.editor) return {}
+        if (!this.isReady() || !this.editor) return {}
         return {
             bold: this.editor.isActive('bold'),
             italic: this.editor.isActive('italic'),
@@ -480,18 +556,19 @@ export class MarkdownEditor {
     }
 
     public focus(): void {
-        this.editor?.commands.focus()
+        if (!this.isReady() || !this.editor) return
+        this.editor.commands.focus()
     }
 
     public getWordCount(): number {
-        if (!this.editor) return 0
+        if (!this.isReady() || !this.editor) return 0
         const text = this.editor.getText().trim()
         if (!text) return 0
         return text.split(/\s+/).filter(Boolean).length
     }
 
     public getCharacterCount(): number {
-        if (!this.editor) return 0
+        if (!this.isReady() || !this.editor) return 0
         return this.editor.getText().length
     }
 
@@ -500,11 +577,12 @@ export class MarkdownEditor {
     }
 
     public setEditable(editable: boolean): void {
-        this.editor?.setEditable(editable)
+        if (!this.isReady() || !this.editor) return
+        this.editor.setEditable(editable)
     }
 
     public isEditable(): boolean {
-        return this.editor?.isEditable ?? false
+        return this.isReady() && Boolean(this.editor?.isEditable)
     }
 
     public destroy(): void {
@@ -512,5 +590,6 @@ export class MarkdownEditor {
             this.editor.destroy()
             this.editor = null
         }
+        this.options = {} as IMarkdownEditorOptions
     }
 }

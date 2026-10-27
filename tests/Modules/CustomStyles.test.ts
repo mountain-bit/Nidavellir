@@ -1,13 +1,16 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { CustomFontsService, IProjectFontsData } from '../../Modules/Editor/CustomFontsService'
+import { MarkdownEditor } from '../../Modules/Editor/core/MarkdownEditor'
+import {
+    CustomFontsService,
+    IProjectFontsData,
+} from '../../Modules/Editor/fonts/CustomFontsService'
 import {
     CustomStylesService,
     DEFAULT_CUSTOM_STYLES,
     IProjectStylesData,
-} from '../../Modules/Editor/CustomStylesService'
-import { MarkdownEditor } from '../../Modules/Editor/MarkdownEditor'
+} from '../../Modules/Editor/styles/CustomStylesService'
 import { ICustomTextStyle } from '../../Modules/Editor/types'
 
 describe('CustomStylesService', () => {
@@ -52,6 +55,36 @@ describe('CustomStylesService', () => {
         CustomStylesService.deleteStyle(projectData, 's1')
         expect(projectData.customStyles?.length).toBe(1)
         expect(projectData.customStyles?.[0].id).toBe('s2')
+    })
+
+    it('deletes custom style from uninitialized projectData by copying default styles first', () => {
+        const projectData: IProjectStylesData = {}
+        const updated = CustomStylesService.deleteStyle(projectData, 'style_thoughts')
+
+        expect(projectData.customStyles).toBeDefined()
+        expect(projectData.customStyles?.length).toBe(DEFAULT_CUSTOM_STYLES.length - 1)
+        expect(projectData.customStyles?.some(s => s.id === 'style_thoughts')).toBe(false)
+        expect(updated.some(s => s.id === 'style_thoughts')).toBe(false)
+    })
+
+    it('finds style by id using getStyleById', () => {
+        const found = CustomStylesService.getStyleById(null, 'style_thoughts')
+        expect(found).toBeDefined()
+        expect(found?.name).toBe('Myśli bohatera')
+
+        const notFound = CustomStylesService.getStyleById(null, 'non_existent_id')
+        expect(notFound).toBeUndefined()
+
+        const emptyId = CustomStylesService.getStyleById(null, '')
+        expect(emptyId).toBeUndefined()
+    })
+
+    it('returns independent copies from getDefaultStyles avoiding state mutation', () => {
+        const defaults = CustomStylesService.getDefaultStyles()
+        expect(defaults.length).toBe(DEFAULT_CUSTOM_STYLES.length)
+
+        defaults[0].name = 'Zmodyfikowana nazwa'
+        expect(DEFAULT_CUSTOM_STYLES[0].name).toBe('Myśli bohatera')
     })
 
     it('generates correct CSS rule string', () => {

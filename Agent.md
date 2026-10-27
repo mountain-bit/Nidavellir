@@ -135,10 +135,10 @@ Programmatic toast notifications with four severity levels: `success`, `warning`
 ### 3.9. Rich Markdown Editor Subsystem (`Modules/Editor/` & `View/ui/editor/`)
 
 The application features a TipTap-powered Rich WYSIWYG Markdown Editor that seamlessly synchronizes with standard Markdown files and Gamebook Engine project metadata:
-- **`MarkdownEditor.ts`**: Core TipTap wrapper handling word/char stats, entity autocomplete via `@`, typography formatting, dialog blocks, and custom styled spans.
-- **`CustomStylesService.ts` & `styleSanitizer.ts`**: Pure services managing project-specific text styling rules (thoughts, spells, whisper) with CSS injection and validation against CSS injection/XSS.
-- **`CustomFontsService.ts`, `fontCatalog.ts`, `fontStacks.ts`**: Manages curated fantasy Google Fonts and offline fallback catalogs, dynamic `<link>` injection, and CSS font-stack fallbacks.
-- **`EntitySyncService.ts`**: Scans document AST or markdown syntax `[Name](entity://type/id)` to auto-sync mentioned locations, characters, and tags with the active scene/paragraph/NPC.
+- **`core/MarkdownEditor.ts`**: Core TipTap wrapper handling word/char stats, entity autocomplete via `@`, typography formatting, dialog blocks, and custom styled spans.
+- **`services/EntitySyncService.ts`**: Scans document AST or markdown syntax `[Name](entity://type/id)` to auto-sync mentioned locations, characters, and tags with the active scene/paragraph/NPC.
+- **`styles/` (`CustomStylesService.ts` & `styleSanitizer.ts`)**: Pure services managing project-specific text styling rules (thoughts, spells, whisper) with CSS injection and validation against CSS injection/XSS.
+- **`fonts/` (`CustomFontsService.ts`, `fontCatalog.ts`, `fontStacks.ts`)**: Manages curated fantasy Google Fonts and offline fallback catalogs, dynamic `<link>` injection, and CSS font-stack fallbacks.
 - **UI Modularization (`View/ui/editor/`)**: Decomposed into focused ES modules: `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, and `mainEditor.js`. All UI elements utilize centralized SVG icons (`Utils/icons.ts`) and full multilingual localization (`Locales/{pl,en,de}/translation.json`).
 
 ---
@@ -219,17 +219,14 @@ SilnikGierParagrafowych/
 │   │   ├── types.ts
 │   │   └── index.ts
 │   ├── Editor/                    # Rich Markdown Editor subsystem (TipTap + i18n + Fonts)
-│   │   ├── MarkdownEditor.ts      # Core TipTap Markdown Editor implementation
-│   │   ├── CustomStylesService.ts # Custom text style management & stylesheet injection
-│   │   ├── CustomFontsService.ts  # Google Fonts loader, cache, offline fallback
-│   │   ├── EntitySyncService.ts   # Document mention scanning & scene/NPC auto-sync
-│   │   ├── styleSanitizer.ts      # CSS & XSS injection sanitizer
-│   │   ├── fontCatalog.ts         # Curated & offline font datasets
-│   │   ├── fontStacks.ts          # System serif/mono/sans font stack fallbacks
-│   │   ├── constants.ts           # Editor URLs, timeouts, defaults
-│   │   ├── types.ts               # Interfaces for formatting, styles, fonts, entities
+│   │   ├── core/                  # Core TipTap Markdown Editor implementation (MarkdownEditor.ts)
+│   │   ├── services/              # Document mention scanning & scene/NPC auto-sync (EntitySyncService.ts)
+│   │   ├── fonts/                 # Google Fonts loader, cache, offline catalog & CSS font stacks
+│   │   ├── styles/                # Custom text styles service, stylesheet injection & sanitizers
 │   │   ├── extensions/            # TipTap custom extensions (CustomStyleMark, DialogBlock, etc.)
-│   │   └── ui/                    # Editor UI components (MentionSuggestionRenderer)
+│   │   ├── ui/                    # Editor UI components (MentionSuggestionRenderer)
+│   │   ├── types.ts               # Interfaces for formatting, styles, fonts, entities
+│   │   └── index.ts               # Module barrel export (facade)
 │   └── ImageEditor/               # In-app image processing (HTML5 Canvas 2D)
 │       └── ImageProcessor.ts      # Crop, scale, rotate, flip, and color adjustment filters
 │

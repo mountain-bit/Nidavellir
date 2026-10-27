@@ -1,13 +1,14 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { Location } from '../../Model/Location'
 import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { EntitySyncService } from '../../Modules/Editor/EntitySyncService'
-import { MarkdownEditor } from '../../Modules/Editor/MarkdownEditor'
-import { IEntityMentionItem } from '../../Modules/Editor/types'
+import { MarkdownEditor } from '../../Modules/Editor/core/MarkdownEditor'
+import { EntitySyncService } from '../../Modules/Editor/services/EntitySyncService'
+import { ICustomTextStyle, IEntityMentionItem } from '../../Modules/Editor/types'
+import { setLanguage } from '../../Utils/translate'
 
 describe('EntitySyncService', () => {
     it('extracts entities from raw markdown format', () => {
@@ -93,6 +94,11 @@ describe('MarkdownEditor', () => {
     beforeEach(() => {
         container = document.createElement('div')
         document.body.appendChild(container)
+    })
+
+    afterEach(async () => {
+        await setLanguage('pl')
+        container?.remove()
     })
 
     it('initializes and calculates word and character count', () => {
@@ -444,5 +450,133 @@ describe('MarkdownEditor', () => {
         expect(md).toContain('[Ostrze Króla](embed://item/item_sword)')
 
         editor.destroy()
+    })
+
+    it('dynamically updates custom styles in running editor instance', () => {
+        const initialStyles: ICustomTextStyle[] = [
+            { id: 'style_red', name: 'Czerwony', color: '#ff0000' },
+        ]
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Ważny tekst',
+            getCustomStyles: (): ICustomTextStyle[] => initialStyles,
+        })
+
+        const raw = editor.getRawEditor()
+        raw?.commands.selectAll()
+
+        editor.toggleCustomStyle('style_red')
+        expect(editor.getActiveCustomStyle()).toBe('style_red')
+
+        const updatedStyles: ICustomTextStyle[] = [
+            { id: 'style_red', name: 'Czerwony', color: '#ff0000' },
+            { id: 'style_blue', name: 'Niebieski', color: '#0000ff' },
+        ]
+        editor.updateCustomStyles(updatedStyles)
+
+        editor.toggleCustomStyle('style_blue')
+        expect(editor.getActiveCustomStyle()).toBe('style_blue')
+
+        editor.unsetCustomStyle()
+        expect(editor.getActiveCustomStyle()).toBeNull()
+
+        editor.destroy()
+    })
+
+    it('updates and removes description embed safely with robust node resolution', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Początek. ',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        editor.insertDescriptionEmbed({
+            id: 'item_dagger',
+            type: 'item',
+            name: 'Sztylet',
+        })
+
+        const raw = editor.getRawEditor()
+        let embedPos = -1
+        raw?.state.doc.descendants((node, pos) => {
+            if (node.type.name === 'descriptionEmbed') {
+                embedPos = pos
+                return false
+            }
+        })
+        expect(embedPos).toBeGreaterThanOrEqual(0)
+
+        // Test update using pos within/at the node
+        const updated = editor.updateDescriptionEmbed(embedPos, {
+            label: 'Zatruty Sztylet',
+            variant: 'summary',
+        })
+        expect(updated).toBe(true)
+        expect(editor.getMarkdown()).toContain(
+            '[Zatruty Sztylet](embed://item/item_dagger/summary)'
+        )
+
+        // Test removal using pos offset by 1 (tests findNodePos fallback resolution)
+        const removed = editor.removeDescriptionEmbed(embedPos + 1)
+        expect(removed).toBe(true)
+        expect(editor.getMarkdown()).not.toContain('embed://')
+
+        editor.destroy()
+    })
+
+    it('extracts existing prefix cleanly and uses localized prefix on language switch', async () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: '',
+            getProjectEntities: (): IEntityMentionItem[] => mockEntities,
+        })
+
+        // Test prefix de-duplication in default (PL) locale
+        editor.insertDescriptionEmbed({
+            id: 'item_sword',
+            type: 'item',
+            name: 'Opis: Miecz Ognia',
+        })
+        expect(editor.getMarkdown()).toContain('[Opis: Miecz Ognia](embed://item/item_sword)')
+        expect(editor.getMarkdown()).not.toContain('Opis: Opis:')
+
+        // Change language to english
+        await setLanguage('en')
+        editor.setMarkdown('')
+        editor.insertDescriptionEmbed({
+            id: 'item_bow',
+            type: 'item',
+            name: 'Description: Elven Bow',
+        })
+        expect(editor.getMarkdown()).toContain('[Description: Elven Bow](embed://item/item_bow)')
+        expect(editor.getMarkdown()).not.toContain('Description: Description:')
+
+        await setLanguage('pl')
+        editor.destroy()
+    })
+
+    it('safely handles editor methods after destroy without throwing', () => {
+        const editor = new MarkdownEditor({
+            element: container,
+            initialContent: 'Przykładowa treść',
+        })
+
+        expect(editor.isReady()).toBe(true)
+        editor.destroy()
+
+        expect(editor.isReady()).toBe(false)
+        expect(editor.isEditable()).toBe(false)
+        expect(editor.getWordCount()).toBe(0)
+        expect(editor.getCharacterCount()).toBe(0)
+        expect(editor.getMarkdown()).toBe('')
+        expect(editor.toggleBold()).toBe(false)
+        expect(editor.toggleItalic()).toBe(false)
+        expect(editor.setParagraph()).toBe(false)
+        expect(editor.getActiveCustomStyle()).toBeNull()
+        expect(editor.getActiveFormatting()).toEqual({})
+        expect(() => editor.focus()).not.toThrow()
+        expect(() => editor.updateCustomStyles([])).not.toThrow()
+        expect(() => editor.setMarkdown('Nowa treść')).not.toThrow()
+        expect(() => editor.destroy()).not.toThrow()
     })
 })

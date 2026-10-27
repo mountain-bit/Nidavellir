@@ -108,17 +108,17 @@ This document serves as a comprehensive registry of implemented features, archit
 ---
 
 ## 4. Rich Markdown Editing System
-- [x] **Core TipTap Markdown Editor (`Modules/Editor/MarkdownEditor.ts`)**
+- [x] **Core TipTap Markdown Editor (`Modules/Editor/core/MarkdownEditor.ts`)**
   - [x] Headings 1–5, bold, italic, underline (`<u>`), strikethrough (`~~`), lists, blockquotes.
   - [x] Custom Dialogue Block (`.gamebook-dialog`) with automated em-dash prefix (`— `) handling.
   - [x] Entity Mention System (`@`) with autocomplete popup and bi-directional linking `[Name](entity://type/id)`.
   - [x] Word and character count live statistics.
-- [x] **Custom Text Styles Subsystem (`Modules/Editor/CustomStylesService.ts`)**
+- [x] **Custom Text Styles Subsystem (`Modules/Editor/styles/CustomStylesService.ts`)**
   - [x] Style definition with colors, backgrounds, borders, typography, and font family.
   - [x] Dynamic CSS stylesheet generation and injection.
-  - [x] CSS/XSS input sanitization (`Modules/Editor/styleSanitizer.ts`).
+  - [x] CSS/XSS input sanitization (`Modules/Editor/styles/styleSanitizer.ts`).
   - [x] Project persistence round-trip in `project.json`.
-- [x] **Typography & Font Management (`Modules/Editor/CustomFontsService.ts`)**
+- [x] **Typography & Font Management (`Modules/Editor/fonts/CustomFontsService.ts`)**
   - [x] Curated fantasy & historical Google Fonts catalog.
   - [x] Offline fallback catalog with Polish diacritics support (`supportsPolish`).
   - [x] Google Fonts browser modal with live sample preview.

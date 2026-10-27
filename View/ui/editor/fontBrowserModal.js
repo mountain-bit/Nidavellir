@@ -121,7 +121,12 @@ export function setupFontBrowserUI(ctx, onSelectFont) {
             const tagsText = document.createElement('span')
             tagsText.className = 'text-[10px] text-zinc-500 truncate max-w-[180px]'
             tagsText.textContent =
-                font.tags && font.tags.length ? font.tags.slice(0, 3).join(', ') : font.category
+                font.tags && font.tags.length
+                    ? font.tags
+                          .slice(0, 3)
+                          .map(tag => CustomFontsService.getLocalizedTag(tag))
+                          .join(', ')
+                    : font.category
 
             const pickBtn = document.createElement('button')
             pickBtn.type = 'button'

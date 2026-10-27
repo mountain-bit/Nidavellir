@@ -1,6 +1,6 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 
-import { isSafeStyleId } from '../styleSanitizer'
+import { isSafeStyleId } from '../styles/styleSanitizer'
 
 export interface ICustomStyleOptions {
     HTMLAttributes: Record<string, unknown>

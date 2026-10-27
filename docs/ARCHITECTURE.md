@@ -207,10 +207,14 @@ SilnikGierParagrafowych/
 │   │   ├── SceneNode.ts        # Custom Web Component: <scene-node>
 │   │   └── types.ts            # Drag-and-drop state types and graph configuration options
 │   ├── Editor/                 # TipTap Rich Markdown Editor subsystem
-│   │   ├── MarkdownEditor.ts   # Core TipTap Markdown Editor implementation
-│   │   ├── CustomStylesService.ts # Custom text style management & stylesheet injection
-│   │   ├── CustomFontsService.ts  # Google Fonts loader and offline fallback
-│   │   └── extensions/         # Custom TipTap extensions (DialogBlock, CustomStyleMark, etc.)
+│   │   ├── core/               # Core TipTap Markdown Editor implementation (MarkdownEditor.ts)
+│   │   ├── services/           # Document mention scanning & scene/NPC auto-sync (EntitySyncService.ts)
+│   │   ├── fonts/              # Google Fonts loader, cache, offline catalog & CSS font stacks
+│   │   ├── styles/             # Custom text styles service, stylesheet injection & sanitizers
+│   │   ├── extensions/         # Custom TipTap extensions (DialogBlock, CustomStyleMark, etc.)
+│   │   ├── ui/                 # Editor UI components (MentionSuggestionRenderer)
+│   │   ├── types.ts            # Interfaces for formatting, styles, fonts, entities
+│   │   └── index.ts            # Module barrel export (facade)
 │   └── ImageEditor/            # In-app canvas image processor
 │       └── ImageProcessor.ts   # Crop, scale, rotate, flip, and color adjustment filters
 │

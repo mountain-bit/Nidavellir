@@ -104,6 +104,7 @@ export interface IFontCatalogItem {
     category: string
     subsets?: string[]
     supportsPolish?: boolean
+    supportedLanguages?: string[]
     tags?: string[]
 }
 

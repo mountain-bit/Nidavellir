@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MarkdownEditor } from '../../Modules/Editor/MarkdownEditor'
+import { MarkdownEditor } from '../../Modules/Editor/core/MarkdownEditor'
 import {
     closeDescriptionEmbedModal,
     extractEmbeddableEntities,

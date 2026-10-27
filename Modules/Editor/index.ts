@@ -1,28 +1,51 @@
+export { MarkdownEditor } from './core/MarkdownEditor'
 export {
     DEFAULT_FONT_FETCH_TIMEOUT_MS,
     FANTASY_CATEGORY_TAGS,
     FONTSOURCE_API_URL,
     GOOGLE_FONTS_BASE_URL,
-} from './constants'
-export { CustomFontsService, type IProjectFontsData } from './CustomFontsService'
-export { CustomStylesService, DEFAULT_CUSTOM_STYLES } from './CustomStylesService'
-export { EntitySyncService } from './EntitySyncService'
-export { CombatBlock, parseCombatMarkdown } from './extensions/CombatBlock'
-export { CustomImage } from './extensions/CustomImage'
-export { CustomStyleMark } from './extensions/CustomStyleMark'
-export { CustomUnderline } from './extensions/CustomUnderline'
-export { DescriptionEmbed } from './extensions/DescriptionEmbed'
-export { DialogBlock } from './extensions/DialogBlock'
-export { EntityMention } from './extensions/EntityMention'
-export { CURATED_FONTS, type IFontDefinition, OFFLINE_FONTS_CATALOG } from './fontCatalog'
-export { FONT_STACK_MONO, FONT_STACK_SANS, FONT_STACK_SERIF, getFontFamilyCss } from './fontStacks'
-export { MarkdownEditor } from './MarkdownEditor'
+} from './fonts/constants'
+export {
+    CustomFontsService,
+    getCustomFontCategory,
+    type IProjectFontsData,
+} from './fonts/CustomFontsService'
+export {
+    CURATED_FONTS,
+    fontSupportsLanguage,
+    getCanonicalFontTag,
+    getCuratedFontCategory,
+    getFontSupportedLanguages,
+    getLocalizedFontTag,
+    type IFontDefinition,
+    type ILanguageCharsetRule,
+    LANGUAGE_CHARSET_RULES,
+    OFFLINE_FONTS_CATALOG,
+    TAG_CANONICAL_MAP,
+} from './fonts/fontCatalog'
+export {
+    FONT_STACK_CURSIVE,
+    FONT_STACK_FANTASY,
+    FONT_STACK_MONO,
+    FONT_STACK_SANS,
+    FONT_STACK_SERIF,
+    type FontStackCategory,
+    getFontFamilyCss,
+} from './fonts/fontStacks'
+export { EntitySyncService } from './services/EntitySyncService'
+export {
+    CustomStylesService,
+    DEFAULT_CUSTOM_STYLES,
+    type IProjectStylesData,
+} from './styles/CustomStylesService'
 export {
     isSafeStyleId,
     sanitizeColor,
     sanitizeCustomStyle,
+    sanitizeCustomStyles,
     sanitizeFontFamily,
-} from './styleSanitizer'
+    sanitizeStyleName,
+} from './styles/styleSanitizer'
 export type {
     DescriptionEmbedType,
     DescriptionEmbedVariant,
