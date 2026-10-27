@@ -16,6 +16,13 @@ interface IMarkdownSerializerState {
     closeBlock: (node: unknown) => void
 }
 
+/**
+ * Wyrażenie regularne dopasowujące wiodące myślniki dialogowe:
+ * pauzę (—), półpauzę (–), kreskę poziomą (―) lub dywiz (-) (jeden lub dwa znaki) wraz z następującymi spacjami.
+ */
+const DIALOG_DASH_REGEX = /^[\u2014\u2013\u2015-]{1,2}\s*/u
+const DIALOG_DASH_PREFIX = '— '
+
 export const DialogBlock = Node.create({
     name: 'dialog',
     group: 'block',
@@ -34,7 +41,13 @@ export const DialogBlock = Node.create({
                 tag: 'div.gamebook-dialog',
             },
             {
+                tag: 'div[data-dialog="true"]',
+            },
+            {
                 tag: 'p[data-dialog="true"]',
+            },
+            {
+                tag: 'blockquote.gamebook-dialog',
             },
         ]
     },
@@ -54,36 +67,37 @@ export const DialogBlock = Node.create({
         return {
             toggleDialog:
                 () =>
-                ({ commands, state, dispatch }: CommandProps): boolean => {
+                ({ tr, commands, state, dispatch }: CommandProps): boolean => {
                     const { selection } = state
                     const { $from } = selection
                     const currentBlock = $from.parent
+
+                    if (!currentBlock.isTextblock) {
+                        return false
+                    }
 
                     const isCurrentlyDialog = currentBlock.type.name === this.name
 
                     if (isCurrentlyDialog) {
                         // Przełącz z powrotem na zwykły akapit i ewentualnie usuń wiodący myślnik dialogowy
                         const text = currentBlock.textContent
-                        const hasDashPrefix = /^[\u2014\u2013-]{1,2}\s*/u.test(text)
+                        const match = text.match(DIALOG_DASH_REGEX)
 
                         const toggled = commands.toggleNode(this.name, 'paragraph')
-                        if (toggled && hasDashPrefix && dispatch) {
+                        if (toggled && match && dispatch) {
                             const startPos = $from.start()
-                            const match = text.match(/^[\u2014\u2013-]{1,2}\s*/u)
-                            if (match) {
-                                state.tr.delete(startPos, startPos + match[0].length)
-                            }
+                            tr.delete(startPos, startPos + match[0].length)
                         }
                         return toggled
                     } else {
                         // Przełącz na dialog i jeśli nie ma myślnika dialogowego, dodaj '— '
                         const text = currentBlock.textContent
-                        const hasDashPrefix = /^[\u2014\u2013-]{1,2}\s*/u.test(text)
+                        const hasDashPrefix = DIALOG_DASH_REGEX.test(text)
 
                         const toggled = commands.toggleNode(this.name, 'paragraph')
                         if (toggled && !hasDashPrefix && dispatch) {
                             const startPos = $from.start()
-                            state.tr.insertText('— ', startPos)
+                            tr.insertText(DIALOG_DASH_PREFIX, startPos)
                         }
                         return toggled
                     }

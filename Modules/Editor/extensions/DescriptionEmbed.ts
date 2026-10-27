@@ -1,6 +1,30 @@
 import { CommandProps, mergeAttributes, Node } from '@tiptap/core'
 
+import { t } from '../../../Utils/translate'
 import { DescriptionEmbedType, DescriptionEmbedVariant, IDescriptionEmbedAttrs } from '../types'
+
+/**
+ * Universally extracts the clean entity name from a label by stripping any
+ * localized prefix before the first colon (e.g. "Opis: Miecz" -> "Miecz", "Description: Sword" -> "Sword").
+ * If no colon prefix is present, returns the trimmed label as-is.
+ */
+function extractEntityName(text: string): string {
+    if (!text || typeof text !== 'string') return ''
+    const trimmed = text.trim()
+    const colonIndex = trimmed.indexOf(':')
+    if (colonIndex > 0 && colonIndex < trimmed.length - 1) {
+        return trimmed.slice(colonIndex + 1).trim()
+    }
+    return trimmed
+}
+
+/**
+ * Returns the description prefix for the current active locale (e.g. "Opis:", "Description:").
+ */
+function getLocalizedPrefix(): string {
+    const desc = t('item.description') || 'Opis'
+    return `${desc}:`
+}
 
 declare module '@tiptap/core' {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -73,12 +97,12 @@ export const DescriptionEmbed = Node.create({
                         el.getAttribute('data-name') ||
                         el.getAttribute('data-embed-name') ||
                         el.getAttribute('data-label')
-                    if (dataName) return dataName
+                    if (dataName) return extractEntityName(dataName)
                     const text =
                         el.querySelector('.description-badge-text')?.textContent ||
                         el.textContent ||
                         ''
-                    return text.replace(/^Opis:\s*/i, '').trim()
+                    return extractEntityName(text)
                 },
                 renderHTML: (attrs: Record<string, unknown>): Record<string, string> => {
                     if (!attrs.name) return {}
@@ -128,13 +152,13 @@ export const DescriptionEmbed = Node.create({
                             match[3] || 'text'
                         ).toLowerCase() as DescriptionEmbedVariant
                         const rawLabel = dom.textContent?.trim() || id
-                        const cleanName = rawLabel.replace(/^Opis:\s*/i, '')
+                        const cleanName = extractEntityName(rawLabel)
                         return {
                             type,
                             id,
                             variant,
                             name: cleanName,
-                            label: `Opis: ${cleanName}`,
+                            label: rawLabel || `${getLocalizedPrefix()} ${cleanName}`,
                         }
                     }
                     return false
@@ -156,18 +180,24 @@ export const DescriptionEmbed = Node.create({
             node.attrs.variant || 'text'
         ).toLowerCase() as DescriptionEmbedVariant
         const rawName = String(node.attrs.name || node.attrs.label || id || '')
-        const cleanName = rawName.replace(/^Opis:\s*/i, '')
-        const displayLabel = String(node.attrs.label || (cleanName ? `Opis: ${cleanName}` : id))
+        const cleanName = extractEntityName(rawName)
+        const displayLabel = String(
+            node.attrs.label || (cleanName ? `${getLocalizedPrefix()} ${cleanName}` : id)
+        )
 
-        let typeLabel = 'Przedmiot'
+        let typeLabel = t('details.type_item') || 'Przedmiot'
         if (type === 'character') {
-            typeLabel = 'Postać'
+            typeLabel = t('left_panel.add_character') || t('details.type_character') || 'Postać'
         } else if (type === 'location') {
-            typeLabel = 'Lokacja'
+            typeLabel = t('details.type_location') || 'Lokacja'
         }
 
-        const variantBadgeText = variant === 'summary' ? 'Skrót' : 'Pełny'
-        const tooltip = `Wstawka narracyjna: [${typeLabel}] ${cleanName} (${variantBadgeText})`
+        const variantBadgeText =
+            variant === 'summary'
+                ? t('details.summary') || 'Skrót'
+                : t('item.description') || 'Pełny'
+        const narrativePrefix = t('editor.embed_modal.title') || 'Wstawka narracyjna'
+        const tooltip = `${narrativePrefix}: [${typeLabel}] ${cleanName} (${variantBadgeText})`
 
         return [
             'span',
@@ -207,8 +237,8 @@ export const DescriptionEmbed = Node.create({
             insertDescriptionEmbed:
                 (attrs: IDescriptionEmbedAttrs) =>
                 ({ commands }: CommandProps): boolean => {
-                    const cleanName = (attrs.name || attrs.id).replace(/^Opis:\s*/i, '')
-                    const label = attrs.label || `Opis: ${cleanName}`
+                    const cleanName = extractEntityName(attrs.name || attrs.id)
+                    const label = attrs.label || `${getLocalizedPrefix()} ${cleanName}`
                     return commands.insertContent({
                         type: this.name,
                         attrs: {
@@ -223,12 +253,12 @@ export const DescriptionEmbed = Node.create({
             updateDescriptionEmbed:
                 (pos: number, attrs: Partial<IDescriptionEmbedAttrs>) =>
                 ({ commands }: CommandProps): boolean => {
-                    const cleanName = attrs.name ? attrs.name.replace(/^Opis:\s*/i, '') : undefined
+                    const cleanName = attrs.name ? extractEntityName(attrs.name) : undefined
                     const updateAttrs: Record<string, unknown> = { ...attrs }
                     if (cleanName) {
                         updateAttrs.name = cleanName
                         if (!updateAttrs.label) {
-                            updateAttrs.label = `Opis: ${cleanName}`
+                            updateAttrs.label = `${getLocalizedPrefix()} ${cleanName}`
                         }
                     }
                     return (
@@ -258,8 +288,9 @@ export const DescriptionEmbed = Node.create({
                     const id = node.attrs.id || ''
                     const variant = node.attrs.variant || 'text'
                     const rawName = node.attrs.name || id
-                    const cleanName = rawName.replace(/^Opis:\s*/i, '')
-                    const label = node.attrs.label || `Opis: ${cleanName}`
+                    const cleanName = extractEntityName(rawName)
+                    const rawLabel = node.attrs.label || `${getLocalizedPrefix()} ${cleanName}`
+                    const label = rawLabel.replace(/\[/g, '\\[').replace(/\]/g, '\\]')
                     const url =
                         variant === 'summary'
                             ? `embed://${type}/${id}/summary`

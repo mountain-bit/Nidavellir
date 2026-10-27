@@ -1,5 +1,7 @@
 import { mergeAttributes, Node } from '@tiptap/core'
 
+import { t } from '../../../Utils/translate'
+
 export interface IParsedCombatData {
     title: string
     headers: string[]
@@ -9,17 +11,43 @@ export interface IParsedCombatData {
 }
 
 /**
+ * Extracts and decodes raw combat markdown from element attributes or textContent.
+ */
+function extractRawMarkdown(dom: HTMLElement): string {
+    const encoded = dom.getAttribute('data-raw-combat') || ''
+    if (encoded) {
+        try {
+            return decodeURIComponent(encoded)
+        } catch {
+            return encoded
+        }
+    }
+    return dom.textContent || ''
+}
+
+/**
  * Parses raw combat markdown block into structured fields for preview.
  */
 export function parseCombatMarkdown(raw: string): IParsedCombatData {
-    const titleMatch = raw.match(/###\s*(?:⚔️\s*)?Starcie:\s*([^\n\r]+)/i)
-    const title = titleMatch ? titleMatch[1].trim() : 'Starcie'
+    const headingMatch = raw.match(/###\s*([^\n\r]+)/)
+    const defaultTitle = t('combat.title') || 'Starcie'
+    let title = defaultTitle
+
+    if (headingMatch) {
+        const rawHeading = headingMatch[1].trim()
+        const colonIdx = rawHeading.indexOf(':')
+        if (colonIdx >= 0 && colonIdx < rawHeading.length - 1) {
+            title = rawHeading.slice(colonIdx + 1).trim()
+        } else if (rawHeading) {
+            title = rawHeading
+        }
+    }
 
     // Extract table
     const lines = raw.split(/\r?\n/)
     const tableLines = lines.filter(l => {
-        const t = l.trim()
-        return t.startsWith('|') && t.endsWith('|')
+        const lineText = l.trim()
+        return lineText.startsWith('|') && lineText.endsWith('|')
     })
 
     let headers: string[] = []
@@ -46,12 +74,14 @@ export function parseCombatMarkdown(raw: string): IParsedCombatData {
 
     // Extract outcomes
     const outcomes: Array<{ name: string; targetText: string; targetUrl: string }> = []
-    const outcomesSplit = raw.split(/####\s*Możliwe wyniki starcia:/i)
+    const outcomesSplit = raw.split(/####\s*[^\n\r]+/i)
     const outcomesSection = outcomesSplit.length > 1 ? outcomesSplit[1] : ''
     const outcomeLines = outcomesSection.split(/\r?\n/)
 
     for (const line of outcomeLines) {
-        const match = line.match(/^-\s*\*\*([^*]+)\*\*\s*→\s*(?:\[([^\]]+)\]\(([^)]+)\)|(.*))$/)
+        const match = line.match(
+            /^-\s*\*\*([^*]+)\*\*\s*(?:→|->)\s*(?:\[([^\]]+)\]\(([^)]+)\)|(.*))$/
+        )
         if (match) {
             const name = match[1].trim()
             const targetText = (match[2] || match[4] || '').trim()
@@ -80,17 +110,7 @@ export const CombatBlock = Node.create({
         return {
             rawMarkdown: {
                 default: '',
-                parseHTML: (el: HTMLElement): string => {
-                    const encoded = el.getAttribute('data-raw-combat') || ''
-                    if (encoded) {
-                        try {
-                            return decodeURIComponent(encoded)
-                        } catch {
-                            return encoded
-                        }
-                    }
-                    return el.textContent || ''
-                },
+                parseHTML: (el: HTMLElement): string => extractRawMarkdown(el),
                 renderHTML: (attrs: Record<string, unknown>): Record<string, string> => {
                     if (!attrs.rawMarkdown) return {}
                     return {
@@ -107,35 +127,14 @@ export const CombatBlock = Node.create({
                 tag: 'div[data-combat-block="true"]',
                 getAttrs: (dom: HTMLElement | string) => {
                     if (typeof dom === 'string') return false
-                    const encoded = dom.getAttribute('data-raw-combat') || ''
-                    let rawMarkdown = ''
-                    if (encoded) {
-                        try {
-                            rawMarkdown = decodeURIComponent(encoded)
-                        } catch {
-                            rawMarkdown = encoded
-                        }
-                    }
-                    if (!rawMarkdown) {
-                        rawMarkdown = dom.textContent || ''
-                    }
-                    return { rawMarkdown }
+                    return { rawMarkdown: extractRawMarkdown(dom) }
                 },
             },
             {
                 tag: 'div.combat-block-card',
                 getAttrs: (dom: HTMLElement | string) => {
                     if (typeof dom === 'string') return false
-                    const encoded = dom.getAttribute('data-raw-combat') || ''
-                    let rawMarkdown = ''
-                    if (encoded) {
-                        try {
-                            rawMarkdown = decodeURIComponent(encoded)
-                        } catch {
-                            rawMarkdown = encoded
-                        }
-                    }
-                    return { rawMarkdown }
+                    return { rawMarkdown: extractRawMarkdown(dom) }
                 },
             },
         ]
@@ -194,7 +193,7 @@ export const CombatBlock = Node.create({
                 {
                     class: 'py-2 px-3 rounded bg-zinc-900/50 border border-zinc-800 text-xs italic text-zinc-400 my-2',
                 },
-                'Brak zdefiniowanych przeciwników.',
+                t('combat.no_opponents_defined') || 'Brak zdefiniowanych przeciwników.',
             ]
         }
 
@@ -211,7 +210,7 @@ export const CombatBlock = Node.create({
                     {
                         class: 'px-1.5 py-0.5 rounded bg-zinc-800/90 text-zinc-200 border border-zinc-700/60 font-mono text-[11px]',
                     },
-                    o.targetText || 'Paragraf docelowy',
+                    o.targetText || t('combat.target_paragraph') || 'Paragraf docelowy',
                 ],
             ])
 
@@ -221,7 +220,7 @@ export const CombatBlock = Node.create({
                 [
                     'div',
                     { class: 'text-[11px] font-bold text-zinc-400 uppercase tracking-wider' },
-                    'Możliwe wyniki starcia:',
+                    `${t('combat.outcomes_title') || 'Możliwe wyniki starcia'}:`,
                 ],
                 ['ul', { class: 'list-none space-y-1 pl-1 m-0' }, ...outcomeItemSpecs],
             ]
@@ -229,9 +228,12 @@ export const CombatBlock = Node.create({
             outcomesSpec = [
                 'div',
                 { class: 'mt-2 text-xs italic text-zinc-400' },
-                'Brak zdefiniowanych wyników walki.',
+                t('combat.no_outcomes') || 'Brak zdefiniowanych wyników walki.',
             ]
         }
+
+        const encounterPrefix = (t('combat.encounter_label') || 'Starcie').replace(/[:\s]+$/, '')
+        const combatBadgeText = t('combat.badge') || 'Walka'
 
         return [
             'div',
@@ -253,13 +255,37 @@ export const CombatBlock = Node.create({
                 [
                     'div',
                     { class: 'flex items-center gap-2 min-w-0' },
-                    ['span', { class: 'text-amber-400 font-bold text-sm' }, '⚔️'],
+                    [
+                        'span',
+                        {
+                            class: 'text-amber-400 font-bold inline-flex items-center justify-center shrink-0 w-4 h-4',
+                            'aria-hidden': 'true',
+                        },
+                        [
+                            'svg',
+                            {
+                                class: 'w-4 h-4',
+                                fill: 'none',
+                                stroke: 'currentColor',
+                                viewBox: '0 0 24 24',
+                            },
+                            [
+                                'path',
+                                {
+                                    d: 'M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2M14.5 6.5L18 3h3v3l-3.5 3.5M5 14l4 4M7 17l-3 3M3 19l2 2',
+                                    'stroke-width': '1.8',
+                                    'stroke-linecap': 'round',
+                                    'stroke-linejoin': 'round',
+                                },
+                            ],
+                        ],
+                    ],
                     [
                         'span',
                         {
                             class: 'text-xs font-bold text-amber-200 uppercase tracking-wide truncate',
                         },
-                        `Starcie: ${data.title}`,
+                        `${encounterPrefix}: ${data.title}`,
                     ],
                 ],
                 [
@@ -267,7 +293,7 @@ export const CombatBlock = Node.create({
                     {
                         class: 'px-2 py-0.5 rounded text-[10px] bg-amber-500/15 text-amber-300 border border-amber-500/30 font-mono font-bold tracking-wider uppercase shrink-0',
                     },
-                    'Walka w paragrafie',
+                    combatBadgeText,
                 ],
             ],
             // Opponents Table
@@ -283,7 +309,8 @@ export const CombatBlock = Node.create({
                 [
                     'span',
                     {},
-                    'Edycja przeciwników, cech i wyników walki dostępna w panelu bocznym (Moduł walki).',
+                    t('combat.description') ||
+                        'Edycja przeciwników, cech i wyników walki dostępna w panelu bocznym (Moduł walki).',
                 ],
             ],
         ]

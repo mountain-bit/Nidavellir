@@ -31,9 +31,10 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
             styleId: {
                 default: null,
                 parseHTML: (element: HTMLElement): string | null => {
+                    const rawClass = typeof element.className === 'string' ? element.className : ''
                     const candidate =
                         element.getAttribute('data-custom-style') ||
-                        (element.className.match(/gamebook-custom-style-([a-zA-Z0-9_-]+)/) || [])[1]
+                        (rawClass.match(/\bgamebook-custom-style-([a-zA-Z0-9_-]+)\b/) || [])[1]
                     return isSafeStyleId(candidate) ? candidate : null
                 },
                 renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
@@ -58,7 +59,7 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
     },
 
     renderHTML({ HTMLAttributes }) {
-        const rawId = HTMLAttributes['data-custom-style']
+        const rawId = HTMLAttributes['data-custom-style'] || HTMLAttributes.styleId
         const styleId = isSafeStyleId(rawId) ? rawId : 'default'
         return [
             'span',
@@ -74,11 +75,13 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
             setCustomStyle:
                 (styleId: string) =>
                 ({ commands }): boolean => {
+                    if (!isSafeStyleId(styleId)) return false
                     return commands.setMark(this.name, { styleId })
                 },
             toggleCustomStyle:
                 (styleId: string) =>
                 ({ commands, editor }): boolean => {
+                    if (!isSafeStyleId(styleId)) return false
                     const isCurrentActive = editor.isActive(this.name, { styleId })
                     if (isCurrentActive) {
                         return commands.unsetMark(this.name)
@@ -106,7 +109,7 @@ export const CustomStyleMark = Mark.create<ICustomStyleOptions>({
                     close: '</span>',
                 },
                 parse: {
-                    // Parsowane przez parseHTML (tag: span[data-custom-style])
+                    // Handled by parseHTML (tag: span[data-custom-style])
                 },
             },
         }
