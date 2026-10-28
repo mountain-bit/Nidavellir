@@ -3,10 +3,14 @@
  * Clean, modern SVG representations of classic tabletop & fantasy RPG archetypes.
  */
 
+import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
 import { t } from '../../../dist/Utils/translate.js'
+import { escapeHtml } from './htmlTemplates.js'
 
-export const FANTASY_AVATARS = [
-    {
+export { isCustomAvatarPath }
+
+export const FANTASY_AVATARS = Object.freeze([
+    Object.freeze({
         id: 'warrior',
         nameKey: 'avatars.warrior',
         category: 'combat',
@@ -24,8 +28,8 @@ export const FANTASY_AVATARS = [
             <path d="M8 8L4 4"></path>
             <path d="M5 3L3 5"></path>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'mage',
         nameKey: 'avatars.mage',
         category: 'magic',
@@ -37,8 +41,8 @@ export const FANTASY_AVATARS = [
             <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"></path>
             <circle cx="12" cy="12" r="4"></circle>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'rogue',
         nameKey: 'avatars.rogue',
         category: 'stealth',
@@ -52,8 +56,8 @@ export const FANTASY_AVATARS = [
             <path d="M3 21h18"></path>
             <path d="M12 17v4"></path>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'cleric',
         nameKey: 'avatars.priest',
         category: 'divine',
@@ -72,8 +76,8 @@ export const FANTASY_AVATARS = [
             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'ranger',
         nameKey: 'avatars.ranger',
         category: 'ranged',
@@ -87,8 +91,8 @@ export const FANTASY_AVATARS = [
             <path d="M16 8l4 4-4 4"></path>
             <line x1="12" y1="4" x2="12" y2="20"></line>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'paladin',
         nameKey: 'avatars.paladin',
         category: 'holy',
@@ -101,8 +105,8 @@ export const FANTASY_AVATARS = [
             <line x1="12" y1="8" x2="12" y2="16"></line>
             <line x1="9" y1="11" x2="15" y2="11"></line>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'bard',
         nameKey: 'avatars.bard',
         category: 'utility',
@@ -115,8 +119,8 @@ export const FANTASY_AVATARS = [
             <circle cx="6" cy="18" r="3"></circle>
             <circle cx="18" cy="16" r="3"></circle>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'necromancer',
         nameKey: 'avatars.necromancer',
         category: 'dark',
@@ -130,8 +134,8 @@ export const FANTASY_AVATARS = [
             <circle cx="9" cy="10" r="1.5" fill="currentColor"></circle>
             <circle cx="15" cy="10" r="1.5" fill="currentColor"></circle>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'druid',
         nameKey: 'avatars.druid',
         category: 'nature',
@@ -143,8 +147,8 @@ export const FANTASY_AVATARS = [
             <path d="M11 20A7 7 0 014 13c0-4.4 3.6-8 8-8 1.4 0 2.8.4 4 1.1A7 7 0 0120 13c0 4.4-3.6 8-8 8h-1z"></path>
             <path d="M12 5v15"></path>
         </svg>`,
-    },
-    {
+    }),
+    Object.freeze({
         id: 'merchant',
         nameKey: 'avatars.merchant',
         category: 'civilian',
@@ -158,37 +162,41 @@ export const FANTASY_AVATARS = [
             <path d="M2 13l3-7 3 7a3 3 0 01-6 0z"></path>
             <path d="M16 13l3-7 3 7a3 3 0 01-6 0z"></path>
         </svg>`,
-    },
-]
-
-import { isCustomAvatarPath, toAssetUrl } from '../../../dist/Utils/assetUtils.js'
-
-export { isCustomAvatarPath }
+    }),
+])
 
 /**
  * Returns the translated display name for an avatar.
  *
- * @param {{ nameKey: string, id: string }} avatar
+ * @param {{ nameKey?: string, name?: string, id?: string } | null} avatar
  * @returns {string}
  */
 export function getAvatarName(avatar) {
-    return t(avatar.nameKey) || avatar.id
+    if (!avatar) return ''
+    return (avatar.nameKey ? t(avatar.nameKey) : null) || avatar.name || avatar.id || ''
 }
 
+/**
+ * Retrieves avatar configuration object by its unique ID or custom file path.
+ *
+ * @param {string} id Avatar ID or asset relative path
+ * @returns {object}
+ */
 export function getAvatarById(id) {
     if (isCustomAvatarPath(id)) {
-        const assetUrl = toAssetUrl(id)
+        const rawAssetUrl = toAssetUrl(id)
+        const safeAssetUrl = escapeHtml(rawAssetUrl)
         return {
             id,
             nameKey: 'avatars.custom',
-            name: t('avatars.custom') || 'Własny portret',
+            name: t('avatars.custom') || 'Custom portrait',
             category: 'custom',
             color: '#94a3b8',
             bgColor: 'rgba(39, 39, 42, 0.4)',
             borderColor: 'rgba(63, 63, 70, 0.8)',
             isCustom: true,
             src: id,
-            svg: `<img src="${assetUrl}" alt="Avatar" class="w-full h-full object-cover rounded-lg" />`,
+            svg: `<img src="${safeAssetUrl}" alt="Avatar" class="w-full h-full object-cover rounded-lg" />`,
         }
     }
     return FANTASY_AVATARS.find(a => a.id === id) || FANTASY_AVATARS[0]

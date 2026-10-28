@@ -666,10 +666,28 @@ declare module '*/View/ui/common/npcAvatars.js' {
         src?: string
     }
 
-    export const FANTASY_AVATARS: IFantasyAvatar[]
-    export function getAvatarName(avatar: IFantasyAvatar): string
+    export const FANTASY_AVATARS: readonly IFantasyAvatar[]
+    export function getAvatarName(avatar: Partial<IFantasyAvatar> | null | undefined): string
     export function getAvatarById(id: string): IFantasyAvatar
     export function isCustomAvatarPath(avatarId: string): boolean
+}
+
+declare module '*/View/ui/common/htmlTemplates.js' {
+    export function escapeHtml(str: unknown): string
+    export function getTypeIconSvg(type: string, extraClasses?: string): string
+    export const PRESET_COLORS: readonly string[]
+    export function getTypeBadgeColor(type: string): string
+    export function renderEmptyPlaceholderHtml(iconText?: string, message?: string): string
+    export function renderColorPresetButtonsHtml(
+        presetColors?: readonly string[] | string[],
+        currentColor?: string
+    ): string
+}
+
+declare module '*/View/ui/common/index.js' {
+    export * from '*/View/ui/common/graphValidator.js'
+    export * from '*/View/ui/common/htmlTemplates.js'
+    export * from '*/View/ui/common/npcAvatars.js'
 }
 
 declare module '*/View/ui/assets/imageEditorModal.js' {
