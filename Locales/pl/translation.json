@@ -1244,6 +1244,7 @@
         "aspect_3_2": "3:2",
         "rotate_left": "Obróć o 90° w lewo",
         "rotate_right": "Obróć o 90° w prawo",
+        "rotate_flip": "Obrót i odbicie:",
         "flip_h": "Odbij poziomo",
         "flip_v": "Odbij pionowo",
         "width": "Szerokość (px)",
@@ -1298,6 +1299,8 @@
         "unknown_dimensions": "Nieznane",
         "loading_dimensions": "Wczytywanie...",
         "no_usages": "0 miejsc",
+        "no_usages_desc": "Plik nie jest obecnie powiązany z żadnym elementem gry.",
+        "used_in_prefix": "Użyto w: {{places}}",
         "places_count": "{{count}} miejsc",
         "places_count_singular": "{{count}} miejsce",
         "files_count": "{{count}} plików ({{size}})",
@@ -1330,7 +1333,13 @@
     "asset_picker": {
         "title": "Wybierz grafikę z projektu",
         "upload_new": "Wgraj nowy z dysku",
-        "none_selected": "Nie wybrano grafiki"
+        "none_selected": "Nie wybrano grafiki",
+        "selected_label": "Wybrano: {{name}}",
+        "search_placeholder": "Filtruj grafiki...",
+        "empty_title": "Brak pasujących grafik",
+        "empty_desc": "Użyj przycisku \"Wgraj nowy z dysku\", aby dodać plik do projektu.",
+        "btn_cancel": "Anuluj",
+        "btn_select": "Wybierz"
     },
     "validation": {
         "no_paragraphs_title": "Brak paragrafów w projekcie",

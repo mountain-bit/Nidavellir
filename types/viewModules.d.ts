@@ -696,6 +696,111 @@ declare module '*/View/ui/assets/imageEditorModal.js' {
     ): void
 }
 
+declare module '*/View/ui/assets/editor/imageEditorState.js' {
+    export function createImageEditorState(): {
+        isOpen: boolean
+        sourceImg: HTMLImageElement | null
+        originalRelativePath: string
+        onSaveCallback: ((res: unknown) => void) | null
+        transform: { rotation: number; flipH: boolean; flipV: boolean }
+        crop: { x: number; y: number; width: number; height: number }
+        isCroppingActive: boolean
+        aspectRatioMode: string
+        adjustments: Record<string, number>
+        resize: { width: number; height: number }
+        lockAspect: boolean
+    }
+    export function getNumericAspectRatio(mode: string): number | null
+    export function getImageTransformedBounds(
+        sourceImg: HTMLImageElement | null,
+        rotation?: number
+    ): { width: number; height: number }
+    export function calculateAspectCrop(
+        crop: { x: number; y: number; width: number; height: number },
+        boundW: number,
+        boundH: number,
+        targetRatio: number | null
+    ): { x: number; y: number; width: number; height: number }
+}
+
+declare module '*/View/ui/assets/editor/imageEditorCrop.js' {
+    export function calculateCropMove(
+        origCrop: { x: number; y: number; width: number; height: number },
+        deltaX: number,
+        deltaY: number,
+        boundW: number,
+        boundH: number
+    ): { x: number; y: number; width: number; height: number }
+    export function calculateCropResize(
+        origCrop: { x: number; y: number; width: number; height: number },
+        handle: string,
+        deltaX: number,
+        deltaY: number,
+        boundW: number,
+        boundH: number,
+        targetRatio: number | null
+    ): { x: number; y: number; width: number; height: number }
+    export function updateCropOverlayDOM(
+        cropOverlay: HTMLElement,
+        canvas: HTMLCanvasElement,
+        boundW: number,
+        boundH: number,
+        crop: { x: number; y: number; width: number; height: number }
+    ): void
+    export function setupCropInteractions(options: unknown): { cleanup: () => void }
+}
+
+declare module '*/View/ui/assets/editor/imageEditorCanvas.js' {
+    export function renderCanvasPreview(
+        canvas: HTMLCanvasElement | null,
+        sourceImg: HTMLImageElement | null,
+        transform?: { rotation: number; flipH: boolean; flipV: boolean } | null,
+        adjustments?: unknown
+    ): { boundW: number; boundH: number } | null
+}
+
+declare module '*/View/ui/assets/editor/imageEditorSave.js' {
+    export function detectMimeAndQuality(relativePath?: string): {
+        mimeType: string
+        quality: number
+    }
+    export function saveEditedImageFile(options: unknown): Promise<unknown>
+}
+
+declare module '*/View/ui/assets/editor/imageEditorModal.js' {
+    export function setupImageEditorModal(ctx: unknown): {
+        open: (options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }) => void
+        close: () => void
+        setContext?: (ctx: unknown) => void
+    }
+    export function getImageEditorModal(ctx: unknown): {
+        open: (options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }) => void
+        close: () => void
+        setContext?: (ctx: unknown) => void
+    }
+    export function openImageEditor(
+        ctx: unknown,
+        options: {
+            src: string
+            onSave?: (res: { relativePath: string; assetUrl: string; fileName: string }) => void
+        }
+    ): void
+}
+
+declare module '*/View/ui/assets/editor/index.js' {
+    export * from '*/View/ui/assets/editor/imageEditorCanvas.js'
+    export * from '*/View/ui/assets/editor/imageEditorCrop.js'
+    export * from '*/View/ui/assets/editor/imageEditorModal.js'
+    export * from '*/View/ui/assets/editor/imageEditorSave.js'
+    export * from '*/View/ui/assets/editor/imageEditorState.js'
+}
+
 declare module '*/dist/Modules/ImageEditor/index.js' {
     export * from '../Modules/ImageEditor/index'
 }
@@ -878,6 +983,62 @@ declare module '*/View/ui/assets/assetManagerModal.js' {
     export function openAssetManager(ctx: unknown): Promise<void>
     export function closeAssetManager(): void
     export function refreshAssetList(): Promise<void>
+    export function selectAsset(asset: unknown): void
+    export function renderFilteredGrid(): void
+}
+
+declare module '*/View/ui/assets/manager/assetRenameDialog.js' {
+    export function promptRenameAsset(
+        asset: { fileName: string; extension?: string } | null
+    ): Promise<string | null>
+}
+
+declare module '*/View/ui/assets/manager/assetDeleteDialog.js' {
+    export function confirmDeleteAsset(
+        asset: { fileName: string; [key: string]: unknown } | null,
+        usages?: Array<{ name: string; field: string; type?: string }>
+    ): Promise<boolean>
+}
+
+declare module '*/View/ui/assets/manager/assetDetailPanel.js' {
+    export function getIconForUsageType(type: string): string
+    export function renderDetailPanel(asset: unknown, activeCtx?: unknown): void
+}
+
+declare module '*/View/ui/assets/manager/assetManagerGrid.js' {
+    export function filterAndSortAssets(
+        assets: Array<{ fileName: string; extension?: string; modifiedAt?: number; size?: number }>,
+        options?: { query?: string; filterType?: string; sortMode?: string }
+    ): Array<{ fileName: string; extension?: string; modifiedAt?: number; size?: number }>
+    export function calculateTotalSize(assets: Array<{ size?: number }>): number
+    export function renderManagerGrid(options: {
+        grid: HTMLElement
+        emptyState?: HTMLElement | null
+        countBadge?: HTMLElement | null
+        assets: Array<{ fileName: string; relativePath: string; [key: string]: unknown }>
+        query?: string
+        filterType?: string
+        sortMode?: string
+        selectedAsset?: unknown
+        activeCtx?: unknown
+        onSelect?: (asset: unknown) => void
+    }): Array<{ fileName: string; [key: string]: unknown }>
+}
+
+declare module '*/View/ui/assets/manager/assetManagerModal.js' {
+    export function openAssetManager(ctx: unknown): Promise<void>
+    export function closeAssetManager(): void
+    export function refreshAssetList(): Promise<void>
+    export function selectAsset(asset: unknown): void
+    export function renderFilteredGrid(): void
+}
+
+declare module '*/View/ui/assets/manager/index.js' {
+    export * from '*/View/ui/assets/manager/assetDeleteDialog.js'
+    export * from '*/View/ui/assets/manager/assetDetailPanel.js'
+    export * from '*/View/ui/assets/manager/assetManagerGrid.js'
+    export * from '*/View/ui/assets/manager/assetManagerModal.js'
+    export * from '*/View/ui/assets/manager/assetRenameDialog.js'
 }
 
 declare module '*/View/ui/assets/assetPicker.js' {
@@ -910,6 +1071,89 @@ declare module '*/View/ui/assets/assetPicker.js' {
             overlayElement?: HTMLElement | null
         }
     ): void
+}
+
+declare module '*/View/ui/assets/common/assetPathResolver.js' {
+    export function getActiveProjectPath(ctx?: unknown): string
+    export function ensureActiveProjectPath(ctx?: unknown): Promise<string>
+}
+
+declare module '*/View/ui/assets/common/assetDropZone.js' {
+    export function importDroppedImage(
+        file: File | unknown,
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function setupElementDropZone(
+        element: HTMLElement | null,
+        options?: {
+            highlightClass?: string
+            onFileDrop?: (file: File, event: DragEvent) => Promise<void> | void
+            onFilesDrop?: (files: File[], event: DragEvent) => Promise<void> | void
+            overlayElement?: HTMLElement | null
+        }
+    ): void
+}
+
+declare module '*/View/ui/assets/common/assetCardTemplate.js' {
+    export function formatFileSize(bytes: number): string
+    export function createAssetCardElement(options: {
+        asset: {
+            relativePath: string
+            fileName: string
+            size?: number
+            modifiedAt?: number
+            assetUrl?: string
+        }
+        isSelected?: boolean
+        usagesCount?: number | null
+        showSize?: boolean
+        onClick?: (e: MouseEvent) => void
+        onDblClick?: (e: MouseEvent) => void
+    }): HTMLDivElement
+}
+
+declare module '*/View/ui/assets/common/index.js' {
+    export * from '*/View/ui/assets/common/assetCardTemplate.js'
+    export * from '*/View/ui/assets/common/assetDropZone.js'
+    export * from '*/View/ui/assets/common/assetPathResolver.js'
+}
+
+declare module '*/View/ui/assets/picker/assetPickerGrid.js' {
+    export function filterAssetsByQuery(
+        assets: Array<{ fileName: string; relativePath: string }>,
+        query?: string
+    ): Array<{ fileName: string; relativePath: string }>
+    export function renderPickerGrid(options: {
+        grid: HTMLElement
+        emptyState?: HTMLElement | null
+        assets: Array<{ fileName: string; relativePath: string; [key: string]: unknown }>
+        query?: string
+        selectedAsset?: { fileName: string; relativePath: string } | null
+        onSelect?: (asset: { fileName: string; relativePath: string }) => void
+        onConfirm?: (asset: { fileName: string; relativePath: string }) => void
+    }): Array<{ fileName: string; relativePath: string }>
+}
+
+declare module '*/View/ui/assets/picker/assetPickerModal.js' {
+    export function importImageNative(
+        ctx?: unknown,
+        prefix?: string
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function openAssetPickerModal(
+        ctx?: unknown,
+        options?: { prefix?: string; title?: string; currentRelativePath?: string }
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+    export function pickProjectImage(
+        ctx?: unknown,
+        prefix?: string,
+        options?: { directNativeDialog?: boolean; title?: string; currentRelativePath?: string }
+    ): Promise<{ relativePath: string; fileName: string; assetUrl: string } | null>
+}
+
+declare module '*/View/ui/assets/picker/index.js' {
+    export * from '*/View/ui/assets/picker/assetPickerGrid.js'
+    export * from '*/View/ui/assets/picker/assetPickerModal.js'
 }
 
 declare module '*/View/ui/modals/playtest/playtestModal.js' {

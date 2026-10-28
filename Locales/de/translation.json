@@ -1228,6 +1228,7 @@
         "aspect_3_2": "3:2",
         "rotate_left": "90° nach links drehen",
         "rotate_right": "90° nach rechts drehen",
+        "rotate_flip": "Drehung & Spiegelung:",
         "flip_h": "Horizontal spiegeln",
         "flip_v": "Vertikal spiegeln",
         "width": "Breite (px)",
@@ -1282,6 +1283,8 @@
         "unknown_dimensions": "Unbekannt",
         "loading_dimensions": "Laden...",
         "no_usages": "0 Stellen",
+        "no_usages_desc": "Diese Datei ist derzeit mit keinem Spielelement verknüpft.",
+        "used_in_prefix": "Verwendet in: {{places}}",
         "places_count": "{{count}} Stellen",
         "places_count_singular": "{{count}} Stelle",
         "files_count": "{{count}} Dateien ({{size}})",
@@ -1314,7 +1317,13 @@
     "asset_picker": {
         "title": "Projektbild auswählen",
         "upload_new": "Vom Computer hochladen",
-        "none_selected": "Kein Bild ausgewählt"
+        "none_selected": "Kein Bild ausgewählt",
+        "selected_label": "Ausgewählt: {{name}}",
+        "search_placeholder": "Bilder filtern...",
+        "empty_title": "Keine passenden Bilder",
+        "empty_desc": "Verwenden Sie die Schaltfläche 'Vom Computer hochladen', um ein Bild hinzuzufügen.",
+        "btn_cancel": "Abbrechen",
+        "btn_select": "Auswählen"
     },
     "validation": {
         "no_paragraphs_title": "Keine Absätze im Projekt",

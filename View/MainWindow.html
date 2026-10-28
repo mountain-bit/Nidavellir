@@ -4629,6 +4629,7 @@
                             type="text"
                             id="asset-picker-search"
                             placeholder="Filtruj grafiki..."
+                            data-i18n-placeholder="asset_picker.search_placeholder"
                             class="w-full pl-8 pr-3 py-1.5 bg-[#26262a] border border-[#38383e] focus:border-[#4f6b8a] rounded-md text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
                         />
                     </div>
@@ -4653,8 +4654,8 @@
                         class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500"
                     >
                         <app-icon name="image" class="w-12 h-12 text-zinc-600 mb-2"></app-icon>
-                        <p class="text-sm font-medium text-zinc-400">Brak pasujących grafik</p>
-                        <p class="text-xs text-zinc-500 mt-1">
+                        <p class="text-sm font-medium text-zinc-400" data-i18n="asset_picker.empty_title">Brak pasujących grafik</p>
+                        <p class="text-xs text-zinc-500 mt-1" data-i18n="asset_picker.empty_desc">
                             Użyj przycisku "Wgraj nowy z dysku", aby dodać plik do projektu.
                         </p>
                     </div>
@@ -4667,6 +4668,7 @@
                     <span
                         id="asset-picker-selected-label"
                         class="text-xs text-zinc-400 truncate max-w-md"
+                        data-i18n="asset_picker.none_selected"
                         >Nie wybrano grafiki</span
                     >
                     <div class="flex items-center gap-2">
@@ -4674,6 +4676,7 @@
                             type="button"
                             id="btn-asset-picker-cancel"
                             class="px-4 py-1.5 bg-[#222429] hover:bg-[#2c2e35] text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer border border-[#2e3037]"
+                            data-i18n="asset_picker.btn_cancel"
                         >
                             Anuluj
                         </button>
@@ -4682,6 +4685,7 @@
                             id="btn-asset-picker-select"
                             disabled
                             class="px-4 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] disabled:opacity-50 disabled:cursor-not-allowed border border-[#4a5e74] text-white rounded-md text-xs font-medium transition-colors cursor-pointer shadow-sm"
+                            data-i18n="asset_picker.btn_select"
                         >
                             Wybierz
                         </button>
@@ -4870,9 +4874,12 @@
                                 </div>
 
                                 <div class="pt-3 border-t border-[#2d2d32]">
-                                    <label class="block font-medium text-zinc-300 mb-2"
-                                        >Obrót i odbicie:</label
+                                    <label
+                                        class="block font-medium text-zinc-300 mb-2"
+                                        data-i18n="image_editor.rotate_flip"
                                     >
+                                        Obrót i odbicie:
+                                    </label>
                                     <div class="grid grid-cols-2 gap-1.5">
                                         <button
                                             type="button"
