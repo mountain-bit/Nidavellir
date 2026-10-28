@@ -10,26 +10,27 @@ The Gamebook Engine is an advanced desktop application designed for visual and t
 
 ### Technology Stack:
 
-| Domain | Technology / Tool | Role & Scope |
-| :--- | :--- | :--- |
-| **Desktop Platform** | **Electron 41** | Multi-process runtime environment (Node.js + Chromium) |
-| **Language** | **TypeScript 6** / **JavaScript (ES2020)** | Static typing across Models, ViewModels, Modules, and Utilities |
-| **Styling & UI** | **Tailwind CSS v4** (`@tailwindcss/cli`) | Modern, minimalist interface with curated dark theme palette (`#18181b`) |
-| **Graph Visualization** | **Cytoscape.js 3.33** + **Web Components** | Node-based story canvas, bezier/curved edge routing, pan/zoom, anti-crossing |
-| **Rich Text Editor** | **TipTap 2.x** (`@tiptap/core`) | WYSIWYG Markdown, dialogue blocks, `@` entity mentions, custom text styles |
-| **Document Export** | **docx 8.x** + **Chromium printToPDF** | Structured DOCX publishing, print-ready PDF with `@page` styling, standalone HTML |
-| **Backup & Archive** | **JSZip 3.x** | Self-contained project zip packaging and automated restoration |
-| **Image Processing** | **HTML5 Canvas 2D Engine** | In-app crop, scale, rotate, flip, and real-time color filters (`ImageProcessor.ts`) |
-| **Bundler & Build Pipeline** | **esbuild 0.28** (`scripts/build-renderer.js`) | Blazing fast ESM module bundling into `dist/` |
-| **Internationalization (i18n)** | **i18next** + `i18next-fs-backend` | Synchronized localization: Polish (`pl`), English (`en`), German (`de`) |
-| **Automated Testing** | **Vitest 1.6** + **happy-dom** | Unit, domain logic, IPC handlers, and DOM Web Component tests (76 files, 821 tests) |
-| **Code Quality & Tooling** | **ESLint**, **Prettier**, **Husky**, **lint-staged** | Code consistency, static analysis, automated formatting, pre-commit hooks |
+| Domain                          | Technology / Tool                                    | Role & Scope                                                                        |
+| :------------------------------ | :--------------------------------------------------- | :---------------------------------------------------------------------------------- |
+| **Desktop Platform**            | **Electron 41**                                      | Multi-process runtime environment (Node.js + Chromium)                              |
+| **Language**                    | **TypeScript 6** / **JavaScript (ES2020)**           | Static typing across Models, ViewModels, Modules, and Utilities                     |
+| **Styling & UI**                | **Tailwind CSS v4** (`@tailwindcss/cli`)             | Modern, minimalist interface with curated dark theme palette (`#18181b`)            |
+| **Graph Visualization**         | **Cytoscape.js 3.33** + **Web Components**           | Node-based story canvas, bezier/curved edge routing, pan/zoom, anti-crossing        |
+| **Rich Text Editor**            | **TipTap 2.x** (`@tiptap/core`)                      | WYSIWYG Markdown, dialogue blocks, `@` entity mentions, custom text styles          |
+| **Document Export**             | **docx 8.x** + **Chromium printToPDF**               | Structured DOCX publishing, print-ready PDF with `@page` styling, standalone HTML   |
+| **Backup & Archive**            | **JSZip 3.x**                                        | Self-contained project zip packaging and automated restoration                      |
+| **Image Processing**            | **HTML5 Canvas 2D Engine**                           | In-app crop, scale, rotate, flip, and real-time color filters (`ImageProcessor.ts`) |
+| **Bundler & Build Pipeline**    | **esbuild 0.28** (`scripts/build-renderer.js`)       | Blazing fast ESM module bundling into `dist/`                                       |
+| **Internationalization (i18n)** | **i18next** + `i18next-fs-backend`                   | Synchronized localization: Polish (`pl`), English (`en`), German (`de`)             |
+| **Automated Testing**           | **Vitest 1.6** + **happy-dom**                       | Unit, domain logic, IPC handlers, and DOM Web Component tests (76 files, 821 tests) |
+| **Code Quality & Tooling**      | **ESLint**, **Prettier**, **Husky**, **lint-staged** | Code consistency, static analysis, automated formatting, pre-commit hooks           |
 
 ---
 
 ## 2. Multi-Process Architecture (Electron)
 
 The application strictly adheres to Electron security best practices:
+
 - **`contextIsolation: true`**: Complete isolation between the webpage JavaScript context and Node.js backend.
 - **`nodeIntegration: false`**: Eliminates arbitrary Node.js execution within the renderer process.
 - All interactions with the local operating system, file system, and native dialogs are channeled exclusively through a typed IPC bridge (`contextBridge`).
@@ -191,7 +192,7 @@ SilnikGierParagrafowych/
 │   └── ui/                     # Modular view controllers organized by feature domain
 │       ├── assets/             # Modular media subsystem (common/, picker/, manager/, editor/)
 │       ├── common/             # Shared HTML templates, story graph validator adapter, avatar rendering
-│       ├── detailsPanel/       # Right property inspector, history bar, combat setup
+│       ├── detailsPanel/       # Right property inspector (choice/, combat/, item/, history bar)
 │       ├── drawer/             # Left drawer entity lists, search, faceted filters
 │       ├── editor/             # TipTap Markdown toolbar, custom styles, font browser, entity link
 │       ├── graph/              # Cytoscape coordinator, zoom controls, drop zones
@@ -284,7 +285,8 @@ SilnikGierParagrafowych/
     ├── ARCHITECTURE.md          # Master architecture reference (this document)
     ├── MAIN_PROCESS_ARCHITECTURE.md # Deep dive into the Electron Main Process
     ├── FRONTEND_ARCHITECTURE.md # Deep dive into the Renderer, MVVM, and Graph engine
-    └── EDITOR_EXTENSIONS.md     # Reference for TipTap extensions and transclusion
+    ├── EDITOR_EXTENSIONS.md     # Reference for TipTap extensions and transclusion
+    └── CHOICE_SUBSYSTEM.md      # Reference for Choice details panel and branching submodules
 ```
 
 ---
@@ -341,6 +343,7 @@ Projects are persisted directly as clean, human-readable JSON files and standard
 ```
 
 ### JSON Schema Roles:
+
 - **`project.json`**:
   Stores top-level metadata (`id`, `name`, `author`, `version`), custom text style definitions, and an array of relative `dataPaths` pointing to each category's `meta.json`.
 - **`meta.json`**:
@@ -353,20 +356,23 @@ Projects are persisted directly as clean, human-readable JSON files and standard
 ## 5. Architectural Patterns & Data Flow
 
 ### 5.1. The MVVM Pattern in the Renderer
+
 The UI layer is structured according to the **Model-View-ViewModel (MVVM)** pattern:
+
 1. **Model** (`Model/*`):
    Pure, self-contained business entities with deterministic invariants. Each class provides static `fromJSON(data)` factory constructors and `toJSON()` serializers.
 2. **ViewModel** (`ViewModel/*`):
    Stateful presentation logic decoupled from DOM elements:
-   - Ribbon & Top Bar toolbar states.
-   - Drawer toggle states and persistent widths (`leftDrawerWidth`, `rightSidebarWidth`).
-   - Faceted search algorithms (filtering paragraphs by query, tag, scene, or NPC).
-   - Selection history tracking with breadcrumb navigation.
-   - Graph visual preferences (curved vs straight lines, zoom sensitivity).
+    - Ribbon & Top Bar toolbar states.
+    - Drawer toggle states and persistent widths (`leftDrawerWidth`, `rightSidebarWidth`).
+    - Faceted search algorithms (filtering paragraphs by query, tag, scene, or NPC).
+    - Selection history tracking with breadcrumb navigation.
+    - Graph visual preferences (curved vs straight lines, zoom sensitivity).
 3. **View & UI Controllers** (`View/MainWindow.html`, `View/ui/*`):
    Declarative HTML views styled with Tailwind CSS, driven by modular JavaScript controllers receiving a unified `appContext` (`ctx`).
 
 ### 5.2. Runtime Project Singleton (`ProjectManager`)
+
 The renderer manages the active story through `ProjectManager.getInstance()`. It stores the loaded `Project` domain instance and its file-system root path, facilitating coordinated saving, opening, and modifications across all UI components.
 
 ---
@@ -399,10 +405,10 @@ graph LR
 
 - **Graph Validation Engine (`Services/graph/GraphValidationService.ts`)**:
   Performs real-time topological analysis detecting:
-  - Orphan nodes (unconnected paragraphs).
-  - Dead ends (paragraphs without choices and not marked as story endings).
-  - Unreachable nodes (disconnected narrative islands).
-  - Cycles and infinite loops with visual loop path tracing.
+    - Orphan nodes (unconnected paragraphs).
+    - Dead ends (paragraphs without choices and not marked as story endings).
+    - Unreachable nodes (disconnected narrative islands).
+    - Cycles and infinite loops with visual loop path tracing.
 - **Playtester Walkthrough Debugger (`View/ui/modals/playtest/playtestModal.js`)**:
   Allows authors to test their gamebooks interactively directly within the IDE, testing condition branches, stats, vital formulas, dynamic choices, and dice mechanics with step undo capability.
 
@@ -411,6 +417,7 @@ graph LR
 ## 8. Security Model & Data Integrity
 
 ### 8.1. Path Traversal Defense (`isPathInsideBase`)
+
 Desktop applications must never trust renderer-supplied paths. All file operations in `ProjectService`, `EntityService`, `MarkdownService`, `AssetService`, and `ExportService` resolve candidate paths against the validated project root:
 
 ```javascript
@@ -427,7 +434,9 @@ if (!isPathInsideBase(projectDir, targetPath)) {
 This prevents malicious or malformed paths (such as `../../../../Windows/System32`) from accessing or writing files outside the designated project directory.
 
 ### 8.2. Transactional & Atomic Writes
+
 To prevent file corruption caused by process termination, sudden power loss, or OS crashes during I/O operations, all JSON and Markdown modifications are written transactionally:
+
 1. Data is written to a temporary sibling file (`name.json.<timestamp>.<random>.tmp`).
 2. An atomic file replace is executed via `fs.renameSync(...)`.
 
@@ -438,13 +447,13 @@ To prevent file corruption caused by process termination, sudden power loss, or 
 The engine features a synchronized multi-language architecture supporting English (`en`), Polish (`pl`), and German (`de`):
 
 1. **Main Process (`Utils/i18n/i18n.js`)**:
-   - Built on `i18next` with `i18next-fs-backend`.
-   - Persists user language choices to `userData/settings.json`.
-   - Falls back gracefully to the host operating system's locale.
+    - Built on `i18next` with `i18next-fs-backend`.
+    - Persists user language choices to `userData/settings.json`.
+    - Falls back gracefully to the host operating system's locale.
 2. **Renderer Process (`Utils/i18n/translate.ts`)**:
-   - Bundles locale catalogs directly into the ESM bundle for instantaneous response.
-   - Provides strongly-typed `t(key)` helper functions.
-   - Automatically populates DOM elements via `applyTranslations()` using `data-i18n`, `data-i18n-placeholder`, and `data-i18n-title` attributes.
+    - Bundles locale catalogs directly into the ESM bundle for instantaneous response.
+    - Provides strongly-typed `t(key)` helper functions.
+    - Automatically populates DOM elements via `applyTranslations()` using `data-i18n`, `data-i18n-placeholder`, and `data-i18n-title` attributes.
 
 ---
 
@@ -474,7 +483,11 @@ pnpm format
 
 ## 11. Documentation Index
 
-- Detailed technical guide for the Electron Main Process, IPC routers, and services:  
-  - [Main Process Architecture (MAIN_PROCESS_ARCHITECTURE.md)](MAIN_PROCESS_ARCHITECTURE.md)
-- In-depth guide for the UI architecture, MVVM layer, and Cytoscape graph subsystem:  
-  - [Frontend Architecture (FRONTEND_ARCHITECTURE.md)](FRONTEND_ARCHITECTURE.md)
+- Detailed technical guide for the Electron Main Process, IPC routers, and services:
+    - [Main Process Architecture (MAIN_PROCESS_ARCHITECTURE.md)](MAIN_PROCESS_ARCHITECTURE.md)
+- In-depth guide for the UI architecture, MVVM layer, and Cytoscape graph subsystem:
+    - [Frontend Architecture (FRONTEND_ARCHITECTURE.md)](FRONTEND_ARCHITECTURE.md)
+- Reference for Choice details panel and narrative branching submodules:
+    - [Choice Subsystem Architecture (CHOICE_SUBSYSTEM.md)](CHOICE_SUBSYSTEM.md)
+- Reference for custom TipTap editor extensions, blocks, and transclusion:
+    - [Editor Extensions (EDITOR_EXTENSIONS.md)](EDITOR_EXTENSIONS.md)

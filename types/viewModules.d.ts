@@ -1013,7 +1013,7 @@ declare module '*/View/ui/assets/manager/assetRenameDialog.js' {
 
 declare module '*/View/ui/assets/manager/assetDeleteDialog.js' {
     export function confirmDeleteAsset(
-        asset: { fileName: string;[key: string]: unknown } | null,
+        asset: { fileName: string; [key: string]: unknown } | null,
         usages?: Array<{ name: string; field: string; type?: string }>
     ): Promise<boolean>
 }
@@ -1033,14 +1033,14 @@ declare module '*/View/ui/assets/manager/assetManagerGrid.js' {
         grid: HTMLElement
         emptyState?: HTMLElement | null
         countBadge?: HTMLElement | null
-        assets: Array<{ fileName: string; relativePath: string;[key: string]: unknown }>
+        assets: Array<{ fileName: string; relativePath: string; [key: string]: unknown }>
         query?: string
         filterType?: string
         sortMode?: string
         selectedAsset?: unknown
         activeCtx?: unknown
         onSelect?: (asset: unknown) => void
-    }): Array<{ fileName: string;[key: string]: unknown }>
+    }): Array<{ fileName: string; [key: string]: unknown }>
 }
 
 declare module '*/View/ui/assets/manager/assetManagerModal.js' {
@@ -1145,7 +1145,7 @@ declare module '*/View/ui/assets/picker/assetPickerGrid.js' {
     export function renderPickerGrid(options: {
         grid: HTMLElement
         emptyState?: HTMLElement | null
-        assets: Array<{ fileName: string; relativePath: string;[key: string]: unknown }>
+        assets: Array<{ fileName: string; relativePath: string; [key: string]: unknown }>
         query?: string
         selectedAsset?: { fileName: string; relativePath: string } | null
         onSelect?: (asset: { fileName: string; relativePath: string }) => void
@@ -1279,6 +1279,35 @@ declare module '*/View/ui/detailsPanel/combatModule.js' {
     ): void
 }
 
+declare module '*/dist/Utils/toast.js' {
+    export { showToast, toast } from '../Utils/ui/toast'
+}
+
+declare module '*/dist/Utils/translate.js' {
+    export * from '../Utils/i18n/translate'
+}
+
+declare module '*/dist/ViewModel/MainWindowViewModel.js' {
+    import type {
+        ItemCondition as ItemConditionClass,
+        StatCondition as StatConditionClass,
+        TagCondition as TagConditionClass,
+        TextCondition as TextConditionClass,
+    } from '../Model/Condition'
+    import type { MainWindowViewModel as MainWindowViewModelClass } from '../ViewModel/MainWindowViewModel'
+
+    export const ItemCondition: typeof ItemConditionClass
+    export type ItemCondition = ItemConditionClass
+    export const StatCondition: typeof StatConditionClass
+    export type StatCondition = StatConditionClass
+    export const TagCondition: typeof TagConditionClass
+    export type TagCondition = TagConditionClass
+    export const TextCondition: typeof TextConditionClass
+    export type TextCondition = TextConditionClass
+    export const MainWindowViewModel: typeof MainWindowViewModelClass
+    export type MainWindowViewModel = MainWindowViewModelClass
+}
+
 declare module '*/View/ui/detailsPanel/combat/combatOutcomesSection.js' {
     import type { Combat } from '../Model/Combat'
     import type { Paragraph } from '../Model/Paragraph'
@@ -1292,6 +1321,305 @@ declare module '*/View/ui/detailsPanel/combat/combatOutcomesSection.js' {
         onModify: () => void,
         onFullRefresh: () => void
     ): void
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceActionsSection.js' {
+    import type { Choice } from '../Model/Choice'
+
+    export interface IChoiceActionsSectionParams {
+        choice?: Choice | unknown
+        ctx?: unknown
+        onRefreshDetails?: (ctx?: unknown) => void
+        confirmFn?: (message?: string) => boolean
+    }
+
+    export function handleShowGraph(choice?: unknown, ctx?: unknown): void
+    export function handleDeleteChoice(params?: IChoiceActionsSectionParams): boolean
+    export function createChoiceActionsSection(params?: IChoiceActionsSectionParams): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceAddDropdown.js' {
+    export interface IChoiceFeatureOption {
+        value: string
+        labelKey: string
+        defaultLabel: string
+    }
+
+    export interface IChoiceFeatureGroup {
+        groupKey: string
+        defaultGroupLabel: string
+        options: readonly IChoiceFeatureOption[]
+    }
+
+    export const CHOICE_FEATURE_OPTIONS: readonly IChoiceFeatureGroup[]
+
+    export function renderChoiceAddDropdownOptionsHtml(
+        groups?: readonly IChoiceFeatureGroup[]
+    ): string
+
+    export function handleFeatureSelection(
+        selectEl: HTMLSelectElement | null | undefined,
+        onSelectFeature?: (action: string) => void
+    ): void
+
+    export function createChoiceAddDropdown(
+        onSelectFeatureOrOptions?:
+            ((action: string) => void) | { onSelectFeature?: (action: string) => void }
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceCombatSection.js' {
+    import type { Choice } from '../Model/Choice'
+    import type { Combat } from '../Model/Combat'
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export interface IChoiceCombatData {
+        fromP: Paragraph | unknown
+        combat: Combat | unknown
+        opponents: Array<unknown>
+        combatName: string
+        pTitle: string
+    }
+
+    export function resolveChoiceCombatData(
+        choice?: Choice | unknown,
+        ctx?: unknown
+    ): IChoiceCombatData | null
+
+    export function renderCombatOpponentsListHtml(opponents?: Array<unknown>): string
+
+    export function handleGoToCombat(fromP?: unknown, ctx?: unknown): void
+
+    export function createChoiceCombatSection(
+        choice?: Choice | unknown,
+        ctx?: unknown
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceConditionSection.js' {
+    import type { Choice } from '../Model/Choice'
+    import type { Condition } from '../Model/Condition'
+
+    export type ChoiceConditionType = 'none' | 'item' | 'stat' | 'tag' | 'text'
+
+    export interface IChoiceConditionSection {
+        sectionEl: HTMLElement
+        renderCondBody: () => void
+        getConditionType: () => ChoiceConditionType
+        setConditionType: (type: ChoiceConditionType) => void
+        buildConditionObject: () => Condition | null
+    }
+
+    export interface IChoiceConditionSectionParams {
+        choice?: Choice | unknown
+        onSave?: () => void
+        onRemove?: () => void
+    }
+
+    export function detectConditionType(condition?: unknown): ChoiceConditionType
+    export function createDefaultConditionForType(
+        type: ChoiceConditionType,
+        existingCond?: unknown
+    ): Condition | null
+    export function buildConditionFromInputs(
+        type: ChoiceConditionType,
+        containerEl?: HTMLElement | null,
+        existingCond?: unknown
+    ): Condition | null
+    export function renderItemConditionBodyHtml(cond?: unknown): string
+    export function renderStatConditionBodyHtml(cond?: unknown): string
+    export function renderTagConditionBodyHtml(cond?: unknown): string
+    export function renderTextConditionBodyHtml(cond?: unknown): string
+    export function createChoiceConditionSection(
+        params?: IChoiceConditionSectionParams
+    ): IChoiceConditionSection
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceCostsSection.js' {
+    import type { Choice, IChoiceModifier } from '../Model/Choice'
+
+    export interface IChoiceCostsSection {
+        sectionEl: HTMLElement
+        renderCosts: () => void
+        promptAddCost: () => IChoiceModifier | null
+    }
+
+    export interface IChoiceCostsSectionParams {
+        choice?: Choice | unknown
+        onSave?: () => void
+        onRemoveAll?: () => void
+        promptFn?: (message: string, defaultValue?: string) => string | null
+        confirmFn?: (message: string) => boolean
+    }
+
+    export function getChoiceCosts(choice?: unknown): IChoiceModifier[]
+    export function setChoiceCosts(choice: unknown, costs: IChoiceModifier[]): void
+    export function addChoiceCost(choice: unknown, cost: IChoiceModifier): void
+    export function removeCostAtIndex(choice: unknown, index: number, onSave?: () => void): boolean
+    export function renderCostItemHtml(cost: unknown, index: number): string
+    export function renderCostsListHtml(costs?: unknown[]): string
+    export function promptAddCost(params: {
+        choice?: unknown
+        onSave?: () => void
+        renderCosts?: () => void
+        sectionEl?: HTMLElement | null
+        promptFn?: (message: string, defaultValue?: string) => string | null
+        confirmFn?: (message: string) => boolean
+    }): IChoiceModifier | null
+    export function createChoiceCostsSection(
+        params?: IChoiceCostsSectionParams
+    ): IChoiceCostsSection
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceDatalists.js' {
+    export function extractItemNames(ctx?: unknown): string[]
+    export function extractStatNames(ctx?: unknown): string[]
+    export function extractTagNames(ctx?: unknown): string[]
+    export function renderDatalistHtml(id: string, options?: string[]): string
+    export function renderChoiceDatalistsHtml(options?: {
+        items?: string[]
+        stats?: string[]
+        tags?: string[]
+    }): string
+    export function ensureChoiceDatalists(
+        container?: HTMLElement | null,
+        ctx?: unknown,
+        options?: { forceUpdate?: boolean }
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceDiceSection.js' {
+    import type { Choice, ChoiceDiceCheck, DiceBranch } from '../Model/Choice'
+
+    export interface IChoiceDiceSection {
+        sectionEl: HTMLElement
+        renderBranches: () => void
+        syncDiceInputs: () => void
+    }
+
+    export interface IChoiceDiceSectionParams {
+        choice?: Choice | unknown
+        ctx?: unknown
+        onSave?: () => void
+        onRemove?: () => void
+    }
+
+    export function getChoiceDiceCheck(choice?: unknown): ChoiceDiceCheck | null
+    export function setChoiceDiceCheck(choice: unknown, diceCheck: ChoiceDiceCheck | null): void
+    export function getDiceCheckBranches(choice?: unknown): DiceBranch[]
+    export function addDiceCheckBranch(choice: unknown, branch: DiceBranch): void
+    export function removeDiceCheckBranch(
+        choice: unknown,
+        index: number,
+        onSave?: () => void
+    ): boolean
+    export function updateDiceCheckBranch(
+        choice: unknown,
+        index: number,
+        patch: Partial<DiceBranch>,
+        onSave?: () => void
+    ): boolean
+    export function renderTargetOptionsHtml(
+        paragraphs?: unknown[],
+        selectedTargetId?: string
+    ): string
+    export function renderBranchItemHtml(
+        branch: unknown,
+        index: number,
+        paragraphs?: unknown[]
+    ): string
+    export function renderBranchesListHtml(branches?: unknown[], paragraphs?: unknown[]): string
+    export function syncDiceInputs(sectionEl?: HTMLElement | null, choice?: unknown): void
+    export function createChoiceDiceSection(params?: IChoiceDiceSectionParams): IChoiceDiceSection
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceHeader.js' {
+    import type { Choice } from '../Model/Choice'
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export interface IChoiceEndpoints {
+        fromId: string
+        toId: string
+        fromP: Paragraph | null
+        toP: Paragraph | null
+        fromTitle: string
+        toTitle: string
+        isCombat: boolean
+    }
+
+    export interface IChoiceHeaderResult {
+        headerMod: HTMLElement
+        nameMod: HTMLElement
+        nodesMod: HTMLElement
+        getNameInput: () => HTMLInputElement | null
+    }
+
+    export function resolveChoiceEndpoints(choice?: unknown, ctx?: unknown): IChoiceEndpoints
+    export function renderChoiceTypeBadgeHtml(isCombat: boolean): string
+    export function renderChoiceHeaderSectionHtml(item?: unknown, isCombat?: boolean): string
+    export function renderChoiceNameSectionHtml(choiceName?: string): string
+    export function renderChoiceNodesSectionHtml(
+        fromTitle: string,
+        toTitle: string,
+        hasFromP?: boolean,
+        hasToP?: boolean
+    ): string
+    export function handleSaveChoiceName(params: {
+        choice?: unknown
+        nameInput?: HTMLInputElement | null
+        nameError?: HTMLElement | null
+        fromP?: unknown
+        isCombat?: boolean
+        ctx?: unknown
+        onRefreshDetails?: (ctx?: unknown) => void
+    }): boolean
+    export function handleSelectNode(node?: unknown, ctx?: unknown): void
+    export function createChoiceHeader(
+        choice?: Choice | unknown,
+        item?: unknown,
+        ctx?: unknown,
+        onRefreshDetails?: (ctx?: unknown) => void
+    ): IChoiceHeaderResult
+}
+
+declare module '*/View/ui/detailsPanel/choice/choiceRewardsSection.js' {
+    import type { Choice, IChoiceModifier } from '../Model/Choice'
+
+    export interface IChoiceRewardsSection {
+        sectionEl: HTMLElement
+        renderRewards: () => void
+        promptAddReward: () => IChoiceModifier | null
+    }
+
+    export interface IChoiceRewardsSectionParams {
+        choice?: Choice | unknown
+        onSave?: () => void
+        onRemoveAll?: () => void
+        promptFn?: (message: string, defaultValue?: string) => string | null
+        confirmFn?: (message: string) => boolean
+    }
+
+    export function getChoiceRewards(choice?: unknown): IChoiceModifier[]
+    export function setChoiceRewards(choice: unknown, rewards: IChoiceModifier[]): void
+    export function addChoiceReward(choice: unknown, reward: IChoiceModifier): void
+    export function removeRewardAtIndex(
+        choice: unknown,
+        index: number,
+        onSave?: () => void
+    ): boolean
+    export function renderRewardItemHtml(reward: unknown, index: number): string
+    export function renderRewardsListHtml(rewards?: unknown[]): string
+    export function promptAddReward(params: {
+        choice?: unknown
+        onSave?: () => void
+        renderRewards?: () => void
+        sectionEl?: HTMLElement | null
+        promptFn?: (message: string, defaultValue?: string) => string | null
+        confirmFn?: (message: string) => boolean
+    }): IChoiceModifier | null
+    export function createChoiceRewardsSection(
+        params?: IChoiceRewardsSectionParams
+    ): IChoiceRewardsSection
 }
 
 declare module '*/View/ui/graph/index.js' {

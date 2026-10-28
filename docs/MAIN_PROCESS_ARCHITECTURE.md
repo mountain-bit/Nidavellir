@@ -183,10 +183,10 @@ Pure Node.js business logic that operates independently of Electron IPC objects:
     - Saves canvas-edited copies (`Save as Copy` or `Overwrite Original`).
 - **`ExportService`**:
     - Multi-format publication compiler:
-      - `exportHtml(options)`: Compiles standalone HTML book with embedded CSS and asset links.
-      - `exportPdf(options)`: Generates print-ready PDF via Chromium `printToPDF` with `@page` sizing, running headers, and page breaks.
-      - `exportDocx(options)`: Generates formatted Microsoft Word documents with paragraph styles, tables, and character sheets.
-      - `exportZip(options)` & `restoreFromZip(options)`: Complete project archiving and restore using JSZip.
+        - `exportHtml(options)`: Compiles standalone HTML book with embedded CSS and asset links.
+        - `exportPdf(options)`: Generates print-ready PDF via Chromium `printToPDF` with `@page` sizing, running headers, and page breaks.
+        - `exportDocx(options)`: Generates formatted Microsoft Word documents with paragraph styles, tables, and character sheets.
+        - `exportZip(options)` & `restoreFromZip(options)`: Complete project archiving and restore using JSZip.
 - **`RecentProjectsService`**:
     - Manages reading, writing, and deduplicating the list of recently opened projects inside Electron's `userData` folder.
 
