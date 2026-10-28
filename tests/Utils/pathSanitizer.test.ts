@@ -1,18 +1,25 @@
+import { createRequire } from 'module'
 import { describe, expect, it } from 'vitest'
 
+import * as tsSanitizer from '../../Utils/fs/pathSanitizer'
 import {
+    formatDescriptionFileName,
     generateUniqueSlug,
     MAX_SLUG_ATTEMPTS,
     removeDiacritics,
     sanitizeFileName,
     slugifyEntityName,
-} from '../../Utils/pathSanitizer'
+} from '../../Utils/fs/pathSanitizer'
+
+const require = createRequire(import.meta.url)
+const cjsSanitizer = require('../../Utils/fs/pathSanitizer.js')
 
 describe('Path and Name Sanitizer', () => {
     describe('removeDiacritics', () => {
         it('powinien usunąć polskie i niemieckie znaki diakrytyczne', () => {
             expect(removeDiacritics('Zażółć gęślą jaźń')).toBe('Zazolc gesla jazn')
             expect(removeDiacritics('Äpfel und Öl')).toBe('Aepfel und Oel')
+            expect(removeDiacritics('')).toBe('')
         })
     })
 
@@ -77,6 +84,45 @@ describe('Path and Name Sanitizer', () => {
             const alwaysCollides = (): boolean => true
             const slug = generateUniqueSlug('kolizja', alwaysCollides)
             expect(slug).toMatch(/^kolizja_\d+$/)
+        })
+    })
+
+    describe('formatDescriptionFileName', () => {
+        it('powinien formatować ustandaryzowaną nazwę pliku opisu dla różnych kategorii', () => {
+            expect(formatDescriptionFileName('characters', 'Strażnik Miejski')).toBe(
+                'Description_NPC_Straznik_Miejski.md'
+            )
+            expect(formatDescriptionFileName('locations', 'Mroczna Wieża')).toBe(
+                'Description_Location_Mroczna_Wieza.md'
+            )
+            expect(formatDescriptionFileName('items', 'Złoty Klucz')).toBe(
+                'Description_Item_Zloty_Klucz.md'
+            )
+            expect(formatDescriptionFileName('', '')).toBe('Description_Entity_element.md')
+        })
+    })
+
+    describe('Synchronizacja pathSanitizer.ts i pathSanitizer.js', () => {
+        it('powinien eksportować identyczne stałe i zwracać identyczne wyniki w TS i CommonJS', () => {
+            expect(tsSanitizer.DIACRITICS_MAP).toEqual(cjsSanitizer.DIACRITICS_MAP)
+            expect(tsSanitizer.CATEGORY_SINGULAR_MAP).toEqual(cjsSanitizer.CATEGORY_SINGULAR_MAP)
+            expect(tsSanitizer.MAX_SLUG_ATTEMPTS).toBe(cjsSanitizer.MAX_SLUG_ATTEMPTS)
+
+            const samples = ['Zażółć gęślą jaźń!', 'CON', 'Karczma: Pod Różą', '']
+            for (const sample of samples) {
+                expect(tsSanitizer.removeDiacritics(sample)).toBe(
+                    cjsSanitizer.removeDiacritics(sample)
+                )
+                expect(tsSanitizer.sanitizeFileName(sample)).toBe(
+                    cjsSanitizer.sanitizeFileName(sample)
+                )
+                expect(tsSanitizer.slugifyEntityName(sample)).toBe(
+                    cjsSanitizer.slugifyEntityName(sample)
+                )
+                expect(tsSanitizer.formatDescriptionFileName('npc', sample)).toBe(
+                    cjsSanitizer.formatDescriptionFileName('npc', sample)
+                )
+            }
         })
     })
 })

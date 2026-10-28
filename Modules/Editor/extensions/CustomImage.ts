@@ -1,6 +1,6 @@
 import { CommandProps, mergeAttributes, Node } from '@tiptap/core'
 
-import { toAssetUrl, toRelativeAssetPath } from '../../../Utils/assetUtils'
+import { toAssetUrl, toRelativeAssetPath } from '../../../Utils/assets/assetUtils'
 
 declare module '@tiptap/core' {
     // eslint-disable-next-line @typescript-eslint/naming-convention

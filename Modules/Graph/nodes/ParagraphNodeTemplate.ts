@@ -4,7 +4,7 @@
  * Provides the extracted DOM template and element references for the <paragraph-node> Web Component.
  */
 
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 import paragraphNodeHtml from './ParagraphNode.html'
 
 export interface IParagraphNodeElements {

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Combat } from '../../Model/Combat'
 import { Paragraph } from '../../Model/Paragraph'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 import { renderCombatOutcomesSection } from '../../View/ui/detailsPanel/combat/combatOutcomesSection.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 

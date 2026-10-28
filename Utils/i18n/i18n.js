@@ -2,19 +2,21 @@ const path = require('path')
 const fs = require('fs')
 const i18next = require('i18next')
 const FsBackend = require('i18next-fs-backend')
+const { atomicWriteJsonSync } = require('../fs/fsSecurity')
 
-const SUPPORTED_LOCALES = ['en', 'pl', 'de']
+const SUPPORTED_LOCALES = Object.freeze(['en', 'pl', 'de'])
 const FALLBACK_LOCALE = 'en'
 
 let _app = null
 
 function getSettingsPath() {
+    if (!_app || typeof _app.getPath !== 'function') return null
     return path.join(_app.getPath('userData'), 'settings.json')
 }
 
 function getSavedLocale() {
     const settingsPath = getSettingsPath()
-    if (!fs.existsSync(settingsPath)) return null
+    if (!settingsPath || !fs.existsSync(settingsPath)) return null
     try {
         const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
         return settings.locale || null
@@ -26,21 +28,26 @@ function getSavedLocale() {
 
 function saveLocale(locale) {
     const settingsPath = getSettingsPath()
+    if (!settingsPath) return
     let settings = {}
-    try {
-        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
-    } catch (_err) {
-        // ignore error
+    if (fs.existsSync(settingsPath)) {
+        try {
+            settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'))
+        } catch {
+            settings = {}
+        }
     }
     settings.locale = locale
-    fs.mkdirSync(path.dirname(settingsPath), { recursive: true })
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2))
+    atomicWriteJsonSync(settingsPath, settings, 2)
 }
 
 function detectSystemLocale() {
-    const raw = _app.getLocale().toLowerCase()
+    const raw =
+        _app && typeof _app.getLocale === 'function'
+            ? _app.getLocale().toLowerCase()
+            : FALLBACK_LOCALE
     for (const supported of SUPPORTED_LOCALES) {
-        if (raw === supported || raw.startsWith(supported + '-')) {
+        if (raw === supported || raw.startsWith(`${supported}-`)) {
             return supported
         }
     }
@@ -65,7 +72,7 @@ async function initI18n(deps = {}) {
         fallbackLng: FALLBACK_LOCALE,
         supportedLngs: SUPPORTED_LOCALES,
         backend: {
-            loadPath: path.join(__dirname, '..', 'Locales', '{{lng}}', 'translation.json'),
+            loadPath: path.join(__dirname, '..', '..', 'Locales', '{{lng}}', 'translation.json'),
         },
         interpolation: {
             escapeValue: false,
@@ -104,4 +111,12 @@ async function setLocale(locale) {
     return true
 }
 
-module.exports = { initI18n, t, getTranslations, getLocale, setLocale }
+module.exports = {
+    SUPPORTED_LOCALES,
+    FALLBACK_LOCALE,
+    initI18n,
+    t,
+    getTranslations,
+    getLocale,
+    setLocale,
+}

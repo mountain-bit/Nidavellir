@@ -15,7 +15,7 @@ const {
     validateProjectData,
     atomicWriteStringSync,
     atomicWriteJsonSync,
-} = require('../../Utils/fsSecurity.js')
+} = require('../../Utils/fs/fsSecurity.js')
 
 const ProjectService = require('../../main/services/ProjectService.js')
 const EntityService = require('../../main/services/EntityService.js')

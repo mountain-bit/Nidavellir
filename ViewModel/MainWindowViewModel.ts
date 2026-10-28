@@ -53,9 +53,9 @@ import { ParagraphNumberingService } from '../Services/graph/ParagraphNumberingS
 import { DescriptionTransclusionService } from '../Services/markdown/DescriptionTransclusionService'
 import { EntityLinkUpdateService } from '../Services/markdown/EntityLinkUpdateService'
 import { ProjectManager } from '../Services/project/ProjectManager'
-import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
-import { formatDescriptionFileName } from '../Utils/pathSanitizer'
-import { t } from '../Utils/translate'
+import { defaultIdGenerator, type IdGenerator } from '../Utils/common/idGenerator'
+import { formatDescriptionFileName } from '../Utils/fs/pathSanitizer'
+import { t } from '../Utils/i18n/translate'
 
 export {
     CharacterClass,

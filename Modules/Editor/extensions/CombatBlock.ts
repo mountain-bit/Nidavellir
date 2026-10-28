@@ -1,6 +1,6 @@
 import { mergeAttributes, Node } from '@tiptap/core'
 
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 
 export interface IParsedCombatData {
     title: string

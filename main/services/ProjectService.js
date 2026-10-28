@@ -8,14 +8,14 @@ const {
     validateProjectData,
     atomicWriteJsonSync,
     atomicWriteStringSync,
-} = require('../../Utils/fsSecurity')
-const { t } = require('../../Utils/i18n')
-const { ASSETS_IMAGES_DIR } = require('../../Utils/assetConstants')
+} = require('../../Utils/fs/fsSecurity')
+const { t } = require('../../Utils/i18n/i18n')
+const { ASSETS_IMAGES_DIR } = require('../../Utils/assets/assetConstants')
 const {
     slugifyEntityName,
     generateUniqueSlug,
     formatDescriptionFileName,
-} = require('../../Utils/pathSanitizer')
+} = require('../../Utils/fs/pathSanitizer')
 const RecentProjectsService = require('./RecentProjectsService')
 
 const DEFAULT_PROJECT_FOLDERS = [

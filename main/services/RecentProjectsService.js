@@ -2,7 +2,7 @@ const path = require('path')
 const fs = require('fs')
 const os = require('os')
 
-const { atomicWriteJsonSync } = require('../../Utils/fsSecurity')
+const { atomicWriteJsonSync } = require('../../Utils/fs/fsSecurity')
 
 let _app = null
 try {

@@ -1,4 +1,4 @@
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 import { IFetchFontsResult, IFontCatalogItem } from '../types'
 import {
     DEFAULT_FONT_FETCH_TIMEOUT_MS,

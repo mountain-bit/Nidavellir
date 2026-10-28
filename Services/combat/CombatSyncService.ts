@@ -3,7 +3,7 @@ import { Combat, type ICombatOutcome } from '../../Model/Combat'
 import { NPC } from '../../Model/NPC'
 import { NPC_Template } from '../../Model/NPC_Template'
 import { Paragraph } from '../../Model/Paragraph'
-import { defaultIdGenerator } from '../../Utils/idGenerator'
+import { defaultIdGenerator } from '../../Utils/common/idGenerator'
 import { EntityAccessor } from '../helpers/EntityAccessor'
 
 export interface ITraitDefinition {

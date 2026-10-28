@@ -11,7 +11,7 @@ import {
     createCombatPill,
     instantiateParagraphNodeTemplate,
 } from '../../Modules/Graph/nodes/ParagraphNodeTemplate'
-import { initTranslationsWithLocale, setLanguage, t } from '../../Utils/translate'
+import { initTranslationsWithLocale, setLanguage, t } from '../../Utils/i18n/translate'
 
 describe('getContrastTextColor utility', () => {
     it('should return dark text for light background colors', () => {

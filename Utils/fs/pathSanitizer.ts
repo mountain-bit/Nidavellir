@@ -2,7 +2,7 @@
 export const FORBIDDEN_CHARS_REGEX = /[<>:"/\\|?*\x00-\x1F]/g
 export const RESERVED_WINDOWS_NAMES = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 
-export const DIACRITICS_MAP: Record<string, string> = {
+export const DIACRITICS_MAP: Readonly<Record<string, string>> = Object.freeze({
     ą: 'a',
     ć: 'c',
     ę: 'e',
@@ -28,19 +28,37 @@ export const DIACRITICS_MAP: Record<string, string> = {
     Ä: 'Ae',
     Ö: 'Oe',
     Ü: 'Ue',
-}
+})
+
+const DIACRITICS_REGEX = new RegExp(`[${Object.keys(DIACRITICS_MAP).join('')}]`, 'g')
 
 export const MAX_SLUG_ATTEMPTS = 1000
+
+export const CATEGORY_SINGULAR_MAP: Readonly<Record<string, string>> = Object.freeze({
+    paragraphs: 'Paragraph',
+    paragraph: 'Paragraph',
+    npc: 'NPC',
+    characters: 'NPC',
+    character: 'NPC',
+    locations: 'Location',
+    location: 'Location',
+    items: 'Item',
+    item: 'Item',
+    templates: 'Template',
+    template: 'Template',
+    playercharacter: 'PlayerCharacter',
+    characterclasses: 'CharacterClass',
+    characterclass: 'CharacterClass',
+    rules: 'Rule',
+    rule: 'Rule',
+})
 
 /**
  * Normalizuje polskie i niemieckie znaki diakrytyczne.
  */
 export function removeDiacritics(str: string): string {
     if (!str || typeof str !== 'string') return ''
-    return str
-        .split('')
-        .map(char => DIACRITICS_MAP[char] || char)
-        .join('')
+    return str.replace(DIACRITICS_REGEX, char => DIACRITICS_MAP[char] || char)
 }
 
 /**
@@ -107,25 +125,6 @@ export function generateUniqueSlug(
     }
 
     return candidate
-}
-
-export const CATEGORY_SINGULAR_MAP: Record<string, string> = {
-    paragraphs: 'Paragraph',
-    paragraph: 'Paragraph',
-    npc: 'NPC',
-    characters: 'NPC',
-    character: 'NPC',
-    locations: 'Location',
-    location: 'Location',
-    items: 'Item',
-    item: 'Item',
-    templates: 'Template',
-    template: 'Template',
-    playercharacter: 'PlayerCharacter',
-    characterclasses: 'CharacterClass',
-    characterclass: 'CharacterClass',
-    rules: 'Rule',
-    rule: 'Rule',
 }
 
 /**

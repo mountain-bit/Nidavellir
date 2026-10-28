@@ -1,12 +1,12 @@
 import { ProjectManager } from '../Services/project/ProjectManager'
-import { showToast as showToastUtil, type ToastType } from '../Utils/toast'
 import {
     getLanguage,
     initTranslations,
     setLanguage,
     type SupportedLanguage,
     t,
-} from '../Utils/translate'
+} from '../Utils/i18n/translate'
+import { showToast as showToastUtil, type ToastType } from '../Utils/ui/toast'
 
 export class StartWindowViewModel {
     private btnCreateProject: HTMLElement | null

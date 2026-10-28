@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Paragraph } from '../../Model/Paragraph'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 import { renderStartNodeDetails } from '../../View/ui/detailsPanel/detailsPanel.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 

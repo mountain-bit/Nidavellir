@@ -10,7 +10,7 @@
  * 6. Multilingual reporting with i18n support
  */
 
-import { t, TranslationKey } from '../../Utils/translate'
+import { t, TranslationKey } from '../../Utils/i18n/translate'
 import { EntityAccessor } from '../helpers/EntityAccessor'
 
 export type ValidationSeverity = 'error' | 'warning' | 'info'

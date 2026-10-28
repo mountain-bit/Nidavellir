@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { findAssetUsages, replaceAssetReferences } from '../../Utils/assetUsageTracker'
+import { findAssetUsages, replaceAssetReferences } from '../../Utils/assets/assetUsageTracker'
 
 describe('assetUsageTracker', () => {
     it('detects usage in hero, npc, items, scenes, and files', () => {
@@ -117,7 +117,7 @@ describe('assetUsageTracker', () => {
             projectParagraphs: [mockParagraph],
             projectItems: [mockItem],
             projectLocations: [mockLocation],
-            markProjectDirty: () => {},
+            markProjectDirty: (): void => {},
         }
 
         // Test finding usages in item & location descriptions

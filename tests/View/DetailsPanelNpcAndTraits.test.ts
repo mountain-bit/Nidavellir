@@ -9,7 +9,7 @@ import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 import { renderDetailsPanel, renderHistoryBar } from '../../View/ui/detailsPanel/detailsPanel.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 

@@ -2,7 +2,7 @@
 const FORBIDDEN_CHARS_REGEX = /[<>:"/\\|?*\x00-\x1F]/g
 const RESERVED_WINDOWS_NAMES = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 
-const DIACRITICS_MAP = {
+const DIACRITICS_MAP = Object.freeze({
     ą: 'a',
     ć: 'c',
     ę: 'e',
@@ -28,16 +28,34 @@ const DIACRITICS_MAP = {
     Ä: 'Ae',
     Ö: 'Oe',
     Ü: 'Ue',
-}
+})
+
+const DIACRITICS_REGEX = new RegExp(`[${Object.keys(DIACRITICS_MAP).join('')}]`, 'g')
 
 const MAX_SLUG_ATTEMPTS = 1000
 
+const CATEGORY_SINGULAR_MAP = Object.freeze({
+    paragraphs: 'Paragraph',
+    paragraph: 'Paragraph',
+    npc: 'NPC',
+    characters: 'NPC',
+    character: 'NPC',
+    locations: 'Location',
+    location: 'Location',
+    items: 'Item',
+    item: 'Item',
+    templates: 'Template',
+    template: 'Template',
+    playercharacter: 'PlayerCharacter',
+    characterclasses: 'CharacterClass',
+    characterclass: 'CharacterClass',
+    rules: 'Rule',
+    rule: 'Rule',
+})
+
 function removeDiacritics(str) {
     if (!str || typeof str !== 'string') return ''
-    return str
-        .split('')
-        .map(char => DIACRITICS_MAP[char] || char)
-        .join('')
+    return str.replace(DIACRITICS_REGEX, char => DIACRITICS_MAP[char] || char)
 }
 
 function sanitizeFileName(name, fallback = 'element') {
@@ -92,25 +110,6 @@ function generateUniqueSlug(baseSlug, existingSlugsOrChecker) {
     return candidate
 }
 
-const CATEGORY_SINGULAR_MAP = {
-    paragraphs: 'Paragraph',
-    paragraph: 'Paragraph',
-    npc: 'NPC',
-    characters: 'NPC',
-    character: 'NPC',
-    locations: 'Location',
-    location: 'Location',
-    items: 'Item',
-    item: 'Item',
-    templates: 'Template',
-    template: 'Template',
-    playercharacter: 'PlayerCharacter',
-    characterclasses: 'CharacterClass',
-    characterclass: 'CharacterClass',
-    rules: 'Rule',
-    rule: 'Rule',
-}
-
 function formatDescriptionFileName(category, entityName) {
     const normalizedKey = (category || '').trim().toLowerCase()
     const cat =
@@ -125,6 +124,8 @@ function formatDescriptionFileName(category, entityName) {
 }
 
 module.exports = {
+    FORBIDDEN_CHARS_REGEX,
+    RESERVED_WINDOWS_NAMES,
     DIACRITICS_MAP,
     MAX_SLUG_ATTEMPTS,
     CATEGORY_SINGULAR_MAP,

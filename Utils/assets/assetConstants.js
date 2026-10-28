@@ -33,6 +33,17 @@ const AUDIO_EXTENSIONS = Object.freeze(['mp3', 'ogg', 'wav', 'flac', 'aac', 'm4a
 const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024
 
 /**
+ * Normalizes a file extension by stripping a leading dot and lowercasing.
+ *
+ * @param {string} ext
+ * @returns {string}
+ */
+function normalizeExtension(ext) {
+    if (!ext || typeof ext !== 'string') return ''
+    return ext.replace(/^\./, '').toLowerCase()
+}
+
+/**
  * Builds a project-relative asset path for an image file name.
  *
  * @param {string} fileName
@@ -65,8 +76,8 @@ function buildAssetUrl(relativePath, version) {
  * @returns {boolean}
  */
 function isAllowedImageExtension(ext) {
-    if (!ext || typeof ext !== 'string') return false
-    return IMAGE_EXTENSIONS.includes(ext.replace(/^\./, '').toLowerCase())
+    const clean = normalizeExtension(ext)
+    return Boolean(clean && IMAGE_EXTENSIONS.includes(clean))
 }
 
 /**
@@ -76,8 +87,8 @@ function isAllowedImageExtension(ext) {
  * @returns {boolean}
  */
 function isAllowedAudioExtension(ext) {
-    if (!ext || typeof ext !== 'string') return false
-    return AUDIO_EXTENSIONS.includes(ext.replace(/^\./, '').toLowerCase())
+    const clean = normalizeExtension(ext)
+    return Boolean(clean && AUDIO_EXTENSIONS.includes(clean))
 }
 
 /**
@@ -90,7 +101,7 @@ function getAssetCategory(fileNameOrExt) {
     if (!fileNameOrExt || typeof fileNameOrExt !== 'string') return 'unknown'
     const clean = fileNameOrExt.split('?')[0].split('#')[0]
     const extMatch = clean.includes('.') ? clean.split('.').pop() : clean
-    const ext = (extMatch || '').toLowerCase()
+    const ext = normalizeExtension(extMatch || '')
     if (IMAGE_EXTENSIONS.includes(ext)) return 'image'
     if (AUDIO_EXTENSIONS.includes(ext)) return 'audio'
     return 'unknown'

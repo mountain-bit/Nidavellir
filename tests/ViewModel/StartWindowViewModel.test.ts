@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProjectManager } from '../../Services/project/ProjectManager'
-import { initTranslationsWithLocale, t } from '../../Utils/translate'
+import { initTranslationsWithLocale, t } from '../../Utils/i18n/translate'
 import { StartWindowViewModel } from '../../ViewModel/StartWindowViewModel'
 
 const mockHTML = `

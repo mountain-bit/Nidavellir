@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { StoryGraph } from '../../Modules/Graph/core/StoryGraph'
-import { initTranslationsWithLocale, t } from '../../Utils/translate'
+import { initTranslationsWithLocale, t } from '../../Utils/i18n/translate'
 
 describe('StoryGraph Multi-Selection, Group Dragging & Quick Scene Creation', () => {
     let wrapper: HTMLElement

@@ -2,7 +2,7 @@ import { mergeAttributes } from '@tiptap/core'
 import Mention, { MentionOptions } from '@tiptap/extension-mention'
 import { SuggestionOptions } from '@tiptap/suggestion'
 
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 import { IEntityMentionItem } from '../types'
 import { ISuggestionProps, MentionSuggestionRenderer } from '../ui/MentionSuggestionRenderer'
 

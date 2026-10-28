@@ -3,7 +3,7 @@ import {
     type SupportedLanguage,
     t,
     type TranslationKey,
-} from '../../../Utils/translate'
+} from '../../../Utils/i18n/translate'
 import { IFontCatalogItem } from '../types'
 
 export interface IFontDefinition {

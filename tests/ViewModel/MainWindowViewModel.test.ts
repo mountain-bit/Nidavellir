@@ -4,7 +4,7 @@ import { DEFAULT_TAG_COLOR } from '../../Model/constants'
 import { Description } from '../../Model/Description'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
+import { initTranslationsWithLocale, setLanguage } from '../../Utils/i18n/translate'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('MainWindowViewModel', () => {

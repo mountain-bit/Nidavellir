@@ -7,7 +7,7 @@ import {
     isCustomAvatarPath,
     toAssetUrl,
     toRelativeAssetPath,
-} from '../../Utils/assetUtils'
+} from '../../Utils/assets/assetUtils'
 
 describe('assetUtils', () => {
     describe('toAssetUrl', () => {

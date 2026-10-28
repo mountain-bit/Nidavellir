@@ -3,7 +3,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
 
 import { DescriptionTransclusionService } from '../../../Services/markdown/DescriptionTransclusionService'
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 import { CombatBlock } from '../extensions/CombatBlock'
 import { CustomImage } from '../extensions/CustomImage'
 import { CustomStyleMark } from '../extensions/CustomStyleMark'

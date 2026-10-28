@@ -8,7 +8,7 @@ import { Tag } from '../../Model/Tag'
 import { MarkdownEditor } from '../../Modules/Editor/core/MarkdownEditor'
 import { EntitySyncService } from '../../Modules/Editor/services/EntitySyncService'
 import { ICustomTextStyle, IEntityMentionItem } from '../../Modules/Editor/types'
-import { setLanguage } from '../../Utils/translate'
+import { setLanguage } from '../../Utils/i18n/translate'
 
 describe('EntitySyncService', () => {
     it('extracts entities from raw markdown format', () => {

@@ -21,7 +21,7 @@ import {
     FONT_STACK_SERIF,
     getFontFamilyCss,
 } from '../../Modules/Editor/fonts/fontStacks'
-import { availableLanguages, setLanguage } from '../../Utils/translate'
+import { availableLanguages, setLanguage } from '../../Utils/i18n/translate'
 
 describe('fontStacks', () => {
     it('returns inherit when family is empty or inherit', () => {

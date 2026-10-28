@@ -1,4 +1,4 @@
-import { getIconSvg } from '../../../Utils/icons'
+import { getIconSvg } from '../../../Utils/ui/icons'
 import { IEntityMentionItem } from '../types'
 
 /**

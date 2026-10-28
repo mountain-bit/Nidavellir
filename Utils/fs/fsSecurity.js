@@ -42,30 +42,29 @@ function isPathInsideBase(basePath, targetPath) {
     if (process.platform === 'win32') {
         const lowerBase = resolvedBase.toLowerCase()
         const lowerTarget = resolvedTarget.toLowerCase()
-        return lowerTarget.startsWith(lowerBase + path.sep) || lowerTarget === lowerBase
+        return lowerTarget === lowerBase || lowerTarget.startsWith(lowerBase + path.sep)
     }
-    return resolvedTarget.startsWith(resolvedBase + path.sep) || resolvedTarget === resolvedBase
+    return resolvedTarget === resolvedBase || resolvedTarget.startsWith(resolvedBase + path.sep)
 }
 
 /**
  * Validates the core schema of project.json data.
  *
- * @param {any} data
+ * @param {unknown} data
  * @returns {boolean}
  */
 function validateProjectData(data) {
     if (typeof data !== 'object' || data === null) return false
-    const name = data.name
-    if (typeof name !== 'string') return false
-    const descriptionPaths = data.descriptionPaths
-    if (!Array.isArray(descriptionPaths)) return false
-    const dataPaths = data.dataPaths
-    if (!Array.isArray(dataPaths)) return false
-    return true
+    return (
+        typeof data.name === 'string' &&
+        Array.isArray(data.descriptionPaths) &&
+        Array.isArray(data.dataPaths)
+    )
 }
 
 /**
  * Atomically writes string content to a target file via a temporary file and rename.
+ * Cleans up the temporary file if an error occurs during write or rename.
  *
  * @param {string} targetPath
  * @param {string} content
@@ -76,16 +75,27 @@ function atomicWriteStringSync(targetPath, content) {
         fs.mkdirSync(parentDir, { recursive: true })
     }
     const tempPath = `${targetPath}.${Date.now()}.${Math.random().toString(36).slice(2, 8)}.tmp`
-    fs.writeFileSync(tempPath, content || '', 'utf8')
-    fs.renameSync(tempPath, targetPath)
+    try {
+        fs.writeFileSync(tempPath, content ?? '', 'utf8')
+        fs.renameSync(tempPath, targetPath)
+    } catch (err) {
+        if (fs.existsSync(tempPath)) {
+            try {
+                fs.unlinkSync(tempPath)
+            } catch {
+                // ignore cleanup error
+            }
+        }
+        throw err
+    }
 }
 
 /**
  * Atomically writes JSON content to a target file.
  *
  * @param {string} targetPath
- * @param {any} data
- * @param {number} indent
+ * @param {unknown} data
+ * @param {number} [indent=2]
  */
 function atomicWriteJsonSync(targetPath, data, indent = 2) {
     atomicWriteStringSync(targetPath, JSON.stringify(data, null, indent))

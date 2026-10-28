@@ -1,7 +1,7 @@
 import { Paragraph } from '../../../Model/Paragraph'
 import { Tag } from '../../../Model/Tag'
-import { getIconSvg } from '../../../Utils/icons'
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
+import { getIconSvg } from '../../../Utils/ui/icons'
 import { getContrastTextColor, GRAPH_THEME } from '../styles/StoryGraphStyles'
 import {
     createCharacterPill,

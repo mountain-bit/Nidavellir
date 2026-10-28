@@ -13,12 +13,12 @@ function getEntryPoints(baseDir = rootDir) {
             'StartWindowViewModel.ts'
         ),
         'ViewModel/MainWindowViewModel': path.join(baseDir, 'ViewModel', 'MainWindowViewModel.ts'),
-        'Utils/translate': path.join(baseDir, 'Utils', 'translate.ts'),
-        'Utils/toast': path.join(baseDir, 'Utils', 'toast.ts'),
-        'Utils/pathSanitizer': path.join(baseDir, 'Utils', 'pathSanitizer.ts'),
-        'Utils/icons': path.join(baseDir, 'Utils', 'icons.ts'),
-        'Utils/assetUtils': path.join(baseDir, 'Utils', 'assetUtils.ts'),
-        'Utils/assetUsageTracker': path.join(baseDir, 'Utils', 'assetUsageTracker.ts'),
+        'Utils/translate': path.join(baseDir, 'Utils', 'i18n', 'translate.ts'),
+        'Utils/toast': path.join(baseDir, 'Utils', 'ui', 'toast.ts'),
+        'Utils/pathSanitizer': path.join(baseDir, 'Utils', 'fs', 'pathSanitizer.ts'),
+        'Utils/icons': path.join(baseDir, 'Utils', 'ui', 'icons.ts'),
+        'Utils/assetUtils': path.join(baseDir, 'Utils', 'assets', 'assetUtils.ts'),
+        'Utils/assetUsageTracker': path.join(baseDir, 'Utils', 'assets', 'assetUsageTracker.ts'),
         'Services/ParagraphNumberingService': path.join(
             baseDir,
             'Services',

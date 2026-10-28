@@ -1,6 +1,8 @@
+// @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
+    applyTranslations,
     availableLanguages,
     getLanguage,
     initTranslationsWithLocale,
@@ -8,7 +10,7 @@ import {
     type SupportedLanguage,
     t,
     type TranslationKey,
-} from '../../Utils/translate'
+} from '../../Utils/i18n/translate'
 
 async function resetToPolish(): Promise<void> {
     await initTranslationsWithLocale('pl')
@@ -88,7 +90,7 @@ describe('translate — interpolacja i18next', () => {
     })
 })
 
-describe('translate — setLanguage', () => {
+describe('translate — setLanguage i applyTranslations', () => {
     beforeEach(resetToPolish)
 
     it('setLanguage zwraca true dla obsługiwanego języka', async () => {
@@ -125,6 +127,21 @@ describe('translate — setLanguage', () => {
         await setLanguage('pl')
         expect(t('buttons.save')).toBe('Zapisz')
     })
+
+    it('applyTranslations() aktualizuje textContent, placeholder, title i atrybut lang', async () => {
+        document.body.innerHTML = `
+            <span id="lbl" data-i18n="buttons.save"></span>
+            <input id="inp" data-i18n-placeholder="buttons.cancel" />
+            <button id="btn" data-i18n-title="buttons.ok"></button>
+        `
+        await setLanguage('en')
+        applyTranslations()
+
+        expect(document.documentElement.lang).toBe('en')
+        expect(document.getElementById('lbl')?.textContent).toBe('Save')
+        expect((document.getElementById('inp') as HTMLInputElement)?.placeholder).toBe('Cancel')
+        expect(document.getElementById('btn')?.title).toBe('OK')
+    })
 })
 
 describe('translate — availableLanguages', () => {
@@ -140,7 +157,7 @@ describe('translate — availableLanguages', () => {
 
     it('jest tablicą readonly — nie można jej modyfikować w runtime', () => {
         const langs = availableLanguages as readonly string[]
-        expect(Object.isFrozen(langs) || Array.isArray(langs)).toBe(true)
+        expect(Object.isFrozen(langs)).toBe(true)
     })
 })
 

@@ -29,42 +29,50 @@ export const AUDIO_EXTENSIONS: readonly string[] = Object.freeze([
 ])
 export const MAX_IMAGE_SIZE_BYTES = 20 * 1024 * 1024
 
+export type AssetCategory = 'image' | 'audio' | 'unknown'
+
 const IMAGE_EXTENSION_REGEX = new RegExp(`\\.(${IMAGE_EXTENSIONS.join('|')})$`, 'i')
 const PASSTHROUGH_URL_REGEX = /^(asset|https?|data):/i
 
 /**
+ * Normalizes a file extension by stripping a leading dot and lowercasing.
+ */
+function normalizeExtension(ext: string): string {
+    if (!ext || typeof ext !== 'string') return ''
+    return ext.replace(/^\./, '').toLowerCase()
+}
+
+/**
+ * Builds a project-relative asset path for an image file name.
+ */
+export function buildRelativeImagePath(fileName: string): string {
+    return `${ASSETS_IMAGES_DIR}/${fileName}`
+}
+
+/**
  * Returns true when the extension is an allowed image type.
- *
- * @param {string} ext
- * @returns {boolean}
  */
 export function isAllowedImageExtension(ext: string): boolean {
-    if (!ext || typeof ext !== 'string') return false
-    return IMAGE_EXTENSIONS.includes(ext.replace(/^\./, '').toLowerCase())
+    const clean = normalizeExtension(ext)
+    return Boolean(clean && IMAGE_EXTENSIONS.includes(clean))
 }
 
 /**
  * Returns true when the extension is an allowed audio type.
- *
- * @param {string} ext
- * @returns {boolean}
  */
 export function isAllowedAudioExtension(ext: string): boolean {
-    if (!ext || typeof ext !== 'string') return false
-    return AUDIO_EXTENSIONS.includes(ext.replace(/^\./, '').toLowerCase())
+    const clean = normalizeExtension(ext)
+    return Boolean(clean && AUDIO_EXTENSIONS.includes(clean))
 }
 
 /**
  * Determines the category of an asset ('image', 'audio', or 'unknown') from its file name or extension.
- *
- * @param {string} fileNameOrExt
- * @returns {'image' | 'audio' | 'unknown'}
  */
-export function getAssetCategory(fileNameOrExt: string): 'image' | 'audio' | 'unknown' {
+export function getAssetCategory(fileNameOrExt: string): AssetCategory {
     if (!fileNameOrExt || typeof fileNameOrExt !== 'string') return 'unknown'
     const clean = fileNameOrExt.split('?')[0].split('#')[0]
     const extMatch = clean.includes('.') ? clean.split('.').pop() : clean
-    const ext = (extMatch || '').toLowerCase()
+    const ext = normalizeExtension(extMatch || '')
     if (IMAGE_EXTENSIONS.includes(ext)) return 'image'
     if (AUDIO_EXTENSIONS.includes(ext)) return 'audio'
     return 'unknown'
@@ -73,10 +81,6 @@ export function getAssetCategory(fileNameOrExt: string): 'image' | 'audio' | 'un
 /**
  * Converts a project-relative asset path into an asset:// URL for Chromium rendering,
  * optionally appending a version query parameter for cache-busting.
- *
- * @param {string} relativePath
- * @param {string|number} [version]
- * @returns {string}
  */
 export function toAssetUrl(relativePath: string, version?: number | string): string {
     if (!relativePath || typeof relativePath !== 'string') return ''
@@ -95,11 +99,10 @@ export function toAssetUrl(relativePath: string, version?: number | string): str
     return base
 }
 
+export const buildAssetUrl = toAssetUrl
+
 /**
  * Strips query parameters, fragments, and the asset://project/ prefix to restore a clean relative path for storage.
- *
- * @param {string} url
- * @returns {string}
  */
 export function toRelativeAssetPath(url: string): string {
     if (!url || typeof url !== 'string') return ''
@@ -113,9 +116,6 @@ export function toRelativeAssetPath(url: string): string {
 
 /**
  * Determines whether an avatar identifier is a custom file path or a preset SVG ID.
- *
- * @param {string} avatarId
- * @returns {boolean}
  */
 export function isCustomAvatarPath(avatarId: string): boolean {
     if (!avatarId || typeof avatarId !== 'string') return false

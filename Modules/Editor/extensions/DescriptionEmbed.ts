@@ -1,6 +1,6 @@
 import { CommandProps, mergeAttributes, Node } from '@tiptap/core'
 
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 import { DescriptionEmbedType, DescriptionEmbedVariant, IDescriptionEmbedAttrs } from '../types'
 
 /**

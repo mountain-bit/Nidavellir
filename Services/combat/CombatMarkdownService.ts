@@ -1,7 +1,7 @@
 import { Paragraph } from '../../Model/Paragraph'
 import { Parameter } from '../../Model/Parameter'
 import { Stat } from '../../Model/Stat'
-import { t } from '../../Utils/translate'
+import { t } from '../../Utils/i18n/translate'
 import { EntityAccessor } from '../helpers/EntityAccessor'
 import {
     COMBAT_BLOCK_GLOBAL_REGEX,

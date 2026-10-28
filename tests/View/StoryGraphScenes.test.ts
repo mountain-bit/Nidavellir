@@ -5,7 +5,7 @@ import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { StoryGraph } from '../../Modules/Graph/core/StoryGraph'
 import { ParagraphNode } from '../../Modules/Graph/nodes/ParagraphNode'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 
 describe('StoryGraph Scene Integration', () => {
     beforeEach(async () => {

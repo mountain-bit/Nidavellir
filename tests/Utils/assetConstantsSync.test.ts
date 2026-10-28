@@ -1,10 +1,10 @@
 import { createRequire } from 'module'
 import { describe, expect, it } from 'vitest'
 
-import * as tsUtils from '../../Utils/assetUtils'
+import * as tsUtils from '../../Utils/assets/assetUtils'
 
 const require = createRequire(import.meta.url)
-const cjsConstants = require('../../Utils/assetConstants.js')
+const cjsConstants = require('../../Utils/assets/assetConstants.js')
 
 describe('assetConstantsSync', () => {
     it('synchronizes shared directory and protocol constants', () => {
@@ -25,10 +25,16 @@ describe('assetConstantsSync', () => {
         expect([...tsUtils.AUDIO_EXTENSIONS]).toEqual([...cjsConstants.AUDIO_EXTENSIONS])
     })
 
-    it('synchronizes asset category classification logic', () => {
+    it('synchronizes asset category classification and path builder functions', () => {
         const testFiles = ['hero.png', 'sound.mp3', 'clip.wav', 'bg.webp', 'script.js']
         for (const f of testFiles) {
             expect(tsUtils.getAssetCategory(f)).toBe(cjsConstants.getAssetCategory(f))
         }
+        expect(tsUtils.buildRelativeImagePath('hero.png')).toBe(
+            cjsConstants.buildRelativeImagePath('hero.png')
+        )
+        expect(tsUtils.buildAssetUrl('Assets/Images/hero.png', 42)).toBe(
+            cjsConstants.buildAssetUrl('Assets/Images/hero.png', 42)
+        )
     })
 })

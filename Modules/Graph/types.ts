@@ -4,7 +4,7 @@ import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { Tag } from '../../Model/Tag'
-import type { TranslationKey } from '../../Utils/translate'
+import type { TranslationKey } from '../../Utils/i18n/translate'
 import { ConnectionLineStyle, ICytoscapeStyleRule } from './styles/StoryGraphStyles'
 
 export interface IStoryGraphOptions {

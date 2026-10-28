@@ -1,7 +1,7 @@
-import '../../../Utils/icons'
+import '../../../Utils/ui/icons'
 
 import { Scene } from '../../../Model/Scene'
-import { t } from '../../../Utils/translate'
+import { t } from '../../../Utils/i18n/translate'
 import { getContrastTextColor, GRAPH_THEME } from '../styles/StoryGraphStyles'
 import {
     createSceneMoreTagsBadge,

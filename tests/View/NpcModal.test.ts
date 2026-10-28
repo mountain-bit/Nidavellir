@@ -9,7 +9,11 @@ import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
-import { applyTranslations, initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
+import {
+    applyTranslations,
+    initTranslationsWithLocale,
+    setLanguage,
+} from '../../Utils/i18n/translate'
 import {
     addCustomAttribute,
     addNpcSkill,
