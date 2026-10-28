@@ -84,9 +84,9 @@ graph TB
         end
 
         subgraph UtilsDomain["Security & Utilities (Utils/)"]
-            FSSecurity["Utils/fsSecurity.js"]
-            PathSanitizer["Utils/pathSanitizer.js"]
-            MainI18n["Utils/i18n.js"]
+            FSSecurity["Utils/fs/fsSecurity.js"]
+            PathSanitizer["Utils/fs/pathSanitizer.js"]
+            MainI18n["Utils/i18n/i18n.js"]
         end
     end
 
@@ -218,19 +218,42 @@ SilnikGierParagrafowych/
 │   └── ImageEditor/            # In-app canvas image processor
 │       └── ImageProcessor.ts   # Crop, scale, rotate, flip, and color adjustment filters
 │
-├── Services/                   # Client-side services (Renderer Process)
-│   ├── ProjectManager.ts       # Singleton holding active runtime Project instance in UI
-│   └── GraphValidator.ts       # Graph diagnostic engine (orphan, dead-end, loop detection)
+├── Services/                   # Client-side services organized by function (Renderer Process)
+│   ├── index.ts                # Barrel re-exporting all services
+│   ├── project/
+│   │   └── ProjectManager.ts   # Singleton holding active runtime Project instance in UI
+│   ├── graph/
+│   │   ├── GraphValidationService.ts    # Graph diagnostic engine (orphan, dead-end, loop detection)
+│   │   └── ParagraphNumberingService.ts # Sequential & randomized paragraph numbering
+│   ├── combat/
+│   │   ├── CombatMarkdownService.ts     # Combat markdown block generation & parsing
+│   │   └── CombatSyncService.ts         # Synchronizing combat blocks with domain model
+│   ├── markdown/
+│   │   ├── DescriptionTransclusionService.ts # Transclusion & embed expansion
+│   │   └── EntityLinkUpdateService.ts        # Updating entity mentions on rename/delete
+│   ├── export/
+│   │   ├── ItemExportService.ts         # Item JSON export/import validation
+│   │   └── RulesExportService.ts        # RPG rules JSON export/import validation
+│   └── helpers/                         # Shared regex patterns, lookup and validation helpers
 │
-├── Utils/                      # Utility modules
-│   ├── fsSecurity.js           # Path traversal defense, directory resolver, atomic writes
-│   ├── pathSanitizer.js        # Diacritic removal, slugification, collision avoidance (Node)
-│   ├── pathSanitizer.ts        # Browser-compatible TypeScript sanitizer
-│   ├── i18n.js                 # Main process i18next backend configuration
-│   ├── translate.ts            # Renderer i18n client (typed keys, reactive language changes)
-│   ├── icons.ts                # Custom Web Component <app-icon> with SVG catalog
-│   ├── toast.ts                # Floating toast notifications manager
-│   └── idGenerator.ts          # Unique ID generators
+├── Utils/                      # Utility modules organized by function
+│   ├── index.ts                # Barrel re-exporting TypeScript utilities
+│   ├── assets/
+│   │   ├── assetConstants.js   # Shared asset protocol & directory constants (Node)
+│   │   ├── assetUtils.ts       # Renderer asset URL/path utilities & constants mirror
+│   │   └── assetUsageTracker.ts# Asset reference tracking and refactoring across project
+│   ├── fs/
+│   │   ├── fsSecurity.js       # Path traversal defense, directory resolver, atomic writes
+│   │   ├── pathSanitizer.js    # Diacritic removal, slugification, collision avoidance (Node)
+│   │   └── pathSanitizer.ts    # Browser-compatible TypeScript sanitizer
+│   ├── i18n/
+│   │   ├── i18n.js             # Main process i18next backend configuration
+│   │   └── translate.ts        # Renderer i18n client (typed keys, reactive language changes)
+│   ├── ui/
+│   │   ├── icons.ts            # Custom Web Component <app-icon> with SVG catalog
+│   │   └── toast.ts            # Floating toast notifications manager
+│   └── common/
+│       └── idGenerator.ts      # Unique ID generators
 │
 ├── Locales/                    # i18n JSON translation bundles
 │   ├── pl/translation.json     # Polish
@@ -374,7 +397,7 @@ graph LR
 
 ## 7. Story Graph Diagnostics & Playtester Simulator
 
-- **Graph Validation Engine (`Services/GraphValidator.ts`)**:
+- **Graph Validation Engine (`Services/graph/GraphValidationService.ts`)**:
   Performs real-time topological analysis detecting:
   - Orphan nodes (unconnected paragraphs).
   - Dead ends (paragraphs without choices and not marked as story endings).
@@ -391,7 +414,7 @@ graph LR
 Desktop applications must never trust renderer-supplied paths. All file operations in `ProjectService`, `EntityService`, `MarkdownService`, `AssetService`, and `ExportService` resolve candidate paths against the validated project root:
 
 ```javascript
-const { resolveProjectDir, isPathInsideBase } = require('../../Utils/fsSecurity')
+const { resolveProjectDir, isPathInsideBase } = require('../../Utils/fs/fsSecurity')
 
 const projectDir = resolveProjectDir(projectPath)
 const targetPath = path.resolve(projectDir, relativePath)
@@ -414,11 +437,11 @@ To prevent file corruption caused by process termination, sudden power loss, or 
 
 The engine features a synchronized multi-language architecture supporting English (`en`), Polish (`pl`), and German (`de`):
 
-1. **Main Process (`Utils/i18n.js`)**:
+1. **Main Process (`Utils/i18n/i18n.js`)**:
    - Built on `i18next` with `i18next-fs-backend`.
    - Persists user language choices to `userData/settings.json`.
    - Falls back gracefully to the host operating system's locale.
-2. **Renderer Process (`Utils/translate.ts`)**:
+2. **Renderer Process (`Utils/i18n/translate.ts`)**:
    - Bundles locale catalogs directly into the ESM bundle for instantaneous response.
    - Provides strongly-typed `t(key)` helper functions.
    - Automatically populates DOM elements via `applyTranslations()` using `data-i18n`, `data-i18n-placeholder`, and `data-i18n-title` attributes.

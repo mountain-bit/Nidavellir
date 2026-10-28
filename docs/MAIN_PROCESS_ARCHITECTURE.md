@@ -50,9 +50,10 @@ graph TD
         end
 
         subgraph SecurityLayer["Security & Utilities (Utils/)"]
-            FSSecurity["Utils/fsSecurity.js"]
-            PathSanitizer["Utils/pathSanitizer.js"]
-            I18n["Utils/i18n.js"]
+            FSSecurity["Utils/fs/fsSecurity.js"]
+            PathSanitizer["Utils/fs/pathSanitizer.js"]
+            I18n["Utils/i18n/i18n.js"]
+            AssetConsts["Utils/assets/assetConstants.js"]
         end
     end
 
@@ -122,9 +123,13 @@ graph TD
 │       └── RecentProjectsService.js# Management of recent projects list in userData
 │
 └── Utils/
-    ├── fsSecurity.js               # Path traversal protection, directory resolver, atomic writes
-    ├── pathSanitizer.js            # Diacritic removal, slugification, unique candidate generation (Node.js)
-    └── i18n.js                     # Main process internationalization helper (i18next backend)
+    ├── assets/
+    │   └── assetConstants.js           # Shared asset protocol scheme, host & directory constants
+    ├── fs/
+    │   ├── fsSecurity.js               # Path traversal protection, directory resolver, atomic writes
+    │   └── pathSanitizer.js            # Diacritic removal, slugification, unique candidate generation (Node.js)
+    └── i18n/
+        └── i18n.js                     # Main process internationalization helper (i18next backend)
 ```
 
 ---
@@ -185,7 +190,7 @@ Pure Node.js business logic that operates independently of Electron IPC objects:
 - **`RecentProjectsService`**:
     - Manages reading, writing, and deduplicating the list of recently opened projects inside Electron's `userData` folder.
 
-### 3.5. Security & Utility Layer (`Utils/fsSecurity.js`)
+### 3.5. Security & Utility Layer (`Utils/fs/fsSecurity.js`)
 
 Centralized path validation and transactional write operations:
 
@@ -223,9 +228,9 @@ Write -> file.json.169300000.tmp -> fs.renameSync -> file.json
 
 ## 5. Testing Strategy
 
-Because business logic has been extracted into `main/services/` and `Utils/fsSecurity.js`, services can be unit-tested directly using **Vitest** without initializing Electron browser windows or mocking `ipcMain`:
+Because business logic has been extracted into `main/services/` and `Utils/fs/fsSecurity.js`, services can be unit-tested directly using **Vitest** without initializing Electron browser windows or mocking `ipcMain`:
 
 ```typescript
 import { ProjectService } from '../main/services/ProjectService'
-import { isPathInsideBase } from '../Utils/fsSecurity'
+import { isPathInsideBase } from '../Utils/fs/fsSecurity'
 ```

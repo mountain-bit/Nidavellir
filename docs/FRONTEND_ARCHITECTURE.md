@@ -49,11 +49,11 @@ graph TD
     end
 
     subgraph FrontendServices["Frontend Services & Utilities (Services/ & Utils/)"]
-        ProjectMgr["ProjectManager.ts (Active Project Singleton)"]
-        GraphVal["GraphValidator.ts (Integrity & Cycle Diagnostics)"]
-        ToastMgr["toast.ts (Toast Notification System)"]
-        TranslateMgr["translate.ts (Typed i18n Client)"]
-        IconComponent["icons.ts (<app-icon>)"]
+        ProjectMgr["Services/project/ProjectManager.ts (Active Project Singleton)"]
+        GraphVal["Services/graph/GraphValidationService.ts (Integrity & Cycle Diagnostics)"]
+        ToastMgr["Utils/ui/toast.ts (Toast Notification System)"]
+        TranslateMgr["Utils/i18n/translate.ts (Typed i18n Client)"]
+        IconComponent["Utils/ui/icons.ts (<app-icon>)"]
     end
 
     HTML --> MainController

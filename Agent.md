@@ -102,13 +102,13 @@ main.js (bootstrap)
 
 - `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
 - **IPC via `preload.js`**: exposes `window.electronAPI` using `contextBridge.exposeInMainWorld()`.
-- All file paths validated through `Utils/fsSecurity.js` (path traversal protection) and `Utils/pathSanitizer.js` (slug generation).
+- All file paths validated through `Utils/fs/fsSecurity.js` (path traversal protection) and `Utils/fs/pathSanitizer.js` (slug generation).
 - Atomic writes via `atomicWriteJsonSync()` / `atomicWriteStringSync()` — write to temp file, then rename.
 - **Rule**: Never import `electron`, `fs`, `path`, or `child_process` in renderer-side code. Use only `window.electronAPI`.
 
 ### 3.5. Singleton & Aggregate Roots
 
-- **`ProjectManager`** (`Services/ProjectManager.ts`) — Singleton (`getInstance()`) managing the current project in the renderer.
+- **`ProjectManager`** (`Services/project/ProjectManager.ts`) — Singleton (`getInstance()`) managing the current project in the renderer.
 - **`Project`** (`Model/Project.ts`) — Aggregate root containing all entities (scenes, paragraphs, NPCs, items, etc.).
 
 ### 3.6. Story Graph Subsystem (`Modules/Graph/`)
@@ -122,11 +122,11 @@ The Graph subsystem is structured into modular subpackages:
 
 The graph subsystem is bundled by esbuild and consumed via `dist/Modules/Graph/index.js`.
 
-### 3.7. Centralized SVG Icon System (`Utils/icons.ts`)
+### 3.7. Centralized SVG Icon System (`Utils/ui/icons.ts`)
 
-All UI icons are defined as inline SVG strings in `Utils/icons.ts` with typed `IconName` keys. **Never add ad-hoc SVG icons in HTML** — always add new icons to this module and reference via the `icon()` function or the `ICONS` map.
+All UI icons are defined as inline SVG strings in `Utils/ui/icons.ts` with typed `IconName` keys. **Never add ad-hoc SVG icons in HTML** — always add new icons to this module and reference via the `icon()` function or the `ICONS` map.
 
-### 3.8. Toast Notification System (`Utils/toast.ts`)
+### 3.8. Toast Notification System (`Utils/ui/toast.ts`)
 
 Programmatic toast notifications with four severity levels: `success`, `warning`, `error`, `info`. Toast uses Tailwind classes and auto-creates a DOM container. Use `toast({ message, type, title?, duration? })`.
 
@@ -137,7 +137,7 @@ The application features a TipTap-powered Rich WYSIWYG Markdown Editor that seam
 - **`services/EntitySyncService.ts`**: Scans document AST or markdown syntax `[Name](entity://type/id)` to auto-sync mentioned locations, characters, and tags with the active scene/paragraph/NPC.
 - **`styles/` (`CustomStylesService.ts` & `styleSanitizer.ts`)**: Pure services managing project-specific text styling rules (thoughts, spells, whisper) with CSS injection and validation against CSS injection/XSS.
 - **`fonts/` (`CustomFontsService.ts`, `fontCatalog.ts`, `fontStacks.ts`)**: Manages curated fantasy Google Fonts and offline fallback catalogs, dynamic `<link>` injection, and CSS font-stack fallbacks.
-- **UI Modularization (`View/ui/editor/`)**: Decomposed into focused ES modules: `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, and `mainEditor.js`. All UI elements utilize centralized SVG icons (`Utils/icons.ts`) and full multilingual localization (`Locales/{pl,en,de}/translation.json`).
+- **UI Modularization (`View/ui/editor/`)**: Decomposed into focused ES modules: `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, and `mainEditor.js`. All UI elements utilize centralized SVG icons (`Utils/ui/icons.ts`) and full multilingual localization (`Locales/{pl,en,de}/translation.json`).
 
 ---
 
@@ -203,17 +203,34 @@ SilnikGierParagrafowych/
 │   └── StartWindowViewModel.ts    # Start window ViewModel (create/open/recent)
 │
 ├── Services/                      # Cross-cutting services (TypeScript)
-│   ├── ProjectManager.ts          # Singleton — active project in renderer
-│   └── GraphValidator.ts          # Story graph diagnostics & loop detection
+│   ├── index.ts                   # Barrel re-exporting all services
+│   ├── project/
+│   │   └── ProjectManager.ts      # Singleton — active project in renderer
+│   ├── graph/
+│   │   ├── GraphValidationService.ts   # Story graph diagnostics & loop detection
+│   │   └── ParagraphNumberingService.ts# Sequential & shuffled paragraph numbering
+│   ├── combat/
+│   │   ├── CombatMarkdownService.ts    # Combat markdown block generation/parsing
+│   │   └── CombatSyncService.ts        # Synchronizing combat blocks with model
+│   ├── markdown/
+│   │   ├── DescriptionTransclusionService.ts # Transclusion & embed expansion
+│   │   └── EntityLinkUpdateService.ts        # Updating entity mentions on rename/delete
+│   ├── export/
+│   │   ├── ItemExportService.ts        # Item JSON export/import validation
+│   │   └── RulesExportService.ts       # RPG rules JSON export/import validation
+│   └── helpers/
+│       ├── MarkdownPatterns.ts         # Shared Markdown regex patterns
+│       ├── ExportValidationHelpers.ts  # Shared export validation helpers
+│       └── ParagraphLookup.ts          # Paragraph lookup utilities
 │
 ├── Modules/                       # Feature modules (TypeScript)
 │   ├── Graph/                     # Story graph subsystem (Cytoscape.js + Web Components)
-│   │   ├── StoryGraph.ts
-│   │   ├── ParagraphNode.ts/html
-│   │   ├── SceneNode.ts/html
-│   │   ├── ParagraphNodeTemplate.ts
-│   │   ├── SceneNodeTemplate.ts
-│   │   ├── StoryGraphStyles.ts
+│   │   ├── core/StoryGraph.ts
+│   │   ├── nodes/ParagraphNode.ts/html
+│   │   ├── nodes/SceneNode.ts/html
+│   │   ├── nodes/ParagraphNodeTemplate.ts
+│   │   ├── nodes/SceneNodeTemplate.ts
+│   │   ├── styles/StoryGraphStyles.ts
 │   │   ├── types.ts
 │   │   └── index.ts
 │   ├── Editor/                    # Rich Markdown Editor subsystem (TipTap + i18n + Fonts)
@@ -247,15 +264,24 @@ SilnikGierParagrafowych/
 │       ├── project/               # Project saver, state tracker, autosave service
 │       └── workspace/             # Workspace tabs, top bar toolbar, quick search
 │
-├── Utils/                         # Shared utilities
-│   ├── translate.ts               # Frontend i18n (t(), setLanguage(), getLanguage())
-│   ├── i18n.js                    # Backend i18n (initI18n(), Node.js)
-│   ├── icons.ts                   # Centralized SVG icon registry
-│   ├── idGenerator.ts             # ID generator (timestamp + random suffix)
-│   ├── toast.ts                   # Toast notification system
-│   ├── fsSecurity.js              # Path traversal protection & atomic writes
-│   ├── pathSanitizer.js           # Slug generation (CommonJS, main process)
-│   └── pathSanitizer.ts           # Slug generation (TypeScript, renderer)
+├── Utils/                         # Shared utilities organized by function
+│   ├── index.ts                   # Barrel re-exporting TypeScript utilities
+│   ├── assets/
+│   │   ├── assetConstants.js      # Shared asset protocol & directory constants (CommonJS)
+│   │   ├── assetUtils.ts          # Renderer asset path/URL helpers & constants mirror
+│   │   └── assetUsageTracker.ts   # Scanning & refactoring asset references across project
+│   ├── fs/
+│   │   ├── fsSecurity.js          # Path traversal protection & atomic writes
+│   │   ├── pathSanitizer.js       # Slug generation (CommonJS, main process)
+│   │   └── pathSanitizer.ts       # Slug generation (TypeScript, renderer)
+│   ├── i18n/
+│   │   ├── i18n.js                # Backend i18n (initI18n(), Node.js)
+│   │   └── translate.ts           # Frontend i18n (t(), setLanguage(), getLanguage())
+│   ├── ui/
+│   │   ├── icons.ts               # Centralized SVG icon registry & <app-icon> component
+│   │   └── toast.ts               # Toast notification system
+│   └── common/
+│       └── idGenerator.ts         # ID generator (timestamp + random suffix)
 │
 ├── types/                         # Ambient TypeScript declarations
 │   ├── global.d.ts                # Window.electronAPI, IRecentProject
@@ -383,7 +409,7 @@ export class EntityName {
 
 ### 5.5. ID Generation
 
-Use `defaultIdGenerator(prefix?)` from `Utils/idGenerator.ts`. Format: `{prefix}_{timestamp}_{random7}`.
+Use `defaultIdGenerator(prefix?)` from `Utils/common/idGenerator.ts`. Format: `{prefix}_{timestamp}_{random7}`.
 For ViewModels that need testability, accept `IdGenerator` as a constructor dependency.
 
 ### 5.6. View Controller Function Signatures
@@ -528,19 +554,19 @@ All `fromJSON()` methods in `Model/` and filesystem loaders in `ProjectService.j
 - **Canonical Schema**: `Locales/en/translation.json` defines all keys and the `Translations` type.
 - **Supported**: `en` (English, default), `pl` (Polish), `de` (German).
 
-### Frontend Usage (`Utils/translate.ts`)
+### Frontend Usage (`Utils/i18n/translate.ts`)
 
 ```typescript
-import { t, setLanguage, getLanguage } from '../Utils/translate'
+import { t, setLanguage, getLanguage } from '../Utils/i18n/translate'
 
 const title = t('app.title')
 await setLanguage('en')
 ```
 
-### Backend Usage (`Utils/i18n.js`)
+### Backend Usage (`Utils/i18n/i18n.js`)
 
 ```javascript
-const { initI18n, t, changeLanguage } = require('./Utils/i18n')
+const { initI18n, t, setLocale } = require('./Utils/i18n/i18n')
 await initI18n()
 const label = t('entity.npc')
 ```
@@ -628,9 +654,9 @@ pnpm run test:coverage   # With V8 coverage report
 
 ### Adding a New SVG Icon
 
-1. Add to `Utils/icons.ts` — define the SVG string in the `ICONS` map.
+1. Add to `Utils/ui/icons.ts` — define the SVG string in the `ICON_REGISTRY` map.
 2. Add the icon name to the `IconName` union type.
-3. Reference via `icon('your-icon-name')` in TypeScript or import in JS.
+3. Reference via `getIconSvg('your-icon-name')` in TypeScript or `<app-icon name="your-icon-name">`.
 
 ### Adding a New Translation Key
 
@@ -647,7 +673,7 @@ pnpm run test:coverage   # With V8 coverage report
 | ------- | ---------------- |
 | Importing `electron` or `fs` in renderer code | Use `window.electronAPI` exclusively |
 | Using `npm` instead of `pnpm` | Always `pnpm install`, `pnpm run`, `pnpm test` |
-| Adding icons as inline SVG in HTML | Add to `Utils/icons.ts`, use `icon()` function |
+| Adding icons as inline SVG in HTML | Add to `Utils/ui/icons.ts`, use `getIconSvg()` or `<app-icon>` |
 | Creating global variables in View JS | Thread through `appContext` / `ctx` parameter |
 | Editing `MainWindow.generated.css` | Edit `MainWindow.css` instead, then `pnpm run css:build` |
 | Using `console.log` in production code | Use `console.warn` or `console.error` only |

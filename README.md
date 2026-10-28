@@ -70,7 +70,7 @@ Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktop
 - Dedykowane handlery IPC (`main/ipc/`) delegują operacje do czystych serwisów Node.js (`main/services/`).
 
 ### 3. Transakcyjny i Bezpieczny Zapis Danych
-- Wszelkie operacje zapisu plików JSON i Markdown wykonywane są transakcyjnie (`atomicWriteJsonSync`, `atomicWriteStringSync` w `Utils/fsSecurity.js`) z zapisem do pliku tymczasowego i atomową zamianą nazwy.
+- Wszelkie operacje zapisu plików JSON i Markdown wykonywane są transakcyjnie (`atomicWriteJsonSync`, `atomicWriteStringSync` w `Utils/fs/fsSecurity.js`) z zapisem do pliku tymczasowego i atomową zamianą nazwy.
 - Wszystkie ścieżki weryfikowane są funkcją `isPathInsideBase`, uniemożliwiając ataki typu Path Traversal.
 
 ### 4. Wzorzec Kontekstu Aplikacji (`appContext`)
@@ -87,7 +87,7 @@ Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktop
     - **`pre-commit`**: Wymusza formatowanie Prettier oraz reguły ESLint na dodawanych plikach.
     - **`pre-push`**: Automatycznie wykonuje pełen zestaw testów jednostkowych (`pnpm test:run`) oraz weryfikację licencji.
 3. **Typowana Wielojęzyczność (i18n)**:
-    - Moduł `Utils/translate.ts` weryfikuje klucze tłumaczeń na etapie kompilacji TypeScript (`TranslationKey`). Domyślnym językiem interfejsu jest angielski (`en`) z pełnym wsparciem dla języka polskiego (`pl`) i niemieckiego (`de`).
+    - Moduł `Utils/i18n/translate.ts` weryfikuje klucze tłumaczeń na etapie kompilacji TypeScript (`TranslationKey`). Domyślnym językiem interfejsu jest angielski (`en`) z pełnym wsparciem dla języka polskiego (`pl`) i niemieckiego (`de`).
 
 ---
 
@@ -166,11 +166,20 @@ SilnikGierParagrafowych/
 │       ├── project/            # Automatyczny zapis, śledzenie stanu dirty, persystencja
 │       └── workspace/          # Koordynator obszaru roboczego, pasek górny, menu kontekstowe
 │
-├── Services/                   # Serwisy aplikacyjne renderera (Singletony)
-│   ├── ProjectManager.ts       # Singleton aktywnego projektu w pamięci UI
-│   └── GraphValidator.ts       # Silnik diagnostyki grafu i wykrywania pętli
+├── Services/                   # Serwisy aplikacyjne renderera pogrupowane funkcjonalnie
+│   ├── project/                # Singleton aktywnego projektu w pamięci UI (ProjectManager.ts)
+│   ├── graph/                  # Diagnostyka grafu i numeracja paragrafów
+│   ├── combat/                 # Synchronizacja i generowanie bloków walki Markdown
+│   ├── markdown/               # Transkluzja opisów i aktualizacja linków encji
+│   ├── export/                 # Walidacja eksportu/importu przedmiotów i zasad RPG
+│   └── helpers/                # Współdzielone wzorce wyrażeń regularnych i walidatory
 │
-├── Utils/                      # Narzędzia pomocnicze (i18n, ikony, bezpieczeństwo, toasty)
+├── Utils/                      # Narzędzia pomocnicze pogrupowane funkcjonalnie
+│   ├── assets/                 # Stałe i narzędzia ścieżek zasobów oraz śledzenie referencji
+│   ├── fs/                     # Bezpieczeństwo ścieżek, atomowy zapis i sanityzacja nazw
+│   ├── i18n/                   # Wielojęzyczność backendu (i18n.js) i frontendu (translate.ts)
+│   ├── ui/                     # Rejestr ikon SVG (icons.ts) i powiadomienia (toast.ts)
+│   └── common/                 # Generatory identyfikatorów (idGenerator.ts)
 ├── Locales/                    # Słowniki tłumaczeń JSON (en, pl, de)
 ├── docs/                       # Szczegółowa dokumentacja architektoniczna
 └── tests/                      # Zestaw 76 plików testowych Vitest
