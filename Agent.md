@@ -58,8 +58,8 @@ The View layer is split into focused controller modules in `View/ui/` subdirecto
 
 | Subdirectory | Key Modules & Responsibilities |
 | ------------ | ------------------------------ |
-| `assets/` | `assetManagerModal.js`, `assetPicker.js`, `imageEditorModal.js` — media management, canvas cropping/scaling/filters |
-| `common/` | `confirmModal.js`, `htmlTemplates.js`, `npcAvatars.js` — shared dialogs, badge builders, portrait renderers |
+| `assets/` | Modular media subsystem (`common/`, `picker/`, `manager/`, `editor/`) with backward-compatible facades (`assetManagerModal.js`, `assetPicker.js`, `imageEditorModal.js`) — asset gallery, reference usage tracking, canvas cropping/scaling/filters, media picker |
+| `common/` | `graphValidator.js`, `htmlTemplates.js`, `npcAvatars.js` — story graph validation adapter, XSS-safe HTML escaping, Tailwind badge builders, RPG archetype & custom portrait renderers |
 | `detailsPanel/` | `detailsPanel.js`, `combatModule.js`, `choiceDetails.js`, `exitsModule.js`, `heroReadOnlyDetails.js`, `npcReadOnlyDetails.js`, `historyBar.js` — property inspectors & combat setup |
 | `drawer/` | `drawerLists.js`, `drawerSearch.js`, `filterPopover.js` — entity navigation, search, faceted filters |
 | `editor/` | `mainEditor.js`, `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, `entityLinkModal.js`, `heroEditor.js`, `npcEditor.js` — TipTap rich text, fonts, custom styles |
@@ -254,8 +254,8 @@ SilnikGierParagrafowych/
 │   ├── mockData.js                # Mock project data for development
 │   ├── projectData.js             # Data loading (mock vs real)
 │   └── ui/                        # Modular view controllers organized by domain
-│       ├── assets/                # Asset manager modal, image editor modal, asset picker
-│       ├── common/                # Shared templates, confirm modal, avatar renderers
+│       ├── assets/                # Modular media subsystem (common/, picker/, manager/, editor/)
+│       ├── common/                # Shared HTML templates, story graph validator adapter, avatar renderers
 │       ├── detailsPanel/          # Details panel, exits, history bar, combat setup
 │       ├── drawer/                # Entity lists, search, faceted filters
 │       ├── editor/                # Editor toolbar, custom styles, font browser, entity link

@@ -1013,7 +1013,7 @@ declare module '*/View/ui/assets/manager/assetRenameDialog.js' {
 
 declare module '*/View/ui/assets/manager/assetDeleteDialog.js' {
     export function confirmDeleteAsset(
-        asset: { fileName: string; [key: string]: unknown } | null,
+        asset: { fileName: string;[key: string]: unknown } | null,
         usages?: Array<{ name: string; field: string; type?: string }>
     ): Promise<boolean>
 }
@@ -1033,14 +1033,14 @@ declare module '*/View/ui/assets/manager/assetManagerGrid.js' {
         grid: HTMLElement
         emptyState?: HTMLElement | null
         countBadge?: HTMLElement | null
-        assets: Array<{ fileName: string; relativePath: string; [key: string]: unknown }>
+        assets: Array<{ fileName: string; relativePath: string;[key: string]: unknown }>
         query?: string
         filterType?: string
         sortMode?: string
         selectedAsset?: unknown
         activeCtx?: unknown
         onSelect?: (asset: unknown) => void
-    }): Array<{ fileName: string; [key: string]: unknown }>
+    }): Array<{ fileName: string;[key: string]: unknown }>
 }
 
 declare module '*/View/ui/assets/manager/assetManagerModal.js' {
@@ -1145,7 +1145,7 @@ declare module '*/View/ui/assets/picker/assetPickerGrid.js' {
     export function renderPickerGrid(options: {
         grid: HTMLElement
         emptyState?: HTMLElement | null
-        assets: Array<{ fileName: string; relativePath: string; [key: string]: unknown }>
+        assets: Array<{ fileName: string; relativePath: string;[key: string]: unknown }>
         query?: string
         selectedAsset?: { fileName: string; relativePath: string } | null
         onSelect?: (asset: { fileName: string; relativePath: string }) => void

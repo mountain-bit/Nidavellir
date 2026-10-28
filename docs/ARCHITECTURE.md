@@ -189,8 +189,8 @@ SilnikGierParagrafowych/
 │   ├── MainWindow.generated.css# Compiled production stylesheet
 │   ├── StartWindow.html        # Launcher / Welcome window template
 │   └── ui/                     # Modular view controllers organized by feature domain
-│       ├── assets/             # Asset manager modal, image editor modal, asset picker
-│       ├── common/             # Shared HTML templates, confirmation modal, avatar rendering
+│       ├── assets/             # Modular media subsystem (common/, picker/, manager/, editor/)
+│       ├── common/             # Shared HTML templates, story graph validator adapter, avatar rendering
 │       ├── detailsPanel/       # Right property inspector, history bar, combat setup
 │       ├── drawer/             # Left drawer entity lists, search, faceted filters
 │       ├── editor/             # TipTap Markdown toolbar, custom styles, font browser, entity link

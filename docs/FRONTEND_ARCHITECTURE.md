@@ -22,8 +22,8 @@ graph TD
             GraphCtrl["graph/ (Graph Controller, Drop Zones, Zoom Controls)"]
             ModalsCtrl["modals/ (Export, Hero, NPC Folio, Playtest Simulator)"]
             ProjectCtrl["project/ (Saver, State Tracker, AutoSave)"]
-            AssetsCtrl["assets/ (Asset Manager, Canvas Image Editor, Picker)"]
-            CommonCtrl["common/ (Templates, Confirm Modal, Avatars)"]
+            AssetsCtrl["assets/ (Modular Media Subsystem: Manager, Editor, Picker, Common)"]
+            CommonCtrl["common/ (HTML Templates, Graph Validator, Avatars)"]
         end
 
         subgraph FeatureModules["Engine Feature Modules (Modules/)"]
@@ -252,14 +252,46 @@ To maintain high code modularity and maintainability, `View/MainWindow.js` acts 
 - **`playtest/` (`playtestModal.js`)**: Interactive walkthrough debugger with condition checking, dice roller, and rollback history.
 
 ### 4.7. `assets/` — Media & Image Subsystem
-- **`assetManagerModal.js`**: Project image gallery browser.
-- **`imageEditorModal.js`**: Interactive canvas image editor (cropping, scaling, rotation, color filters).
-- **`assetPicker.js`**: Reusable media selection dialog.
+Decomposed into modular, single-responsibility subpackages with backward-compatible root facades:
+- **`common/`** (`assetPathResolver.js`, `assetDropZone.js`, `assetCardTemplate.js`, `index.js`):
+  - `assetPathResolver.js`: Safe project path resolution via `appContext` (`ctx.projectPath` / `ctx.getProjectPath()`) without mutating `window`.
+  - `assetDropZone.js`: Drag-and-drop setup for image files with validation and auto-import.
+  - `assetCardTemplate.js`: Reusable gallery cards with format badges and `formatFileSize()`.
+- **`picker/`** (`assetPickerGrid.js`, `assetPickerModal.js`, `index.js`):
+  - `assetPickerGrid.js`: Real-time query search and thumbnail grid rendering.
+  - `assetPickerModal.js`: Reusable image picker dialog with native disk import (`importImageNative`) and `Escape` key support.
+- **`manager/`** (`assetManagerModal.js`, `assetManagerGrid.js`, `assetDetailPanel.js`, `assetRenameDialog.js`, `assetDeleteDialog.js`, `index.js`):
+  - `assetManagerModal.js`: Coordinator for the central asset gallery modal.
+  - `assetManagerGrid.js`: Gallery filtering by category/query, sorting by date/name/size, and total library size calculation.
+  - `assetDetailPanel.js`: Sidebar inspector displaying metadata, image dimensions with race-condition guard (`_currentLoadingPath`), and entity usage badges.
+  - `assetRenameDialog.js`: Custom rename modal dialog with character validation and project-wide reference refactoring.
+  - `assetDeleteDialog.js`: Safe asset deletion dialog with warnings when assets are actively referenced in nodes or NPCs.
+- **`editor/`** (`imageEditorModal.js`, `imageEditorState.js`, `imageEditorCrop.js`, `imageEditorCanvas.js`, `imageEditorSave.js`, `index.js`):
+  - `imageEditorState.js`: Pure data models for aspect ratio calculations, rotation bounds, and transformation clamping.
+  - `imageEditorCrop.js`: Interactive cropping overlay with 8 handles; strictly mounts mouse listeners on drag and releases them on mouseup, eliminating memory leaks.
+  - `imageEditorCanvas.js`: 2D preview canvas applying affine transforms, mirroring, and CSS color filter adjustments.
+  - `imageEditorSave.js`: Detects MIME types/quality and saves modified files via IPC.
+  - `imageEditorModal.js`: Coordinator managing editor lifecycle, with `setContext(ctx)` to eliminate stale context bugs.
+- **Root Facades (`assetPicker.js`, `assetManagerModal.js`, `imageEditorModal.js`, `index.js`)**: Thin backward-compatible re-exports preserving existing signatures for `topBar.js`, `mainEditor.js`, and external modules.
 
 ### 4.8. `project/` — Persistence & Autosave
 - **`projectSaver.js`**: Serializes full project payload for `save-full-project`.
 - **`projectStateTracker.js`**: Computes dirty state hashes to detect unsaved modifications.
 - **`autoSaveService.js`**: Non-blocking periodic autosave with visual debounce.
+
+### 4.9. `common/` — Shared Infrastructure & UI Helpers
+- **`graphValidator.js`**: Adapter/facade for `GraphValidationService` providing validation reports on story graph structural integrity (unreachable paragraphs, broken jumps, dead ends, and cycles).
+- **`htmlTemplates.js`**:
+  - `escapeHtml(str)`: Centralized XSS sanitizer neutralizing HTML entities (`&`, `<`, `>`, `"`, `'`).
+  - `getTypeBadgeColor(type)`: Case-insensitive Tailwind class resolver for entity badges (paragraphs, scenes, characters, items, choices, etc.).
+  - `getTypeIconSvg(type, extraClasses)`: SVG icon generator for entity types.
+  - `PRESET_COLORS`: Frozen array of 12 curated hexadecimal palette colors for tags and scenes.
+  - `renderColorPresetButtonsHtml(presetColors, currentColor)`: Safe color picker preset button renderer with active ring indicators.
+  - `renderEmptyPlaceholderHtml(iconText, message)`: Standardized empty state container with icon and escaped message.
+- **`npcAvatars.js`**:
+  - `FANTASY_AVATARS`: Frozen catalog of 10 classic tabletop RPG archetype avatars (Warrior, Mage, Rogue, Cleric, Ranger, Paladin, Bard, Necromancer, Druid, Merchant) with inline SVG vectors.
+  - `getAvatarById(id)`: Resolves avatar definitions by ID or relative asset path (`isCustomAvatarPath`), safely generating `<img src="${escapeHtml(assetUrl)}" />` for custom portraits.
+  - `getAvatarName(avatar)`: Null-safe localized display name resolver with multi-level fallbacks.
 
 ---
 
