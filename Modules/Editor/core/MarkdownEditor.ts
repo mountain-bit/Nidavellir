@@ -2,7 +2,7 @@ import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import { Markdown } from 'tiptap-markdown'
 
-import { DescriptionTransclusionService } from '../../../Services/DescriptionTransclusionService'
+import { DescriptionTransclusionService } from '../../../Services/markdown/DescriptionTransclusionService'
 import { t } from '../../../Utils/translate'
 import { CombatBlock } from '../extensions/CombatBlock'
 import { CustomImage } from '../extensions/CustomImage'

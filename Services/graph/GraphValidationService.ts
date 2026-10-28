@@ -10,7 +10,8 @@
  * 6. Multilingual reporting with i18n support
  */
 
-import { t, TranslationKey } from '../Utils/translate'
+import { t, TranslationKey } from '../../Utils/translate'
+import { EntityAccessor } from '../helpers/EntityAccessor'
 
 export type ValidationSeverity = 'error' | 'warning' | 'info'
 
@@ -57,12 +58,28 @@ export interface IGraphValidationReport {
 }
 
 export interface IGraphValidationInput {
-    paragraphs?: any[]
-    scenes?: any[]
-    items?: any[]
-    stats?: any[]
-    skills?: any[]
-    characters?: any[]
+    paragraphs?: unknown[]
+    scenes?: unknown[]
+    items?: unknown[]
+    stats?: unknown[]
+    skills?: unknown[]
+    characters?: unknown[]
+}
+
+export interface IGraphTransitionLike {
+    getId?: () => string
+    id?: string
+    getName?: () => string
+    name?: string
+    getTitle?: () => string
+    title?: string
+    getToParagraphId?: () => string
+    toParagraphId?: string
+    getTargetParagraphId?: () => string
+    targetParagraphId?: string
+    getTargetId?: () => string
+    targetId?: string
+    isCombatOutcome?: boolean
 }
 
 /**
@@ -92,122 +109,143 @@ function translateWithFallback(
     return result
 }
 
+/**
+ * Computes a canonical rotation signature for a cycle so the same cycle is only reported once.
+ */
+function getCanonicalCycleKey(cycleNodes: string[]): string {
+    if (cycleNodes.length === 0) return ''
+    let minIdx = 0
+    for (let i = 1; i < cycleNodes.length; i++) {
+        if (cycleNodes[i] < cycleNodes[minIdx]) {
+            minIdx = i
+        }
+    }
+    const rotated = [...cycleNodes.slice(minIdx), ...cycleNodes.slice(0, minIdx)]
+    return rotated.join('->')
+}
+
 export class GraphValidationService {
     /**
      * Extracts an array of paragraphs from various context or payload structures.
      */
-    public static extractParagraphs(input: unknown): any[] {
+    public static extractParagraphs(input: unknown): unknown[] {
         if (!input) return []
         if (Array.isArray(input)) return input
-
-        const typed = input as Record<string, any>
-        if (Array.isArray(typed.paragraphs)) return typed.paragraphs
-        if (Array.isArray(typed.projectParagraphs)) return typed.projectParagraphs
-        if (typed.projectData && Array.isArray(typed.projectData.projectParagraphs)) {
-            return typed.projectData.projectParagraphs
-        }
-        if (typed.project && Array.isArray(typed.project.paragraphs)) {
-            return typed.project.paragraphs
-        }
-        return []
+        return EntityAccessor.normalizeScope(input).paragraphs
     }
 
     /**
      * Extracts scenes from various context or payload structures.
      */
-    public static extractScenes(input: unknown): any[] {
-        if (!input) return []
-        const typed = input as Record<string, any>
-        if (Array.isArray(typed.scenes)) return typed.scenes
-        if (Array.isArray(typed.projectScenes)) return typed.projectScenes
-        if (typed.projectData && Array.isArray(typed.projectData.projectScenes)) {
-            return typed.projectData.projectScenes
-        }
-        if (typed.project && Array.isArray(typed.project.scenes)) {
-            return typed.project.scenes
-        }
-        return []
+    public static extractScenes(input: unknown): unknown[] {
+        if (!input || Array.isArray(input)) return []
+        return EntityAccessor.normalizeScope(input).scenes
     }
 
     /**
      * Resolves the string identifier for a paragraph or entity.
      */
-    public static resolveId(item: any): string {
-        if (!item) return ''
-        if (typeof item.getId === 'function') return item.getId() || ''
-        if (typeof item.id === 'string') return item.id
-        return ''
+    public static resolveId(item: unknown): string {
+        return EntityAccessor.getId(item)
     }
 
     /**
      * Resolves human-readable title or name of a paragraph.
      */
-    public static resolveTitle(item: any, fallbackId: string = ''): string {
-        if (!item) return fallbackId
-        if (typeof item.getTitle === 'function') return item.getTitle() || fallbackId
-        if (typeof item.getName === 'function') return item.getName() || fallbackId
-        if (typeof item.title === 'string' && item.title) return item.title
-        if (typeof item.name === 'string' && item.name) return item.name
-        return fallbackId
+    public static resolveTitle(item: unknown, fallbackId: string = ''): string {
+        return EntityAccessor.getTitleOrName(item, fallbackId)
     }
 
     /**
      * Resolves whether a paragraph is marked as a starting node.
      */
-    public static isStartNode(item: any): boolean {
-        if (!item) return false
-        if (typeof item.getIsStart === 'function') return Boolean(item.getIsStart())
-        return Boolean(item.isStart)
+    public static isStartNode(item: unknown): boolean {
+        if (!item || typeof item !== 'object') return false
+        const rec = item as Record<string, unknown>
+        if (typeof rec.getIsStart === 'function') {
+            return Boolean((rec.getIsStart as () => unknown)())
+        }
+        return Boolean(rec.isStart)
     }
 
     /**
      * Resolves whether a paragraph is marked as an ending node.
      */
-    public static isEndNode(item: any): boolean {
-        if (!item) return false
-        if (typeof item.getIsEnd === 'function') return Boolean(item.getIsEnd())
-        return Boolean(item.isEnd)
+    public static isEndNode(item: unknown): boolean {
+        if (!item || typeof item !== 'object') return false
+        const rec = item as Record<string, unknown>
+        if (typeof rec.getIsEnd === 'function') {
+            return Boolean((rec.getIsEnd as () => unknown)())
+        }
+        return Boolean(rec.isEnd)
     }
 
     /**
-     * Resolves outgoing choices and combat outcome transitions for a paragraph.
+     * Resolves whether a paragraph has combat enabled.
      */
-    public static resolveChoices(item: any): any[] {
-        if (!item) return []
-        let rawChoices: any[] = []
-        if (typeof item.getChoices === 'function') {
-            const res = item.getChoices()
-            rawChoices = Array.isArray(res) ? [...res] : []
-        } else if (Array.isArray(item.choices)) {
-            rawChoices = [...item.choices]
+    private static hasCombatEnabled(item: unknown): boolean {
+        if (!item || typeof item !== 'object') return false
+        const rec = item as Record<string, unknown>
+        if (typeof rec.getHasCombat === 'function') {
+            return Boolean((rec.getHasCombat as () => unknown)())
+        }
+        return Boolean(rec.hasCombat)
+    }
+
+    /**
+     * Resolves outgoing choices and combat outcome transitions for a paragraph
+     * without mutating the underlying choice objects.
+     */
+    public static resolveChoices(item: unknown): IGraphTransitionLike[] {
+        if (!item || typeof item !== 'object') return []
+        const rec = item as Record<string, unknown>
+
+        let rawChoices: IGraphTransitionLike[] = []
+        if (typeof rec.getChoices === 'function') {
+            const res = (rec.getChoices as () => unknown)()
+            rawChoices = Array.isArray(res) ? [...(res as IGraphTransitionLike[])] : []
+        } else if (Array.isArray(rec.choices)) {
+            rawChoices = [...(rec.choices as IGraphTransitionLike[])]
         }
 
-        // Include combat outcomes as transitions if combat is enabled
-        const hasCombat =
-            typeof item.getHasCombat === 'function' ? item.getHasCombat() : item.hasCombat
-        if (hasCombat) {
-            const combat = typeof item.getCombat === 'function' ? item.getCombat() : item.combat
+        if (this.hasCombatEnabled(item)) {
+            const combat = (
+                typeof rec.getCombat === 'function'
+                    ? (rec.getCombat as () => unknown)()
+                    : rec.combat
+            ) as Record<string, unknown> | null | undefined
+
             const outcomes =
                 combat && typeof combat.getOutcomes === 'function'
-                    ? combat.getOutcomes()
+                    ? (combat.getOutcomes as () => unknown)()
                     : combat?.outcomes
+
             if (Array.isArray(outcomes)) {
-                outcomes.forEach((outcome: any) => {
-                    if (!outcome) return
-                    const outcomeId = outcome.id || ''
-                    const outcomeName = outcome.name || 'Wynik walki'
-                    const targetId =
+                outcomes.forEach((rawOutcome: unknown) => {
+                    if (!rawOutcome || typeof rawOutcome !== 'object') return
+                    const outcome = rawOutcome as Record<string, unknown>
+                    const outcomeId = typeof outcome.id === 'string' ? outcome.id : ''
+                    const outcomeName =
+                        typeof outcome.name === 'string' && outcome.name
+                            ? outcome.name
+                            : 'Wynik walki'
+                    const targetId = String(
                         outcome.targetParagraphId || outcome.targetId || outcome.toParagraphId || ''
+                    )
 
                     // Check if a choice already exists with this exact outcome ID
-                    const existingChoice = rawChoices.find((ch: any) => {
-                        const chId = typeof ch.getId === 'function' ? ch.getId() : ch.id
-                        return chId && outcomeId && chId === outcomeId
+                    const existingIdx = rawChoices.findIndex(ch => {
+                        const chId = EntityAccessor.getId(ch)
+                        return Boolean(chId && outcomeId && chId === outcomeId)
                     })
 
-                    if (existingChoice) {
-                        if (typeof existingChoice === 'object') {
-                            existingChoice.isCombatOutcome = true
+                    if (existingIdx !== -1) {
+                        const orig = rawChoices[existingIdx]
+                        rawChoices[existingIdx] = {
+                            getId: (): string => EntityAccessor.getId(orig),
+                            getName: (): string => this.resolveChoiceTitle(orig),
+                            getToParagraphId: (): string => this.resolveChoiceTarget(orig),
+                            isCombatOutcome: true,
                         }
                     } else {
                         rawChoices.push({
@@ -216,7 +254,7 @@ export class GraphValidationService {
                             title: outcomeName,
                             targetParagraphId: targetId,
                             toParagraphId: targetId,
-                            targetId: targetId,
+                            targetId,
                             isCombatOutcome: true,
                         })
                     }
@@ -230,94 +268,44 @@ export class GraphValidationService {
     /**
      * Resolves the target paragraph ID from a choice.
      */
-    public static resolveChoiceTarget(choice: any): string {
-        if (!choice) return ''
-        if (typeof choice.getToParagraphId === 'function') {
-            const id = choice.getToParagraphId()
+    public static resolveChoiceTarget(choice: unknown): string {
+        if (!choice || typeof choice !== 'object') return ''
+        const rec = choice as IGraphTransitionLike
+
+        if (typeof rec.getToParagraphId === 'function') {
+            const id = rec.getToParagraphId()
             if (id) return id
         }
-        if (typeof choice.getTargetParagraphId === 'function') {
-            const id = choice.getTargetParagraphId()
+        if (typeof rec.getTargetParagraphId === 'function') {
+            const id = rec.getTargetParagraphId()
             if (id) return id
         }
-        if (typeof choice.getTargetId === 'function') {
-            const id = choice.getTargetId()
+        if (typeof rec.getTargetId === 'function') {
+            const id = rec.getTargetId()
             if (id) return id
         }
-        if (typeof choice.toParagraphId === 'string') return choice.toParagraphId
-        if (typeof choice.targetParagraphId === 'string') return choice.targetParagraphId
-        if (typeof choice.targetId === 'string') return choice.targetId
+        if (typeof rec.toParagraphId === 'string') return rec.toParagraphId
+        if (typeof rec.targetParagraphId === 'string') return rec.targetParagraphId
+        if (typeof rec.targetId === 'string') return rec.targetId
         return ''
     }
 
     /**
      * Resolves choice title or label.
      */
-    public static resolveChoiceTitle(choice: any): string {
-        if (!choice) return 'Przeskok'
-        if (typeof choice.getName === 'function') {
-            const name = choice.getName()
-            if (name) return name
-        }
-        if (typeof choice.getTitle === 'function') {
-            const title = choice.getTitle()
-            if (title) return title
-        }
-        if (typeof choice.name === 'string' && choice.name) return choice.name
-        if (typeof choice.title === 'string' && choice.title) return choice.title
-        return 'Przeskok'
+    public static resolveChoiceTitle(choice: unknown): string {
+        if (!choice || typeof choice !== 'object') return 'Przeskok'
+        return EntityAccessor.getTitleOrName(choice, 'Przeskok')
     }
 
     /**
-     * Validates the narrative story graph.
-     *
-     * @param {unknown} input Application Context, Project, or list of Paragraphs
-     * @returns {IGraphValidationReport}
+     * Step 1: Validates entry (start) and termination (end) nodes.
      */
-    public static validateStoryGraph(input: unknown): IGraphValidationReport {
-        const paragraphs = this.extractParagraphs(input)
-        const scenes = this.extractScenes(input)
-
-        const paragraphMap = new Map<string, any>()
-        paragraphs.forEach(p => {
-            const id = this.resolveId(p)
-            if (id) {
-                paragraphMap.set(id, p)
-            }
-        })
-
-        const issues: IGraphValidationIssue[] = []
-
-        // 1. Sprawdzenie pustego projektu
-        if (paragraphs.length === 0) {
-            const issue: IGraphValidationIssue = {
-                code: 'NO_PARAGRAPHS',
-                severity: 'error',
-                type: 'error',
-                title: translateWithFallback(
-                    'validation.no_paragraphs_title' as TranslationKey,
-                    undefined,
-                    'Brak paragrafów w projekcie'
-                ),
-                description: translateWithFallback(
-                    'validation.no_paragraphs_desc' as TranslationKey,
-                    undefined,
-                    'Projekt nie posiada jeszcze żadnych paragrafów. Utwórz pierwszy paragraf, aby zbudować fabułę.'
-                ),
-            }
-            return {
-                isValid: false,
-                issuesCount: 1,
-                errorCount: 1,
-                warningCount: 0,
-                infoCount: 0,
-                issues: [issue],
-                nodeIssueMap: new Map(),
-            }
-        }
-
-        // 2. Paragraf początkowy (start)
-        const startParagraphs = paragraphs.filter(p => this.isStartNode(p))
+    private static validateStartAndEndNodes(
+        paragraphs: unknown[],
+        startParagraphs: unknown[],
+        issues: IGraphValidationIssue[]
+    ): void {
         if (startParagraphs.length === 0) {
             issues.push({
                 code: 'NO_START',
@@ -354,7 +342,6 @@ export class GraphValidationService {
             })
         }
 
-        // 3. Paragrafy końcowe (isEnd)
         const endParagraphs = paragraphs.filter(p => this.isEndNode(p))
         if (paragraphs.length > 1 && endParagraphs.length === 0) {
             issues.push({
@@ -373,17 +360,25 @@ export class GraphValidationService {
                 ),
             })
         }
+    }
 
-        // Przygotowanie struktur grafowych
+    /**
+     * Step 2: Builds adjacency lists, counts incoming edges, and checks dead-ends, broken links, and self-loops.
+     */
+    private static buildGraphAndValidateEdges(
+        paragraphs: unknown[],
+        paragraphMap: Map<string, unknown>,
+        issues: IGraphValidationIssue[]
+    ): { adj: Map<string, string[]>; incomingCount: Map<string, number> } {
         const incomingCount = new Map<string, number>()
         const adj = new Map<string, string[]>()
+
         paragraphs.forEach(p => {
             const pId = this.resolveId(p)
             incomingCount.set(pId, 0)
             adj.set(pId, [])
         })
 
-        // 4. Przeskoki, błędne cele, ślepe zaułki i pętle własne
         paragraphs.forEach(p => {
             const pId = this.resolveId(p)
             const pTitle = this.resolveTitle(p, pId)
@@ -392,8 +387,7 @@ export class GraphValidationService {
 
             if (choices.length === 0) {
                 if (!isEnd) {
-                    const hasCombat =
-                        typeof p.getHasCombat === 'function' ? p.getHasCombat() : p.hasCombat
+                    const hasCombat = this.hasCombatEnabled(p)
                     issues.push({
                         code: 'DEAD_END',
                         severity: 'warning',
@@ -488,8 +482,21 @@ export class GraphValidationService {
             })
         })
 
-        // 5. Analiza osiągalności grafu (BFS Reachability Traversal from Start)
-        const primaryStartId = this.resolveId(startParagraphs[0]) || this.resolveId(paragraphs[0])
+        return { adj, incomingCount }
+    }
+
+    /**
+     * Step 3: Performs BFS reachability traversal from the primary start node
+     * and classifies unreachable nodes into orphans (in-degree = 0) vs disconnected islands (in-degree > 0).
+     */
+    private static validateReachabilityBFS(
+        paragraphs: unknown[],
+        primaryStartId: string,
+        paragraphMap: Map<string, unknown>,
+        adj: Map<string, string[]>,
+        incomingCount: Map<string, number>,
+        issues: IGraphValidationIssue[]
+    ): void {
         const reachable = new Set<string>()
 
         if (primaryStartId && paragraphMap.has(primaryStartId)) {
@@ -508,7 +515,6 @@ export class GraphValidationService {
             }
         }
 
-        // Klasyfikacja nieosiągalnych: osierocone (in-degree === 0) vs odcięte wyspy (in-degree > 0)
         paragraphs.forEach(p => {
             const pId = this.resolveId(p)
             if (pId !== primaryStartId && !reachable.has(pId)) {
@@ -552,26 +558,23 @@ export class GraphValidationService {
                 }
             }
         })
+    }
 
-        // 6. Wykrywanie pętli i cykli w grafie (DFS cycle detection)
+    /**
+     * Step 4: Performs DFS cycle detection across the graph, distinguishing navigable loops from deadlocks.
+     */
+    private static validateCyclesDFS(
+        paragraphs: unknown[],
+        paragraphMap: Map<string, unknown>,
+        adj: Map<string, string[]>,
+        issues: IGraphValidationIssue[]
+    ): void {
         const visited = new Set<string>()
         const onStack = new Set<string>()
         const stack: string[] = []
         const detectedCycleSignatures = new Set<string>()
 
-        function getCanonicalCycleKey(cycleNodes: string[]): string {
-            if (cycleNodes.length === 0) return ''
-            let minIdx = 0
-            for (let i = 1; i < cycleNodes.length; i++) {
-                if (cycleNodes[i] < cycleNodes[minIdx]) {
-                    minIdx = i
-                }
-            }
-            const rotated = [...cycleNodes.slice(minIdx), ...cycleNodes.slice(0, minIdx)]
-            return rotated.join('->')
-        }
-
-        function detectCycles(nodeId: string): void {
+        const detectCycles = (nodeId: string): void => {
             visited.add(nodeId)
             onStack.add(nodeId)
             stack.push(nodeId)
@@ -579,7 +582,6 @@ export class GraphValidationService {
             const targets = adj.get(nodeId) || []
             for (const targetId of targets) {
                 if (targetId === nodeId) {
-                    // Pętla do samego siebie obsłużona wcześniej
                     continue
                 }
                 if (onStack.has(targetId)) {
@@ -593,15 +595,14 @@ export class GraphValidationService {
                             const fullCyclePath = [...cycleNodes, targetId]
                             const cycleTitles = fullCyclePath.map(id => {
                                 const node = paragraphMap.get(id)
-                                return GraphValidationService.resolveTitle(node, id)
+                                return this.resolveTitle(node, id)
                             })
 
-                            // Sprawdź czy cykl posiada wyjście na zewnątrz
                             const cycleNodeSet = new Set(cycleNodes)
                             let hasExit = false
                             for (const cId of cycleNodeSet) {
                                 const outTargets = adj.get(cId) || []
-                                if (outTargets.some(t => !cycleNodeSet.has(t))) {
+                                if (outTargets.some(target => !cycleNodeSet.has(target))) {
                                     hasExit = true
                                     break
                                 }
@@ -662,41 +663,128 @@ export class GraphValidationService {
                 detectCycles(id)
             }
         })
+    }
 
-        // 7. Spójność scen (Scene Integrity)
-        if (scenes.length > 0) {
-            scenes.forEach(scene => {
-                const sId = this.resolveId(scene)
-                const sName = this.resolveTitle(scene, sId || 'Scena')
-                const initialPId =
-                    (typeof scene.getInitialParagraphId === 'function' &&
-                        scene.getInitialParagraphId()) ||
-                    scene.initialParagraphId ||
+    /**
+     * Step 5: Verifies that scene initialParagraphId references point to existing paragraphs.
+     */
+    private static validateScenesIntegrity(
+        scenes: unknown[],
+        paragraphMap: Map<string, unknown>,
+        issues: IGraphValidationIssue[]
+    ): void {
+        scenes.forEach(scene => {
+            if (!scene || typeof scene !== 'object') return
+            const rec = scene as Record<string, unknown>
+            const sId = this.resolveId(scene)
+            const sName = this.resolveTitle(scene, sId || 'Scena')
+            const initialPId = String(
+                (typeof rec.getInitialParagraphId === 'function' &&
+                    (rec.getInitialParagraphId as () => unknown)()) ||
+                    rec.initialParagraphId ||
                     ''
+            )
 
-                if (initialPId && !paragraphMap.has(initialPId)) {
-                    issues.push({
-                        code: 'INVALID_SCENE_INITIAL',
-                        severity: 'error',
-                        type: 'error',
-                        title: translateWithFallback(
-                            'validation.invalid_scene_initial_title' as TranslationKey,
-                            { scene: sName },
-                            `Błędny start sceny: „${sName}”`
-                        ),
-                        description: translateWithFallback(
-                            'validation.invalid_scene_initial_desc' as TranslationKey,
-                            { targetId: initialPId },
-                            `Scena wskazuje na nieistniejący paragraf początkowy (ID: ${initialPId}).`
-                        ),
-                        sceneId: sId,
-                        targetId: initialPId,
-                    })
-                }
-            })
+            if (initialPId && !paragraphMap.has(initialPId)) {
+                issues.push({
+                    code: 'INVALID_SCENE_INITIAL',
+                    severity: 'error',
+                    type: 'error',
+                    title: translateWithFallback(
+                        'validation.invalid_scene_initial_title' as TranslationKey,
+                        { scene: sName },
+                        `Błędny start sceny: „${sName}”`
+                    ),
+                    description: translateWithFallback(
+                        'validation.invalid_scene_initial_desc' as TranslationKey,
+                        { targetId: initialPId },
+                        `Scena wskazuje na nieistniejący paragraf początkowy (ID: ${initialPId}).`
+                    ),
+                    sceneId: sId,
+                    targetId: initialPId,
+                })
+            }
+        })
+    }
+
+    /**
+     * Validates the narrative story graph.
+     *
+     * @param {unknown} input Application Context, Project, or list of Paragraphs
+     * @returns {IGraphValidationReport}
+     */
+    public static validateStoryGraph(input: unknown): IGraphValidationReport {
+        const paragraphs = this.extractParagraphs(input)
+        const scenes = this.extractScenes(input)
+
+        if (paragraphs.length === 0) {
+            const issue: IGraphValidationIssue = {
+                code: 'NO_PARAGRAPHS',
+                severity: 'error',
+                type: 'error',
+                title: translateWithFallback(
+                    'validation.no_paragraphs_title' as TranslationKey,
+                    undefined,
+                    'Brak paragrafów w projekcie'
+                ),
+                description: translateWithFallback(
+                    'validation.no_paragraphs_desc' as TranslationKey,
+                    undefined,
+                    'Projekt nie posiada jeszcze żadnych paragrafów. Utwórz pierwszy paragraf, aby zbudować fabułę.'
+                ),
+            }
+            return {
+                isValid: false,
+                issuesCount: 1,
+                errorCount: 1,
+                warningCount: 0,
+                infoCount: 0,
+                issues: [issue],
+                nodeIssueMap: new Map(),
+            }
         }
 
-        // 8. Mapa problemów per węzeł (do wykorzystania w widoku StoryGraph / node styling)
+        const paragraphMap = new Map<string, unknown>()
+        paragraphs.forEach(p => {
+            const id = this.resolveId(p)
+            if (id) {
+                paragraphMap.set(id, p)
+            }
+        })
+
+        const issues: IGraphValidationIssue[] = []
+        const startParagraphs = paragraphs.filter(p => this.isStartNode(p))
+
+        // 1. Start & End nodes validation
+        this.validateStartAndEndNodes(paragraphs, startParagraphs, issues)
+
+        // 2. Build adjacency graph & validate jumps, dead-ends, broken links, self-loops
+        const { adj, incomingCount } = this.buildGraphAndValidateEdges(
+            paragraphs,
+            paragraphMap,
+            issues
+        )
+
+        // 3. BFS Reachability (Orphans & Disconnected Islands)
+        const primaryStartId = this.resolveId(startParagraphs[0]) || this.resolveId(paragraphs[0])
+        this.validateReachabilityBFS(
+            paragraphs,
+            primaryStartId,
+            paragraphMap,
+            adj,
+            incomingCount,
+            issues
+        )
+
+        // 4. DFS Cycle detection (Loops vs Deadlocks)
+        this.validateCyclesDFS(paragraphs, paragraphMap, adj, issues)
+
+        // 5. Scene Integrity
+        if (scenes.length > 0) {
+            this.validateScenesIntegrity(scenes, paragraphMap, issues)
+        }
+
+        // 6. Aggregate node issue map and counts
         const nodeIssueMap = new Map<string, ValidationSeverity[]>()
         issues.forEach(issue => {
             if (issue.paragraphId) {

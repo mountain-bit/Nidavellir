@@ -9,7 +9,7 @@ import { Location } from '../../Model/Location'
 import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { PlayerCharacter } from '../../Model/PlayerCharacter'
-import { EntityLinkUpdateService } from '../../Services/EntityLinkUpdateService'
+import { EntityLinkUpdateService } from '../../Services/markdown/EntityLinkUpdateService'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('EntityLinkUpdateService', () => {

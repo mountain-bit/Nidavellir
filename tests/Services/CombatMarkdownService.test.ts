@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { Combat } from '../../Model/Combat'
 import { Paragraph } from '../../Model/Paragraph'
-import { CombatMarkdownService } from '../../Services/CombatMarkdownService'
+import { CombatMarkdownService } from '../../Services/combat/CombatMarkdownService'
 
 describe('CombatMarkdownService', () => {
     it('generates combat markdown correctly with opponents table and outcomes', () => {
@@ -128,14 +128,14 @@ describe('CombatMarkdownService', () => {
     it('deduplicates traits by id and name in extractTraits', () => {
         const ctx = {
             projectStats: [
-                { getId: () => 'stat_1', getName: () => 'Siła' },
-                { getId: () => 'stat_1', getName: () => 'Siła' }, // duplicate id & name
-                { getId: () => 'stat_2', getName: () => 'siła' }, // duplicate name (case-insensitive)
+                { getId: (): string => 'stat_1', getName: (): string => 'Siła' },
+                { getId: (): string => 'stat_1', getName: (): string => 'Siła' }, // duplicate id & name
+                { getId: (): string => 'stat_2', getName: (): string => 'siła' }, // duplicate name (case-insensitive)
             ],
             projectParameters: [
-                { getId: () => 'stat_1', getName: () => 'Siła' }, // duplicate id with stat
-                { getId: () => 'param_1', getName: () => 'Mana' },
-                { getId: () => 'param_1_1', getName: () => 'Mana' }, // duplicate name from disk duplicate
+                { getId: (): string => 'stat_1', getName: (): string => 'Siła' }, // duplicate id with stat
+                { getId: (): string => 'param_1', getName: (): string => 'Mana' },
+                { getId: (): string => 'param_1_1', getName: (): string => 'Mana' }, // duplicate name from disk duplicate
             ],
         }
 
@@ -143,5 +143,20 @@ describe('CombatMarkdownService', () => {
         expect(traits).toHaveLength(2)
         expect(traits[0].name).toBe('Siła')
         expect(traits[1].name).toBe('Mana')
+    })
+
+    it('preprocesses and postprocesses combat blocks for TipTap editor cleanly', () => {
+        const md =
+            '# Opis\n\n<!-- COMBAT_START -->\n### Starcie: Goblin\n<!-- COMBAT_END -->\n\nDalszy tekst.'
+        const preprocessed = CombatMarkdownService.preprocessCombatForEditor(md)
+
+        expect(preprocessed).toContain('data-combat-block="true"')
+        expect(preprocessed).toContain('data-raw-combat=')
+
+        const restored = CombatMarkdownService.postprocessCombatFromEditor(preprocessed)
+        expect(restored).toContain('<!-- COMBAT_START -->')
+        expect(restored).toContain('### Starcie: Goblin')
+        expect(restored).toContain('<!-- COMBAT_END -->')
+        expect(restored).not.toContain('data-combat-block')
     })
 })

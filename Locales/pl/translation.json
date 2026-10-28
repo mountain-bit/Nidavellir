@@ -85,7 +85,15 @@
         "source_paragraph": "Źródłowy paragraf walki:",
         "encounter_label": "Starcie:",
         "opponents_in_encounter": "Przeciwnicy w tym starciu",
-        "configure_in_paragraph": "Konfiguruj walkę w § {{title}}"
+        "configure_in_paragraph": "Konfiguruj walkę w § {{title}}",
+        "markdown_encounter_title": "Starcie: {{title}}",
+        "markdown_opponent_header": "Przeciwnik",
+        "markdown_no_opponents": "_Brak skonfigurowanych przeciwników._",
+        "markdown_outcomes_header": "Możliwe wyniki starcia:",
+        "markdown_no_outcomes": "_Brak zdefiniowanych wyników walki._",
+        "markdown_default_opponent": "Przeciwnik",
+        "markdown_default_outcome": "Wynik",
+        "markdown_default_encounter": "Starcie"
     },
     "character": {
         "player": "Postać gracza",

@@ -1,104 +1,141 @@
 /* eslint-disable no-console */
-const esbuild = require('esbuild')
+const fs = require('fs')
 const path = require('path')
+const esbuild = require('esbuild')
 
-const watch = process.argv.includes('--watch')
+const rootDir = path.resolve(__dirname, '..')
 
-/** @type {import('esbuild').BuildOptions} */
-const config = {
-    entryPoints: {
+function getEntryPoints(baseDir = rootDir) {
+    return {
         'ViewModel/StartWindowViewModel': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'ViewModel',
             'StartWindowViewModel.ts'
         ),
-        'ViewModel/MainWindowViewModel': path.join(
-            __dirname,
-            '..',
-            'ViewModel',
-            'MainWindowViewModel.ts'
-        ),
-        'Utils/translate': path.join(__dirname, '..', 'Utils', 'translate.ts'),
-        'Utils/toast': path.join(__dirname, '..', 'Utils', 'toast.ts'),
-        'Utils/pathSanitizer': path.join(__dirname, '..', 'Utils', 'pathSanitizer.ts'),
-        'Utils/icons': path.join(__dirname, '..', 'Utils', 'icons.ts'),
-        'Utils/assetUtils': path.join(__dirname, '..', 'Utils', 'assetUtils.ts'),
-        'Utils/assetUsageTracker': path.join(__dirname, '..', 'Utils', 'assetUsageTracker.ts'),
+        'ViewModel/MainWindowViewModel': path.join(baseDir, 'ViewModel', 'MainWindowViewModel.ts'),
+        'Utils/translate': path.join(baseDir, 'Utils', 'translate.ts'),
+        'Utils/toast': path.join(baseDir, 'Utils', 'toast.ts'),
+        'Utils/pathSanitizer': path.join(baseDir, 'Utils', 'pathSanitizer.ts'),
+        'Utils/icons': path.join(baseDir, 'Utils', 'icons.ts'),
+        'Utils/assetUtils': path.join(baseDir, 'Utils', 'assetUtils.ts'),
+        'Utils/assetUsageTracker': path.join(baseDir, 'Utils', 'assetUsageTracker.ts'),
         'Services/ParagraphNumberingService': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'Services',
+            'graph',
             'ParagraphNumberingService.ts'
         ),
         'Services/GraphValidationService': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'Services',
+            'graph',
             'GraphValidationService.ts'
         ),
         'Services/CombatMarkdownService': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'Services',
+            'combat',
             'CombatMarkdownService.ts'
         ),
         'Services/CombatSyncService': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'Services',
+            'combat',
             'CombatSyncService.ts'
         ),
-        'Services/EntityLinkUpdateService': path.join(
-            __dirname,
-            '..',
+        'Services/DescriptionTransclusionService': path.join(
+            baseDir,
             'Services',
+            'markdown',
+            'DescriptionTransclusionService.ts'
+        ),
+        'Services/EntityLinkUpdateService': path.join(
+            baseDir,
+            'Services',
+            'markdown',
             'EntityLinkUpdateService.ts'
         ),
         'Services/ItemExportService': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'Services',
+            'export',
             'ItemExportService.ts'
         ),
         'Services/RulesExportService': path.join(
-            __dirname,
-            '..',
+            baseDir,
             'Services',
+            'export',
             'RulesExportService.ts'
         ),
-        'Modules/Graph/index': path.join(__dirname, '..', 'Modules', 'Graph', 'index.ts'),
-        'Modules/Editor/index': path.join(__dirname, '..', 'Modules', 'Editor', 'index.ts'),
-        'Modules/ImageEditor/index': path.join(
-            __dirname,
-            '..',
-            'Modules',
-            'ImageEditor',
-            'index.ts'
-        ),
-    },
-    bundle: true,
-    outdir: path.join(__dirname, '..', 'dist'),
-    platform: 'browser',
-    format: 'esm',
-    target: 'es2020',
-    sourcemap: true,
-    external: [],
-    loader: { '.json': 'json', '.html': 'text' },
-    logLevel: 'info',
-}
-
-async function main() {
-    if (watch) {
-        const ctx = await esbuild.context(config)
-        await ctx.watch()
-        console.log('[esbuild] Watching for changes...')
-    } else {
-        await esbuild.build(config)
+        'Modules/Graph/index': path.join(baseDir, 'Modules', 'Graph', 'index.ts'),
+        'Modules/Editor/index': path.join(baseDir, 'Modules', 'Editor', 'index.ts'),
+        'Modules/ImageEditor/index': path.join(baseDir, 'Modules', 'ImageEditor', 'index.ts'),
     }
 }
 
-main().catch(err => {
-    console.error(err)
-    process.exit(1)
-})
+function validateEntryPoints(entryPoints) {
+    const missing = []
+    for (const [name, targetPath] of Object.entries(entryPoints)) {
+        if (!fs.existsSync(targetPath)) {
+            missing.push({ name, path: targetPath })
+        }
+    }
+    return missing
+}
+
+function createBuildConfig(overrides = {}) {
+    const entryPoints = overrides.entryPoints || getEntryPoints()
+    return {
+        entryPoints,
+        bundle: true,
+        outdir: path.join(rootDir, 'dist'),
+        platform: 'browser',
+        format: 'esm',
+        target: 'es2020',
+        sourcemap: true,
+        external: [],
+        loader: { '.json': 'json', '.html': 'text' },
+        logLevel: 'info',
+        ...overrides,
+    }
+}
+
+const config = createBuildConfig()
+
+async function buildRenderer(options = {}) {
+    const watch = options.watch ?? process.argv.includes('--watch')
+    const buildConfig = options.config ?? createBuildConfig(options.overrides)
+
+    const missing = validateEntryPoints(buildConfig.entryPoints)
+    if (missing.length > 0) {
+        const errorMsg =
+            'Brakujące pliki punktów wejściowych (entry points):\n' +
+            missing.map(m => ` - ${m.name}: ${m.path}`).join('\n')
+        throw new Error(errorMsg)
+    }
+
+    if (watch) {
+        const ctx = await esbuild.context(buildConfig)
+        await ctx.watch()
+        console.log('[esbuild] Watching for changes...')
+        return ctx
+    }
+
+    return await esbuild.build(buildConfig)
+}
+
+if (require.main === module) {
+    buildRenderer().catch(err => {
+        console.error(err)
+        process.exit(1)
+    })
+}
+
+module.exports = {
+    rootDir,
+    getEntryPoints,
+    validateEntryPoints,
+    createBuildConfig,
+    buildRenderer,
+    config,
+}

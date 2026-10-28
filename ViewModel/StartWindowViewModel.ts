@@ -1,4 +1,4 @@
-import { ProjectManager } from '../Services/ProjectManager'
+import { ProjectManager } from '../Services/project/ProjectManager'
 import { showToast as showToastUtil, type ToastType } from '../Utils/toast'
 import {
     getLanguage,

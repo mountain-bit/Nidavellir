@@ -247,19 +247,21 @@ SilnikGierParagrafowych/
 │   ├── viewModules.d.ts        # Ambient module declarations for JS view controllers
 │   └── html.d.ts               # HTML string import definitions
 │
-├── tests/                      # Automated test suite (Vitest — 76 test files, 821 tests)
+├── tests/                      # Automated test suite (Vitest)
 │   ├── IPC/                    # IPC channel integration and service handling tests
 │   ├── Model/                  # Unit tests for domain models and serialization
 │   ├── Modules/                # Unit tests for Editor, Graph, and ImageProcessor
 │   ├── Services/               # Unit tests for GraphValidator, LinkUpdater, Numbering
 │   ├── Utils/                  # Unit tests for path sanitization, i18n, fs security, assets
 │   ├── View/                   # DOM node, Web Components, modal and controller tests
-│   └── ViewModel/              # ViewModels presentation logic tests
+│   ├── ViewModel/              # ViewModels presentation logic tests
+│   └── scripts/                # Unit tests for build tooling and license checking
 │
 └── docs/                       # Architectural documentation
     ├── ARCHITECTURE.md          # Master architecture reference (this document)
     ├── MAIN_PROCESS_ARCHITECTURE.md # Deep dive into the Electron Main Process
-    └── FRONTEND_ARCHITECTURE.md # Deep dive into the Renderer, MVVM, and Graph engine
+    ├── FRONTEND_ARCHITECTURE.md # Deep dive into the Renderer, MVVM, and Graph engine
+    └── EDITOR_EXTENSIONS.md     # Reference for TipTap extensions and transclusion
 ```
 
 ---

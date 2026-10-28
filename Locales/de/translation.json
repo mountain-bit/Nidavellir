@@ -85,7 +85,15 @@
         "source_paragraph": "Ausgangs-Kampfabsatz:",
         "encounter_label": "Begegnung:",
         "opponents_in_encounter": "Gegner in dieser Begegnung",
-        "configure_in_paragraph": "Kampf in § {{title}} konfigurieren"
+        "configure_in_paragraph": "Kampf in § {{title}} konfigurieren",
+        "markdown_encounter_title": "Kampf: {{title}}",
+        "markdown_opponent_header": "Gegner",
+        "markdown_no_opponents": "_Keine Gegner konfiguriert._",
+        "markdown_outcomes_header": "Mögliche Kampfausgänge:",
+        "markdown_no_outcomes": "_Keine Kampfausgänge definiert._",
+        "markdown_default_opponent": "Gegner",
+        "markdown_default_outcome": "Ergebnis",
+        "markdown_default_encounter": "Kampf"
     },
     "character": {
         "player": "Spielercharakter",

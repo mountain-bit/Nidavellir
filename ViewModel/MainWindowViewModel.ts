@@ -41,18 +41,18 @@ import { Skill } from '../Model/Skill'
 import { Stat } from '../Model/Stat'
 import { Tag } from '../Model/Tag'
 import { ConnectionLineStyle } from '../Modules/Graph'
-import { CombatMarkdownService } from '../Services/CombatMarkdownService'
-import { CombatSyncService } from '../Services/CombatSyncService'
-import { DescriptionTransclusionService } from '../Services/DescriptionTransclusionService'
-import { EntityLinkUpdateService } from '../Services/EntityLinkUpdateService'
+import { CombatMarkdownService } from '../Services/combat/CombatMarkdownService'
+import { CombatSyncService } from '../Services/combat/CombatSyncService'
 import {
     type IItemExportJSON,
     type IItemExportOptions,
     type IItemExportUsage,
     ItemExportService,
-} from '../Services/ItemExportService'
-import { ParagraphNumberingService } from '../Services/ParagraphNumberingService'
-import { ProjectManager } from '../Services/ProjectManager'
+} from '../Services/export/ItemExportService'
+import { ParagraphNumberingService } from '../Services/graph/ParagraphNumberingService'
+import { DescriptionTransclusionService } from '../Services/markdown/DescriptionTransclusionService'
+import { EntityLinkUpdateService } from '../Services/markdown/EntityLinkUpdateService'
+import { ProjectManager } from '../Services/project/ProjectManager'
 import { defaultIdGenerator, type IdGenerator } from '../Utils/idGenerator'
 import { formatDescriptionFileName } from '../Utils/pathSanitizer'
 import { t } from '../Utils/translate'
@@ -1477,7 +1477,7 @@ export class MainWindowViewModel {
 
             const isCombat = Boolean(
                 (typeof c.getIsCombatOutcome === 'function' && c.getIsCombatOutcome()) ||
-                (c as any).isCombatOutcome
+                (c as unknown as { isCombatOutcome?: boolean }).isCombatOutcome
             )
             const combatMatch =
                 isCombat &&
@@ -1606,10 +1606,8 @@ export class MainWindowViewModel {
                 (typeof it.getDescription === 'function' &&
                     it.getDescription() &&
                     it.getDescription().getText().toLowerCase().includes(query)) ||
-                (typeof (it as any).getTags === 'function' &&
-                    (it as any)
-                        .getTags()
-                        .some((t: any) => t.getName().toLowerCase().includes(query)))
+                (typeof it.getTags === 'function' &&
+                    it.getTags().some((t: Tag) => t.getName().toLowerCase().includes(query)))
         )
     }
 

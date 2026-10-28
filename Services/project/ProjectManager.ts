@@ -1,5 +1,5 @@
-import { Project } from '../Model/Project'
-import type { EntitiesData, ProjectData } from '../types/ipc'
+import { Project } from '../../Model/Project'
+import type { EntitiesData, ProjectData } from '../../types/ipc'
 
 export class ProjectManager {
     private static instance: ProjectManager

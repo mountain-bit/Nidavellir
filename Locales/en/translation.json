@@ -85,7 +85,15 @@
         "source_paragraph": "Source combat paragraph:",
         "encounter_label": "Encounter:",
         "opponents_in_encounter": "Opponents in this encounter",
-        "configure_in_paragraph": "Configure combat in § {{title}}"
+        "configure_in_paragraph": "Configure combat in § {{title}}",
+        "markdown_encounter_title": "Encounter: {{title}}",
+        "markdown_opponent_header": "Opponent",
+        "markdown_no_opponents": "_No opponents configured._",
+        "markdown_outcomes_header": "Possible Combat Outcomes:",
+        "markdown_no_outcomes": "_No combat outcomes defined._",
+        "markdown_default_opponent": "Opponent",
+        "markdown_default_outcome": "Outcome",
+        "markdown_default_encounter": "Encounter"
     },
     "character": {
         "player": "Player character",

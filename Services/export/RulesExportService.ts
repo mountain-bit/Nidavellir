@@ -5,6 +5,8 @@
  * Allows generating clean, styled player handouts in HTML, Markdown, or print-ready layouts.
  */
 
+import { copyTextToClipboard, downloadTextFile, escapeHtml } from '../helpers/ExportUtils'
+
 export interface IRulesExportOptions {
     title?: string
     author?: string
@@ -12,44 +14,93 @@ export interface IRulesExportOptions {
     content: string
 }
 
-function escapeHtml(str: string): string {
-    if (!str) return ''
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+/**
+ * Formats inline Markdown emphasis (**bold**, *italic*, ***bold-italic***) on an HTML-escaped line.
+ */
+function formatInlineMarkdown(escapedLine: string): string {
+    return escapedLine
+        .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
 }
 
 /**
  * Basic markdown to HTML converter for standalone rules formatting.
+ * Escapes raw HTML first and properly separates block elements (<h1..3>, <ul>, <blockquote>) from <p>.
  */
 function basicMarkdownToHtml(md: string): string {
     if (!md) return ''
 
-    let html = md
+    const blocks = md.trim().split(/\n\n+/)
+    const renderedBlocks: string[] = []
+
+    for (const rawBlock of blocks) {
+        const trimmed = rawBlock.trim()
+        if (!trimmed) continue
+
+        // Unordered list block
+        const lines = trimmed.split('\n')
+        if (lines.every(line => /^\s*-\s+/.test(line))) {
+            const listItems = lines
+                .map(line => line.replace(/^\s*-\s+/, ''))
+                .map(itemText => `<li>${formatInlineMarkdown(escapeHtml(itemText))}</li>`)
+                .join('\n')
+            renderedBlocks.push(`<ul>${listItems}</ul>`)
+            continue
+        }
+
         // Headings
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        // Bold & Italic
-        .replace(/\*\*\*(.*?)\*\*\*/gim, '<strong><em>$1</em></strong>')
-        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-        // Unordered lists
-        .replace(/^\s*-\s+(.*$)/gim, '<li>$1</li>')
+        if (/^###\s+/.test(trimmed) && lines.length === 1) {
+            const text = trimmed.replace(/^###\s+/, '')
+            renderedBlocks.push(`<h3>${formatInlineMarkdown(escapeHtml(text))}</h3>`)
+            continue
+        }
+        if (/^##\s+/.test(trimmed) && lines.length === 1) {
+            const text = trimmed.replace(/^##\s+/, '')
+            renderedBlocks.push(`<h2>${formatInlineMarkdown(escapeHtml(text))}</h2>`)
+            continue
+        }
+        if (/^#\s+/.test(trimmed) && lines.length === 1) {
+            const text = trimmed.replace(/^#\s+/, '')
+            renderedBlocks.push(`<h1>${formatInlineMarkdown(escapeHtml(text))}</h1>`)
+            continue
+        }
+
         // Blockquotes
-        .replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-        // Line breaks
-        .replace(/\n\n+/g, '</p><p>')
+        if (lines.every(line => /^>\s?/.test(line))) {
+            const quoteText = lines
+                .map(line => line.replace(/^>\s?/, ''))
+                .map(line => formatInlineMarkdown(escapeHtml(line)))
+                .join('<br>')
+            renderedBlocks.push(`<blockquote>${quoteText}</blockquote>`)
+            continue
+        }
 
-    // Wrap list items in <ul>
-    html = html.replace(/(<li>[\s\S]*?<\/li>)/gm, '<ul>$1</ul>')
-    // Remove duplicate nested <ul>
-    html = html.replace(/<\/ul>\s*<ul>/g, '')
+        // Regular paragraph (supports inline headings/lists if mixed within single newline block)
+        const formattedLines = lines.map(line => {
+            if (/^###\s+(.*$)/.test(line)) {
+                return `<h3>${formatInlineMarkdown(escapeHtml(line.replace(/^###\s+/, '')))}</h3>`
+            }
+            if (/^##\s+(.*$)/.test(line)) {
+                return `<h2>${formatInlineMarkdown(escapeHtml(line.replace(/^##\s+/, '')))}</h2>`
+            }
+            if (/^#\s+(.*$)/.test(line)) {
+                return `<h1>${formatInlineMarkdown(escapeHtml(line.replace(/^#\s+/, '')))}</h1>`
+            }
+            if (/^\s*-\s+(.*$)/.test(line)) {
+                return `<ul><li>${formatInlineMarkdown(escapeHtml(line.replace(/^\s*-\s+/, '')))}</li></ul>`
+            }
+            if (/^>\s+(.*$)/.test(line)) {
+                return `<blockquote>${formatInlineMarkdown(escapeHtml(line.replace(/^>\s+/, '')))}</blockquote>`
+            }
+            return formatInlineMarkdown(escapeHtml(line))
+        })
 
-    return `<p>${html}</p>`
+        const joined = formattedLines.join('\n').replace(/<\/ul>\s*<ul>/g, '\n')
+        renderedBlocks.push(`<p>${joined}</p>`)
+    }
+
+    return renderedBlocks.join('\n')
 }
 
 export class RulesExportService {
@@ -222,42 +273,19 @@ export class RulesExportService {
 
     /**
      * Triggers a browser file download for exported text content.
-     *
-     * @param content
-     * @param filename
-     * @param mimeType
      */
     public static downloadFile(
         content: string,
         filename: string,
         mimeType: string = 'text/plain'
     ): void {
-        if (typeof document === 'undefined') return
-        const blob = new Blob([content], { type: mimeType })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        downloadTextFile(content, filename, mimeType)
     }
 
     /**
      * Copies content to the system clipboard.
-     *
-     * @param content
      */
     public static async copyToClipboard(content: string): Promise<boolean> {
-        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-            try {
-                await navigator.clipboard.writeText(content)
-                return true
-            } catch {
-                return false
-            }
-        }
-        return false
+        return copyTextToClipboard(content)
     }
 }

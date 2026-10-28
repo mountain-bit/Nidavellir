@@ -1,6 +1,12 @@
-import { Item } from '../Model/Item'
-import { Location } from '../Model/Location'
-import { NPC } from '../Model/NPC'
+import { Item } from '../../Model/Item'
+import { Location } from '../../Model/Location'
+import { NPC } from '../../Model/NPC'
+import { CombatMarkdownService } from '../combat/CombatMarkdownService'
+import { EntityAccessor } from '../helpers/EntityAccessor'
+import {
+    EMBED_LINK_REGEX as SHARED_EMBED_LINK_REGEX,
+    EMBED_MACRO_REGEX as SHARED_EMBED_MACRO_REGEX,
+} from '../helpers/MarkdownPatterns'
 
 export type DescriptionEmbedType = 'item' | 'character' | 'location'
 export type DescriptionEmbedVariant = 'text' | 'summary'
@@ -13,40 +19,19 @@ export interface IDescriptionEmbedInfo {
     label?: string
 }
 
+export interface ITransclusionEntityLike {
+    getId?: () => string
+    id?: string
+    getName?: () => string
+    name?: string
+    getDescription?: () => unknown
+    description?: unknown
+}
+
 export interface ITransclusionProjectData {
-    items?: (
-        | Item
-        | {
-              getId?: () => string
-              id?: string
-              getName?: () => string
-              name?: string
-              getDescription?: () => unknown
-              description?: unknown
-          }
-    )[]
-    characters?: (
-        | NPC
-        | {
-              getId?: () => string
-              id?: string
-              getName?: () => string
-              name?: string
-              getDescription?: () => unknown
-              description?: unknown
-          }
-    )[]
-    locations?: (
-        | Location
-        | {
-              getId?: () => string
-              id?: string
-              getName?: () => string
-              name?: string
-              getDescription?: () => unknown
-              description?: unknown
-          }
-    )[]
+    items?: (Item | ITransclusionEntityLike)[]
+    characters?: (NPC | ITransclusionEntityLike)[]
+    locations?: (Location | ITransclusionEntityLike)[]
     [key: string]: unknown
 }
 
@@ -68,13 +53,9 @@ export interface ITransclusionOptions {
     maxDepth?: number
 }
 
-// Regex matching markdown link [Label](embed://type/id) or [Label](embed://type/id/variant) or [Label](embed://type/id:variant)
-export const EMBED_LINK_REGEX =
-    /\[([^\]]+)\]\(embed:\/\/(item|character|location)\/([^/?#):]+)(?:[/:]?(text|summary))?\)/g
-
-// Legacy macro {{embed:type:id}} or {{embed:type:id:variant}}
-export const EMBED_MACRO_REGEX =
-    /\{\{embed:(item|character|location):([^:}]+)(?::(text|summary))?\}\}/g
+// Re-export regexes for backwards compatibility
+export const EMBED_LINK_REGEX = SHARED_EMBED_LINK_REGEX
+export const EMBED_MACRO_REGEX = SHARED_EMBED_MACRO_REGEX
 
 export class DescriptionTransclusionService {
     /**
@@ -120,11 +101,12 @@ export class DescriptionTransclusionService {
     }
 
     /**
-     * Converts markdown macro {{embed:type:id:variant}} to link [Opis: id](embed://type/id/variant) for TipTap parsing.
+     * Converts markdown macro {{embed:type:id:variant}} to link [Opis: id](embed://type/id/variant)
+     * and protects combat blocks for TipTap parsing.
      */
     public static preprocessForEditor(markdown: string): string {
         if (!markdown || typeof markdown !== 'string') return ''
-        let result = markdown.replace(
+        const result = markdown.replace(
             EMBED_MACRO_REGEX,
             (_full, type: string, id: string, variant: string = 'text') => {
                 const cleanId = id.trim()
@@ -137,59 +119,24 @@ export class DescriptionTransclusionService {
             }
         )
 
-        // Protect combat markdown block from ProseMirror table flattening and HTML comment stripping
-        const combatRegex =
-            /(?:<!--\s*COMBAT_START\s*-->|\{\{combat:start\}\})[\s\S]*?(?:<!--\s*COMBAT_END\s*-->|\{\{combat:end\}\})/gi
-        result = result.replace(combatRegex, (rawCombatMatch: string) => {
-            let cleanRaw = rawCombatMatch.trim()
-            cleanRaw = cleanRaw
-                .replace(/(?:<p>)?\{\{combat:start\}\}(?:<\/p>)?/gi, '<!-- COMBAT_START -->')
-                .replace(/(?:<p>)?\{\{combat:end\}\}(?:<\/p>)?/gi, '<!-- COMBAT_END -->')
-            if (!cleanRaw.includes('<!-- COMBAT_START -->')) {
-                cleanRaw = '<!-- COMBAT_START -->\n' + cleanRaw
-            }
-            if (!cleanRaw.includes('<!-- COMBAT_END -->')) {
-                cleanRaw = cleanRaw + '\n<!-- COMBAT_END -->'
-            }
-            return `\n\n<div data-combat-block="true" data-raw-combat="${encodeURIComponent(cleanRaw)}"></div>\n\n`
-        })
-
-        return result
+        return CombatMarkdownService.preprocessCombatForEditor(result)
     }
 
     /**
-     * Converts legacy TipTap HTML block placeholder back into clean markdown link [Opis: id](embed://type/id).
+     * Converts legacy TipTap HTML block placeholder back into clean markdown link [Opis: id](embed://type/id)
+     * and restores combat blocks from TipTap serialization.
      */
     public static postprocessFromEditor(content: string): string {
         if (!content || typeof content !== 'string') return ''
         const divRegex =
             /<div[^>]*data-description-embed="true"[^>]*data-type="([^"]+)"[^>]*data-id="([^"]+)"(?:[^>]*data-variant="([^"]+)")?[^>]*><\/div>/gi
-        let result = content.replace(divRegex, (_match, type, id, variant) => {
+        const result = content.replace(divRegex, (_match, type, id, variant) => {
             const v = variant || 'text'
             const url = v === 'summary' ? `embed://${type}/${id}/summary` : `embed://${type}/${id}`
             return `[Opis: ${id}](${url})`
         })
 
-        // Restore combat block from TipTap HTML placeholder if present in serialized string
-        const combatDivRegex =
-            /<div[^>]*data-combat-block="true"[^>]*data-raw-combat="([^"]+)"[^>]*><\/div>/gi
-        result = result.replace(combatDivRegex, (_match, encoded) => {
-            try {
-                return '\n\n' + decodeURIComponent(encoded).trim() + '\n\n'
-            } catch {
-                return '\n\n' + encoded.trim() + '\n\n'
-            }
-        })
-
-        // Restore combat comments from TipTap markdown serialization without accumulating blank lines
-        result = result
-            .replace(/(?:<p>)?\{\{combat:start\}\}(?:<\/p>)?/gi, '<!-- COMBAT_START -->')
-            .replace(/(?:<p>)?\{\{combat:end\}\}(?:<\/p>)?/gi, '<!-- COMBAT_END -->')
-            .replace(/\n*<!--\s*COMBAT_START\s*-->\s*\n*/gi, '\n\n<!-- COMBAT_START -->\n')
-            .replace(/\n*<!--\s*COMBAT_END\s*-->\s*\n*/gi, '\n<!-- COMBAT_END -->\n\n')
-            .replace(/\n{3,}/g, '\n\n')
-
-        return result
+        return CombatMarkdownService.postprocessCombatFromEditor(result)
     }
 
     /**
@@ -237,9 +184,8 @@ export class DescriptionTransclusionService {
                 return `⚠️ [Brakujący opis obiektu: ${type} "${id}"]`
             }
 
-            const entityName =
-                typeof entity.getName === 'function' ? entity.getName() : entity.name || id
-            const rawDescription = this.getEntityDescriptionText(entity, variant)
+            const entityName = EntityAccessor.getName(entity, id)
+            const rawDescription = EntityAccessor.getDescriptionText(entity, variant)
 
             const newVisited = new Set(visited)
             newVisited.add(key)
@@ -288,90 +234,25 @@ export class DescriptionTransclusionService {
         type: DescriptionEmbedType,
         id: string,
         projectData: ITransclusionProjectData
-    ): {
-        getName?: () => string
-        name?: string
-        getDescription?: () => unknown
-        description?: unknown
-    } | null {
-        let list: {
-            getId?: () => string
-            id?: string
-            getName?: () => string
-            name?: string
-            getDescription?: () => unknown
-            description?: unknown
-        }[] = []
+    ): ITransclusionEntityLike | null {
+        const scope = EntityAccessor.normalizeScope(projectData)
+        let list: unknown[] = []
 
         if (type === 'item') {
-            list = (projectData.items || projectData.projectItems || []) as typeof list
+            list = scope.items
         } else if (type === 'character') {
-            list = (projectData.characters || projectData.projectCharacters || []) as typeof list
-            // Also check playerCharacter
-            const player = (projectData.playerCharacter || null) as (typeof list)[0] | null
-            if (player) {
-                const pId = typeof player.getId === 'function' ? player.getId() : player.id
-                if (pId === id || id === 'hero_player') return player
-            }
-        } else if (type === 'location') {
-            list = (projectData.locations || projectData.projectLocations || []) as typeof list
-        }
-
-        const found = list.find(item => {
-            const itemId = typeof item.getId === 'function' ? item.getId() : item.id
-            return itemId === id
-        })
-
-        return found || null
-    }
-
-    private static getEntityDescriptionText(
-        entity: { getDescription?: () => unknown; description?: unknown },
-        variant: DescriptionEmbedVariant
-    ): string {
-        let descObj: unknown = null
-        if (typeof entity.getDescription === 'function') {
-            descObj = entity.getDescription()
-        } else if (entity.description !== undefined) {
-            descObj = entity.description
-        }
-
-        if (!descObj) return ''
-
-        if (typeof descObj === 'string') {
-            return descObj
-        }
-
-        if (typeof descObj === 'object' && descObj !== null) {
-            const anyDesc = descObj as {
-                getText?: () => string
-                text?: string
-                getSummary?: () => string
-                summary?: string
-            }
-
-            if (variant === 'summary') {
-                const summary =
-                    typeof anyDesc.getSummary === 'function'
-                        ? anyDesc.getSummary()
-                        : anyDesc.summary
-                if (summary && typeof summary === 'string') {
-                    return summary
+            list = scope.characters
+            if (scope.playerCharacter) {
+                const pId = EntityAccessor.getId(scope.playerCharacter)
+                if (pId === id || id === 'hero_player') {
+                    return scope.playerCharacter as ITransclusionEntityLike
                 }
             }
-
-            const text = typeof anyDesc.getText === 'function' ? anyDesc.getText() : anyDesc.text
-            if (text && typeof text === 'string') {
-                return text
-            }
-
-            const fallbackSummary =
-                typeof anyDesc.getSummary === 'function' ? anyDesc.getSummary() : anyDesc.summary
-            if (fallbackSummary && typeof fallbackSummary === 'string') {
-                return fallbackSummary
-            }
+        } else if (type === 'location') {
+            list = scope.locations
         }
 
-        return ''
+        const found = list.find(item => EntityAccessor.getId(item) === id)
+        return (found as ITransclusionEntityLike) || null
     }
 }
