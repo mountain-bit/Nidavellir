@@ -78,6 +78,8 @@ export type IconName =
     | 'combat'
     | 'dice'
     | 'book'
+    | 'copy'
+    | 'table'
 
 export interface IIconConfig {
     viewBox?: string
@@ -248,6 +250,14 @@ export const ICON_REGISTRY: Readonly<Record<IconName, IIconConfig>> = Object.fre
     save: {
         viewBox: DEFAULT_ICON_VIEWBOX,
         path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V8l-4-4H8z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 4v4H8V4m2 16v-6h4v6"></path>',
+    },
+    copy: {
+        viewBox: DEFAULT_ICON_VIEWBOX,
+        path: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2" stroke-width="1.8"></rect><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>',
+    },
+    table: {
+        viewBox: DEFAULT_ICON_VIEWBOX,
+        path: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v18M3 9h18M3 15h18M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"></path>',
     },
     'close-app': {
         viewBox: DEFAULT_ICON_VIEWBOX,
