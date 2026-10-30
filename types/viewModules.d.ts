@@ -523,13 +523,34 @@ declare module '*/View/ui/detailsPanel/item/index.js' {
 }
 
 declare module '*/View/ui/detailsPanel/modules/itemsModule.js' {
+    export interface IItemActionDisplayInfo {
+        label: string
+        badgeClass: string
+    }
+
+    export function refreshDetails(ctx?: unknown, onRefreshDetails?: unknown, type?: string): void
+    export function getActionDisplayInfo(action?: string): IItemActionDisplayInfo
+    export function findProjectItem(projectItems?: unknown[], idOrName?: string): unknown
+    export function renderItemsModuleHeaderHtml(count?: number): string
+    export function renderEmptyItemsHtml(): string
+    export function renderItemActionSelectOptionsHtml(selectedAction?: string): string
+    export function renderProjectItemOptionsHtml(projectItems?: unknown[]): string
+    export function renderItemCardTagsHtml(tags?: unknown[]): string
+    export function renderItemCardModifiersHtml(modifiers?: unknown[]): string
+    export function renderItemSlotSizeBadgeHtml(slotSize?: number): string
+    export function renderItemActionCardHtml(
+        action: unknown,
+        projectItem?: unknown,
+        index?: number
+    ): string
+    export function renderAddItemBarHtml(projectItems?: unknown[]): string
     export function renderItemsModule(
-        container: unknown,
+        container: HTMLElement | null,
         entity: unknown,
         type?: string,
         ctx?: unknown,
         onRefreshDetails?: unknown
-    ): void
+    ): HTMLElement | null
 }
 
 declare module '*/View/ui/editor/editorToolbar.js' {
@@ -1949,23 +1970,281 @@ declare module '*/View/ui/drawer/drawerSearch.js' {
 }
 
 declare module '*/View/ui/detailsPanel/modules/entityConfigModules.js' {
+    export function renderEntityHeaderModuleHtml(item: unknown): string
+    export function renderEntityHeaderModule(
+        container: HTMLElement | null,
+        item: unknown
+    ): HTMLElement | null
+
+    export function renderAvatarPreviewHtml(avatar: unknown): string
+    export function renderAvatarGridItemHtml(av: unknown, currentAvatarId?: string): string
+    export function renderAvatarGridHtml(avatars?: unknown[], currentAvatarId?: string): string
+    export function renderAvatarModuleHtml(
+        avatar: unknown,
+        avatarId: string,
+        avatars?: unknown[]
+    ): string
+    export function renderAvatarModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): HTMLElement | null
+
+    export function renderNameModuleHtml(name?: string, error?: string, hasError?: boolean): string
+    export function renderNameModule(
+        container: HTMLElement | null,
+        item: unknown,
+        entityScope?: unknown[],
+        ctx?: unknown,
+        onRefreshDetails?: unknown
+    ): HTMLElement | null
+
+    export function renderColorModuleHtml(
+        currentColor: string,
+        sectionTitle: string,
+        presetColors?: string[]
+    ): string
+    export function renderColorModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown
+    ): HTMLElement | null
+
+    export function renderParagraphNumberModuleHtml(
+        isLocked?: boolean,
+        customNum?: number,
+        activeDispNum?: number
+    ): string
     export function renderParagraphNumberModule(
-        container: HTMLElement,
+        container: HTMLElement | null,
         entity: unknown,
         type: string,
-        ctx: unknown
-    ): void
+        ctx?: unknown
+    ): HTMLElement | null
+
+    export function renderParagraphRoleModuleHtml(isEnd?: boolean): string
     export function renderParagraphRoleModule(
-        container: HTMLElement,
+        container: HTMLElement | null,
         entity: unknown,
         type: string,
-        ctx: unknown,
-        onRefresh?: () => void
-    ): void
+        ctx?: unknown,
+        onRefresh?: unknown
+    ): HTMLElement | null
+
+    export function renderSummaryModuleHtml(currentSummary?: string): string
+    export function renderSummaryModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        ctx?: unknown
+    ): HTMLElement | null
+
+    export function renderFilesModuleHtml(): string
+    export function renderFilesModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        ctx?: unknown
+    ): HTMLElement | null
+
     export function renderHeaderModule(
         container: HTMLElement,
         item: unknown,
         type: string,
         ctx: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/modules/customAttributesModule.js' {
+    export interface ICustomAttributeItem {
+        name?: string
+        value?: string | number
+    }
+
+    export function renderCustomAttributesHeaderHtml(count?: number): string
+    export function renderEmptyCustomAttributesHtml(): string
+    export function renderCustomAttributeRowHtml(
+        attr?: ICustomAttributeItem,
+        index?: number
+    ): string
+    export function renderAddCustomAttributeBarHtml(): string
+    export function renderCustomAttributesSectionHtml(customAttrs?: ICustomAttributeItem[]): string
+    export function renderCustomAttributesModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type?: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/modules/rpgConfigModules.js' {
+    export interface IRpgFormulaEvalResult {
+        result: number | null
+        error?: string
+    }
+
+    export function renderStatValueModuleHtml(value?: string | number): string
+    export function renderStatValueModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): HTMLElement | null
+
+    export function renderParameterModeButtonsHtml(currentMode?: string): string
+    export function renderParameterDirectBlockHtml(
+        currentValue?: string | number,
+        isVisible?: boolean
+    ): string
+    export function renderParameterFormulaBlockHtml(
+        currentFormula?: string,
+        evalRes?: IRpgFormulaEvalResult,
+        isVisible?: boolean
+    ): string
+    export function renderParameterConfigModuleHtml(
+        currentMode?: string,
+        currentValue?: string | number,
+        currentFormula?: string,
+        evalRes?: IRpgFormulaEvalResult
+    ): string
+    export function renderParameterConfigModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): HTMLElement | null
+
+    export function renderSkillModeButtonsHtml(currentMode?: string): string
+    export function renderSkillDirectBlockHtml(currentValue?: string, isVisible?: boolean): string
+    export function renderSkillStatOptionsHtml(
+        projectStats?: Array<{ getName?: () => string; name?: string }>,
+        currentStat?: string
+    ): string
+    export function renderSkillStatBlockHtml(
+        currentStat?: string,
+        currentMod?: string,
+        projectStats?: Array<{ getName?: () => string; name?: string }>,
+        isVisible?: boolean
+    ): string
+    export function renderSkillConfigModuleHtml(
+        currentMode?: string,
+        currentValue?: string,
+        currentStat?: string,
+        currentMod?: string,
+        projectStats?: Array<{ getName?: () => string; name?: string }>
+    ): string
+    export function renderSkillConfigModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/modules/associationModules.js' {
+    export function renderLocationsModuleHeaderHtml(count?: number): string
+    export function renderEmptyLocationsHtml(): string
+    export function renderLocationItemHtml(location?: unknown): string
+    export function renderLocationOptionsHtml(locations?: unknown[]): string
+    export function renderAssignLocationBarHtml(locations?: unknown[]): string
+    export function renderLocationsModuleHtml(count?: number, locations?: unknown[]): string
+    export function renderLocationsModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+
+    export function renderCharactersModuleHeaderHtml(count?: number): string
+    export function renderEmptyCharactersHtml(): string
+    export function renderCharacterItemHtml(character?: unknown): string
+    export function renderCharacterOptionsHtml(characters?: unknown[]): string
+    export function renderAssignCharacterBarHtml(characters?: unknown[]): string
+    export function renderCharactersModuleHtml(count?: number, characters?: unknown[]): string
+    export function renderCharactersModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+
+    export function renderTagsModuleHeaderHtml(count?: number): string
+    export function renderEmptyTagsHtml(): string
+    export function renderTagChipHtml(tag?: unknown): string
+    export function renderTagOptionsHtml(tags?: unknown[]): string
+    export function renderAssignTagBarHtml(tags?: unknown[]): string
+    export function renderTagsModuleHtml(count?: number, tags?: unknown[]): string
+    export function renderTagsModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+
+    export function renderTraitsModuleHeaderHtml(count?: number): string
+    export function renderEmptyTraitsHtml(): string
+    export function renderTraitItemHtml(stat?: unknown): string
+    export function renderTraitOptionsHtml(availableStats?: unknown[]): string
+    export function renderAssignTraitBarHtml(availableStats?: unknown[]): string
+    export function renderTraitsModuleHtml(count?: number, availableStats?: unknown[]): string
+    export function renderTraitsModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+
+    export function renderParametersModuleHeaderHtml(count?: number): string
+    export function renderEmptyParametersHtml(): string
+    export function renderParameterItemHtml(
+        p?: unknown,
+        charStatsMap?: Record<string, number>
+    ): string
+    export function renderParameterOptionsHtml(availableParams?: unknown[]): string
+    export function renderAssignParameterBarHtml(availableParams?: unknown[]): string
+    export function renderParametersModuleHtml(count?: number, availableParams?: unknown[]): string
+    export function renderParametersModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+
+    export function renderSkillsModuleHeaderHtml(count?: number): string
+    export function renderEmptySkillsHtml(): string
+    export function renderSkillItemHtml(sk?: unknown): string
+    export function renderSkillOptionsHtml(availableSkills?: unknown[]): string
+    export function renderAssignSkillBarHtml(availableSkills?: unknown[]): string
+    export function renderSkillsModuleHtml(count?: number, availableSkills?: unknown[]): string
+    export function renderSkillsModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+
+    export function renderFeaturesModuleHeaderHtml(count?: number): string
+    export function renderEmptyFeaturesHtml(): string
+    export function renderFeatureItemHtml(f?: unknown): string
+    export function renderFeatureOptionsHtml(availableFeatures?: unknown[]): string
+    export function renderAssignFeatureBarHtml(availableFeatures?: unknown[]): string
+    export function renderFeaturesModuleHtml(count?: number, availableFeatures?: unknown[]): string
+    export function renderFeaturesModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
     ): void
 }

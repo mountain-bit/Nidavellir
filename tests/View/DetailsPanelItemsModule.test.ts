@@ -1,13 +1,26 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { initTranslationsWithLocale } from '../../dist/Utils/translate.js'
 import { Description } from '../../Model/Description'
 import { Item } from '../../Model/Item'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 import { renderDetailsPanel } from '../../View/ui/detailsPanel/detailsPanel.js'
-import { renderItemsModule } from '../../View/ui/detailsPanel/modules/itemsModule.js'
+import {
+    findProjectItem,
+    getActionDisplayInfo,
+    renderAddItemBarHtml,
+    renderEmptyItemsHtml,
+    renderItemActionCardHtml,
+    renderItemActionSelectOptionsHtml,
+    renderItemCardModifiersHtml,
+    renderItemCardTagsHtml,
+    renderItemSlotSizeBadgeHtml,
+    renderItemsModule,
+    renderItemsModuleHeaderHtml,
+    renderProjectItemOptionsHtml,
+} from '../../View/ui/detailsPanel/modules/itemsModule.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 interface IMockAppContext {
@@ -279,5 +292,130 @@ describe('DetailsPanel - Items Module in Paragraph (Stage 2)', () => {
 
         expect(detailsContent.textContent).toContain('Przedmioty')
         expect(detailsContent.textContent).toContain('Złoty Kielich')
+    })
+
+    describe('ItemsModule Template Helpers and Functions', () => {
+        it('getActionDisplayInfo returns appropriate label and styling', () => {
+            expect(getActionDisplayInfo('require').badgeClass).toContain('amber')
+            expect(getActionDisplayInfo('remove').badgeClass).toContain('rose')
+            expect(getActionDisplayInfo('give').badgeClass).toContain('emerald')
+            expect(getActionDisplayInfo('unknown').badgeClass).toContain('emerald')
+        })
+
+        it('findProjectItem locates items by ID or name', () => {
+            const item1 = new Item('it_1', 'Miecz')
+            const item2 = new Item('it_2', 'Tarcza')
+            const list = [item1, item2]
+
+            expect(findProjectItem(list, 'it_1')).toBe(item1)
+            expect(findProjectItem(list, 'Tarcza')).toBe(item2)
+            expect(findProjectItem(list, 'it_missing')).toBeNull()
+            expect(findProjectItem([], '')).toBeNull()
+        })
+
+        it('renderItemsModuleHeaderHtml renders header and count', () => {
+            const html = renderItemsModuleHeaderHtml(3)
+            expect(html).toContain('Przedmioty')
+            expect(html).toContain('>3<')
+            expect(html).toContain('<svg')
+
+            expect(renderItemsModuleHeaderHtml(-1)).toContain('>0<')
+        })
+
+        it('renderEmptyItemsHtml renders empty message', () => {
+            const html = renderEmptyItemsHtml()
+            expect(html).toContain('Brak powiązanych przedmiotów')
+            expect(html).toContain('italic')
+        })
+
+        it('renderItemActionSelectOptionsHtml renders all 3 action options', () => {
+            const html = renderItemActionSelectOptionsHtml('require')
+            expect(html).toContain('value="give"')
+            expect(html).toContain('value="require" selected')
+            expect(html).toContain('value="remove"')
+        })
+
+        it('renderProjectItemOptionsHtml renders select options with category', () => {
+            const item = new Item('it_pot', 'Mikstura', new Description(), [], [], {
+                category: 'potion',
+            })
+            const html = renderProjectItemOptionsHtml([item])
+            expect(html).toContain('value="it_pot"')
+            expect(html).toContain('Mikstura (potion)')
+        })
+
+        it('renderItemCardTagsHtml and renderItemCardModifiersHtml render badges', () => {
+            const tag = new Tag('tag_q', 'Fabularny', '#ff0000')
+            const tagsHtml = renderItemCardTagsHtml([tag])
+            expect(tagsHtml).toContain('Fabularny')
+            expect(tagsHtml).toContain('#ff0000')
+
+            const mod = {
+                id: 'mod_1',
+                targetType: 'stat',
+                targetName: 'Siła',
+                value: 3,
+                operator: '+',
+            }
+            const modsHtml = renderItemCardModifiersHtml([mod])
+            expect(modsHtml).toContain('Siła: +3')
+        })
+
+        it('renderItemSlotSizeBadgeHtml renders badge only when slotSize > 1', () => {
+            expect(renderItemSlotSizeBadgeHtml(1)).toBe('')
+            expect(renderItemSlotSizeBadgeHtml(0)).toBe('')
+            const badge = renderItemSlotSizeBadgeHtml(3)
+            expect(badge).toContain('3')
+            expect(badge).toContain('sloty')
+        })
+
+        it('renderItemActionCardHtml renders card with escaped values and accessibility attributes', () => {
+            const action = {
+                id: 'act_x',
+                itemId: 'it_test',
+                itemName: '<Danger>&Item',
+                action: 'give',
+                quantity: 2,
+            }
+            const html = renderItemActionCardHtml(action, null, 0)
+            expect(html).toContain('&lt;Danger&gt;&amp;Item')
+            expect(html).toContain('data-action-index="0"')
+            expect(html).toContain('btn-remove-item')
+            expect(html).toContain('value="2"')
+        })
+
+        it('renderAddItemBarHtml renders create and add buttons with icons', () => {
+            const html = renderAddItemBarHtml([])
+            expect(html).toContain('details-add-item-select')
+            expect(html).toContain('btn-details-create-new-item')
+            expect(html).toContain('btn-details-add-item')
+            expect(html).toContain('<svg')
+        })
+    })
+
+    describe('ItemsModule Internationalization (i18n)', () => {
+        it('renders item templates in English correctly', async () => {
+            await initTranslationsWithLocale('en')
+            const header = renderItemsModuleHeaderHtml(2)
+            expect(header).toContain('Items')
+
+            const empty = renderEmptyItemsHtml()
+            expect(empty).toContain('No associated items')
+
+            const slot = renderItemSlotSizeBadgeHtml(2)
+            expect(slot).toContain('slots')
+        })
+
+        it('renders item templates in German correctly', async () => {
+            await initTranslationsWithLocale('de')
+            const header = renderItemsModuleHeaderHtml(1)
+            expect(header).toContain('Gegenstände')
+
+            const empty = renderEmptyItemsHtml()
+            expect(empty).toContain('Keine zugewiesenen Gegenstände')
+
+            const slot = renderItemSlotSizeBadgeHtml(2)
+            expect(slot).toContain('Slots')
+        })
     })
 })
