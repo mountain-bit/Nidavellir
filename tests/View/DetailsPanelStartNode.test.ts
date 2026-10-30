@@ -3,7 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Paragraph } from '../../Model/Paragraph'
 import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
-import { renderStartNodeDetails } from '../../View/ui/detailsPanel/detailsPanel.js'
+import {
+    renderStartNodeDetails,
+    renderStartNodeInfoHtml,
+} from '../../View/ui/detailsPanel/detailsPanel.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('DetailsPanel - START Node Details', () => {
@@ -58,5 +61,12 @@ describe('DetailsPanel - START Node Details', () => {
         // Posiada sekcję wyjść (exits)
         const exitsSection = container.querySelector('#details-exits-module, .border-b')
         expect(exitsSection).not.toBeNull()
+    })
+
+    it('generuje poprawny HTML informacji o punkcie startowym', () => {
+        const html = renderStartNodeInfoHtml()
+        expect(html).toContain('Punkt startowy')
+        expect(html).toContain('Połącz z pierwszym paragrafem')
+        expect(html).toContain('<svg')
     })
 })

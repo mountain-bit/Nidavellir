@@ -452,9 +452,25 @@ declare module '*/View/ui/modals/hero/heroModal.js' {
     export function hasUnsavedHeroChanges(): boolean
 }
 
+declare module '*/View/ui/detailsPanel/navigation/historyBar.js' {
+    export function renderEmptyHistoryHtml(): string
+    export function renderHistoryTabHtml(params: { item?: unknown; isActive?: boolean }): string
+    export function renderCloseAllButtonHtml(): string
+    export function renderHistoryBar(ctx?: unknown, onRefreshDetails?: (ctx: unknown) => void): void
+}
+
+declare module '*/View/ui/detailsPanel/navigation/index.js' {
+    export * from '*/View/ui/detailsPanel/navigation/historyBar.js'
+}
+
+declare module '*/View/ui/detailsPanel/historyBar.js' {
+    export * from '*/View/ui/detailsPanel/navigation/historyBar.js'
+}
+
 declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     export function renderDetailsPanel(ctx?: unknown): void
     export function renderHistoryBar(ctx?: unknown): void
+    export function renderStartNodeInfoHtml(): string
     export function renderStartNodeDetails(
         container: unknown,
         entity: unknown,
@@ -478,7 +494,60 @@ declare module '*/View/ui/detailsPanel/detailsPanel.js' {
     ): void
 }
 
-declare module '*/View/ui/detailsPanel/heroReadOnlyDetails.js' {
+declare module '*/View/ui/detailsPanel/readonly/heroReadOnlyDetails.js' {
+    export function renderHeroHeaderSectionHtml(params: {
+        type: string
+        typeLabel: string
+        id?: string
+    }): string
+    export function renderHeroTopEditButtonHtml(params: { editBtnText: string }): string
+    export function renderHeroAvatarPreviewHtml(
+        avatarVal: string,
+        isCustomAvatar: boolean,
+        avatarPreset: unknown
+    ): string
+    export function renderHeroAvatarSectionHtml(params: {
+        avatarVal: string
+        isCustomAvatar: boolean
+        avatarPreset: unknown
+        avatarCategoryLabel: string
+        avatarTitle: string
+        avatarSubtitle: string
+    }): string
+    export function renderHeroNameSectionHtml(params: { entityName: string }): string
+    export function renderHeroSummarySectionHtml(params: {
+        currentSummary: string
+        currentNarrative: string
+    }): string
+    export function renderHeroTagsSectionHtml(params: {
+        tagsCount: number
+        tagsChipsHtml: string
+    }): string
+    export function renderHeroBaseStatItemHtml(stName: string, stVal: unknown): string
+    export function renderHeroBaseStatsSectionHtml(params: {
+        statsCount: number
+        statsItemsHtml: string
+    }): string
+    export function renderHeroParameterItemHtml(p: unknown, charStatsMap: unknown): string
+    export function renderHeroVitalsSectionHtml(params: {
+        paramsCount: number
+        paramsItemsHtml: string
+    }): string
+    export function renderHeroSkillItemHtml(sk: unknown): string
+    export function renderHeroSkillsSectionHtml(params: {
+        skillsCount: number
+        skillsItemsHtml: string
+    }): string
+    export function renderHeroInventoryCardHtml(inv: unknown): string
+    export function renderHeroInventoriesSectionHtml(params: {
+        invCount: number
+        invCardsHtml: string
+    }): string
+    export function renderHeroCustomAttributesSectionHtml(params: {
+        attrsCount: number
+        attrsRowsHtml: string
+    }): string
+    export function renderHeroBottomEditButtonHtml(params: { editBtnText: string }): string
     export function renderHeroReadOnlyDetails(
         container: unknown,
         entity: unknown,
@@ -488,7 +557,77 @@ declare module '*/View/ui/detailsPanel/heroReadOnlyDetails.js' {
     ): void
 }
 
-declare module '*/View/ui/detailsPanel/itemDetails.js' {
+declare module '*/View/ui/detailsPanel/heroReadOnlyDetails.js' {
+    export * from '*/View/ui/detailsPanel/readonly/heroReadOnlyDetails.js'
+}
+
+declare module '*/View/ui/detailsPanel/readonly/npcReadOnlyDetails.js' {
+    export function renderNpcHeaderSectionHtml(params: {
+        type: string
+        typeLabel: string
+        id?: string
+    }): string
+    export function renderNpcTopEditButtonHtml(params: { editBtnText: string }): string
+    export function renderNpcAvatarSectionHtml(params: {
+        avatarVal?: string
+        avatarPreset?: unknown
+    }): string
+    export function renderNpcNameSectionHtml(params: { entityName: string }): string
+    export function renderNpcSummarySectionHtml(params: {
+        currentSummary: string
+        currentNarrative: string
+    }): string
+    export function renderNpcTagsSectionHtml(params: {
+        tagsCount: number
+        tagsChipsHtml: string
+    }): string
+    export function renderNpcBaseStatItemHtml(stName: string, stVal: unknown): string
+    export function renderNpcBaseStatsSectionHtml(params: {
+        statsCount: number
+        statsItemsHtml: string
+    }): string
+    export function renderNpcParameterItemHtml(p: unknown, charStatsMap: unknown): string
+    export function renderNpcVitalsSectionHtml(params: {
+        paramsCount: number
+        paramsItemsHtml: string
+    }): string
+    export function renderNpcSkillItemHtml(sk: unknown): string
+    export function renderNpcSkillsSectionHtml(params: {
+        skillsCount: number
+        skillsItemsHtml: string
+    }): string
+    export function renderNpcFeatureItemHtml(f: unknown): string
+    export function renderNpcFeaturesSectionHtml(params: {
+        featuresCount: number
+        featuresItemsHtml: string
+    }): string
+    export function renderNpcCustomAttributesSectionHtml(params: {
+        attrsCount: number
+        attrsRowsHtml: string
+    }): string
+    export function renderNpcBottomActionsSectionHtml(params: {
+        type: string
+        editLabel: string
+    }): string
+    export function renderNpcReadOnlyDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        type?: string,
+        ctx?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/readonly/index.js' {
+    export * from '*/View/ui/detailsPanel/readonly/heroReadOnlyDetails.js'
+    export * from '*/View/ui/detailsPanel/readonly/npcReadOnlyDetails.js'
+}
+
+declare module '*/View/ui/detailsPanel/npcReadOnlyDetails.js' {
+    export * from '*/View/ui/detailsPanel/readonly/npcReadOnlyDetails.js'
+}
+
+declare module '*/View/ui/detailsPanel/item/itemDetails.js' {
     export function renderItemDetails(
         container: unknown,
         entity: unknown,
@@ -502,6 +641,10 @@ declare module '*/View/ui/detailsPanel/itemDetails.js' {
         targetInvId?: string,
         ctx?: unknown
     ): void
+}
+
+declare module '*/View/ui/detailsPanel/itemDetails.js' {
+    export * from '*/View/ui/detailsPanel/item/itemDetails.js'
 }
 
 declare module '*/View/ui/detailsPanel/item/index.js' {
@@ -1287,7 +1430,7 @@ declare module '*/Services/ParagraphNumberingService.js' {
     }
 }
 
-declare module '*/View/ui/detailsPanel/combatModule.js' {
+declare module '*/View/ui/detailsPanel/combat/combatModule.js' {
     import type { Paragraph } from '../Model/Paragraph'
 
     export function generateCombatMarkdown(entity: Paragraph, ctx: unknown): string
@@ -1299,6 +1442,18 @@ declare module '*/View/ui/detailsPanel/combatModule.js' {
         ctx: unknown,
         onRefreshDetails?: (ctx: unknown) => void
     ): void
+}
+
+declare module '*/View/ui/detailsPanel/combat/index.js' {
+    export * from '*/View/ui/detailsPanel/combat/combatHeader.js'
+    export * from '*/View/ui/detailsPanel/combat/combatModule.js'
+    export * from '*/View/ui/detailsPanel/combat/combatOpponentsSection.js'
+    export * from '*/View/ui/detailsPanel/combat/combatOutcomesSection.js'
+    export * from '*/View/ui/detailsPanel/combat/combatTraitsSection.js'
+}
+
+declare module '*/View/ui/detailsPanel/combatModule.js' {
+    export * from '*/View/ui/detailsPanel/combat/combatModule.js'
 }
 
 declare module '*/dist/Utils/toast.js' {
@@ -1861,6 +2016,33 @@ declare module '*/View/ui/detailsPanel/choice/choiceRewardsSection.js' {
     ): IChoiceRewardsSection
 }
 
+declare module '*/View/ui/detailsPanel/choice/choiceDetails.js' {
+    export function renderChoiceDetails(
+        container: HTMLElement,
+        choice: unknown,
+        item: unknown,
+        ctx: unknown,
+        onRefreshDetails?: (ctx: unknown) => void
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/choice/index.js' {
+    export * from '*/View/ui/detailsPanel/choice/choiceActionsSection.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceAddDropdown.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceCombatSection.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceConditionSection.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceCostsSection.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceDatalists.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceDetails.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceDiceSection.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceHeader.js'
+    export * from '*/View/ui/detailsPanel/choice/choiceRewardsSection.js'
+}
+
+declare module '*/View/ui/detailsPanel/choiceDetails.js' {
+    export * from '*/View/ui/detailsPanel/choice/choiceDetails.js'
+}
+
 declare module '*/View/ui/graph/index.js' {
     export function getStoryGraphInstance(): unknown
     export function setStoryGraphInstance(instance: unknown): void
@@ -2247,4 +2429,58 @@ declare module '*/View/ui/detailsPanel/modules/associationModules.js' {
         ctx?: unknown,
         onRefreshDetails?: ((ctx: unknown) => void) | null
     ): void
+}
+
+declare module '*/View/ui/detailsPanel/modules/exitsModule.js' {
+    export function renderExitsModuleHeaderHtml(count?: number): string
+    export function renderEmptyExitsHtml(): string
+    export function renderExitBadgesHtml(choice?: unknown, choiceCondText?: string): string
+    export function renderTargetParagraphOptionsHtml(
+        paragraphs?: unknown[],
+        currentTargetId?: string,
+        selfId?: string
+    ): string
+    export function renderAddExitFormHtml(targetOptionsHtml?: string): string
+    export function renderExitCardHtml(
+        choice?: unknown,
+        toTitle?: string,
+        targetOptionsHtml?: string,
+        exitBadgesHtml?: string
+    ): string
+    export function renderExitsModuleHtml(count?: number, addExitFormHtml?: string): string
+    export function renderExitsModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/exitsModule.js' {
+    export * from '*/View/ui/detailsPanel/modules/exitsModule.js'
+}
+
+declare module '*/View/ui/detailsPanel/modules/quickActionsModule.js' {
+    export function renderQuickActionsModuleHtml(): string
+    export function renderQuickActionsModule(
+        container: HTMLElement | null,
+        item?: unknown,
+        type?: string,
+        ctx?: unknown
+    ): void
+}
+
+declare module '*/View/ui/detailsPanel/quickActionsModule.js' {
+    export * from '*/View/ui/detailsPanel/modules/quickActionsModule.js'
+}
+
+declare module '*/View/ui/detailsPanel/modules/index.js' {
+    export * from '*/View/ui/detailsPanel/modules/associationModules.js'
+    export * from '*/View/ui/detailsPanel/modules/customAttributesModule.js'
+    export * from '*/View/ui/detailsPanel/modules/entityConfigModules.js'
+    export * from '*/View/ui/detailsPanel/modules/exitsModule.js'
+    export * from '*/View/ui/detailsPanel/modules/itemsModule.js'
+    export * from '*/View/ui/detailsPanel/modules/quickActionsModule.js'
+    export * from '*/View/ui/detailsPanel/modules/rpgConfigModules.js'
 }

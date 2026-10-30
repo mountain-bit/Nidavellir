@@ -8,13 +8,10 @@ import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { Choice } from '../../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml, renderEmptyPlaceholderHtml } from '../common/htmlTemplates.js'
-import { renderChoiceDetails } from './choiceDetails.js'
-import { renderCombatModule } from './combatModule.js'
+import { renderChoiceDetails } from './choice/choiceDetails.js'
+import { renderCombatModule } from './combat/combatModule.js'
 import { createSection } from './common/domHelpers.js'
-import { renderExitsModule } from './exitsModule.js'
-import { renderHeroReadOnlyDetails } from './heroReadOnlyDetails.js'
-import { renderHistoryBar as renderHistoryBarModule } from './historyBar.js'
-import { renderItemDetails } from './itemDetails.js'
+import { renderItemDetails } from './item/itemDetails.js'
 import {
     renderCharactersModule,
     renderFeaturesModule,
@@ -35,14 +32,17 @@ import {
     renderParagraphRoleModule,
     renderSummaryModule,
 } from './modules/entityConfigModules.js'
+import { renderExitsModule } from './modules/exitsModule.js'
 import { renderItemsModule } from './modules/itemsModule.js'
+import { renderQuickActionsModule } from './modules/quickActionsModule.js'
 import {
     renderParameterConfigModule,
     renderSkillConfigModule,
     renderStatValueModule,
 } from './modules/rpgConfigModules.js'
-import { renderNpcReadOnlyDetails } from './npcReadOnlyDetails.js'
-import { renderQuickActionsModule } from './quickActionsModule.js'
+import { renderHistoryBar as renderHistoryBarModule } from './navigation/historyBar.js'
+import { renderHeroReadOnlyDetails } from './readonly/heroReadOnlyDetails.js'
+import { renderNpcReadOnlyDetails } from './readonly/npcReadOnlyDetails.js'
 
 // Re-export submodules for full backward compatibility
 export {
@@ -180,6 +180,27 @@ export function renderDetailsPanel(ctx) {
 }
 
 /**
+ * Pure HTML template for Start Node informational section.
+ */
+export function renderStartNodeInfoHtml() {
+    const entryPointTitle = t('graph.start_node_entry_point') || 'Punkt startowy'
+    const technicalHint =
+        t('graph.start_node_technical_hint') ||
+        'Punkt wyjścia historii. Połącz z pierwszym paragrafem.'
+    return `
+        <div class="flex items-center gap-2">
+            <span class="text-emerald-400 shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>
+            <span class="text-xs font-semibold text-zinc-200">
+                ${escapeHtml(entryPointTitle)}
+            </span>
+        </div>
+        <p class="text-[11px] text-zinc-400 leading-relaxed">
+            ${escapeHtml(technicalHint)}
+        </p>
+    `
+}
+
+/**
  * Renders dedicated technical inspection panel for the START node.
  * Contains technical badge, instructional steps for the author,
  * outgoing exits, and graph focus action.
@@ -201,17 +222,7 @@ export function renderStartNodeDetails(container, entity, item, ctx, onRefresh) 
     // 2. Clean, elegant information section (consistent with details panel styling)
     const infoSection = createSection(
         'border-b border-[#333338] p-3 space-y-1',
-        `
-        <div class="flex items-center gap-2">
-            <span class="text-emerald-400 shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>
-            <span class="text-xs font-semibold text-zinc-200">
-                ${escapeHtml(t('graph.start_node_entry_point') || 'Punkt startowy')}
-            </span>
-        </div>
-        <p class="text-[11px] text-zinc-400 leading-relaxed">
-            ${escapeHtml(t('graph.start_node_technical_hint') || 'Punkt wyjścia historii. Połącz z pierwszym paragrafem.')}
-        </p>
-    `
+        renderStartNodeInfoHtml()
     )
     container.appendChild(infoSection)
 
