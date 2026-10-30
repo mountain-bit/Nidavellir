@@ -827,10 +827,10 @@ function initPlaytestUI(ctx) {
 
             closePlaytestSimulator()
             if (ctx.vm) {
-                ctx.vm.layout.setActiveMainView('graph')
+                ctx.vm.layout?.setActiveMainView?.('graph')
                 if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
                 if (
-                    ctx.vm.layout.isRightSidebarCollapsed &&
+                    ctx.vm.layout?.isRightSidebarCollapsed &&
                     ctx.vm.layout.isRightSidebarCollapsed()
                 ) {
                     ctx.vm.layout.setRightSidebarCollapsed(false)

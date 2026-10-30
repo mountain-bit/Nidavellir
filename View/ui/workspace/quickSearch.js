@@ -531,7 +531,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         if (typeof ctx.showGraph === 'function') {
             ctx.showGraph(true)
         }
-        if (ctx.vm && typeof ctx.vm.layout.setActiveMainView === 'function') {
+        if (ctx.vm && typeof ctx.vm?.layout?.setActiveMainView === 'function') {
             ctx.vm.layout.setActiveMainView('graph')
         }
         if (typeof ctx.updateMainWorkspaceUI === 'function') {
@@ -543,7 +543,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
 
         // 2. Open right sidebar so paragraph details and content are visible
         if (ctx.vm) {
-            if (typeof ctx.vm.layout.setRightSidebarCollapsed === 'function') {
+            if (typeof ctx.vm?.layout?.setRightSidebarCollapsed === 'function') {
                 ctx.vm.layout.setRightSidebarCollapsed(false)
             }
         }
@@ -559,7 +559,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         // 3. Select paragraph entity
         if (typeof ctx.selectEntity === 'function') {
             ctx.selectEntity(entity, 'paragraph')
-        } else if (ctx.vm && typeof ctx.vm.selection.selectElement === 'function') {
+        } else if (ctx.vm && typeof ctx.vm?.selection?.selectElement === 'function') {
             ctx.vm.selection.selectElement(entity, 'paragraph')
         }
 
@@ -579,7 +579,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         toast.info(`Przeniesiono do paragrafu: ${item.title}`, 'Graf historii')
     } else if (type === 'scene') {
         // Scene: switch to graph, focus on scene, open details
-        if (ctx.vm && typeof ctx.vm.layout.setActiveMainView === 'function') {
+        if (ctx.vm && typeof ctx.vm?.layout?.setActiveMainView === 'function') {
             ctx.vm.layout.setActiveMainView('graph')
         }
         if (typeof ctx.updateMainWorkspaceUI === 'function') {
@@ -589,7 +589,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
             updateTopBarUI(ctx)
         }
 
-        if (ctx.vm && typeof ctx.vm.layout.setRightSidebarCollapsed === 'function') {
+        if (ctx.vm && typeof ctx.vm?.layout?.setRightSidebarCollapsed === 'function') {
             ctx.vm.layout.setRightSidebarCollapsed(false)
         }
         const rightSidebar = document.getElementById('right-sidebar')
@@ -601,7 +601,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
 
         if (typeof ctx.selectEntity === 'function') {
             ctx.selectEntity(entity, 'scene')
-        } else if (ctx.vm && typeof ctx.vm.selection.selectElement === 'function') {
+        } else if (ctx.vm && typeof ctx.vm?.selection?.selectElement === 'function') {
             ctx.vm.selection.selectElement(entity, 'scene')
         }
 
@@ -622,7 +622,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         // Location, NPC, Template, Item, Stat, Skill, Parameter, Feature, Tag, Hero:
         // Open details and description!
         if (ctx.vm) {
-            if (typeof ctx.vm.layout.setRightSidebarCollapsed === 'function') {
+            if (typeof ctx.vm?.layout?.setRightSidebarCollapsed === 'function') {
                 ctx.vm.layout.setRightSidebarCollapsed(false)
             }
         }
@@ -634,7 +634,11 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         }
 
         // Switch left drawer to matching category tab if requested and drawer is open or available
-        if (shouldSwitchDrawerTab && ctx.vm && typeof ctx.vm.layout.toggleLeftTab === 'function') {
+        if (
+            shouldSwitchDrawerTab &&
+            ctx.vm &&
+            typeof ctx.vm?.layout?.toggleLeftTab === 'function'
+        ) {
             if (type === 'character' || type === 'template') {
                 ctx.vm.layout.toggleLeftTab('characters')
             } else if (type === 'location') {
@@ -656,7 +660,7 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
 
         if (typeof ctx.selectEntity === 'function') {
             ctx.selectEntity(entity, type)
-        } else if (ctx.vm && typeof ctx.vm.selection.selectElement === 'function') {
+        } else if (ctx.vm && typeof ctx.vm?.selection?.selectElement === 'function') {
             ctx.vm.selection.selectElement(entity, type)
         }
 
@@ -896,7 +900,7 @@ export function openQuickSearch(ctx) {
     if (searchInput) {
         if (
             ctx?.vm &&
-            typeof ctx.vm.layout.isLeftDrawerOpen === 'function' &&
+            typeof ctx.vm?.layout?.isLeftDrawerOpen === 'function' &&
             !ctx.vm.layout.isLeftDrawerOpen()
         ) {
             ctx.vm.layout.toggleLeftTab('paragraphs')

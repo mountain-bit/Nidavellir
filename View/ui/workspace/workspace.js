@@ -150,7 +150,7 @@ export function updateRightSidebarUI(
     toggleRightSidebarBtn,
     reopenRightSidebarBtn
 ) {
-    const isCollapsed = vm.layout.isRightSidebarCollapsed()
+    const isCollapsed = Boolean(vm?.layout?.isRightSidebarCollapsed?.())
     const rightResizer = document.getElementById('right-resizer')
     if (isCollapsed) {
         if (rightSidebar) rightSidebar.classList.add('collapsed')

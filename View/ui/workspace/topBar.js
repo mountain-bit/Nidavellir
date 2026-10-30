@@ -19,15 +19,15 @@ export function updateTopBarUI(ctx) {
     if (!ctx || !ctx.vm) return
 
     const activeView =
-        typeof ctx.vm.layout.getActiveMainView === 'function'
+        typeof ctx.vm?.layout?.getActiveMainView === 'function'
             ? ctx.vm.layout.getActiveMainView()
             : 'graph'
     const isLeftOpen =
-        typeof ctx.vm.layout.isLeftDrawerOpen === 'function'
+        typeof ctx.vm?.layout?.isLeftDrawerOpen === 'function'
             ? ctx.vm.layout.isLeftDrawerOpen()
             : false
     const isRightOpen =
-        typeof ctx.vm.layout.isRightSidebarCollapsed === 'function'
+        typeof ctx.vm?.layout?.isRightSidebarCollapsed === 'function'
             ? !ctx.vm.layout.isRightSidebarCollapsed()
             : true
 
@@ -66,7 +66,7 @@ export function updateTopBarUI(ctx) {
 
     // Update game rules button active state
     const activeFile =
-        typeof ctx.vm.files.getActiveFile === 'function' ? ctx.vm.files.getActiveFile() : null
+        typeof ctx.vm?.files?.getActiveFile === 'function' ? ctx.vm.files.getActiveFile() : null
     const isRulesActive =
         activeView === 'markdown' &&
         activeFile &&
@@ -254,7 +254,7 @@ export function runGraphValidation(ctx) {
 
                         // Upewnij się, że prawy panel właściwości jest rozwinięty
                         if (
-                            ctx.vm.layout.isRightSidebarCollapsed &&
+                            ctx.vm?.layout?.isRightSidebarCollapsed &&
                             ctx.vm.layout.isRightSidebarCollapsed()
                         ) {
                             ctx.vm.layout.setRightSidebarCollapsed(false)
@@ -287,7 +287,7 @@ export function runGraphValidation(ctx) {
                             s => (typeof s.getId === 'function' ? s.getId() : s.id) === sId
                         )
                         if (
-                            ctx.vm.layout.isRightSidebarCollapsed &&
+                            ctx.vm?.layout?.isRightSidebarCollapsed &&
                             ctx.vm.layout.isRightSidebarCollapsed()
                         ) {
                             ctx.vm.layout.setRightSidebarCollapsed(false)
@@ -405,16 +405,16 @@ export async function openGameRules(ctx) {
     const displayName =
         (typeof t === 'function' ? t('topbar.buttons.game_rules') : '') || 'Zasady gry'
 
-    if (typeof ctx.vm.files.setFileDisplayName === 'function') {
+    if (typeof ctx.vm?.files?.setFileDisplayName === 'function') {
         ctx.vm.files.setFileDisplayName(rulesPath, displayName)
         ctx.vm.files.setFileDisplayName(fallbackPath, displayName)
     }
 
-    if (typeof ctx.vm.files.setActiveFile === 'function') {
+    if (typeof ctx.vm?.files?.setActiveFile === 'function') {
         ctx.vm.files.setActiveFile(rulesPath)
     }
 
-    if (typeof ctx.vm.layout.setActiveMainView === 'function') {
+    if (typeof ctx.vm?.layout?.setActiveMainView === 'function') {
         ctx.vm.layout.setActiveMainView('markdown')
     }
 
@@ -599,7 +599,7 @@ export function centerGraphView(ctx) {
     // 1. Switch to graph view if not active
     if (typeof ctx.showGraph === 'function') {
         ctx.showGraph(true)
-    } else if (ctx.vm && typeof ctx.vm.layout.setActiveMainView === 'function') {
+    } else if (ctx.vm && typeof ctx.vm?.layout?.setActiveMainView === 'function') {
         ctx.vm.layout.setActiveMainView('graph')
     }
     if (typeof ctx.updateMainWorkspaceUI === 'function') {
@@ -660,16 +660,16 @@ export function openSettingsView(ctx) {
     }
 
     if (ctx.vm) {
-        if (typeof ctx.vm.layout.setActiveLeftTab === 'function') {
+        if (typeof ctx.vm?.layout?.setActiveLeftTab === 'function') {
             ctx.vm.layout.setActiveLeftTab('settings')
-        } else if (typeof ctx.vm.layout.toggleLeftTab === 'function') {
+        } else if (typeof ctx.vm?.layout?.toggleLeftTab === 'function') {
             if (
-                typeof ctx.vm.layout.getActiveLeftTab === 'function' &&
+                typeof ctx.vm?.layout?.getActiveLeftTab === 'function' &&
                 ctx.vm.layout.getActiveLeftTab() !== 'settings'
             ) {
                 ctx.vm.layout.toggleLeftTab('settings')
             } else if (
-                typeof ctx.vm.layout.isLeftDrawerOpen === 'function' &&
+                typeof ctx.vm?.layout?.isLeftDrawerOpen === 'function' &&
                 !ctx.vm.layout.isLeftDrawerOpen()
             ) {
                 ctx.vm.layout.toggleLeftTab('settings')
