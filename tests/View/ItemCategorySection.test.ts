@@ -41,7 +41,7 @@ describe('itemCategorySection Component', () => {
         it('exports list of supported categories with localized labels', () => {
             const categories = getItemCategories()
             expect(categories.length).toBe(7)
-            const ids = categories.map(c => c.id)
+            const ids = categories.map((c: { id: string }) => c.id)
             expect(ids).toEqual([
                 'weapon',
                 'armor',
@@ -52,7 +52,7 @@ describe('itemCategorySection Component', () => {
                 'misc',
             ])
 
-            const weapon = ITEM_CATEGORIES.find(c => c.id === 'weapon')
+            const weapon = ITEM_CATEGORIES.find((c: { id: string }) => c.id === 'weapon')
             expect(weapon?.label).toBe('Broń (weapon)')
         })
     })

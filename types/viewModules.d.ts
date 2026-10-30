@@ -5,6 +5,7 @@ declare module '*/View/mockData.js' {
     import type { NPC_Template } from '../Model/NPC_Template'
     import type { Paragraph } from '../Model/Paragraph'
     import type { Parameter } from '../Model/Parameter'
+    import type { PlayerCharacter } from '../Model/PlayerCharacter'
     import type { Project } from '../Model/Project'
     import type { Scene } from '../Model/Scene'
     import type { Skill } from '../Model/Skill'
@@ -24,8 +25,8 @@ declare module '*/View/mockData.js' {
         projectParagraphs: Paragraph[]
         projectScenes: Scene[]
         projectTemplates: NPC_Template[]
-        playerCharacter?: any
-        playerCharacters?: any[]
+        playerCharacter?: PlayerCharacter | null
+        playerCharacters?: PlayerCharacter[]
     }
 
     export const mockFiles: Record<string, string>
@@ -1288,39 +1289,256 @@ declare module '*/dist/Utils/translate.js' {
 }
 
 declare module '*/dist/ViewModel/MainWindowViewModel.js' {
-    import type {
-        ItemCondition as ItemConditionClass,
-        StatCondition as StatConditionClass,
-        TagCondition as TagConditionClass,
-        TextCondition as TextConditionClass,
-    } from '../Model/Condition'
-    import type { MainWindowViewModel as MainWindowViewModelClass } from '../ViewModel/MainWindowViewModel'
+    import type { ItemExportService as ItemExportServiceClass } from '../Services/export/ItemExportService'
 
-    export const ItemCondition: typeof ItemConditionClass
-    export type ItemCondition = ItemConditionClass
-    export const StatCondition: typeof StatConditionClass
-    export type StatCondition = StatConditionClass
-    export const TagCondition: typeof TagConditionClass
-    export type TagCondition = TagConditionClass
-    export const TextCondition: typeof TextConditionClass
-    export type TextCondition = TextConditionClass
-    export const MainWindowViewModel: typeof MainWindowViewModelClass
-    export type MainWindowViewModel = MainWindowViewModelClass
+    export const ItemExportService: typeof ItemExportServiceClass
+    export type ItemExportService = ItemExportServiceClass
+    export * from '../ViewModel/MainWindowViewModel'
+}
+
+declare module '*/View/ui/detailsPanel/combat/combatHeader.js' {
+    import type { Combat } from '../Model/Combat'
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export function renderCombatBadgeHtml(hasCombat: boolean): string
+    export function renderCombatHeaderHtml(hasCombat: boolean): string
+    export function renderCombatHeader(
+        container?: HTMLElement | null,
+        entity?: Paragraph | null,
+        combat?: Combat | null,
+        ctx?: unknown,
+        onFullRefresh?: () => void,
+        onModify?: () => void
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/combat/combatOpponentsSection.js' {
+    import type { Combat } from '../Model/Combat'
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export function generateOpponentId(): string
+    export function populateNpcSelect(select: HTMLSelectElement, availableNpcs?: unknown[]): void
+    export function resolveInitialOpponentStats(
+        npc: unknown,
+        availableTraits?: unknown[]
+    ): Record<string, unknown>
+    export function renderOpponentsHeaderHtml(count?: number): string
+    export function renderEmptyOpponentsListHtml(): string
+    export function createOpponentCard(
+        opp: unknown,
+        combat: unknown,
+        ctx: unknown,
+        safeModify: () => void,
+        safeRefresh: () => void
+    ): HTMLElement
+    export function renderCombatOpponentsSection(
+        container?: HTMLElement | null,
+        entity?: Paragraph | null,
+        combat?: Combat | null,
+        ctx?: unknown,
+        onModify?: () => void,
+        onFullRefresh?: () => void
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/combat/combatTraitsSection.js' {
+    import type { Combat } from '../Model/Combat'
+
+    export function renderTraitsHeaderHtml(visibleCount?: number, totalCount?: number): string
+    export function renderEmptyTraitsHtml(): string
+    export function renderEmptyTraitsListHtml(): string
+    export function renderTraitChipHtml(trait: unknown, isVisible: boolean): string
+    export function renderTraitsChipsListHtml(
+        traits?: unknown[],
+        visibleTraitNames?: string[]
+    ): string
+    export function syncOpponentsBaseValuesForTrait(
+        traitId: string,
+        traitDef: unknown,
+        opponents?: unknown[],
+        allNpcs?: unknown[],
+        combat?: unknown
+    ): void
+    export function renderCombatTraitsSection(
+        container?: HTMLElement | null,
+        combat?: Combat | null,
+        availableTraits?: unknown[],
+        allNpcs?: unknown[],
+        onChange?: () => void
+    ): HTMLElement | null
 }
 
 declare module '*/View/ui/detailsPanel/combat/combatOutcomesSection.js' {
     import type { Combat } from '../Model/Combat'
     import type { Paragraph } from '../Model/Paragraph'
 
-    export function renderCombatOutcomesSection(
-        container: HTMLElement,
-        entity: Paragraph,
-        combat: Combat,
-        allParagraphs: Paragraph[],
-        ctx: unknown,
-        onModify: () => void,
-        onFullRefresh: () => void
+    export function renderEmptyOutcomesListHtml(): string
+    export function renderOutcomesHeaderHtml(count?: number): string
+    export function populateTargetParagraphSelect(
+        select: HTMLSelectElement,
+        allParagraphs?: Paragraph[],
+        currentTargetId?: string
     ): void
+    export function calculateNewOutcomeNodePosition(
+        sourceParagraph?: Paragraph | null,
+        outcomeIndex?: number
+    ): { x: number; y: number }
+    export function renderCombatOutcomesSection(
+        container?: HTMLElement | null,
+        entity?: Paragraph | null,
+        combat?: Combat | null,
+        allParagraphs?: Paragraph[],
+        ctx?: unknown,
+        onModify?: (() => void) | null,
+        onFullRefresh?: (() => void) | null
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/item/itemHeaderSection.js' {
+    export function renderItemHeaderHtml(itemId?: string): string
+    export function createItemHeaderSection(
+        entity?: unknown,
+        itemId?: string,
+        item?: unknown,
+        ctx?: unknown,
+        onRefreshDetails?: (ctx?: unknown) => void
+    ): HTMLElement | null
+}
+
+declare module '*/View/ui/detailsPanel/item/itemNameSection.js' {
+    export function checkItemNameCollision(
+        val: string,
+        currentItemId: string,
+        allItems?: unknown[]
+    ): boolean
+    export function renderItemNameHtml(itemName?: string): string
+    export function createItemNameSection(
+        entity?: unknown,
+        itemId?: string,
+        itemName?: string,
+        item?: unknown,
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemCategorySection.js' {
+    export interface IItemCategoryOption {
+        id: string
+        key: string
+        fallback: string
+        readonly label: string
+    }
+    export const ITEM_CATEGORIES: IItemCategoryOption[]
+    export function getItemCategories(): Array<{ id: string; label: string }>
+    export function renderItemCategoryHtml(config?: unknown): string
+    export function createItemCategorySection(
+        entity?: unknown,
+        config?: unknown,
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemInventorySection.js' {
+    export function formatSlotSummary(slotSize: number | string): string
+    export function syncPlayerCharacterStartingInventory(
+        itemEntity: unknown,
+        inStarting: boolean,
+        targetInvId?: string,
+        ctx?: unknown
+    ): void
+    export function renderItemInventoryHtml(config?: unknown, heroInventories?: unknown[]): string
+    export function createItemInventorySection(
+        entity?: unknown,
+        config?: unknown,
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemTagsSection.js' {
+    export function renderItemTagsHtml(tagCount?: number): string
+    export function renderTagChipHtml(name?: string, removeTitle?: string): string
+    export function createTagChip(
+        tObj: unknown,
+        onRemove?: (tId: string, tName: string) => void
+    ): HTMLSpanElement
+    export function createItemTagsSection(
+        entity?: unknown,
+        currentTags?: unknown[],
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemModifiersSection.js' {
+    export function renderItemModifiersHtml(modifiersCount?: number): string
+    export function renderModifierCardHtml(mod?: unknown): string
+    export function createModifierCard(
+        mod: unknown,
+        onRemove?: (id?: string) => void
+    ): HTMLDivElement
+    export function createItemModifiersSection(
+        entity?: unknown,
+        currentModifiers?: unknown[],
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemDescriptionSection.js' {
+    export function renderItemDescriptionHtml(summary?: string): string
+    export function createItemDescriptionSection(
+        descObj?: unknown,
+        summary?: string,
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemUsagesSection.js' {
+    import type { Paragraph } from '../Model/Paragraph'
+
+    export function findItemUsages(
+        itemId?: string,
+        itemName?: string,
+        paragraphs?: unknown[]
+    ): Array<{ paragraph: Paragraph | unknown; action: string; quantity: number }>
+    export function getActionBadgeConfig(
+        action?: string,
+        quantity?: number
+    ): { badgeClass: string; badgeLabel: string }
+    export function renderItemUsagesHtml(usagesCount?: number): string
+    export function renderUsageItemHtml(usage: unknown): string
+    export function createUsageRow(
+        usage: unknown,
+        ctx?: unknown,
+        onRefreshDetails?: (ctx?: unknown) => void
+    ): HTMLDivElement
+    export function createItemUsagesSection(
+        entity?: unknown,
+        itemId?: string,
+        itemName?: string,
+        ctx?: unknown,
+        onRefreshDetails?: (ctx?: unknown) => void
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/itemExportSection.js' {
+    export function getProjectName(ctx?: unknown): string
+    export function renderItemExportHtml(): string
+    export function createItemExportSection(
+        entity?: unknown,
+        itemName?: string,
+        ctx?: unknown
+    ): HTMLElement
+}
+
+declare module '*/View/ui/detailsPanel/item/index.js' {
+    export * from '*/View/ui/detailsPanel/item/itemCategorySection.js'
+    export * from '*/View/ui/detailsPanel/item/itemDescriptionSection.js'
+    export * from '*/View/ui/detailsPanel/item/itemExportSection.js'
+    export * from '*/View/ui/detailsPanel/item/itemHeaderSection.js'
+    export * from '*/View/ui/detailsPanel/item/itemInventorySection.js'
+    export * from '*/View/ui/detailsPanel/item/itemModifiersSection.js'
+    export * from '*/View/ui/detailsPanel/item/itemNameSection.js'
+    export * from '*/View/ui/detailsPanel/item/itemTagsSection.js'
+    export * from '*/View/ui/detailsPanel/item/itemUsagesSection.js'
 }
 
 declare module '*/View/ui/detailsPanel/choice/choiceActionsSection.js' {
@@ -1715,7 +1933,9 @@ declare module '*/View/ui/modals/index.js' {
     export * from '*/View/ui/modals/playtest/playtestModal.js'
     export * from '*/View/ui/modals/styleEditor/styleEditorModal.js'
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare module '*/main/services/ExportService.js' {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ExportService: any
     export default ExportService
 }
@@ -1723,9 +1943,9 @@ declare module '*/main/services/ExportService.js' {
 declare module '*/View/ui/drawer/drawerSearch.js' {
     export function getActiveDrawerCategory(): string
     export function setActiveDrawerCategory(category: string): void
-    export function renderDrawerSearchResults(ctx: any, query?: string | null): void
-    export function setupDrawerSearch(ctx: any): void
-    export function setupSectionSearchInputs(ctx: any): void
+    export function renderDrawerSearchResults(ctx: unknown, query?: string | null): void
+    export function setupDrawerSearch(ctx: unknown): void
+    export function setupSectionSearchInputs(ctx: unknown): void
 }
 
 declare module '*/View/ui/detailsPanel/modules/entityConfigModules.js' {

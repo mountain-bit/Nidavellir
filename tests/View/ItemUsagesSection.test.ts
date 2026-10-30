@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { initTranslationsWithLocale } from '../../dist/Utils/translate.js'
+import { Description } from '../../Model/Description.js'
 import { Item } from '../../Model/Item.js'
 import { Paragraph } from '../../Model/Paragraph.js'
 import {
@@ -34,13 +35,13 @@ describe('itemUsagesSection Component', () => {
         await initTranslationsWithLocale('pl')
         itemEntity = new Item('it_key_1', 'Złoty Klucz')
 
-        paragraph1 = new Paragraph('p_1', 'Komnata Tronowa', '# Wstęp')
+        paragraph1 = new Paragraph('p_1', 'Komnata Tronowa', new Description('# Wstęp'))
         paragraph1.setNumber(1)
-        paragraph1.itemActions = [{ itemId: 'it_key_1', action: 'give', quantity: 1 }]
+        paragraph1.setItemActions([{ itemId: 'it_key_1', action: 'give', quantity: 1 }])
 
-        paragraph2 = new Paragraph('p_2', 'Skarbiec', '# Skarbiec')
+        paragraph2 = new Paragraph('p_2', 'Skarbiec', new Description('# Skarbiec'))
         paragraph2.setNumber(2)
-        paragraph2.itemActions = [{ itemId: 'it_key_1', action: 'require', quantity: 2 }]
+        paragraph2.setItemActions([{ itemId: 'it_key_1', action: 'require', quantity: 2 }])
 
         ctx = {
             projectParagraphs: [paragraph1, paragraph2],
