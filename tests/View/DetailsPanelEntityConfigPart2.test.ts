@@ -34,13 +34,15 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
         let paragraph: Paragraph
         let mockCtx: {
             vm: {
-                validateParagraphNumber: (
-                    val: number,
-                    id: string,
-                    list: Paragraph[]
-                ) => { valid: boolean; message?: string }
-                toggleNumberLock: ReturnType<typeof vi.fn>
-                updateCustomNumber: ReturnType<typeof vi.fn>
+                selection: {
+                    validateParagraphNumber: (
+                        val: number,
+                        id: string,
+                        list: Paragraph[]
+                    ) => { valid: boolean; message?: string }
+                    toggleNumberLock: ReturnType<typeof vi.fn>
+                    updateCustomNumber: ReturnType<typeof vi.fn>
+                }
             }
             projectParagraphs: Paragraph[]
             renderParagraphsList: ReturnType<typeof vi.fn>
@@ -50,9 +52,11 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             paragraph = new Paragraph('p-1', 'Paragraf 1')
             mockCtx = {
                 vm: {
-                    validateParagraphNumber: vi.fn(() => ({ valid: true })),
-                    toggleNumberLock: vi.fn(),
-                    updateCustomNumber: vi.fn(),
+                    selection: {
+                        validateParagraphNumber: vi.fn(() => ({ valid: true })),
+                        toggleNumberLock: vi.fn(),
+                        updateCustomNumber: vi.fn(),
+                    },
                 },
                 projectParagraphs: [paragraph],
                 renderParagraphsList: vi.fn(),
@@ -90,7 +94,7 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             lockCheckbox.checked = true
             lockCheckbox.dispatchEvent(new Event('change'))
 
-            expect(mockCtx.vm.toggleNumberLock).toHaveBeenCalledWith(
+            expect(mockCtx.vm.selection.toggleNumberLock).toHaveBeenCalledWith(
                 true,
                 mockCtx.projectParagraphs
             )
@@ -99,7 +103,7 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
 
             customInput.value = '77'
             customInput.dispatchEvent(new Event('input'))
-            expect(mockCtx.vm.updateCustomNumber).toHaveBeenCalledWith(
+            expect(mockCtx.vm.selection.updateCustomNumber).toHaveBeenCalledWith(
                 77,
                 mockCtx.projectParagraphs
             )
@@ -169,8 +173,10 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
         }
         let mockCtx: {
             vm: {
-                updateSummary: ReturnType<typeof vi.fn>
-                getSelectedItem: () => { type: string }
+                selection: {
+                    updateSummary: ReturnType<typeof vi.fn>
+                    getSelectedItem: () => { type: string }
+                }
             }
             refreshActiveSection: ReturnType<typeof vi.fn>
         }
@@ -184,8 +190,10 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             }
             mockCtx = {
                 vm: {
-                    updateSummary: vi.fn(),
-                    getSelectedItem: (): { type: string } => ({ type: 'paragraph' }),
+                    selection: {
+                        updateSummary: vi.fn(),
+                        getSelectedItem: (): { type: string } => ({ type: 'paragraph' }),
+                    },
                 },
                 refreshActiveSection: vi.fn(),
             }
@@ -212,7 +220,7 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             textarea.value = 'Nowe streszczenie'
             textarea.dispatchEvent(new Event('input'))
 
-            expect(mockCtx.vm.updateSummary).toHaveBeenCalledWith('Nowe streszczenie')
+            expect(mockCtx.vm.selection.updateSummary).toHaveBeenCalledWith('Nowe streszczenie')
             expect(mockEntity._desc.getSummary()).toBe('Nowe streszczenie')
             expect(mockCtx.refreshActiveSection).toHaveBeenCalledWith('paragraph')
         })
@@ -225,9 +233,11 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
         }
         let mockCtx: {
             vm: {
-                openOrCreateDescriptionFile: () => {
-                    fileName: string
-                    content: string
+                files: {
+                    openOrCreateDescriptionFile: () => {
+                        fileName: string
+                        content: string
+                    }
                 }
             }
             files: Record<string, string>
@@ -241,10 +251,12 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             }
             mockCtx = {
                 vm: {
-                    openOrCreateDescriptionFile: vi.fn(() => ({
-                        fileName: 'p_1.md',
-                        content: '# Paragraf 1',
-                    })),
+                    files: {
+                        openOrCreateDescriptionFile: vi.fn(() => ({
+                            fileName: 'p_1.md',
+                            content: '# Paragraf 1',
+                        })),
+                    },
                 },
                 files: {},
                 updateMainWorkspaceUI: vi.fn(),
@@ -270,7 +282,7 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             const btn = container.querySelector('#btn-open-player-text') as HTMLButtonElement
             btn.click()
 
-            expect(mockCtx.vm.openOrCreateDescriptionFile).toHaveBeenCalled()
+            expect(mockCtx.vm.files.openOrCreateDescriptionFile).toHaveBeenCalled()
             expect(mockCtx.files['p_1.md']).toBe('# Paragraf 1')
             expect(mockCtx.updateMainWorkspaceUI).toHaveBeenCalled()
         })

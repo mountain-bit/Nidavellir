@@ -59,8 +59,9 @@ export function renderHistoryBar(ctx, onRefreshDetails) {
     if (!container) return
     container.innerHTML = ''
 
-    const history = ctx?.vm?.getHistory ? ctx.vm.getHistory() : []
-    const selected = ctx?.vm?.getSelectedItem ? ctx.vm.getSelectedItem() : null
+    const selection = ctx?.vm?.selection
+    const history = selection?.getHistory ? selection.getHistory() : []
+    const selected = selection?.getSelectedItem ? selection.getSelectedItem() : null
 
     if (!history || history.length === 0) {
         container.innerHTML = renderEmptyHistoryHtml()
@@ -88,7 +89,7 @@ export function renderHistoryBar(ctx, onRefreshDetails) {
 
         if (tabBtn) {
             tabBtn.addEventListener('click', () => {
-                ctx.vm.selectHistoryItem(item.id)
+                selection?.selectHistoryItem(item.id)
                 refresh()
             })
 
@@ -96,7 +97,7 @@ export function renderHistoryBar(ctx, onRefreshDetails) {
             if (closeBtn) {
                 closeBtn.addEventListener('click', e => {
                     e.stopPropagation()
-                    ctx.vm.closeHistoryItem(item.id)
+                    selection?.closeHistoryItem(item.id)
                     refresh()
                 })
             }
@@ -110,7 +111,7 @@ export function renderHistoryBar(ctx, onRefreshDetails) {
     const closeAllBtn = closeAllWrapper.firstElementChild
     if (closeAllBtn) {
         closeAllBtn.addEventListener('click', () => {
-            ctx.vm.closeAllHistory()
+            selection?.closeAllHistory()
             refresh()
         })
     }

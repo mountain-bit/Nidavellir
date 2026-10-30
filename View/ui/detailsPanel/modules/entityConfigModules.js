@@ -307,8 +307,8 @@ export function renderNameModule(
     const validateAndSaveName = () => {
         if (!nameInput) return false
         const val = nameInput.value.trim()
-        const res = ctx?.vm?.validateName
-            ? ctx.vm.validateName(val, item, entityScope)
+        const res = ctx?.vm?.selection?.validateName
+            ? ctx?.vm?.selection?.validateName(val, item, entityScope)
             : { valid: Boolean(val), message: val ? '' : t('details.name_required') }
 
         if (!res.valid) {
@@ -321,8 +321,8 @@ export function renderNameModule(
         }
         if (nameError) nameError.classList.add('hidden')
         nameInput.classList.remove('border-red-500')
-        if (typeof ctx?.vm?.updateName === 'function') {
-            ctx.vm.updateName(val, entityScope, ctx)
+        if (typeof ctx?.vm?.selection?.updateName === 'function') {
+            ctx?.vm?.selection?.updateName(val, entityScope, ctx)
         } else if (item) {
             item.name = val
         }
@@ -338,8 +338,8 @@ export function renderNameModule(
 
     nameInput?.addEventListener('input', () => {
         const val = nameInput.value.trim()
-        const res = ctx?.vm?.validateName
-            ? ctx.vm.validateName(val, item, entityScope)
+        const res = ctx?.vm?.selection?.validateName
+            ? ctx?.vm?.selection?.validateName(val, item, entityScope)
             : { valid: Boolean(val), message: val ? '' : t('details.name_required') }
 
         if (!res.valid) {
@@ -583,8 +583,12 @@ export function renderParagraphNumberModule(container, entity, type, ctx = {}) {
             if (customNumInput) customNumInput.classList.remove('border-red-500')
             return true
         }
-        const res = ctx?.vm?.validateParagraphNumber
-            ? ctx.vm.validateParagraphNumber(val, entity.getId(), ctx?.projectParagraphs || [])
+        const res = ctx?.vm?.selection?.validateParagraphNumber
+            ? ctx?.vm?.selection?.validateParagraphNumber(
+                  val,
+                  entity.getId(),
+                  ctx?.projectParagraphs || []
+              )
             : { valid: true }
 
         if (!res.valid) {
@@ -608,11 +612,11 @@ export function renderParagraphNumberModule(container, entity, type, ctx = {}) {
         const locked = lockCheckbox.checked
         if (customNumInput) customNumInput.disabled = !locked
         if (!locked) {
-            if (typeof ctx?.vm?.toggleNumberLock === 'function') {
-                ctx.vm.toggleNumberLock(false, ctx?.projectParagraphs || [])
+            if (typeof ctx?.vm?.selection?.toggleNumberLock === 'function') {
+                ctx?.vm?.selection?.toggleNumberLock(false, ctx?.projectParagraphs || [])
             }
-            if (typeof ctx?.vm?.updateCustomNumber === 'function') {
-                ctx.vm.updateCustomNumber(0, ctx?.projectParagraphs || [])
+            if (typeof ctx?.vm?.selection?.updateCustomNumber === 'function') {
+                ctx?.vm?.selection?.updateCustomNumber(0, ctx?.projectParagraphs || [])
             }
             if (customNumInput) customNumInput.value = ''
             validateNumber(0)
@@ -626,11 +630,11 @@ export function renderParagraphNumberModule(container, entity, type, ctx = {}) {
         } else {
             const currentDisp = entity.getDisplayNumber ? entity.getDisplayNumber() : 1
             const parsed = parseInt(customNumInput?.value, 10) || currentDisp || 1
-            if (typeof ctx?.vm?.toggleNumberLock === 'function') {
-                ctx.vm.toggleNumberLock(true, ctx?.projectParagraphs || [])
+            if (typeof ctx?.vm?.selection?.toggleNumberLock === 'function') {
+                ctx?.vm?.selection?.toggleNumberLock(true, ctx?.projectParagraphs || [])
             }
-            if (typeof ctx?.vm?.updateCustomNumber === 'function') {
-                ctx.vm.updateCustomNumber(parsed, ctx?.projectParagraphs || [])
+            if (typeof ctx?.vm?.selection?.updateCustomNumber === 'function') {
+                ctx?.vm?.selection?.updateCustomNumber(parsed, ctx?.projectParagraphs || [])
             }
             if (customNumInput) customNumInput.value = String(parsed)
             validateNumber(parsed)
@@ -646,8 +650,8 @@ export function renderParagraphNumberModule(container, entity, type, ctx = {}) {
     customNumInput?.addEventListener('input', () => {
         const val = parseInt(customNumInput.value, 10) || 0
         validateNumber(val)
-        if (typeof ctx?.vm?.updateCustomNumber === 'function') {
-            ctx.vm.updateCustomNumber(val, ctx?.projectParagraphs || [])
+        if (typeof ctx?.vm?.selection?.updateCustomNumber === 'function') {
+            ctx?.vm?.selection?.updateCustomNumber(val, ctx?.projectParagraphs || [])
         }
         if (modeBadge && lockCheckbox?.checked) {
             modeBadge.textContent = `#${val || 1} (${t('details.custom_number')})`
@@ -804,8 +808,8 @@ export function renderSummaryModule(container, entity, ctx = {}) {
     const summaryInput = summaryMod.querySelector('#details-summary-input')
     summaryInput?.addEventListener('input', () => {
         const val = summaryInput.value
-        if (typeof ctx?.vm?.updateSummary === 'function') {
-            ctx.vm.updateSummary(val)
+        if (typeof ctx?.vm?.selection?.updateSummary === 'function') {
+            ctx?.vm?.selection?.updateSummary(val)
         }
         if (typeof desc.setSummary === 'function') {
             desc.setSummary(val)
@@ -816,7 +820,7 @@ export function renderSummaryModule(container, entity, ctx = {}) {
         if (typeof markProjectDirty === 'function') {
             markProjectDirty()
         }
-        const selectedType = ctx?.vm?.getSelectedItem?.()?.type
+        const selectedType = ctx?.vm?.selection?.getSelectedItem?.()?.type
         if (selectedType && typeof ctx?.refreshActiveSection === 'function') {
             ctx.refreshActiveSection(selectedType)
         }
@@ -873,8 +877,8 @@ export function renderFilesModule(container, entity, ctx = {}) {
         if (entity && typeof entity.getHasCombat === 'function' && entity.getHasCombat()) {
             syncCombatToParagraphDescription(entity, ctx)
         }
-        if (typeof ctx?.vm?.openOrCreateDescriptionFile === 'function') {
-            const { fileName, content } = ctx.vm.openOrCreateDescriptionFile()
+        if (typeof ctx?.vm?.files?.openOrCreateDescriptionFile === 'function') {
+            const { fileName, content } = ctx.vm.files.openOrCreateDescriptionFile()
             if (fileName && ctx.files) {
                 ctx.files[fileName] = content
                 if (typeof ctx.updateMainWorkspaceUI === 'function') {

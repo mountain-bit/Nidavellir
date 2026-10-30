@@ -16,8 +16,10 @@ describe('choiceDetails module & choice index', () => {
     let ctx: {
         projectParagraphs: Paragraph[]
         vm: {
-            updateChoiceDetails: ReturnType<typeof vi.fn>
-            deleteChoice: ReturnType<typeof vi.fn>
+            graph: {
+                updateChoiceDetails: ReturnType<typeof vi.fn>
+                deleteChoice: ReturnType<typeof vi.fn>
+            }
         }
         renderConnectionsList: ReturnType<typeof vi.fn>
         renderParagraphsList: ReturnType<typeof vi.fn>
@@ -39,8 +41,10 @@ describe('choiceDetails module & choice index', () => {
         ctx = {
             projectParagraphs: [fromParagraph, toParagraph],
             vm: {
-                updateChoiceDetails: vi.fn(),
-                deleteChoice: vi.fn(),
+                graph: {
+                    updateChoiceDetails: vi.fn(),
+                    deleteChoice: vi.fn(),
+                },
             },
             renderConnectionsList: vi.fn(),
             renderParagraphsList: vi.fn(),
@@ -106,7 +110,7 @@ describe('choiceDetails module & choice index', () => {
 
         expect(choice.getCondition()).not.toBeNull()
         expect(choice.getCondition()?.getType()).toBe('item')
-        expect(ctx.vm.updateChoiceDetails).toHaveBeenCalled()
+        expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalled()
         expect(ctx.renderConnectionsList).toHaveBeenCalled()
     })
 
@@ -128,7 +132,7 @@ describe('choiceDetails module & choice index', () => {
 
         expect(choice.getCondition()).not.toBeNull()
         expect(choice.getCondition()?.getType()).toBe('stat')
-        expect(ctx.vm.updateChoiceDetails).toHaveBeenCalled()
+        expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalled()
     })
 
     it('handles adding a tag condition via dropdown', () => {
@@ -149,7 +153,7 @@ describe('choiceDetails module & choice index', () => {
 
         expect(choice.getCondition()).not.toBeNull()
         expect(choice.getCondition()?.getType()).toBe('tag')
-        expect(ctx.vm.updateChoiceDetails).toHaveBeenCalled()
+        expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalled()
     })
 
     it('handles adding a text condition via dropdown', () => {
@@ -170,7 +174,7 @@ describe('choiceDetails module & choice index', () => {
 
         expect(choice.getCondition()).not.toBeNull()
         expect(choice.getCondition()?.getType()).toBe('text')
-        expect(ctx.vm.updateChoiceDetails).toHaveBeenCalled()
+        expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalled()
     })
 
     it('handles adding dice check via dropdown and updates branches', () => {
@@ -193,7 +197,7 @@ describe('choiceDetails module & choice index', () => {
         expect(diceCheck).not.toBeNull()
         expect(diceCheck?.dice).toBe('1k6')
         expect(diceCheck?.branches?.length).toBe(2)
-        expect(ctx.vm.updateChoiceDetails).toHaveBeenCalled()
+        expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalled()
     })
 
     it('correctly handles choices with combat metadata', () => {

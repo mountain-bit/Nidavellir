@@ -32,12 +32,14 @@ export function saveNpcTemplate(ctx, options = {}) {
             defaultCreatedMsg: name => `Pomyślnie utworzono szablon ${name}`,
             defaultUpdatedTitle: 'Szablon zaktualizowany',
             defaultCreatedTitle: 'Szablon utworzony',
-            createVmEntity: (vm, name) =>
-                vm && typeof vm.createTemplate === 'function'
-                    ? vm.createTemplate(name)
-                    : vm && typeof vm.createCharacter === 'function'
-                      ? vm.createCharacter(name)
-                      : null,
+            createVmEntity: (vm, name) => {
+                const factory = vm?.factory
+                return factory && typeof factory.createTemplate === 'function'
+                    ? factory.createTemplate(name)
+                    : factory && typeof factory.createCharacter === 'function'
+                      ? factory.createCharacter(name)
+                      : null
+            },
             addToProject: (effectiveCtx, vm, entity) => {
                 if (vm?.project && typeof vm.project.addTemplate === 'function') {
                     vm.project.addTemplate(entity)

@@ -170,7 +170,9 @@ export class PlaytestEngine {
         if (paragraphs.length === 0) return null
 
         // 1. Sprawdź czy zaznaczony jest paragraf w edytorze
-        const selectedItem = this.ctx?.vm?.getSelectedItem ? this.ctx.vm.getSelectedItem() : null
+        const selectedItem = this.ctx?.vm?.selection?.getSelectedItem
+            ? this.ctx.vm.selection.getSelectedItem()
+            : null
         if (selectedItem && selectedItem.type === 'paragraph' && selectedItem.id) {
             const p = this.findParagraph(selectedItem.id)
             if (p) return p
@@ -205,8 +207,8 @@ export class PlaytestEngine {
      * @param {string} [startParagraphId]
      */
     start(startParagraphId) {
-        if (this.ctx?.vm && typeof this.ctx.vm.ensureParagraphNumbers === 'function') {
-            this.ctx.vm.ensureParagraphNumbers(this.getParagraphs())
+        if (this.ctx?.vm && typeof this.ctx.vm?.selection?.ensureParagraphNumbers === 'function') {
+            this.ctx.vm.selection.ensureParagraphNumbers(this.getParagraphs())
         }
 
         this.history = []
@@ -751,8 +753,8 @@ export function openPlaytestSimulator(ctx, startParagraphId = '') {
         return
     }
 
-    if (ctx?.vm && typeof ctx.vm.ensureParagraphNumbers === 'function') {
-        ctx.vm.ensureParagraphNumbers(ctx.projectParagraphs)
+    if (ctx?.vm && typeof ctx.vm?.selection?.ensureParagraphNumbers === 'function') {
+        ctx.vm.selection.ensureParagraphNumbers(ctx.projectParagraphs)
     }
 
     playtestEngineInstance = new PlaytestEngine(ctx)
@@ -825,10 +827,13 @@ function initPlaytestUI(ctx) {
 
             closePlaytestSimulator()
             if (ctx.vm) {
-                ctx.vm.setActiveMainView('graph')
+                ctx.vm.layout.setActiveMainView('graph')
                 if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
-                if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
-                    ctx.vm.setRightSidebarCollapsed(false)
+                if (
+                    ctx.vm.layout.isRightSidebarCollapsed &&
+                    ctx.vm.layout.isRightSidebarCollapsed()
+                ) {
+                    ctx.vm.layout.setRightSidebarCollapsed(false)
                 }
                 const scene = playtestEngineInstance.findSceneForParagraph(pId)
                 if (typeof ctx.selectEntity === 'function') {

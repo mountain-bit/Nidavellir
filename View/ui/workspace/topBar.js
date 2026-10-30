@@ -19,11 +19,17 @@ export function updateTopBarUI(ctx) {
     if (!ctx || !ctx.vm) return
 
     const activeView =
-        typeof ctx.vm.getActiveMainView === 'function' ? ctx.vm.getActiveMainView() : 'graph'
+        typeof ctx.vm.layout.getActiveMainView === 'function'
+            ? ctx.vm.layout.getActiveMainView()
+            : 'graph'
     const isLeftOpen =
-        typeof ctx.vm.isLeftDrawerOpen === 'function' ? ctx.vm.isLeftDrawerOpen() : false
+        typeof ctx.vm.layout.isLeftDrawerOpen === 'function'
+            ? ctx.vm.layout.isLeftDrawerOpen()
+            : false
     const isRightOpen =
-        typeof ctx.vm.isRightSidebarOpen === 'function' ? ctx.vm.isRightSidebarOpen() : true
+        typeof ctx.vm.layout.isRightSidebarCollapsed === 'function'
+            ? !ctx.vm.layout.isRightSidebarCollapsed()
+            : true
 
     // Update segmented view buttons
     const btnGraph = document.querySelector('[data-action="show-graph"]')
@@ -59,7 +65,8 @@ export function updateTopBarUI(ctx) {
     }
 
     // Update game rules button active state
-    const activeFile = typeof ctx.vm.getActiveFile === 'function' ? ctx.vm.getActiveFile() : null
+    const activeFile =
+        typeof ctx.vm.files.getActiveFile === 'function' ? ctx.vm.files.getActiveFile() : null
     const isRulesActive =
         activeView === 'markdown' &&
         activeFile &&
@@ -216,7 +223,7 @@ export function runGraphValidation(ctx) {
                 modal.classList.add('hidden')
 
                 if (ctx.vm) {
-                    ctx.vm.setActiveMainView('graph')
+                    ctx.vm.layout.setActiveMainView('graph')
                     if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
                     updateTopBarUI(ctx)
 
@@ -246,8 +253,11 @@ export function runGraphValidation(ctx) {
                         })
 
                         // Upewnij się, że prawy panel właściwości jest rozwinięty
-                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
-                            ctx.vm.setRightSidebarCollapsed(false)
+                        if (
+                            ctx.vm.layout.isRightSidebarCollapsed &&
+                            ctx.vm.layout.isRightSidebarCollapsed()
+                        ) {
+                            ctx.vm.layout.setRightSidebarCollapsed(false)
                         }
 
                         if (targetParagraph && typeof ctx.selectEntity === 'function') {
@@ -276,8 +286,11 @@ export function runGraphValidation(ctx) {
                         const targetScene = scenes.find(
                             s => (typeof s.getId === 'function' ? s.getId() : s.id) === sId
                         )
-                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
-                            ctx.vm.setRightSidebarCollapsed(false)
+                        if (
+                            ctx.vm.layout.isRightSidebarCollapsed &&
+                            ctx.vm.layout.isRightSidebarCollapsed()
+                        ) {
+                            ctx.vm.layout.setRightSidebarCollapsed(false)
                         }
                         if (targetScene && typeof ctx.selectEntity === 'function') {
                             ctx.selectEntity(targetScene, 'scene')
@@ -392,17 +405,17 @@ export async function openGameRules(ctx) {
     const displayName =
         (typeof t === 'function' ? t('topbar.buttons.game_rules') : '') || 'Zasady gry'
 
-    if (typeof ctx.vm.setFileDisplayName === 'function') {
-        ctx.vm.setFileDisplayName(rulesPath, displayName)
-        ctx.vm.setFileDisplayName(fallbackPath, displayName)
+    if (typeof ctx.vm.files.setFileDisplayName === 'function') {
+        ctx.vm.files.setFileDisplayName(rulesPath, displayName)
+        ctx.vm.files.setFileDisplayName(fallbackPath, displayName)
     }
 
-    if (typeof ctx.vm.setActiveFile === 'function') {
-        ctx.vm.setActiveFile(rulesPath)
+    if (typeof ctx.vm.files.setActiveFile === 'function') {
+        ctx.vm.files.setActiveFile(rulesPath)
     }
 
-    if (typeof ctx.vm.setActiveMainView === 'function') {
-        ctx.vm.setActiveMainView('markdown')
+    if (typeof ctx.vm.layout.setActiveMainView === 'function') {
+        ctx.vm.layout.setActiveMainView('markdown')
     }
 
     if (typeof ctx.updateMainWorkspaceUI === 'function') {
@@ -531,7 +544,7 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + 1: Graf historii
         if ((e.ctrlKey || e.metaKey) && e.key === '1') {
             e.preventDefault()
-            ctx.vm.setActiveMainView('graph')
+            ctx.vm.layout.setActiveMainView('graph')
             if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
             updateTopBarUI(ctx)
             return
@@ -540,7 +553,7 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + 2: Edytor tekstu
         if ((e.ctrlKey || e.metaKey) && e.key === '2') {
             e.preventDefault()
-            ctx.vm.setActiveMainView('markdown')
+            ctx.vm.layout.setActiveMainView('markdown')
             if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
             updateTopBarUI(ctx)
             return
@@ -549,10 +562,10 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + B: Panel lewy
         if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'b' || e.key === 'B')) {
             e.preventDefault()
-            if (ctx.vm.isLeftDrawerOpen()) {
-                ctx.vm.closeLeftDrawer()
+            if (ctx.vm.layout.isLeftDrawerOpen()) {
+                ctx.vm.layout.closeLeftDrawer()
             } else {
-                ctx.vm.toggleLeftTab(ctx.vm.getActiveLeftTab() || 'paragraphs')
+                ctx.vm.layout.toggleLeftTab(ctx.vm.layout.getActiveLeftTab() || 'paragraphs')
             }
             if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
             updateTopBarUI(ctx)
@@ -562,7 +575,7 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + Alt + B: Panel prawy
         if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'b' || e.key === 'B')) {
             e.preventDefault()
-            ctx.vm.toggleRightSidebar()
+            ctx.vm.layout.toggleRightSidebar()
             const rightSidebar = document.getElementById('right-sidebar')
             const toggleBtn = document.getElementById('toggle-right-sidebar-btn')
             const reopenBtn = document.getElementById('reopen-right-sidebar-btn')
@@ -586,8 +599,8 @@ export function centerGraphView(ctx) {
     // 1. Switch to graph view if not active
     if (typeof ctx.showGraph === 'function') {
         ctx.showGraph(true)
-    } else if (ctx.vm && typeof ctx.vm.setActiveMainView === 'function') {
-        ctx.vm.setActiveMainView('graph')
+    } else if (ctx.vm && typeof ctx.vm.layout.setActiveMainView === 'function') {
+        ctx.vm.layout.setActiveMainView('graph')
     }
     if (typeof ctx.updateMainWorkspaceUI === 'function') {
         ctx.updateMainWorkspaceUI(ctx)
@@ -647,19 +660,19 @@ export function openSettingsView(ctx) {
     }
 
     if (ctx.vm) {
-        if (typeof ctx.vm.setActiveLeftTab === 'function') {
-            ctx.vm.setActiveLeftTab('settings')
-        } else if (typeof ctx.vm.toggleLeftTab === 'function') {
+        if (typeof ctx.vm.layout.setActiveLeftTab === 'function') {
+            ctx.vm.layout.setActiveLeftTab('settings')
+        } else if (typeof ctx.vm.layout.toggleLeftTab === 'function') {
             if (
-                typeof ctx.vm.getActiveLeftTab === 'function' &&
-                ctx.vm.getActiveLeftTab() !== 'settings'
+                typeof ctx.vm.layout.getActiveLeftTab === 'function' &&
+                ctx.vm.layout.getActiveLeftTab() !== 'settings'
             ) {
-                ctx.vm.toggleLeftTab('settings')
+                ctx.vm.layout.toggleLeftTab('settings')
             } else if (
-                typeof ctx.vm.isLeftDrawerOpen === 'function' &&
-                !ctx.vm.isLeftDrawerOpen()
+                typeof ctx.vm.layout.isLeftDrawerOpen === 'function' &&
+                !ctx.vm.layout.isLeftDrawerOpen()
             ) {
-                ctx.vm.toggleLeftTab('settings')
+                ctx.vm.layout.toggleLeftTab('settings')
             }
         }
     }

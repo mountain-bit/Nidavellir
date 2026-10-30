@@ -22,7 +22,9 @@ describe('itemUsagesSection Component', () => {
         projectParagraphs: Paragraph[]
         selectEntity?: ReturnType<typeof vi.fn>
         vm: {
-            selectElement: ReturnType<typeof vi.fn>
+            selection: {
+                selectElement: ReturnType<typeof vi.fn>
+            }
         }
         renderDetailsPanel: ReturnType<typeof vi.fn>
         storyGraphInstance: {
@@ -46,7 +48,9 @@ describe('itemUsagesSection Component', () => {
         ctx = {
             projectParagraphs: [paragraph1, paragraph2],
             vm: {
-                selectElement: vi.fn(),
+                selection: {
+                    selectElement: vi.fn(),
+                },
             },
             renderDetailsPanel: vi.fn(),
             storyGraphInstance: {
@@ -142,7 +146,7 @@ describe('itemUsagesSection Component', () => {
             )
             row.click()
 
-            expect(ctx.vm.selectElement).toHaveBeenCalledWith(paragraph1, 'paragraph')
+            expect(ctx.vm.selection.selectElement).toHaveBeenCalledWith(paragraph1, 'paragraph')
             expect(onRefreshDetails).toHaveBeenCalledWith(ctx)
             expect(ctx.storyGraphInstance.focusOnElement).toHaveBeenCalledWith('p_1')
         })

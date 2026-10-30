@@ -234,10 +234,10 @@ describe('DrawerLists - Traits & Attributes (4 RPG categories)', () => {
 
         it('should filter items across categories according to search query', () => {
             // Set query matching 'Akrobatyka' and 'Zręczność'
-            vm.setStatSearchQuery('Zręcz')
-            vm.setParameterSearchQuery('Zręcz')
-            vm.setSkillSearchQuery('Zręcz')
-            vm.setFeatureSearchQuery('Zręcz')
+            vm.filter.setStatSearchQuery('Zręcz')
+            vm.filter.setParameterSearchQuery('Zręcz')
+            vm.filter.setSkillSearchQuery('Zręcz')
+            vm.filter.setFeatureSearchQuery('Zręcz')
 
             renderTraitsList(ctx)
 

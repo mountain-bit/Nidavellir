@@ -100,7 +100,7 @@ describe('choiceActionsSection', () => {
         })
 
         it('triggers handleShowGraph on clicking show-graph button', () => {
-            const spySetActiveView = vi.spyOn(vm, 'setActiveMainView')
+            const spySetActiveView = vi.spyOn(vm.layout, 'setActiveMainView')
             const section = createChoiceActionsSection({ choice, ctx })
 
             const showGraphBtn = section.querySelector(
@@ -136,7 +136,7 @@ describe('choiceActionsSection', () => {
 
     describe('handleShowGraph', () => {
         it('switches view to graph and focuses on source paragraph', () => {
-            const spySetActiveView = vi.spyOn(vm, 'setActiveMainView')
+            const spySetActiveView = vi.spyOn(vm.layout, 'setActiveMainView')
 
             handleShowGraph(choice, ctx)
 
@@ -180,7 +180,7 @@ describe('choiceActionsSection', () => {
 
     describe('handleDeleteChoice', () => {
         it('returns false and performs no changes when user cancels confirmation', () => {
-            const spyDelete = vi.spyOn(vm, 'deleteChoice')
+            const spyDelete = vi.spyOn(vm.graph, 'deleteChoice')
             const confirmFn = vi.fn().mockReturnValue(false)
             const toastSpy = vi.spyOn(toast, 'success')
 
@@ -199,7 +199,7 @@ describe('choiceActionsSection', () => {
         })
 
         it('deletes choice, marks project dirty, updates lists, history, and shows toast on confirmation', () => {
-            const spyDelete = vi.spyOn(vm, 'deleteChoice')
+            const spyDelete = vi.spyOn(vm.graph, 'deleteChoice')
             const confirmFn = vi.fn().mockReturnValue(true)
             const toastSpy = vi.spyOn(toast, 'success')
             const onRefreshDetails = vi.fn()

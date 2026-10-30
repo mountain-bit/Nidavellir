@@ -41,7 +41,8 @@ export function updateEditorStats(editor) {
  * @param {Array<{ id: string, name: string, type: string }>} entities
  */
 export function syncEntitiesWithActiveObject(ctx, entities) {
-    const selectedItem = ctx.vm && ctx.vm.getSelectedItem ? ctx.vm.getSelectedItem() : null
+    const selection = ctx?.vm?.selection
+    const selectedItem = selection?.getSelectedItem ? selection.getSelectedItem() : null
     if (!selectedItem || !selectedItem.entity) return
 
     const entityObj = selectedItem.entity
@@ -298,7 +299,7 @@ export function getOrCreateMainEditor(ctx) {
     const mount = document.getElementById('rich-editor-mount')
     if (!mount) return null
 
-    const hasActiveFile = Boolean(ctx?.vm?.getActiveFile?.())
+    const hasActiveFile = Boolean(ctx?.vm?.files?.getActiveFile?.())
 
     mainEditorInstance = new MarkdownEditor({
         element: mount,
@@ -307,7 +308,8 @@ export function getOrCreateMainEditor(ctx) {
         getCustomStyles: () => CustomStylesService.getStyles(ctx?.projectData),
         getProjectEntities: () => extractAvailableProjectEntities(ctx?.projectData || ctx),
         onUpdate: (markdown, entities) => {
-            const active = ctx.vm.getActiveFile()
+            const files = ctx?.vm?.files
+            const active = files?.getActiveFile ? files.getActiveFile() : null
             if (active) {
                 markFileDirty(active)
                 ctx.files[active] = markdown
@@ -355,7 +357,7 @@ export function getOrCreateMainEditor(ctx) {
     setupElementDropZone(mount, {
         highlightClass: 'ring-2 ring-blue-500 bg-blue-500/10',
         onFileDrop: async file => {
-            if (!ctx?.vm?.getActiveFile?.()) {
+            if (!ctx?.vm?.files?.getActiveFile?.()) {
                 toast.warning(
                     t('editor.no_open_file') || 'Otwórz najpierw plik, aby wstawić grafikę'
                 )
@@ -381,7 +383,7 @@ export function getOrCreateMainEditor(ctx) {
                 if (imported) {
                     const snippet = `\n\n![${imported.fileName}](${imported.relativePath})\n`
                     fileEditor.value += snippet
-                    const active = ctx?.vm?.getActiveFile?.()
+                    const active = ctx?.vm?.files?.getActiveFile?.()
                     if (active && ctx.files) {
                         ctx.files[active] = fileEditor.value
                     }
@@ -393,8 +395,9 @@ export function getOrCreateMainEditor(ctx) {
 
     const emptyStateGraphBtn = document.getElementById('btn-empty-state-open-graph')
     emptyStateGraphBtn?.addEventListener('click', () => {
-        if (ctx?.vm?.setActiveMainView) {
-            ctx.vm.setActiveMainView('graph')
+        const layout = ctx?.vm?.layout
+        if (layout?.setActiveMainView) {
+            layout.setActiveMainView('graph')
             const graphBtn = document.getElementById('view-mode-graph-btn')
             graphBtn?.click()
         }
@@ -403,7 +406,7 @@ export function getOrCreateMainEditor(ctx) {
     setEditorActiveState(hasActiveFile, mainEditorInstance)
 
     mount.addEventListener('contextmenu', e => {
-        if (!ctx?.vm?.getActiveFile?.()) return
+        if (!ctx?.vm?.files?.getActiveFile?.()) return
 
         const target = e.target
         const badge = target?.closest?.('.entity-mention-badge')
@@ -443,7 +446,7 @@ export function getOrCreateMainEditor(ctx) {
     })
 
     mount.addEventListener('dblclick', e => {
-        if (!ctx?.vm?.getActiveFile?.()) return
+        if (!ctx?.vm?.files?.getActiveFile?.()) return
 
         const target = e.target
         const img =

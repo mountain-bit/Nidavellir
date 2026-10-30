@@ -286,7 +286,7 @@ describe('DetailsPanel - Items Module in Paragraph (Stage 2)', () => {
             action: 'give',
         })
         ctx.projectParagraphs.push(p)
-        vm.selectElement(p, 'paragraph')
+        vm.selection.selectElement(p, 'paragraph')
 
         renderDetailsPanel(ctx)
 

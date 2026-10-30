@@ -64,12 +64,13 @@ export function renderStoryGraph(forceRebuild = true) {
  * @param {object} ctx Application context
  */
 function openRightSidebarIfCollapsed(ctx) {
+    const layout = ctx?.vm?.layout
     if (
-        ctx.vm &&
-        typeof ctx.vm.isRightSidebarCollapsed === 'function' &&
-        ctx.vm.isRightSidebarCollapsed()
+        layout &&
+        typeof layout.isRightSidebarCollapsed === 'function' &&
+        layout.isRightSidebarCollapsed()
     ) {
-        ctx.vm.setRightSidebarCollapsed(false)
+        layout.setRightSidebarCollapsed(false)
         if (typeof ctx.updateRightSidebarUI === 'function') {
             ctx.updateRightSidebarUI()
         }
@@ -88,8 +89,12 @@ export function showStoryGraph(ctx, forceRebuild = false) {
     if (!canvasContainer || !nodesLayer) return
 
     const paragraphs = ctx.projectParagraphs || ctx.projectData?.projectParagraphs || []
-    if (ctx.vm && typeof ctx.vm.ensureStartParagraph === 'function') {
-        ctx.vm.ensureStartParagraph(paragraphs)
+    const factory = ctx?.vm?.factory
+    const layout = ctx?.vm?.layout
+    const graph = ctx?.vm?.graph
+
+    if (factory && typeof factory.ensureStartParagraph === 'function') {
+        factory.ensureStartParagraph(paragraphs)
     }
 
     if (!_storyGraphInstance) {
@@ -97,11 +102,13 @@ export function showStoryGraph(ctx, forceRebuild = false) {
             canvasContainer,
             nodesLayer,
             lineStyle:
-                typeof ctx.vm.getConnectionLineStyle === 'function'
-                    ? ctx.vm.getConnectionLineStyle()
+                typeof layout?.getConnectionLineStyle === 'function'
+                    ? layout.getConnectionLineStyle()
                     : 'curved',
             wheelSensitivity:
-                typeof ctx.vm.getZoomSensitivity === 'function' ? ctx.vm.getZoomSensitivity() : 0.2,
+                typeof layout?.getZoomSensitivity === 'function'
+                    ? layout.getZoomSensitivity()
+                    : 0.2,
             onZoomChange: lvl => updateZoomToolbarUI(_storyGraphInstance, lvl),
             getParagraphs: () => ctx.projectParagraphs || ctx.projectData?.projectParagraphs || [],
             getScenes: () => ctx.projectScenes || ctx.projectData?.projectScenes || [],
@@ -144,9 +151,9 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                 if (typeof ctx.populateFilterSelects === 'function') ctx.populateFilterSelects()
             },
             onCreateParagraph: title => {
-                const newP = ctx.vm.createParagraph(title)
+                const newP = factory?.createParagraph ? factory.createParagraph(title) : null
                 const targetParagraphs = ctx.projectParagraphs || ctx.projectData?.projectParagraphs
-                if (Array.isArray(targetParagraphs)) {
+                if (Array.isArray(targetParagraphs) && newP) {
                     targetParagraphs.push(newP)
                 }
                 markProjectDirty()
@@ -154,7 +161,8 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                 return newP
             },
             onCreateScene: (name, position, width, height, assignedParagraphs) => {
-                const newScene = ctx.vm.createScene(name)
+                const newScene = factory?.createScene ? factory.createScene(name) : null
+                if (!newScene) return null
                 if (position) newScene.setPosition(position)
                 if (width) newScene.setWidth(width)
                 if (height) newScene.setHeight(height)
@@ -179,7 +187,9 @@ export function showStoryGraph(ctx, forceRebuild = false) {
                 if (alreadyExists) {
                     return null
                 }
-                const choice = ctx.vm.createChoice(fromParagraph, toParagraph, choiceName)
+                const choice = graph?.createChoice
+                    ? graph.createChoice(fromParagraph, toParagraph, choiceName)
+                    : null
                 markProjectDirty()
                 if (typeof ctx.renderConnectionsList === 'function') {
                     ctx.renderConnectionsList()

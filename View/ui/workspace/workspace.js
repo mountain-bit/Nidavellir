@@ -56,7 +56,7 @@ export function setupResizers(leftDrawer, rightSidebar, vm) {
                 const newWidth = Math.max(180, Math.min(600, Math.round(startWidth + delta)))
                 leftDrawer.style.width = `${newWidth}px`
                 leftDrawer.style.setProperty('--left-drawer-width', `${newWidth}px`)
-                vm.setLeftDrawerWidth(newWidth)
+                vm.layout.setLeftDrawerWidth(newWidth)
                 window.dispatchEvent(new Event('resize'))
             })
         })
@@ -101,7 +101,7 @@ export function setupResizers(leftDrawer, rightSidebar, vm) {
                 const newWidth = Math.max(220, Math.min(700, Math.round(startWidth + delta)))
                 rightSidebar.style.width = `${newWidth}px`
                 rightSidebar.style.setProperty('--right-sidebar-width', `${newWidth}px`)
-                vm.setRightSidebarWidth(newWidth)
+                vm.layout.setRightSidebarWidth(newWidth)
                 window.dispatchEvent(new Event('resize'))
             })
         })
@@ -150,7 +150,7 @@ export function updateRightSidebarUI(
     toggleRightSidebarBtn,
     reopenRightSidebarBtn
 ) {
-    const isCollapsed = vm.isRightSidebarCollapsed()
+    const isCollapsed = vm.layout.isRightSidebarCollapsed()
     const rightResizer = document.getElementById('right-resizer')
     if (isCollapsed) {
         if (rightSidebar) rightSidebar.classList.add('collapsed')
@@ -171,7 +171,7 @@ export function updateRightSidebarUI(
  * @param {object} ctx Application UI Context
  */
 export function updateMainWorkspaceUI(ctx) {
-    const mainView = ctx.vm.getActiveMainView()
+    const mainView = ctx.vm.layout.getActiveMainView()
     const modeTitle = document.getElementById('workspace-mode-title')
     const markdownContainer = document.getElementById('markdown-container')
     const graphContainer = document.getElementById('graph-container')
@@ -211,13 +211,13 @@ export function updateMainWorkspaceUI(ctx) {
         }
     }
 
-    const active = ctx.vm.getActiveFile()
+    const active = ctx.vm.files.getActiveFile()
     const hasActiveFile = Boolean(active)
 
     if (activeLabel) {
         const displayName =
-            typeof ctx.vm?.getFileDisplayName === 'function'
-                ? ctx.vm.getFileDisplayName(active)
+            typeof ctx.vm?.files?.getFileDisplayName === 'function'
+                ? ctx.vm.files.getFileDisplayName(active)
                 : active
         activeLabel.textContent = displayName || t('editor.no_open_file')
         if (active) {
@@ -301,8 +301,8 @@ export function renderEditorTabs(ctx) {
     const editorTabsContainer = document.getElementById('editor-tabs')
     if (!editorTabsContainer) return
 
-    const openFiles = ctx.vm.getOpenFiles()
-    const activeFile = ctx.vm.getActiveFile()
+    const openFiles = ctx.vm.files.getOpenFiles()
+    const activeFile = ctx.vm.files.getActiveFile()
     const closeFileTitle = t('editor.close_file')
 
     editorTabsContainer.innerHTML = openFiles
@@ -313,8 +313,8 @@ export function renderEditorTabs(ctx) {
                 : 'bg-[#27272a] text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white'
 
             const displayName =
-                typeof ctx.vm?.getFileDisplayName === 'function'
-                    ? ctx.vm.getFileDisplayName(file)
+                typeof ctx.vm?.files?.getFileDisplayName === 'function'
+                    ? ctx.vm.files.getFileDisplayName(file)
                     : file
 
             const isRulesFile =
@@ -341,7 +341,7 @@ export function renderEditorTabs(ctx) {
         tab.addEventListener('click', e => {
             if (e.target.classList.contains('close-tab-btn')) return
             const file = tab.dataset.tabFile
-            ctx.vm.setActiveFile(file)
+            ctx.vm.files.setActiveFile(file)
             updateMainWorkspaceUI(ctx)
         })
     })
@@ -350,7 +350,7 @@ export function renderEditorTabs(ctx) {
         btn.addEventListener('click', e => {
             e.stopPropagation()
             const file = btn.dataset.closeFile
-            ctx.vm.closeFile(file)
+            ctx.vm.files.closeFile(file)
             updateMainWorkspaceUI(ctx)
         })
     })
@@ -396,7 +396,7 @@ export function updateZoomToolbarUI(storyGraphInstance, zoomLevel) {
  * @param {object} ctx Application UI Context
  */
 export function saveActiveFile(ctx) {
-    const active = ctx.vm.getActiveFile()
+    const active = ctx.vm.files.getActiveFile()
     if (!active) return
 
     const editor = getOrCreateMainEditor(ctx)

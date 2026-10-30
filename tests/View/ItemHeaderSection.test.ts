@@ -12,7 +12,7 @@ import {
 describe('itemHeaderSection Component', () => {
     let item: Item
     let ctx: {
-        vm: { closeHistoryItem: ReturnType<typeof vi.fn> }
+        vm: { selection: { closeHistoryItem: ReturnType<typeof vi.fn> } }
         renderDetailsPanel: ReturnType<typeof vi.fn>
         refreshActiveSection: ReturnType<typeof vi.fn>
     }
@@ -24,7 +24,9 @@ describe('itemHeaderSection Component', () => {
 
         ctx = {
             vm: {
-                closeHistoryItem: vi.fn(),
+                selection: {
+                    closeHistoryItem: vi.fn(),
+                },
             },
             renderDetailsPanel: vi.fn(),
             refreshActiveSection: vi.fn(),
@@ -68,7 +70,7 @@ describe('itemHeaderSection Component', () => {
 
             closeBtn.click()
 
-            expect(ctx.vm.closeHistoryItem).toHaveBeenCalledWith('it_sword_1')
+            expect(ctx.vm.selection.closeHistoryItem).toHaveBeenCalledWith('it_sword_1')
             expect(onRefreshDetails).toHaveBeenCalledWith(ctx)
             expect(ctx.refreshActiveSection).toHaveBeenCalledWith('item')
         })

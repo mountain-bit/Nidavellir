@@ -118,7 +118,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
             }
         )
         ctx.projectItems.push(item)
-        vm.selectElement(item, 'item')
+        vm.selection.selectElement(item, 'item')
 
         renderDetailsPanel(ctx)
 
@@ -153,7 +153,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
         const item2 = new Item('it_2', 'Eliksir Siły')
         ctx.projectItems.push(item1, item2)
 
-        const historyItem = vm.selectElement(item1, 'item')
+        const historyItem = vm.selection.selectElement(item1, 'item')
         renderItemDetails(detailsContent, item1, historyItem, ctx)
 
         const nameInput = detailsContent.querySelector(
@@ -184,7 +184,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
     it('updates category, consumable toggle, slot size, and weight', () => {
         const item = new Item('it_bread', 'Czerstwy Chleb')
         ctx.projectItems.push(item)
-        const historyItem = vm.selectElement(item, 'item')
+        const historyItem = vm.selection.selectElement(item, 'item')
         renderItemDetails(detailsContent, item, historyItem, ctx)
 
         const catSelect = detailsContent.querySelector(
@@ -224,7 +224,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
             slotSize: 1,
         })
         ctx.projectItems.push(potion)
-        const historyItem = vm.selectElement(potion, 'item')
+        const historyItem = vm.selection.selectElement(potion, 'item')
         renderItemDetails(detailsContent, potion, historyItem, ctx)
 
         const startChk = detailsContent.querySelector(
@@ -257,7 +257,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
     it('adds and removes tags from item', () => {
         const item = new Item('it_ring', 'Złoty Pierścień')
         ctx.projectItems.push(item)
-        const historyItem = vm.selectElement(item, 'item')
+        const historyItem = vm.selection.selectElement(item, 'item')
         renderItemDetails(detailsContent, item, historyItem, ctx)
 
         const tagSelect = detailsContent.querySelector(
@@ -287,7 +287,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
     it('adds and removes RPG modifiers from item', () => {
         const item = new Item('it_armor', 'Kolczuga Krasnoludzka')
         ctx.projectItems.push(item)
-        const historyItem = vm.selectElement(item, 'item')
+        const historyItem = vm.selection.selectElement(item, 'item')
         renderItemDetails(detailsContent, item, historyItem, ctx)
 
         const typeSelect = detailsContent.querySelector('#details-mod-type') as HTMLSelectElement
@@ -340,7 +340,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
 
         ctx.projectParagraphs.push(p1, p2)
 
-        const historyItem = vm.selectElement(item, 'item')
+        const historyItem = vm.selection.selectElement(item, 'item')
         renderItemDetails(detailsContent, item, historyItem, ctx)
 
         expect(detailsContent.textContent).toContain('Ołtarz Bogów')
@@ -367,7 +367,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
 
         hero.addItem(sword, 'inv_main')
 
-        const heroHistoryItem = vm.selectElement(
+        const heroHistoryItem = vm.selection.selectElement(
             hero as unknown as IIdentifiableEntity,
             'player_character'
         )
@@ -385,7 +385,7 @@ describe('Item Details Inspector & Inventory Correlation (Stage 3)', () => {
     it('triggers export actions from item inspector', () => {
         const item = new Item('it_scroll', 'Zwój Iluzji')
         ctx.projectItems.push(item)
-        const historyItem = vm.selectElement(item, 'item')
+        const historyItem = vm.selection.selectElement(item, 'item')
         renderItemDetails(detailsContent, item, historyItem, ctx)
 
         const btnCopyJson = detailsContent.querySelector('#btn-copy-item-json') as HTMLElement

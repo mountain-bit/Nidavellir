@@ -346,7 +346,9 @@ describe('npcReadOnlyDetails & readonly index', () => {
             const ctx = {
                 openNpcModal: openModalMock,
                 vm: {
-                    setActiveMainView: setActiveMainViewMock,
+                    layout: {
+                        setActiveMainView: setActiveMainViewMock,
+                    },
                 },
                 updateMainWorkspaceUI: updateMainWorkspaceUIMock,
                 storyGraphInstance: {

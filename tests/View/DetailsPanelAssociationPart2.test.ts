@@ -374,7 +374,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeStat: vi.fn(),
             }
             const mockVm = {
-                removeStatFromSelected: vi.fn(),
+                selection: {
+                    removeStatFromSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -387,7 +389,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             const removeBtn = container.querySelector('.btn-remove-stat') as HTMLButtonElement
             removeBtn.click()
 
-            expect(mockVm.removeStatFromSelected).toHaveBeenCalledWith('st-1')
+            expect(mockVm.selection.removeStatFromSelected).toHaveBeenCalledWith('st-1')
             expect(mockRefresh).toHaveBeenCalledWith('character')
         })
 
@@ -403,7 +405,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeStat: vi.fn(),
             }
             const mockVm = {
-                addStatToSelected: vi.fn(),
+                selection: {
+                    addStatToSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -419,7 +423,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             select.value = 'st-1'
             addBtn.click()
 
-            expect(mockVm.addStatToSelected).toHaveBeenCalled()
+            expect(mockVm.selection.addStatToSelected).toHaveBeenCalled()
             expect(mockRefresh).toHaveBeenCalledWith('character')
         })
     })
@@ -493,7 +497,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeParameter: vi.fn(),
             }
             const mockVm = {
-                removeParameterFromSelected: vi.fn(),
+                selection: {
+                    removeParameterFromSelected: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -505,7 +511,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             const removeBtn = container.querySelector('.btn-remove-param') as HTMLButtonElement
             removeBtn.click()
 
-            expect(mockVm.removeParameterFromSelected).toHaveBeenCalledWith('p-1')
+            expect(mockVm.selection.removeParameterFromSelected).toHaveBeenCalledWith('p-1')
         })
 
         it('adds a parameter when selected from dropdown and button is clicked', () => {
@@ -521,7 +527,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeParameter: vi.fn(),
             }
             const mockVm = {
-                addParameterToSelected: vi.fn(),
+                selection: {
+                    addParameterToSelected: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -536,7 +544,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             select.value = 'p-1'
             addBtn.click()
 
-            expect(mockVm.addParameterToSelected).toHaveBeenCalled()
+            expect(mockVm.selection.addParameterToSelected).toHaveBeenCalled()
         })
     })
 
@@ -604,7 +612,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeSkill: vi.fn(),
             }
             const mockVm = {
-                removeSkillFromSelected: vi.fn(),
+                selection: {
+                    removeSkillFromSelected: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -616,7 +626,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             const removeBtn = container.querySelector('.btn-remove-skill') as HTMLButtonElement
             removeBtn.click()
 
-            expect(mockVm.removeSkillFromSelected).toHaveBeenCalledWith('sk-1')
+            expect(mockVm.selection.removeSkillFromSelected).toHaveBeenCalledWith('sk-1')
         })
 
         it('adds a skill when selected and button is clicked', () => {
@@ -632,7 +642,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeSkill: vi.fn(),
             }
             const mockVm = {
-                addSkillToSelected: vi.fn(),
+                selection: {
+                    addSkillToSelected: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -647,7 +659,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             select.value = 'sk-1'
             addBtn.click()
 
-            expect(mockVm.addSkillToSelected).toHaveBeenCalled()
+            expect(mockVm.selection.addSkillToSelected).toHaveBeenCalled()
         })
     })
 
@@ -680,7 +692,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeFeature: vi.fn(),
             }
             const mockVm = {
-                removeFeatureFromSelected: vi.fn(),
+                selection: {
+                    removeFeatureFromSelected: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -692,7 +706,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             const removeBtn = container.querySelector('.btn-remove-feature') as HTMLButtonElement
             removeBtn.click()
 
-            expect(mockVm.removeFeatureFromSelected).toHaveBeenCalledWith('f-1')
+            expect(mockVm.selection.removeFeatureFromSelected).toHaveBeenCalledWith('f-1')
         })
 
         it('adds a feature when selected and button is clicked', () => {
@@ -706,7 +720,9 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
                 removeFeature: vi.fn(),
             }
             const mockVm = {
-                addFeatureToSelected: vi.fn(),
+                selection: {
+                    addFeatureToSelected: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -723,7 +739,7 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             select.value = 'f-1'
             addBtn.click()
 
-            expect(mockVm.addFeatureToSelected).toHaveBeenCalled()
+            expect(mockVm.selection.addFeatureToSelected).toHaveBeenCalled()
         })
     })
 

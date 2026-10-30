@@ -175,7 +175,9 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             const p1 = new Paragraph('p_1', 'Origin')
             const p2 = new Paragraph('p_2', 'Destination')
             const mockVm = {
-                createChoice: vi.fn(),
+                graph: {
+                    createChoice: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -197,7 +199,7 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             nameInput.value = 'Walk North'
             submitBtn.click()
 
-            expect(mockVm.createChoice).toHaveBeenCalledWith(
+            expect(mockVm.graph.createChoice).toHaveBeenCalledWith(
                 p1,
                 p2,
                 'Walk North',
@@ -219,7 +221,9 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             ]
 
             const mockVm = {
-                updateChoiceDetails: vi.fn(),
+                graph: {
+                    updateChoiceDetails: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -233,7 +237,7 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
 
             input.value = 'Door B'
             input.dispatchEvent(new Event('input'))
-            expect(mockVm.updateChoiceDetails).toHaveBeenCalledWith(mockChoice, 'Door B')
+            expect(mockVm.graph.updateChoiceDetails).toHaveBeenCalledWith(mockChoice, 'Door B')
         })
 
         it('updates target node on select change', () => {
@@ -303,9 +307,13 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             ]
 
             const mockVm = {
-                deleteChoice: vi.fn(),
-                getHistory: (): unknown[] => [],
-                getSelectedItem: (): unknown => null,
+                selection: {
+                    getHistory: (): unknown[] => [],
+                    getSelectedItem: (): unknown => null,
+                },
+                graph: {
+                    deleteChoice: vi.fn(),
+                },
             }
             const ctx = {
                 vm: mockVm,
@@ -320,7 +328,7 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             const deleteBtn = container.querySelector('.btn-delete-exit') as HTMLButtonElement
             deleteBtn.click()
 
-            expect(mockVm.deleteChoice).toHaveBeenCalledWith('ch_1', [p1])
+            expect(mockVm.graph.deleteChoice).toHaveBeenCalledWith('ch_1', [p1])
         })
     })
 
@@ -339,7 +347,9 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
 
         it('clicking show graph button switches view and focuses on canvas element', () => {
             const mockVm = {
-                setActiveMainView: vi.fn(),
+                layout: {
+                    setActiveMainView: vi.fn(),
+                },
             }
             const mockUpdateUI = vi.fn()
             const mockFocus = vi.fn()
@@ -353,7 +363,7 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             const btn = container.querySelector('#btn-details-show-graph') as HTMLButtonElement
             btn.click()
 
-            expect(mockVm.setActiveMainView).toHaveBeenCalledWith('graph')
+            expect(mockVm.layout.setActiveMainView).toHaveBeenCalledWith('graph')
             expect(mockUpdateUI).toHaveBeenCalled()
             expect(mockFocus).toHaveBeenCalledWith('para_1')
         })

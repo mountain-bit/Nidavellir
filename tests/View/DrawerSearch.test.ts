@@ -203,54 +203,54 @@ describe('Drawer Search Functionality (Krok 4)', () => {
     })
 
     describe('Section Search Inputs (live filtering)', () => {
-        it('wires up tag-search-input to vm.setTagSearchQuery', () => {
+        it('wires up tag-search-input to vm.filter.setTagSearchQuery', () => {
             setupSectionSearchInputs(mockCtx)
             const input = document.getElementById('tag-search-input') as HTMLInputElement
 
             input.value = 'mag'
             input.dispatchEvent(new Event('input'))
 
-            expect(vm.getTagSearchQuery()).toBe('mag')
+            expect(vm.filter.getTagSearchQuery()).toBe('mag')
         })
 
-        it('wires up scene-search-input to vm.setSceneSearchQuery', () => {
+        it('wires up scene-search-input to vm.filter.setSceneSearchQuery', () => {
             setupSectionSearchInputs(mockCtx)
             const input = document.getElementById('scene-search-input') as HTMLInputElement
 
             input.value = 'wyprawa'
             input.dispatchEvent(new Event('input'))
 
-            expect(vm.getSceneSearchQuery()).toBe('wyprawa')
+            expect(vm.filter.getSceneSearchQuery()).toBe('wyprawa')
         })
 
-        it('wires up connection-search-input to vm.setConnectionSearchQuery', () => {
+        it('wires up connection-search-input to vm.filter.setConnectionSearchQuery', () => {
             setupSectionSearchInputs(mockCtx)
             const input = document.getElementById('connection-search-input') as HTMLInputElement
 
             input.value = 'skok'
             input.dispatchEvent(new Event('input'))
 
-            expect(vm.getConnectionSearchQuery()).toBe('skok')
+            expect(vm.filter.getConnectionSearchQuery()).toBe('skok')
         })
 
-        it('wires up character-search-input to vm.setCharacterSearchQuery', () => {
+        it('wires up character-search-input to vm.filter.setCharacterSearchQuery', () => {
             setupSectionSearchInputs(mockCtx)
             const input = document.getElementById('character-search-input') as HTMLInputElement
 
             input.value = 'wiedźmin'
             input.dispatchEvent(new Event('input'))
 
-            expect(vm.getCharacterSearchQuery()).toBe('wiedźmin')
+            expect(vm.filter.getCharacterSearchQuery()).toBe('wiedźmin')
         })
 
-        it('wires up location-search-input to vm.setLocationSearchQuery', () => {
+        it('wires up location-search-input to vm.filter.setLocationSearchQuery', () => {
             setupSectionSearchInputs(mockCtx)
             const input = document.getElementById('location-search-input') as HTMLInputElement
 
             input.value = 'zamek'
             input.dispatchEvent(new Event('input'))
 
-            expect(vm.getLocationSearchQuery()).toBe('zamek')
+            expect(vm.filter.getLocationSearchQuery()).toBe('zamek')
         })
 
         it('wires up trait-search-input to stat, skill, parameter and feature queries', () => {
@@ -260,10 +260,10 @@ describe('Drawer Search Functionality (Krok 4)', () => {
             input.value = 'siła'
             input.dispatchEvent(new Event('input'))
 
-            expect(vm.getStatSearchQuery()).toBe('siła')
-            expect(vm.getSkillSearchQuery()).toBe('siła')
-            expect(vm.getParameterSearchQuery()).toBe('siła')
-            expect(vm.getFeatureSearchQuery()).toBe('siła')
+            expect(vm.filter.getStatSearchQuery()).toBe('siła')
+            expect(vm.filter.getSkillSearchQuery()).toBe('siła')
+            expect(vm.filter.getParameterSearchQuery()).toBe('siła')
+            expect(vm.filter.getFeatureSearchQuery()).toBe('siła')
         })
     })
 
@@ -273,14 +273,14 @@ describe('Drawer Search Functionality (Krok 4)', () => {
             const it2 = new Item('i2', 'Tarcza')
             it2.getDescription().setText('Wykuta z mocnego żelaza.')
 
-            vm.setItemSearchQuery('żelaz')
-            expect(vm.searchAndFilterItems([it1, it2])).toEqual([it2])
+            vm.filter.setItemSearchQuery('żelaz')
+            expect(vm.filter.searchAndFilterItems([it1, it2])).toEqual([it2])
 
-            vm.setItemSearchQuery('lem')
-            expect(vm.searchAndFilterItems([it1, it2])).toEqual([it1])
+            vm.filter.setItemSearchQuery('lem')
+            expect(vm.filter.searchAndFilterItems([it1, it2])).toEqual([it1])
 
-            vm.setItemSearchQuery('')
-            expect(vm.searchAndFilterItems([it1, it2])).toEqual([it1, it2])
+            vm.filter.setItemSearchQuery('')
+            expect(vm.filter.searchAndFilterItems([it1, it2])).toEqual([it1, it2])
         })
     })
 })

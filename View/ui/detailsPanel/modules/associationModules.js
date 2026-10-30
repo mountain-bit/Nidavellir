@@ -178,9 +178,9 @@ export function renderLocationsModule(container, entity, type, ctx, onRefreshDet
                         if (
                             ctx &&
                             ctx.vm &&
-                            typeof ctx.vm.removeLocationFromSelected === 'function'
+                            typeof ctx?.vm?.selection?.removeLocationFromSelected === 'function'
                         ) {
-                            ctx.vm.removeLocationFromSelected(locId)
+                            ctx?.vm?.selection?.removeLocationFromSelected(locId)
                         }
                         refreshDetails(ctx, onRefreshDetails)
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -210,8 +210,12 @@ export function renderLocationsModule(container, entity, type, ctx, onRefreshDet
                 return id === selectedId
             })
             if (locObj) {
-                if (ctx && ctx.vm && typeof ctx.vm.addLocationToSelected === 'function') {
-                    ctx.vm.addLocationToSelected(locObj)
+                if (
+                    ctx &&
+                    ctx.vm &&
+                    typeof ctx?.vm?.selection?.addLocationToSelected === 'function'
+                ) {
+                    ctx?.vm?.selection?.addLocationToSelected(locObj)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -379,9 +383,9 @@ export function renderCharactersModule(container, entity, type, ctx, onRefreshDe
                         if (
                             ctx &&
                             ctx.vm &&
-                            typeof ctx.vm.removeCharacterFromSelected === 'function'
+                            typeof ctx?.vm?.selection?.removeCharacterFromSelected === 'function'
                         ) {
-                            ctx.vm.removeCharacterFromSelected(charId)
+                            ctx?.vm?.selection?.removeCharacterFromSelected(charId)
                         }
                         refreshDetails(ctx, onRefreshDetails)
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -411,8 +415,12 @@ export function renderCharactersModule(container, entity, type, ctx, onRefreshDe
                 return id === charId
             })
             if (charObj) {
-                if (ctx && ctx.vm && typeof ctx.vm.addCharacterToSelected === 'function') {
-                    ctx.vm.addCharacterToSelected(charObj)
+                if (
+                    ctx &&
+                    ctx.vm &&
+                    typeof ctx?.vm?.selection?.addCharacterToSelected === 'function'
+                ) {
+                    ctx?.vm?.selection?.addCharacterToSelected(charObj)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -571,9 +579,9 @@ export function renderTagsModule(container, entity, type, ctx, onRefreshDetails)
                             if (
                                 ctx &&
                                 ctx.vm &&
-                                typeof ctx.vm.removeTagFromSelected === 'function'
+                                typeof ctx?.vm?.selection?.removeTagFromSelected === 'function'
                             ) {
-                                ctx.vm.removeTagFromSelected(tagId)
+                                ctx?.vm?.selection?.removeTagFromSelected(tagId)
                             }
                             refreshDetails(ctx, onRefreshDetails)
                             if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -597,8 +605,8 @@ export function renderTagsModule(container, entity, type, ctx, onRefreshDetails)
                 return id === selectedId
             })
             if (tagObj) {
-                if (ctx && ctx.vm && typeof ctx.vm.addTagToSelected === 'function') {
-                    ctx.vm.addTagToSelected(tagObj)
+                if (ctx && ctx.vm && typeof ctx?.vm?.selection?.addTagToSelected === 'function') {
+                    ctx?.vm?.selection?.addTagToSelected(tagObj)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -776,8 +784,12 @@ export function renderTraitsModule(container, entity, type, ctx, onRefreshDetail
                 if (removeBtn) {
                     removeBtn.addEventListener('click', () => {
                         const statId = typeof st.getId === 'function' ? st.getId() : st.id
-                        if (ctx && ctx.vm && typeof ctx.vm.removeStatFromSelected === 'function') {
-                            ctx.vm.removeStatFromSelected(statId)
+                        if (
+                            ctx &&
+                            ctx.vm &&
+                            typeof ctx?.vm?.selection?.removeStatFromSelected === 'function'
+                        ) {
+                            ctx?.vm?.selection?.removeStatFromSelected(statId)
                         }
                         refreshDetails(ctx, onRefreshDetails)
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -807,8 +819,8 @@ export function renderTraitsModule(container, entity, type, ctx, onRefreshDetail
                     statObj.getDescription ? statObj.getDescription() : new Description(),
                     statObj.getValue ? statObj.getValue() : ''
                 )
-                if (ctx && ctx.vm && typeof ctx.vm.addStatToSelected === 'function') {
-                    ctx.vm.addStatToSelected(clone)
+                if (ctx && ctx.vm && typeof ctx?.vm?.selection?.addStatToSelected === 'function') {
+                    ctx?.vm?.selection?.addStatToSelected(clone)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1012,9 +1024,9 @@ export function renderParametersModule(container, entity, type, ctx, onRefreshDe
                         if (
                             ctx &&
                             ctx.vm &&
-                            typeof ctx.vm.removeParameterFromSelected === 'function'
+                            typeof ctx?.vm?.selection?.removeParameterFromSelected === 'function'
                         ) {
-                            ctx.vm.removeParameterFromSelected(paramId)
+                            ctx?.vm?.selection?.removeParameterFromSelected(paramId)
                         }
                         refreshDetails(ctx, onRefreshDetails)
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1047,8 +1059,12 @@ export function renderParametersModule(container, entity, type, ctx, onRefreshDe
                     paramObj.getFormula ? paramObj.getFormula() : '',
                     paramObj.getCalculatedValue ? paramObj.getCalculatedValue() : null
                 )
-                if (ctx && ctx.vm && typeof ctx.vm.addParameterToSelected === 'function') {
-                    ctx.vm.addParameterToSelected(clone)
+                if (
+                    ctx &&
+                    ctx.vm &&
+                    typeof ctx?.vm?.selection?.addParameterToSelected === 'function'
+                ) {
+                    ctx?.vm?.selection?.addParameterToSelected(clone)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1238,8 +1254,12 @@ export function renderSkillsModule(container, entity, type, ctx, onRefreshDetail
                 if (removeBtn) {
                     removeBtn.addEventListener('click', () => {
                         const skillId = typeof sk.getId === 'function' ? sk.getId() : sk.id
-                        if (ctx && ctx.vm && typeof ctx.vm.removeSkillFromSelected === 'function') {
-                            ctx.vm.removeSkillFromSelected(skillId)
+                        if (
+                            ctx &&
+                            ctx.vm &&
+                            typeof ctx?.vm?.selection?.removeSkillFromSelected === 'function'
+                        ) {
+                            ctx?.vm?.selection?.removeSkillFromSelected(skillId)
                         }
                         refreshDetails(ctx, onRefreshDetails)
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1272,8 +1292,8 @@ export function renderSkillsModule(container, entity, type, ctx, onRefreshDetail
                     skillObj.getStatName ? skillObj.getStatName() : '',
                     skillObj.getModifier ? skillObj.getModifier() : ''
                 )
-                if (ctx && ctx.vm && typeof ctx.vm.addSkillToSelected === 'function') {
-                    ctx.vm.addSkillToSelected(clone)
+                if (ctx && ctx.vm && typeof ctx?.vm?.selection?.addSkillToSelected === 'function') {
+                    ctx?.vm?.selection?.addSkillToSelected(clone)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1442,9 +1462,9 @@ export function renderFeaturesModule(container, entity, type, ctx, onRefreshDeta
                         if (
                             ctx &&
                             ctx.vm &&
-                            typeof ctx.vm.removeFeatureFromSelected === 'function'
+                            typeof ctx?.vm?.selection?.removeFeatureFromSelected === 'function'
                         ) {
-                            ctx.vm.removeFeatureFromSelected(featId)
+                            ctx?.vm?.selection?.removeFeatureFromSelected(featId)
                         }
                         refreshDetails(ctx, onRefreshDetails)
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1473,8 +1493,12 @@ export function renderFeaturesModule(container, entity, type, ctx, onRefreshDeta
                     typeof featObj.getName === 'function' ? featObj.getName() : featObj.name,
                     featObj.getDescription ? featObj.getDescription() : new Description()
                 )
-                if (ctx && ctx.vm && typeof ctx.vm.addFeatureToSelected === 'function') {
-                    ctx.vm.addFeatureToSelected(clone)
+                if (
+                    ctx &&
+                    ctx.vm &&
+                    typeof ctx?.vm?.selection?.addFeatureToSelected === 'function'
+                ) {
+                    ctx?.vm?.selection?.addFeatureToSelected(clone)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {

@@ -115,7 +115,8 @@ export function renderDetailsPanel(ctx) {
     if (!container) return
     container.innerHTML = ''
 
-    const item = ctx.vm.getSelectedItem()
+    const selection = ctx?.vm?.selection
+    const item = selection ? selection.getSelectedItem() : null
     if (!item) {
         container.innerHTML = renderEmptyPlaceholderHtml('§', t('details.no_selection'))
         return

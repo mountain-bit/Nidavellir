@@ -237,7 +237,9 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
                 getLocations: (): Array<{ getId(): string; getName(): string }> => [loc1],
             }
             const mockVm = {
-                removeLocationFromSelected: vi.fn(),
+                selection: {
+                    removeLocationFromSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const mockRenderGraph = vi.fn()
@@ -255,7 +257,7 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
             expect(removeBtn).toBeTruthy()
             removeBtn.click()
 
-            expect(mockVm.removeLocationFromSelected).toHaveBeenCalledWith('l-1')
+            expect(mockVm.selection.removeLocationFromSelected).toHaveBeenCalledWith('l-1')
             expect(mockRefresh).toHaveBeenCalledWith('paragraph')
             expect(mockRenderGraph).toHaveBeenCalledWith(true)
         })
@@ -266,7 +268,9 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
                 getLocations: (): unknown[] => [],
             }
             const mockVm = {
-                addLocationToSelected: vi.fn(),
+                selection: {
+                    addLocationToSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -285,7 +289,7 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
             select.value = 'l-1'
             addBtn.click()
 
-            expect(mockVm.addLocationToSelected).toHaveBeenCalledWith(loc1)
+            expect(mockVm.selection.addLocationToSelected).toHaveBeenCalledWith(loc1)
             expect(mockRefresh).toHaveBeenCalledWith('paragraph')
         })
     })
@@ -316,7 +320,9 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
                 removeCharacter: vi.fn(),
             }
             const mockVm = {
-                removeCharacterFromSelected: vi.fn(),
+                selection: {
+                    removeCharacterFromSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const mockRenderGraph = vi.fn()
@@ -334,7 +340,7 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
             expect(removeBtn).toBeTruthy()
             removeBtn.click()
 
-            expect(mockVm.removeCharacterFromSelected).toHaveBeenCalledWith('c-1')
+            expect(mockVm.selection.removeCharacterFromSelected).toHaveBeenCalledWith('c-1')
             expect(mockRefresh).toHaveBeenCalledWith('paragraph')
             expect(mockRenderGraph).toHaveBeenCalledWith(true)
         })
@@ -347,7 +353,9 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
                 removeCharacter: vi.fn(),
             }
             const mockVm = {
-                addCharacterToSelected: vi.fn(),
+                selection: {
+                    addCharacterToSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -364,7 +372,7 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
             select.value = 'c-1'
             addBtn.click()
 
-            expect(mockVm.addCharacterToSelected).toHaveBeenCalledWith(char1)
+            expect(mockVm.selection.addCharacterToSelected).toHaveBeenCalledWith(char1)
             expect(mockRefresh).toHaveBeenCalledWith('paragraph')
         })
     })
@@ -401,7 +409,9 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
                 removeTag: vi.fn(),
             }
             const mockVm = {
-                removeTagFromSelected: vi.fn(),
+                selection: {
+                    removeTagFromSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -417,7 +427,7 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
             expect(removeBtn).toBeTruthy()
             removeBtn.click()
 
-            expect(mockVm.removeTagFromSelected).toHaveBeenCalledWith('t-1')
+            expect(mockVm.selection.removeTagFromSelected).toHaveBeenCalledWith('t-1')
             expect(mockRefresh).toHaveBeenCalledWith('paragraph')
         })
 
@@ -433,7 +443,9 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
                 removeTag: vi.fn(),
             }
             const mockVm = {
-                addTagToSelected: vi.fn(),
+                selection: {
+                    addTagToSelected: vi.fn(),
+                },
             }
             const mockRefresh = vi.fn()
             const ctx = {
@@ -450,7 +462,7 @@ describe('associationModules - Part 1 (Locations, Characters, Tags)', () => {
             select.value = 't-1'
             addBtn.click()
 
-            expect(mockVm.addTagToSelected).toHaveBeenCalledWith(tag1)
+            expect(mockVm.selection.addTagToSelected).toHaveBeenCalledWith(tag1)
             expect(mockRefresh).toHaveBeenCalledWith('paragraph')
         })
     })

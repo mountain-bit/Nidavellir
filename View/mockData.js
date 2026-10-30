@@ -32,37 +32,38 @@ export const mockFiles = {
  * }}
  */
 export function createMockProjectData(vm) {
+    const factory = vm?.factory
     const projectTags = [
-        vm.createTag('Ważne', '#ef4444'),
-        vm.createTag('Walka', '#dc2626'),
-        vm.createTag('Magia', '#8b5cf6'),
+        factory.createTag('Ważne', '#ef4444'),
+        factory.createTag('Walka', '#dc2626'),
+        factory.createTag('Magia', '#8b5cf6'),
     ]
 
     const projectCharacters = [
-        vm.createCharacter('Strażnik miejski'),
-        vm.createCharacter('Kupiec Jan'),
+        factory.createCharacter('Strażnik miejski'),
+        factory.createCharacter('Kupiec Jan'),
     ]
 
     const projectTemplates = [
-        vm.createTemplate('Archetyp Strażnika'),
-        vm.createTemplate('Bandyta leśny (szablon)'),
+        factory.createTemplate('Archetyp Strażnika'),
+        factory.createTemplate('Bandyta leśny (szablon)'),
     ]
 
     const projectLocations = [
-        vm.createLocation('Karczma Pod Różą'),
-        vm.createLocation('Mroczny Las'),
+        factory.createLocation('Karczma Pod Różą'),
+        factory.createLocation('Mroczny Las'),
     ]
 
-    const projectStats = [vm.createStat('Siła'), vm.createStat('Zręczność')]
+    const projectStats = [factory.createStat('Siła'), factory.createStat('Zręczność')]
     const projectSkills = [
-        vm.createSkill('Walka wręcz', 'Skill', 'direct', '+3'),
-        vm.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2'),
+        factory.createSkill('Walka wręcz', 'Skill', 'direct', '+3'),
+        factory.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2'),
     ]
     const projectParameters = [
-        vm.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
-        vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
+        factory.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
+        factory.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
     ]
-    const projectFeatures = [vm.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
+    const projectFeatures = [factory.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
     const projectItems = [
         {
             id: 'item_sword',

@@ -16,10 +16,16 @@ export function renderParagraphsList(ctx) {
     if (!container) return
 
     if (ctx && ctx.vm && Array.isArray(ctx.projectParagraphs)) {
-        ctx.vm.ensureStartParagraph(ctx.projectParagraphs)
+        const factory = ctx.vm.factory || ctx.vm
+        if (typeof factory?.ensureStartParagraph === 'function') {
+            factory.ensureStartParagraph(ctx.projectParagraphs)
+        }
     }
 
-    const filtered = ctx.vm.searchAndFilterParagraphs(ctx.projectParagraphs)
+    const filter = ctx?.vm?.filter
+    const filtered = filter?.searchAndFilterParagraphs
+        ? filter.searchAndFilterParagraphs(ctx.projectParagraphs)
+        : ctx.projectParagraphs
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_paragraphs">${t('left_panel.no_paragraphs')}</p>`
         return
@@ -94,7 +100,10 @@ export function renderScenesList(ctx) {
     const container = document.getElementById('scenes-list-container')
     if (!container) return
 
-    const filtered = ctx.vm.searchAndFilterScenes(ctx.projectScenes)
+    const filter = ctx?.vm?.filter
+    const filtered = filter?.searchAndFilterScenes
+        ? filter.searchAndFilterScenes(ctx.projectScenes)
+        : ctx.projectScenes
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_scenes">${t('left_panel.no_scenes')}</p>`
         return
@@ -145,7 +154,10 @@ export function renderTagsList(ctx) {
     const container = document.getElementById('tags-list-container')
     if (!container) return
 
-    const filtered = ctx.vm.searchAndFilterTags(ctx.projectTags)
+    const filter = ctx?.vm?.filter
+    const filtered = filter?.searchAndFilterTags
+        ? filter.searchAndFilterTags(ctx.projectTags)
+        : ctx.projectTags
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_tags">${t('left_panel.no_tags')}</p>`
         return
@@ -202,14 +214,15 @@ export function renderCharactersList(ctx) {
     const charactersList = ctx.projectCharacters || []
     const templatesList = ctx.projectTemplates || []
 
+    const filter = ctx?.vm?.filter
     const filteredCharacters =
-        ctx.vm && typeof ctx.vm.searchAndFilterCharacters === 'function'
-            ? ctx.vm.searchAndFilterCharacters(charactersList)
+        filter && typeof filter.searchAndFilterCharacters === 'function'
+            ? filter.searchAndFilterCharacters(charactersList)
             : charactersList
 
     const filteredTemplates =
-        ctx.vm && typeof ctx.vm.searchAndFilterTemplates === 'function'
-            ? ctx.vm.searchAndFilterTemplates(templatesList)
+        filter && typeof filter.searchAndFilterTemplates === 'function'
+            ? filter.searchAndFilterTemplates(templatesList)
             : templatesList
 
     const totalCount = filteredCharacters.length + filteredTemplates.length
@@ -354,7 +367,10 @@ export function renderLocationsList(ctx) {
     const container = document.getElementById('locations-list-container')
     if (!container) return
 
-    const filtered = ctx.vm.searchAndFilterLocations(ctx.projectLocations)
+    const filter = ctx?.vm?.filter
+    const filtered = filter?.searchAndFilterLocations
+        ? filter.searchAndFilterLocations(ctx.projectLocations)
+        : ctx.projectLocations
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_locations">${t('left_panel.no_locations')}</p>`
         return
@@ -400,9 +416,10 @@ export function renderItemsList(ctx) {
 
     const rawItems =
         ctx?.projectItems || ctx?.projectData?.projectItems || ctx?.projectData?.items || []
+    const filter = ctx?.vm?.filter
     const filtered =
-        ctx?.vm && typeof ctx.vm.searchAndFilterItems === 'function'
-            ? ctx.vm.searchAndFilterItems(rawItems)
+        filter && typeof filter.searchAndFilterItems === 'function'
+            ? filter.searchAndFilterItems(rawItems)
             : rawItems
 
     if (filtered.length === 0) {
@@ -516,21 +533,22 @@ export function renderTraitsList(ctx) {
     const skills = ctx.projectSkills || []
     const features = ctx.projectFeatures || []
 
+    const filter = ctx?.vm?.filter
     const filteredStats =
-        typeof ctx.vm?.searchAndFilterStats === 'function'
-            ? ctx.vm.searchAndFilterStats(stats)
+        typeof filter?.searchAndFilterStats === 'function'
+            ? filter.searchAndFilterStats(stats)
             : stats
     const filteredParams =
-        typeof ctx.vm?.searchAndFilterParameters === 'function'
-            ? ctx.vm.searchAndFilterParameters(parameters)
+        typeof filter?.searchAndFilterParameters === 'function'
+            ? filter.searchAndFilterParameters(parameters)
             : parameters
     const filteredSkills =
-        typeof ctx.vm?.searchAndFilterSkills === 'function'
-            ? ctx.vm.searchAndFilterSkills(skills)
+        typeof filter?.searchAndFilterSkills === 'function'
+            ? filter.searchAndFilterSkills(skills)
             : skills
     const filteredFeatures =
-        typeof ctx.vm?.searchAndFilterFeatures === 'function'
-            ? ctx.vm.searchAndFilterFeatures(features)
+        typeof filter?.searchAndFilterFeatures === 'function'
+            ? filter.searchAndFilterFeatures(features)
             : features
 
     const totalFiltered =
@@ -700,8 +718,12 @@ export function renderConnectionsList(ctx) {
     const container = document.getElementById('connections-list-container')
     if (!container) return
 
-    const allChoices = ctx.vm.getAllChoices(ctx.projectParagraphs)
-    const filtered = ctx.vm.searchAndFilterChoices(allChoices, ctx.projectParagraphs)
+    const graph = ctx?.vm?.graph
+    const filter = ctx?.vm?.filter
+    const allChoices = graph?.getAllChoices ? graph.getAllChoices(ctx.projectParagraphs) : []
+    const filtered = filter?.searchAndFilterChoices
+        ? filter.searchAndFilterChoices(allChoices, ctx.projectParagraphs)
+        : allChoices
 
     if (filtered.length === 0) {
         container.innerHTML = `<p class="italic text-gray-500" data-i18n="left_panel.no_connections">${t('left_panel.no_connections')}</p>`
@@ -783,7 +805,7 @@ export function renderConnectionsList(ctx) {
                     t('context_menu.confirm_delete', { name: choice.getName() || choice.getId() })
                 )
             ) {
-                ctx.vm.deleteChoice(id, ctx.projectParagraphs)
+                graph?.deleteChoice(id, ctx.projectParagraphs)
                 renderConnectionsList(ctx)
                 renderParagraphsList(ctx)
                 if (ctx.renderHistoryBar) ctx.renderHistoryBar(ctx)

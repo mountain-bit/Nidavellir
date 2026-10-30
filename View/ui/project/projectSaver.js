@@ -24,7 +24,7 @@ export async function saveFullProject(ctx, options = {}) {
 
     try {
         // Ensure any active file content in TipTap / textarea is flushed
-        if (ctx?.vm && typeof ctx.vm.getActiveFile === 'function') {
+        if (ctx?.vm && typeof ctx.vm?.files?.getActiveFile === 'function') {
             saveActiveFile(ctx)
         }
 

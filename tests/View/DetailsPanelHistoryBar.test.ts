@@ -71,8 +71,10 @@ describe('historyBar module & navigation index', () => {
         it('renders empty placeholder if history is empty', () => {
             const ctx = {
                 vm: {
-                    getHistory: (): unknown[] => [],
-                    getSelectedItem: (): unknown => null,
+                    selection: {
+                        getHistory: (): unknown[] => [],
+                        getSelectedItem: (): unknown => null,
+                    },
                 },
             }
 
@@ -88,11 +90,13 @@ describe('historyBar module & navigation index', () => {
             ]
             const ctx = {
                 vm: {
-                    getHistory: (): unknown[] => mockHistory,
-                    getSelectedItem: (): unknown => mockHistory[0],
-                    selectHistoryItem: vi.fn(),
-                    closeHistoryItem: vi.fn(),
-                    closeAllHistory: vi.fn(),
+                    selection: {
+                        getHistory: (): unknown[] => mockHistory,
+                        getSelectedItem: (): unknown => mockHistory[0],
+                        selectHistoryItem: vi.fn(),
+                        closeHistoryItem: vi.fn(),
+                        closeAllHistory: vi.fn(),
+                    },
                 },
                 renderDetailsPanel: vi.fn(),
             }
@@ -121,11 +125,13 @@ describe('historyBar module & navigation index', () => {
             const refreshSpy = vi.fn()
             const ctx = {
                 vm: {
-                    getHistory: (): unknown[] => mockHistory,
-                    getSelectedItem: (): unknown => mockHistory[0],
-                    selectHistoryItem: selectSpy,
-                    closeHistoryItem: vi.fn(),
-                    closeAllHistory: vi.fn(),
+                    selection: {
+                        getHistory: (): unknown[] => mockHistory,
+                        getSelectedItem: (): unknown => mockHistory[0],
+                        selectHistoryItem: selectSpy,
+                        closeHistoryItem: vi.fn(),
+                        closeAllHistory: vi.fn(),
+                    },
                 },
             }
 
@@ -144,11 +150,13 @@ describe('historyBar module & navigation index', () => {
             const refreshSpy = vi.fn()
             const ctx = {
                 vm: {
-                    getHistory: (): unknown[] => mockHistory,
-                    getSelectedItem: (): unknown => mockHistory[0],
-                    selectHistoryItem: vi.fn(),
-                    closeHistoryItem: closeSpy,
-                    closeAllHistory: vi.fn(),
+                    selection: {
+                        getHistory: (): unknown[] => mockHistory,
+                        getSelectedItem: (): unknown => mockHistory[0],
+                        selectHistoryItem: vi.fn(),
+                        closeHistoryItem: closeSpy,
+                        closeAllHistory: vi.fn(),
+                    },
                 },
             }
 
@@ -170,11 +178,13 @@ describe('historyBar module & navigation index', () => {
             const refreshSpy = vi.fn()
             const ctx = {
                 vm: {
-                    getHistory: (): unknown[] => mockHistory,
-                    getSelectedItem: (): unknown => mockHistory[0],
-                    selectHistoryItem: vi.fn(),
-                    closeHistoryItem: vi.fn(),
-                    closeAllHistory: closeAllSpy,
+                    selection: {
+                        getHistory: (): unknown[] => mockHistory,
+                        getSelectedItem: (): unknown => mockHistory[0],
+                        selectHistoryItem: vi.fn(),
+                        closeHistoryItem: vi.fn(),
+                        closeAllHistory: closeAllSpy,
+                    },
                 },
             }
 
@@ -193,8 +203,10 @@ describe('historyBar module & navigation index', () => {
         it('translates correctly in English and German without hardcoded strings', async () => {
             const ctx = {
                 vm: {
-                    getHistory: (): unknown[] => [],
-                    getSelectedItem: (): unknown => null,
+                    selection: {
+                        getHistory: (): unknown[] => [],
+                        getSelectedItem: (): unknown => null,
+                    },
                 },
             }
 

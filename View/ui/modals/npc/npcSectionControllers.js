@@ -1288,8 +1288,8 @@ export function renderDynamicSuggestions(ctx) {
             effectiveCtx.projectCharacters ||
             (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
             []
-        const suggestedStats = vm?.getSuggestedStats
-            ? vm.getSuggestedStats(existingStats, characters)
+        const suggestedStats = vm?.filter?.getSuggestedStats
+            ? vm.filter.getSuggestedStats(existingStats, characters)
             : existingStats.map(s => (s.getName ? s.getName() : s.name)).filter(Boolean)
 
         if (suggestedStats.length === 0) {
@@ -1330,8 +1330,8 @@ export function renderDynamicSuggestions(ctx) {
             effectiveCtx.projectCharacters ||
             (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
             []
-        const suggestedVitals = vm?.getSuggestedParameters
-            ? vm.getSuggestedParameters(existingParams, characters)
+        const suggestedVitals = vm?.filter?.getSuggestedParameters
+            ? vm.filter.getSuggestedParameters(existingParams, characters)
             : existingParams.map(p => (p.getName ? p.getName() : p.name)).filter(Boolean)
 
         if (suggestedVitals.length === 0) {
@@ -1381,8 +1381,8 @@ export function renderDynamicSuggestions(ctx) {
             effectiveCtx.projectCharacters ||
             (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
             []
-        const suggestedSkills = vm?.getSuggestedSkills
-            ? vm.getSuggestedSkills(existingSkills, characters)
+        const suggestedSkills = vm?.filter?.getSuggestedSkills
+            ? vm.filter.getSuggestedSkills(existingSkills, characters)
             : existingSkills.map(s => (s.getName ? s.getName() : s.name)).filter(Boolean)
 
         if (suggestedSkills.length === 0) {
@@ -1437,8 +1437,8 @@ export function renderDynamicSuggestions(ctx) {
             effectiveCtx.projectCharacters ||
             (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
             []
-        const suggestedAttrs = vm?.getSuggestedFeatures
-            ? vm.getSuggestedFeatures(existingFeatures, characters)
+        const suggestedAttrs = vm?.filter?.getSuggestedFeatures
+            ? vm.filter.getSuggestedFeatures(existingFeatures, characters)
             : existingFeatures.map(f => (f.getName ? f.getName() : f.name)).filter(Boolean)
 
         if (suggestedAttrs.length === 0) {
@@ -1476,8 +1476,8 @@ export function renderDynamicSuggestions(ctx) {
             effectiveCtx.projectCharacters ||
             (vm?.project?.getCharacters ? vm.project.getCharacters() : []) ||
             []
-        let suggestedTags = vm?.getSuggestedTags
-            ? vm.getSuggestedTags(existingTags, characters)
+        let suggestedTags = vm?.filter?.getSuggestedTags
+            ? vm.filter.getSuggestedTags(existingTags, characters)
             : existingTags.map(tObj => (tObj.getName ? tObj.getName() : tObj.name)).filter(Boolean)
 
         if (suggestedTags.length === 0) {

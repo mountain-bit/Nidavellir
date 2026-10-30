@@ -169,8 +169,10 @@ describe('entityConfigModules - Part 1 (Header, Avatar, Name, Color)', () => {
         let mockItem: { id: string; name: string; type: string }
         let mockCtx: {
             vm: {
-                validateName: (val: string) => { valid: boolean; message: string }
-                updateName: (val: string) => void
+                selection: {
+                    validateName: (val: string) => { valid: boolean; message: string }
+                    updateName: (val: string) => void
+                }
             }
             refreshActiveSection: (type?: string) => void
         }
@@ -179,13 +181,15 @@ describe('entityConfigModules - Part 1 (Header, Avatar, Name, Color)', () => {
             mockItem = { id: 'it_1', name: 'Stary Miecz', type: 'item' }
             mockCtx = {
                 vm: {
-                    validateName: vi.fn((val: string) => ({
-                        valid: val.length > 0,
-                        message: val.length === 0 ? 'Nazwa jest wymagana' : '',
-                    })),
-                    updateName: vi.fn((val: string) => {
-                        mockItem.name = val
-                    }),
+                    selection: {
+                        validateName: vi.fn((val: string) => ({
+                            valid: val.length > 0,
+                            message: val.length === 0 ? 'Nazwa jest wymagana' : '',
+                        })),
+                        updateName: vi.fn((val: string) => {
+                            mockItem.name = val
+                        }),
+                    },
                 },
                 refreshActiveSection: vi.fn(),
             }
@@ -229,12 +233,12 @@ describe('entityConfigModules - Part 1 (Header, Avatar, Name, Color)', () => {
             input.value = 'Młot Bojowy'
             input.dispatchEvent(new Event('blur'))
 
-            expect(mockCtx.vm.updateName).toHaveBeenCalledWith('Młot Bojowy', [], mockCtx)
+            expect(mockCtx.vm.selection.updateName).toHaveBeenCalledWith('Młot Bojowy', [], mockCtx)
             expect(mockCtx.refreshActiveSection).toHaveBeenCalledWith('item')
 
             input.value = 'Sztylet'
             input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-            expect(mockCtx.vm.updateName).toHaveBeenCalledWith('Sztylet', [], mockCtx)
+            expect(mockCtx.vm.selection.updateName).toHaveBeenCalledWith('Sztylet', [], mockCtx)
         })
     })
 

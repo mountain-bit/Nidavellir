@@ -47,13 +47,15 @@ export interface IChoiceLike {
 }
 
 export interface ICombatSyncViewModel {
-    createChoice?: (
-        sourceParagraph: Paragraph,
-        targetParagraph: Paragraph,
-        name: string,
-        targetName?: string
-    ) => Choice | IChoiceLike | null | undefined
-    deleteChoice?: (choiceId: string, allParagraphs: Paragraph[]) => void
+    graph?: {
+        createChoice?: (
+            sourceParagraph: Paragraph,
+            targetParagraph: Paragraph,
+            name: string,
+            targetName?: string
+        ) => Choice | IChoiceLike | null | undefined
+        deleteChoice?: (choiceId: string, allParagraphs: Paragraph[]) => void
+    }
     idGenerator?: (prefix: string) => string
 }
 
@@ -275,9 +277,10 @@ export class CombatSyncService {
         }
 
         let choiceId = outcomeId
+        const graph = typedVm?.graph
 
-        if (targetParagraph && typedVm && typeof typedVm.createChoice === 'function') {
-            const ch = typedVm.createChoice(
+        if (targetParagraph && graph && typeof graph.createChoice === 'function') {
+            const ch = graph.createChoice(
                 sourceParagraph,
                 targetParagraph,
                 outcomeName,
@@ -474,8 +477,9 @@ export class CombatSyncService {
                 paragraph.removeChoice(outcomeId)
             }
         }
-        if (typedVm && typeof typedVm.deleteChoice === 'function') {
-            typedVm.deleteChoice(effectiveId, allParagraphs)
+        const graph = typedVm?.graph
+        if (graph && typeof graph.deleteChoice === 'function') {
+            graph.deleteChoice(effectiveId, allParagraphs)
         }
     }
 

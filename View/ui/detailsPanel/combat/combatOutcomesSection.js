@@ -185,8 +185,9 @@ export function calculateNewOutcomeNodePosition(entity, outcomeCount = 0) {
  */
 export function createNewTargetParagraph(newTitle, entity, outcomeCount, allParagraphs, ctx) {
     let targetP = null
-    if (ctx?.vm && typeof ctx.vm.createParagraph === 'function') {
-        targetP = ctx.vm.createParagraph(newTitle)
+    const factory = ctx?.vm?.factory
+    if (factory && typeof factory.createParagraph === 'function') {
+        targetP = factory.createParagraph(newTitle)
     } else {
         targetP = new Paragraph(`p_${Date.now()}`, newTitle, '')
     }

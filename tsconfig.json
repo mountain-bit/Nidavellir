@@ -18,6 +18,7 @@
     "include": [
         "Model/**/*.ts",
         "ViewModel/**/*.ts",
+        "View/**/*.ts",
         "Services/**/*.ts",
         "Utils/**/*.ts",
         "Modules/**/*.ts",

@@ -5,7 +5,9 @@ import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { Tag } from '../../Model/Tag'
 import type { TranslationKey } from '../../Utils/i18n/translate'
-import { ConnectionLineStyle, ICytoscapeStyleRule } from './styles/StoryGraphStyles'
+import type { ConnectionLineStyle, ICytoscapeStyleRule } from './styles/StoryGraphStyles'
+
+export type { ConnectionLineStyle, ICytoscapeStyleRule }
 
 export interface IStoryGraphOptions {
     canvasContainer: HTMLElement

@@ -12,7 +12,9 @@ describe('itemDescriptionSection Component', () => {
     let descObj: Description
     let ctx: {
         vm: {
-            openOrCreateDescriptionFile: ReturnType<typeof vi.fn>
+            files: {
+                openOrCreateDescriptionFile: ReturnType<typeof vi.fn>
+            }
         }
         files: Record<string, string>
         updateMainWorkspaceUI: ReturnType<typeof vi.fn>
@@ -25,10 +27,12 @@ describe('itemDescriptionSection Component', () => {
 
         ctx = {
             vm: {
-                openOrCreateDescriptionFile: vi.fn().mockReturnValue({
-                    fileName: 'Items/it_sword.md',
-                    content: '# Miecz\n\nPełny opis.',
-                }),
+                files: {
+                    openOrCreateDescriptionFile: vi.fn().mockReturnValue({
+                        fileName: 'Items/it_sword.md',
+                        content: '# Miecz\n\nPełny opis.',
+                    }),
+                },
             },
             files: {},
             updateMainWorkspaceUI: vi.fn(),
@@ -99,7 +103,7 @@ describe('itemDescriptionSection Component', () => {
             expect(button).not.toBeNull()
             button.click()
 
-            expect(ctx.vm.openOrCreateDescriptionFile).toHaveBeenCalledWith(descObj)
+            expect(ctx.vm.files.openOrCreateDescriptionFile).toHaveBeenCalledWith(descObj)
             expect(ctx.files['Items/it_sword.md']).toBe('# Miecz\n\nPełny opis.')
             expect(ctx.updateMainWorkspaceUI).toHaveBeenCalled()
         })

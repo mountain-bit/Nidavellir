@@ -83,8 +83,8 @@ export function createItemDescriptionSection(descObj, summary, ctx) {
 
     if (openMdBtn) {
         openMdBtn.addEventListener('click', () => {
-            if (ctx?.vm && typeof ctx.vm.openOrCreateDescriptionFile === 'function') {
-                const res = ctx.vm.openOrCreateDescriptionFile(safeDescObj)
+            if (ctx?.vm && typeof ctx.vm?.files?.openOrCreateDescriptionFile === 'function') {
+                const res = ctx.vm.files.openOrCreateDescriptionFile(safeDescObj)
                 if (res && res.fileName && ctx.files) {
                     ctx.files[res.fileName] = res.content
                     if (typeof ctx.updateMainWorkspaceUI === 'function') {

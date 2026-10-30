@@ -10,7 +10,9 @@ import {
 
 interface IMockDescriptionContext {
     vm: {
-        getActiveFile: () => string
+        files: {
+            getActiveFile: () => string
+        }
     }
     files: Record<string, string>
     projectData: {
@@ -74,7 +76,9 @@ describe('DescriptionEmbedModal Integration', () => {
 
         ctx = {
             vm: {
-                getActiveFile: vi.fn().mockReturnValue('paragraph_1.md'),
+                files: {
+                    getActiveFile: vi.fn().mockReturnValue('paragraph_1.md'),
+                },
             },
             files: {
                 'paragraph_1.md': 'Początek rozdziału.',
@@ -117,7 +121,7 @@ describe('DescriptionEmbedModal Integration', () => {
             element: container,
             initialContent: 'Początek rozdziału.',
             onUpdate: (markdown: string): void => {
-                const active = ctx.vm.getActiveFile()
+                const active = ctx.vm.files.getActiveFile()
                 if (active) {
                     ctx.files[active] = markdown
                 }

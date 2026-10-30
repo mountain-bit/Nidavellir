@@ -254,17 +254,17 @@ describe('EntityLinkUpdateService', () => {
     })
 
     describe('MainWindowViewModel integration', () => {
-        it('renaming an entity through vm.updateName refactors links and fileDisplayNames', () => {
+        it('renaming an entity through vm.selection.updateName refactors links and fileDisplayNames', () => {
             const vm = new MainWindowViewModel()
-            const p1 = vm.createParagraph('Stary Rozdział')
+            const p1 = vm.factory.createParagraph('Stary Rozdział')
             p1.setId('p_chap1')
-            const p2 = vm.createParagraph('Kolejny Krok')
+            const p2 = vm.factory.createParagraph('Kolejny Krok')
             p2.getContent().setText('Wróć do [§ 1 Stary Rozdział](entity://paragraph/p_chap1).')
 
-            vm.setFileDisplayName('paragraph_p_chap1.md', 'Stary Rozdział')
-            vm.selectElement(p1, 'paragraph')
+            vm.files.setFileDisplayName('paragraph_p_chap1.md', 'Stary Rozdział')
+            vm.selection.selectElement(p1, 'paragraph')
 
-            const success = vm.updateName('Nowy Rozdział', [p1, p2], {
+            const success = vm.selection.updateName('Nowy Rozdział', [p1, p2], {
                 paragraphs: [p1, p2],
                 files: {
                     'custom.md': 'Oto link: [§ 1 Stary Rozdział](entity://paragraph/p_chap1)',
@@ -277,7 +277,7 @@ describe('EntityLinkUpdateService', () => {
             expect(p2.getContent().getText()).toContain(
                 '[§ 1 Nowy Rozdział](entity://paragraph/p_chap1)'
             )
-            expect(vm.getFileDisplayName('paragraph_p_chap1.md')).toBe('Nowy Rozdział')
+            expect(vm.files.getFileDisplayName('paragraph_p_chap1.md')).toBe('Nowy Rozdział')
         })
     })
 })

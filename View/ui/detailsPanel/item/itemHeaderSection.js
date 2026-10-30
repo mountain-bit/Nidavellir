@@ -77,8 +77,8 @@ export function createItemHeaderSection(
     const closeBtn = headerMod.querySelector('#btn-details-close-item')
     closeBtn?.addEventListener('click', () => {
         const historyId = item?.id || resolvedId
-        if (ctx?.vm && typeof ctx.vm.closeHistoryItem === 'function') {
-            ctx.vm.closeHistoryItem(historyId)
+        if (ctx?.vm && typeof ctx.vm?.selection?.closeHistoryItem === 'function') {
+            ctx.vm.selection.closeHistoryItem(historyId)
         }
         if (typeof onRefreshDetails === 'function') {
             onRefreshDetails(ctx)

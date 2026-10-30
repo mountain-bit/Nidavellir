@@ -10,8 +10,9 @@ import { escapeHtml } from '../common/htmlTemplates.js'
 export function renderFilterTags(ctx) {
     const filterTagsContainer = document.getElementById('filter-tags-list')
     if (!filterTagsContainer) return
+    const filter = ctx?.vm?.filter
 
-    const selectedTag = ctx.vm.getSelectedFilterTag()
+    const selectedTag = filter?.getSelectedFilterTag ? filter.getSelectedFilterTag() : null
 
     if (ctx.projectTags.length === 0) {
         filterTagsContainer.innerHTML = `<span class="text-[10px] text-gray-500 italic" data-i18n="left_panel.no_tags">${t('left_panel.no_tags')}</span>`
@@ -41,11 +42,13 @@ export function renderFilterTags(ctx) {
             e.stopPropagation()
             const tagId = btn.dataset.tagId
             const tagName = btn.dataset.tagName
-            const currentSelected = ctx.vm.getSelectedFilterTag()
+            const currentSelected = filter?.getSelectedFilterTag
+                ? filter.getSelectedFilterTag()
+                : null
             if (currentSelected === tagId || currentSelected === tagName) {
-                ctx.vm.setSelectedFilterTag(null)
+                filter?.setSelectedFilterTag(null)
             } else {
-                ctx.vm.setSelectedFilterTag(tagName || tagId)
+                filter?.setSelectedFilterTag(tagName || tagId)
             }
             updateFilterBadgeState(ctx)
             renderFilterTags(ctx)
@@ -62,9 +65,12 @@ export function renderFilterTags(ctx) {
 export function populateFilterSelects(ctx) {
     const charSelect = document.getElementById('filter-character-select')
     const sceneSelect = document.getElementById('filter-scene-select')
+    const filter = ctx?.vm?.filter
 
     if (charSelect) {
-        const currentVal = ctx.vm.getSelectedFilterCharacter() || ''
+        const currentVal = filter?.getSelectedFilterCharacter
+            ? filter.getSelectedFilterCharacter() || ''
+            : ''
         charSelect.innerHTML =
             `<option value="" data-i18n="left_panel.all_characters">${t('left_panel.all_characters')}</option>` +
             ctx.projectCharacters
@@ -76,7 +82,9 @@ export function populateFilterSelects(ctx) {
     }
 
     if (sceneSelect) {
-        const currentVal = ctx.vm.getSelectedFilterScene() || ''
+        const currentVal = filter?.getSelectedFilterScene
+            ? filter.getSelectedFilterScene() || ''
+            : ''
         sceneSelect.innerHTML =
             `<option value="" data-i18n="left_panel.all_scenes">${t('left_panel.all_scenes')}</option>` +
             ctx.projectScenes
@@ -96,10 +104,11 @@ export function populateFilterSelects(ctx) {
 export function updateFilterBadgeState(ctx) {
     const badge = document.getElementById('active-filter-badge')
     if (!badge) return
+    const filter = ctx?.vm?.filter
     const hasActiveFilter = Boolean(
-        ctx.vm.getSelectedFilterTag() ||
-        ctx.vm.getSelectedFilterCharacter() ||
-        ctx.vm.getSelectedFilterScene()
+        filter?.getSelectedFilterTag?.() ||
+        filter?.getSelectedFilterCharacter?.() ||
+        filter?.getSelectedFilterScene?.()
     )
     if (hasActiveFilter) {
         badge.classList.remove('hidden')
@@ -120,10 +129,11 @@ export function setupParagraphSearchAndFilters(ctx) {
     const clearFiltersBtn = document.getElementById('btn-clear-paragraph-filters')
     const charSelect = document.getElementById('filter-character-select')
     const sceneSelect = document.getElementById('filter-scene-select')
+    const filter = ctx?.vm?.filter
 
     if (searchInput) {
         searchInput.addEventListener('input', () => {
-            ctx.vm.setParagraphSearchQuery(searchInput.value)
+            filter?.setParagraphSearchQuery?.(searchInput.value)
             ctx.renderParagraphsList()
         })
     }
@@ -148,7 +158,7 @@ export function setupParagraphSearchAndFilters(ctx) {
 
     if (charSelect) {
         charSelect.addEventListener('change', () => {
-            ctx.vm.setSelectedFilterCharacter(charSelect.value || null)
+            filter?.setSelectedFilterCharacter?.(charSelect.value || null)
             updateFilterBadgeState(ctx)
             ctx.renderParagraphsList()
         })
@@ -156,7 +166,7 @@ export function setupParagraphSearchAndFilters(ctx) {
 
     if (sceneSelect) {
         sceneSelect.addEventListener('change', () => {
-            ctx.vm.setSelectedFilterScene(sceneSelect.value || null)
+            filter?.setSelectedFilterScene?.(sceneSelect.value || null)
             updateFilterBadgeState(ctx)
             ctx.renderParagraphsList()
         })
@@ -164,7 +174,7 @@ export function setupParagraphSearchAndFilters(ctx) {
 
     if (clearFiltersBtn) {
         clearFiltersBtn.addEventListener('click', () => {
-            ctx.vm.clearParagraphFilters()
+            filter?.clearParagraphFilters?.()
             if (searchInput) searchInput.value = ''
             if (charSelect) charSelect.value = ''
             if (sceneSelect) sceneSelect.value = ''

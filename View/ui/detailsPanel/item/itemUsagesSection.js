@@ -135,8 +135,9 @@ export function createUsageRow(usage, ctx, onRefreshDetails) {
         if (typeof ctx?.selectEntity === 'function') {
             ctx.selectEntity(p, 'paragraph')
         } else if (ctx?.vm) {
-            if (typeof ctx.vm.selectElement === 'function') {
-                ctx.vm.selectElement(p, 'paragraph')
+            const selection = ctx?.vm?.selection
+            if (typeof selection.selectElement === 'function') {
+                selection.selectElement(p, 'paragraph')
             }
             if (typeof onRefreshDetails === 'function') {
                 onRefreshDetails(ctx)

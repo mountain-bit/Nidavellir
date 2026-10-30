@@ -56,7 +56,8 @@ export function renderChoiceDetails(container, choice, item, ctx, onRefreshDetai
         const nameVal = (nameInput ? nameInput.value.trim() : '') || choice.getName()
         const conditionObj = conditionSection ? conditionSection.buildConditionObject() : null
 
-        ctx.vm.updateChoiceDetails(
+        const graph = ctx?.vm?.graph
+        graph?.updateChoiceDetails(
             choice,
             nameVal,
             conditionObj,

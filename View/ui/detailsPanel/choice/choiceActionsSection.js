@@ -22,8 +22,9 @@ import { renderHistoryBar } from '../historyBar.js'
 export function handleShowGraph(choice, ctx) {
     if (!ctx) return
 
-    if (typeof ctx.vm?.setActiveMainView === 'function') {
-        ctx.vm.setActiveMainView('graph')
+    const layout = ctx?.vm?.layout
+    if (typeof layout?.setActiveMainView === 'function') {
+        layout.setActiveMainView('graph')
     }
     if (typeof ctx.updateMainWorkspaceUI === 'function') {
         ctx.updateMainWorkspaceUI()
@@ -76,8 +77,9 @@ export function handleDeleteChoice({ choice, ctx, onRefreshDetails, confirmFn } 
     const choiceId = typeof choice.getId === 'function' ? choice.getId() : choice.id
     if (!choiceId) return false
 
-    if (typeof ctx.vm?.deleteChoice === 'function') {
-        ctx.vm.deleteChoice(choiceId, ctx.projectParagraphs || [])
+    const graph = ctx?.vm?.graph
+    if (typeof graph?.deleteChoice === 'function') {
+        graph.deleteChoice(choiceId, ctx.projectParagraphs || [])
     }
 
     if (typeof ctx.markProjectDirty === 'function') {

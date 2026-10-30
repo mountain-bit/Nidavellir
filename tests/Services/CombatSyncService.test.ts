@@ -80,13 +80,15 @@ describe('CombatSyncService', () => {
             expect(p1.getChoices().length).toBe(0)
         })
 
-        it('delegates choice creation to viewModel when vm.createChoice is available', () => {
+        it('delegates choice creation to viewModel when vm.graph.createChoice is available', () => {
             const p1 = new Paragraph('p1', 'Wejście')
             const p2 = new Paragraph('p2', 'Wyjście')
             const fakeChoice = new Choice('vm_generated_id', 'Zwycięstwo', 'p1', 'p2')
 
             const vm: ICombatSyncViewModel = {
-                createChoice: vi.fn(() => fakeChoice),
+                graph: {
+                    createChoice: vi.fn(() => fakeChoice),
+                },
             }
 
             const resultId = CombatSyncService.createOutcomeChoice(
@@ -98,7 +100,7 @@ describe('CombatSyncService', () => {
                 vm
             )
 
-            expect(vm.createChoice).toHaveBeenCalledWith(p1, p2, 'Zwycięstwo', 'Zwycięstwo')
+            expect(vm.graph?.createChoice).toHaveBeenCalledWith(p1, p2, 'Zwycięstwo', 'Zwycięstwo')
             expect(resultId).toBe('vm_generated_id')
             expect(fakeChoice.getIsCombatOutcome()).toBe(true)
         })
@@ -206,20 +208,22 @@ describe('CombatSyncService', () => {
             expect(combat.getOutcomes()[0].name).toBe('Paniczna ucieczka')
         })
 
-        it('calls vm.deleteChoice when removeOutcomeChoice is invoked with viewModel', () => {
+        it('calls vm.graph.deleteChoice when removeOutcomeChoice is invoked with viewModel', () => {
             const p = new Paragraph('p1', 'Arena')
             const choice = new Choice('ch_to_delete', 'Wynik', 'p1', 'p2')
             p.addChoice(choice)
 
             const allParagraphs = [p]
             const vm: ICombatSyncViewModel = {
-                deleteChoice: vi.fn(),
+                graph: {
+                    deleteChoice: vi.fn(),
+                },
             }
 
             CombatSyncService.removeOutcomeChoice(p, 'ch_to_delete', allParagraphs, vm)
 
             expect(p.getChoices().length).toBe(0)
-            expect(vm.deleteChoice).toHaveBeenCalledWith('ch_to_delete', allParagraphs)
+            expect(vm.graph?.deleteChoice).toHaveBeenCalledWith('ch_to_delete', allParagraphs)
         })
     })
 })

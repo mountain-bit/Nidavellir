@@ -382,7 +382,8 @@ export function renderItemsModule(container, entity, type, ctx = {}, onRefreshDe
             if (projectItem && typeof ctx?.selectEntity === 'function') {
                 ctx.selectEntity(projectItem, 'item')
             } else if (ctx?.vm && projectItem) {
-                ctx.vm.selectElement(projectItem, 'item')
+                const selection = ctx.vm.selection || ctx.vm
+                selection?.selectElement?.(projectItem, 'item')
                 refreshDetails(ctx, onRefreshDetails, type)
             }
         })
@@ -471,8 +472,9 @@ export function renderItemsModule(container, entity, type, ctx = {}, onRefreshDe
         const finalName = (nameInput || '').trim() || defaultName
 
         let newItem
-        if (ctx?.vm && typeof ctx.vm.createItem === 'function') {
-            newItem = ctx.vm.createItem(finalName, defaultName)
+        const factory = ctx?.vm?.factory
+        if (factory && typeof factory.createItem === 'function') {
+            newItem = factory.createItem(finalName, defaultName)
         } else {
             newItem = {
                 id: `item_${Date.now()}`,

@@ -21,7 +21,7 @@ describe('choiceHeader', () => {
     let toParagraph: Paragraph
     let ctx: {
         projectParagraphs: Paragraph[]
-        vm: { updateChoiceDetails: ReturnType<typeof vi.fn> }
+        vm: { graph: { updateChoiceDetails: ReturnType<typeof vi.fn> } }
         renderConnectionsList: ReturnType<typeof vi.fn>
         renderParagraphsList: ReturnType<typeof vi.fn>
         selectEntity: ReturnType<typeof vi.fn>
@@ -41,7 +41,9 @@ describe('choiceHeader', () => {
         ctx = {
             projectParagraphs: [fromParagraph, toParagraph],
             vm: {
-                updateChoiceDetails: vi.fn(),
+                graph: {
+                    updateChoiceDetails: vi.fn(),
+                },
             },
             renderConnectionsList: vi.fn(),
             renderParagraphsList: vi.fn(),
@@ -180,7 +182,7 @@ describe('choiceHeader', () => {
             expect(nameError.textContent).toBe('Nazwa nie może być pusta.')
             expect(nameError.classList.contains('hidden')).toBe(false)
             expect(nameInput.classList.contains('border-red-500')).toBe(true)
-            expect(ctx.vm.updateChoiceDetails).not.toHaveBeenCalled()
+            expect(ctx.vm.graph.updateChoiceDetails).not.toHaveBeenCalled()
         })
 
         it('saves valid name, clears error styling, and triggers UI updates', () => {
@@ -202,7 +204,7 @@ describe('choiceHeader', () => {
             expect(result).toBe(true)
             expect(nameError.classList.contains('hidden')).toBe(true)
             expect(nameInput.classList.contains('border-red-500')).toBe(false)
-            expect(ctx.vm.updateChoiceDetails).toHaveBeenCalledWith(
+            expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalledWith(
                 choice,
                 'Nowa nazwa wyboru',
                 choice.getCondition(),
@@ -293,7 +295,7 @@ describe('choiceHeader', () => {
             input.value = 'Zaktualizowana etykieta'
             input.dispatchEvent(new Event('blur'))
 
-            expect(ctx.vm.updateChoiceDetails).toHaveBeenCalledWith(
+            expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalledWith(
                 choice,
                 'Zaktualizowana etykieta',
                 choice.getCondition(),
@@ -311,7 +313,7 @@ describe('choiceHeader', () => {
             const blurSpy = vi.spyOn(input, 'blur')
 
             input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-            expect(ctx.vm.updateChoiceDetails).toHaveBeenCalled()
+            expect(ctx.vm.graph.updateChoiceDetails).toHaveBeenCalled()
             expect(blurSpy).toHaveBeenCalled()
         })
 

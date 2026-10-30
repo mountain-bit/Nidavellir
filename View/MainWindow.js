@@ -95,7 +95,7 @@ const saveStatus = document.getElementById('save-status')
 
 // Active project data state (defaults to mock data; easily switchable to real data via loadProjectData)
 let projectData = loadProjectData(vm)
-vm.ensureStartParagraph(projectData.projectParagraphs)
+vm.factory.ensureStartParagraph(projectData.projectParagraphs)
 
 /**
  * Shared Application Context passed to modular UI renderers.
@@ -202,7 +202,7 @@ const appContext = {
         if (!Array.isArray(projectData.projectParagraphs)) {
             projectData.projectParagraphs = []
         }
-        vm.ensureStartParagraph(projectData.projectParagraphs)
+        vm.factory.ensureStartParagraph(projectData.projectParagraphs)
         return projectData.projectParagraphs
     },
     get projectScenes() {
@@ -275,10 +275,10 @@ const appContext = {
     updateZoomToolbarUI: (sg, lvl) => updateZoomToolbarUI(sg || getStoryGraphInstance(), lvl),
     updateLeftDrawerUI: () => updateLeftDrawerUI(),
     openSettings: () => {
-        if (typeof vm.setActiveLeftTab === 'function') {
-            vm.setActiveLeftTab('settings')
-        } else if (vm.getActiveLeftTab() !== 'settings') {
-            vm.toggleLeftTab('settings')
+        if (typeof vm?.layout?.setActiveLeftTab === 'function') {
+            vm.layout.setActiveLeftTab('settings')
+        } else if (vm.layout.getActiveLeftTab() !== 'settings') {
+            vm.layout.toggleLeftTab('settings')
         }
         updateLeftDrawerUI()
         updateTopBarUI(appContext)
@@ -290,7 +290,7 @@ const appContext = {
 
 // Left Drawer Title Mapping
 function updateLeftDrawerTitle() {
-    const activeTab = vm.getActiveLeftTab()
+    const activeTab = vm.layout.getActiveLeftTab()
     if (!activeTab || !leftDrawerTitle) return
 
     const titleKeys = {
@@ -317,7 +317,7 @@ function updateLeftDrawerTitle() {
 
 // Ribbon UI Tabs
 function updateRibbonUI() {
-    const activeTab = vm.getActiveRibbonTab()
+    const activeTab = vm.layout.getActiveRibbonTab()
     document.querySelectorAll('[data-ribbon-tab]').forEach(tabBtn => {
         if (tabBtn.dataset.ribbonTab === activeTab) {
             tabBtn.classList.add('border-blue-500', 'text-white', 'bg-[#28282c]')
@@ -339,8 +339,8 @@ function updateRibbonUI() {
 
 // Render Left Drawer & Icon Bar UI
 function updateLeftDrawerUI() {
-    const activeLeftTab = vm.getActiveLeftTab()
-    const isOpen = vm.isLeftDrawerOpen()
+    const activeLeftTab = vm.layout.getActiveLeftTab()
+    const isOpen = vm.layout.isLeftDrawerOpen()
     const leftResizer = document.getElementById('left-resizer')
 
     document.querySelectorAll('[data-left-tab]').forEach(btn => {
@@ -458,7 +458,7 @@ function selectEntity(entity, type, parent) {
             }
         }
     }
-    vm.selectElement(entity, type, parent)
+    vm.selection.selectElement(entity, type, parent)
     updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
     renderHistoryBar(appContext)
     renderDetailsPanel(appContext)
@@ -468,7 +468,7 @@ function selectEntity(entity, type, parent) {
 document.querySelectorAll('[data-ribbon-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
         const tab = btn.dataset.ribbonTab
-        vm.setActiveRibbonTab(tab)
+        vm.layout.setActiveRibbonTab(tab)
         updateRibbonUI()
     })
 })
@@ -476,21 +476,21 @@ document.querySelectorAll('[data-ribbon-tab]').forEach(btn => {
 document.querySelectorAll('[data-left-tab]').forEach(btn => {
     btn.addEventListener('click', () => {
         const tab = btn.dataset.leftTab
-        vm.toggleLeftTab(tab)
+        vm.layout.toggleLeftTab(tab)
         updateLeftDrawerUI()
     })
 })
 
 if (closeLeftDrawerBtn) {
     closeLeftDrawerBtn.addEventListener('click', () => {
-        vm.closeLeftDrawer()
+        vm.layout.closeLeftDrawer()
         updateLeftDrawerUI()
     })
 }
 
 if (toggleRightSidebarBtn) {
     toggleRightSidebarBtn.addEventListener('click', () => {
-        vm.toggleRightSidebar()
+        vm.layout.toggleRightSidebar()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
         updateTopBarUI(appContext)
     })
@@ -498,7 +498,7 @@ if (toggleRightSidebarBtn) {
 
 if (reopenRightSidebarBtn) {
     reopenRightSidebarBtn.addEventListener('click', () => {
-        vm.setRightSidebarCollapsed(false)
+        vm.layout.setRightSidebarCollapsed(false)
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
         updateTopBarUI(appContext)
     })
@@ -508,7 +508,7 @@ document.querySelectorAll('[data-file]').forEach(btn => {
     btn.addEventListener('click', () => {
         const fileName = btn.dataset.file
         if (fileName) {
-            vm.setActiveFile(fileName)
+            vm.files.setActiveFile(fileName)
             updateMainWorkspaceUI(appContext)
         }
     })
@@ -516,7 +516,7 @@ document.querySelectorAll('[data-file]').forEach(btn => {
 
 if (viewMarkdownBtn) {
     viewMarkdownBtn.addEventListener('click', () => {
-        vm.setActiveMainView('markdown')
+        vm.layout.setActiveMainView('markdown')
         updateMainWorkspaceUI(appContext)
         updateTopBarUI(appContext)
     })
@@ -524,7 +524,7 @@ if (viewMarkdownBtn) {
 
 if (viewGraphBtn) {
     viewGraphBtn.addEventListener('click', () => {
-        vm.setActiveMainView('graph')
+        vm.layout.setActiveMainView('graph')
         updateMainWorkspaceUI(appContext)
         updateTopBarUI(appContext)
     })
@@ -532,7 +532,7 @@ if (viewGraphBtn) {
 
 document.querySelectorAll('[data-action="show-graph"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.setActiveMainView('graph')
+        vm.layout.setActiveMainView('graph')
         updateMainWorkspaceUI(appContext)
         updateTopBarUI(appContext)
     })
@@ -540,7 +540,7 @@ document.querySelectorAll('[data-action="show-graph"]').forEach(btn => {
 
 document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.setActiveMainView('markdown')
+        vm.layout.setActiveMainView('markdown')
         updateMainWorkspaceUI(appContext)
         updateTopBarUI(appContext)
     })
@@ -548,7 +548,7 @@ document.querySelectorAll('[data-action="switch-markdown"]').forEach(btn => {
 
 document.querySelectorAll('[data-action="open-main-character"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleLeftTab('main-character')
+        vm.layout.toggleLeftTab('main-character')
         updateLeftDrawerUI()
     })
 })
@@ -563,31 +563,31 @@ document.querySelectorAll('[data-action="open-hero-modal"]').forEach(btn => {
 
 document.querySelectorAll('[data-action="open-npcs"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleLeftTab('characters')
+        vm.layout.toggleLeftTab('characters')
         updateLeftDrawerUI()
     })
 })
 
 document.querySelectorAll('[data-action="open-locations"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleLeftTab('locations')
+        vm.layout.toggleLeftTab('locations')
         updateLeftDrawerUI()
     })
 })
 
 document.querySelectorAll('[data-action="open-items"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleLeftTab('traits')
+        vm.layout.toggleLeftTab('traits')
         updateLeftDrawerUI()
     })
 })
 
 document.querySelectorAll('[data-action="toggle-left-drawer"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        if (vm.isLeftDrawerOpen()) {
-            vm.closeLeftDrawer()
+        if (vm.layout.isLeftDrawerOpen()) {
+            vm.layout.closeLeftDrawer()
         } else {
-            vm.toggleLeftTab(vm.getActiveLeftTab() || 'paragraphs')
+            vm.layout.toggleLeftTab(vm.layout.getActiveLeftTab() || 'paragraphs')
         }
         updateLeftDrawerUI()
         updateTopBarUI(appContext)
@@ -596,7 +596,7 @@ document.querySelectorAll('[data-action="toggle-left-drawer"]').forEach(btn => {
 
 document.querySelectorAll('[data-action="toggle-right-sidebar"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleRightSidebar()
+        vm.layout.toggleRightSidebar()
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn)
         updateTopBarUI(appContext)
     })
@@ -604,7 +604,7 @@ document.querySelectorAll('[data-action="toggle-right-sidebar"]').forEach(btn =>
 
 document.querySelectorAll('[data-action="new-scene"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleLeftTab('scenes')
+        vm.layout.toggleLeftTab('scenes')
         updateLeftDrawerUI()
         const sceneForm = document.getElementById('scene-create-form')
         if (sceneForm) {
@@ -617,7 +617,7 @@ document.querySelectorAll('[data-action="new-scene"]').forEach(btn => {
 
 document.querySelectorAll('[data-action="link-scenes"]').forEach(btn => {
     btn.addEventListener('click', () => {
-        vm.toggleLeftTab('connections')
+        vm.layout.toggleLeftTab('connections')
         updateLeftDrawerUI()
         const connForm = document.getElementById('connection-create-form')
         if (connForm) {
@@ -636,7 +636,7 @@ function applyLoadedProject(projectInstance, projectPath) {
     vm.project = projectInstance
     appContext.project = projectInstance
     const realData = extractProjectData(projectInstance, {})
-    vm.ensureStartParagraph(realData.projectParagraphs)
+    vm.factory.ensureStartParagraph(realData.projectParagraphs)
     projectData = realData
     appContext.projectPath = projectPath || ''
     window.currentProjectPath = projectPath || ''
@@ -648,8 +648,8 @@ function applyLoadedProject(projectInstance, projectPath) {
         'Projekt'
     updateProjectNameUI(projName)
 
-    if (typeof vm.clearSelection === 'function') {
-        vm.clearSelection()
+    if (typeof vm?.selection?.clearSelection === 'function') {
+        vm.selection.clearSelection()
     }
 
     renderParagraphsList(appContext)
@@ -803,7 +803,7 @@ document.addEventListener('keydown', e => {
                 activeEl.isContentEditable)
         if (isInput) return
 
-        const sel = vm.getSelectedItem()
+        const sel = vm.selection.getSelectedItem()
         if (sel && sel.type === 'paragraph' && sel.entity) {
             if (sel.entity.getIsStart && sel.entity.getIsStart()) {
                 toast.warning(
@@ -818,14 +818,14 @@ document.addEventListener('keydown', e => {
                 })
             )
             if (confirmDel) {
-                const deleted = vm.deleteParagraph(
+                const deleted = vm.graph.deleteParagraph(
                     sel.entity.getId(),
                     projectData.projectParagraphs,
                     projectData.projectScenes
                 )
                 if (deleted) {
                     markProjectDirty()
-                    vm.clearSelection()
+                    vm.selection.clearSelection()
                     refreshActiveSection('paragraph')
                     const sg = getStoryGraphInstance()
                     if (sg) sg.render(true)
@@ -838,7 +838,7 @@ document.addEventListener('keydown', e => {
 
 if (fileEditor) {
     fileEditor.addEventListener('input', () => {
-        const active = vm.getActiveFile()
+        const active = vm.files.getActiveFile()
         if (active) {
             markFileDirty(active)
             markProjectDirty()
@@ -873,7 +873,7 @@ async function initApp() {
                             vm.project = projectInstance
                             appContext.project = projectInstance
                             projectData = extractProjectData(projectInstance, {})
-                            vm.ensureStartParagraph(projectData.projectParagraphs)
+                            vm.factory.ensureStartParagraph(projectData.projectParagraphs)
                             markProjectClean()
                             const projName =
                                 projectInstance.getName() ||
@@ -895,7 +895,7 @@ async function initApp() {
             vm.project = existingProj
             appContext.project = existingProj
             projectData = extractProjectData(existingProj, {})
-            vm.ensureStartParagraph(projectData.projectParagraphs)
+            vm.factory.ensureStartParagraph(projectData.projectParagraphs)
             markProjectClean()
             updateProjectNameUI(existingProj.getName())
             projectLoaded = true
@@ -916,13 +916,13 @@ async function initApp() {
             }
         }
 
-        const initialLeftWidth = vm.getLeftDrawerWidth()
+        const initialLeftWidth = vm.layout.getLeftDrawerWidth()
         if (leftDrawer) {
             leftDrawer.style.width = `${initialLeftWidth}px`
             leftDrawer.style.setProperty('--left-drawer-width', `${initialLeftWidth}px`)
         }
 
-        const initialRightWidth = vm.getRightSidebarWidth()
+        const initialRightWidth = vm.layout.getRightSidebarWidth()
         if (rightSidebar) {
             rightSidebar.style.width = `${initialRightWidth}px`
             rightSidebar.style.setProperty('--right-sidebar-width', `${initialRightWidth}px`)
@@ -1001,14 +1001,14 @@ async function initApp() {
         const zoomSensSlider = document.getElementById('settings-zoom-sensitivity')
         const zoomSensValue = document.getElementById('settings-zoom-sensitivity-value')
         if (zoomSensSlider) {
-            const currentSens = vm.getZoomSensitivity()
+            const currentSens = vm.layout.getZoomSensitivity()
             zoomSensSlider.value = String(currentSens)
             if (zoomSensValue) {
                 zoomSensValue.textContent = `${Math.round(currentSens * 100)}%`
             }
             zoomSensSlider.addEventListener('input', () => {
                 const val = parseFloat(zoomSensSlider.value)
-                vm.setZoomSensitivity(val)
+                vm.layout.setZoomSensitivity(val)
                 const sg = getStoryGraphInstance()
                 if (sg) {
                     sg.setWheelSensitivity(val)

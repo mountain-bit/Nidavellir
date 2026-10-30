@@ -70,8 +70,9 @@ export function syncCombatToParagraphDescription(entity, ctx) {
 
     let currentText = ''
     // 1. If editor is active for this file, read latest text from editor
+    const files = ctx?.vm?.files
     const activeFile =
-        ctx?.vm && typeof ctx.vm.getActiveFile === 'function' ? ctx.vm.getActiveFile() : null
+        files && typeof files.getActiveFile === 'function' ? files.getActiveFile() : null
     const isEditorActiveForThisFile =
         Boolean(activeFile) && (activeFile === baseFileName || activeFile === rawPath)
 

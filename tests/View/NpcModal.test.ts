@@ -1505,11 +1505,13 @@ describe('NpcModal Floating Window Controller', () => {
 
         it('renderuje dynamiczne sugestie pobrane z ViewModel / aplikacji', () => {
             const mockVm = {
-                getSuggestedStats: (): string[] => ['Siła', 'Mądrość', 'Zwrotność'],
-                getSuggestedParameters: (): string[] => ['Punkty Życia (HP)', 'Tarcza Energii'],
-                getSuggestedSkills: (): string[] => ['Alchemia', 'Strzelectwo'],
-                getSuggestedFeatures: (): string[] => ['Frakcja', 'Archetyp'],
-                getSuggestedTags: (): string[] => ['VIP', 'Kluczowy'],
+                filter: {
+                    getSuggestedStats: (): string[] => ['Siła', 'Mądrość', 'Zwrotność'],
+                    getSuggestedParameters: (): string[] => ['Punkty Życia (HP)', 'Tarcza Energii'],
+                    getSuggestedSkills: (): string[] => ['Alchemia', 'Strzelectwo'],
+                    getSuggestedFeatures: (): string[] => ['Frakcja', 'Archetyp'],
+                    getSuggestedTags: (): string[] => ['VIP', 'Kluczowy'],
+                },
             }
             const ctx = { vm: mockVm }
 
@@ -1579,40 +1581,43 @@ describe('NpcModal Floating Window Controller', () => {
 
             const mockVm = {
                 project: mockProject,
-                createCharacter: (name: string): NPC => new NPC('npc-1', name),
-                createStat: (name: string): Stat => new Stat('st-1', name),
-                createParameter: (
-                    name: string,
-                    mode?: unknown,
-                    val?: unknown,
-                    formula?: unknown
-                ): Parameter =>
-                    new Parameter(
-                        'param-1',
-                        name,
-                        undefined,
-                        mode as never,
-                        val as never,
-                        formula as never
-                    ),
-                createSkill: (
-                    name: string,
-                    mode?: unknown,
-                    val?: unknown,
-                    statName?: unknown,
-                    mod?: unknown
-                ): Skill =>
-                    new Skill(
-                        'sk-1',
-                        name,
-                        undefined,
-                        mode as never,
-                        val as never,
-                        statName as never,
-                        mod as never
-                    ),
-                createFeature: (name: string, _desc?: string): Feature => new Feature('f-1', name),
-                createTag: (name: string, color?: string): Tag => new Tag('t-1', name, color),
+                factory: {
+                    createCharacter: (name: string): NPC => new NPC('npc-1', name),
+                    createStat: (name: string): Stat => new Stat('st-1', name),
+                    createParameter: (
+                        name: string,
+                        mode?: unknown,
+                        val?: unknown,
+                        formula?: unknown
+                    ): Parameter =>
+                        new Parameter(
+                            'param-1',
+                            name,
+                            undefined,
+                            mode as never,
+                            val as never,
+                            formula as never
+                        ),
+                    createSkill: (
+                        name: string,
+                        mode?: unknown,
+                        val?: unknown,
+                        statName?: unknown,
+                        mod?: unknown
+                    ): Skill =>
+                        new Skill(
+                            'sk-1',
+                            name,
+                            undefined,
+                            mode as never,
+                            val as never,
+                            statName as never,
+                            mod as never
+                        ),
+                    createFeature: (name: string, _desc?: string): Feature =>
+                        new Feature('f-1', name),
+                    createTag: (name: string, color?: string): Tag => new Tag('t-1', name, color),
+                },
             }
 
             const projectStats: Stat[] = []

@@ -305,8 +305,8 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
         const choiceName = (nameInput?.value || '').trim() || t('details.default_jump_name')
         const condTextVal = (condInput?.value || '').trim()
 
-        if (ctx?.vm && typeof ctx.vm.createChoice === 'function') {
-            ctx.vm.createChoice(
+        if (ctx?.vm && typeof ctx?.vm?.graph?.createChoice === 'function') {
+            ctx?.vm?.graph?.createChoice(
                 entity,
                 targetP,
                 choiceName,
@@ -401,9 +401,9 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                         if (
                             newName &&
                             ctx?.vm &&
-                            typeof ctx.vm.updateChoiceDetails === 'function'
+                            typeof ctx?.vm?.graph?.updateChoiceDetails === 'function'
                         ) {
-                            ctx.vm.updateChoiceDetails(choice, newName)
+                            ctx?.vm?.graph?.updateChoiceDetails(choice, newName)
                             if (
                                 isCombat &&
                                 CombatSyncService &&
@@ -435,9 +435,9 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                         if (
                             newName &&
                             ctx?.vm &&
-                            typeof ctx.vm.updateChoiceDetails === 'function'
+                            typeof ctx?.vm?.graph?.updateChoiceDetails === 'function'
                         ) {
-                            ctx.vm.updateChoiceDetails(choice, newName)
+                            ctx?.vm?.graph?.updateChoiceDetails(choice, newName)
                             if (
                                 isCombat &&
                                 CombatSyncService &&
@@ -519,8 +519,8 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                             )
                         ) {
                             const choiceId = choice.getId ? choice.getId() : choice.id
-                            if (ctx?.vm && typeof ctx.vm.deleteChoice === 'function') {
-                                ctx.vm.deleteChoice(choiceId, projectParagraphs)
+                            if (ctx?.vm && typeof ctx?.vm?.graph?.deleteChoice === 'function') {
+                                ctx?.vm?.graph?.deleteChoice(choiceId, projectParagraphs)
                             }
                             refreshDetails()
                             if (ctx && typeof ctx.renderConnectionsList === 'function')

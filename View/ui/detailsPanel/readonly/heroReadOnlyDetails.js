@@ -611,8 +611,11 @@ export function renderHeroReadOnlyDetails(container, entity, item, type, ctx) {
                 ) || it
             if (typeof ctx?.selectEntity === 'function') {
                 ctx.selectEntity(projectItem, 'item')
-            } else if (ctx?.vm && typeof ctx.vm.selectElement === 'function') {
-                ctx.vm.selectElement(projectItem, 'item')
+            } else if (ctx?.vm) {
+                const selection = ctx?.vm?.selection
+                if (typeof selection.selectElement === 'function') {
+                    selection.selectElement(projectItem, 'item')
+                }
             }
         })
     })

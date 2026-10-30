@@ -531,8 +531,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         if (typeof ctx.showGraph === 'function') {
             ctx.showGraph(true)
         }
-        if (ctx.vm && typeof ctx.vm.setActiveMainView === 'function') {
-            ctx.vm.setActiveMainView('graph')
+        if (ctx.vm && typeof ctx.vm.layout.setActiveMainView === 'function') {
+            ctx.vm.layout.setActiveMainView('graph')
         }
         if (typeof ctx.updateMainWorkspaceUI === 'function') {
             ctx.updateMainWorkspaceUI(ctx)
@@ -543,11 +543,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
 
         // 2. Open right sidebar so paragraph details and content are visible
         if (ctx.vm) {
-            if (typeof ctx.vm.setRightSidebarCollapsed === 'function') {
-                ctx.vm.setRightSidebarCollapsed(false)
-            }
-            if (typeof ctx.vm.setRightSidebarOpen === 'function') {
-                ctx.vm.setRightSidebarOpen(true)
+            if (typeof ctx.vm.layout.setRightSidebarCollapsed === 'function') {
+                ctx.vm.layout.setRightSidebarCollapsed(false)
             }
         }
         const rightSidebar = document.getElementById('right-sidebar')
@@ -558,15 +555,12 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         }
 
         const targetId = id || (entity?.getId && entity.getId()) || ''
-        if (ctx.vm && typeof ctx.vm.setSelectedParagraphId === 'function') {
-            ctx.vm.setSelectedParagraphId(targetId)
-        }
 
         // 3. Select paragraph entity
         if (typeof ctx.selectEntity === 'function') {
             ctx.selectEntity(entity, 'paragraph')
-        } else if (ctx.vm && typeof ctx.vm.selectElement === 'function') {
-            ctx.vm.selectElement(entity, 'paragraph')
+        } else if (ctx.vm && typeof ctx.vm.selection.selectElement === 'function') {
+            ctx.vm.selection.selectElement(entity, 'paragraph')
         }
 
         // 4. Focus and center graph on paragraph node
@@ -585,8 +579,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         toast.info(`Przeniesiono do paragrafu: ${item.title}`, 'Graf historii')
     } else if (type === 'scene') {
         // Scene: switch to graph, focus on scene, open details
-        if (ctx.vm && typeof ctx.vm.setActiveMainView === 'function') {
-            ctx.vm.setActiveMainView('graph')
+        if (ctx.vm && typeof ctx.vm.layout.setActiveMainView === 'function') {
+            ctx.vm.layout.setActiveMainView('graph')
         }
         if (typeof ctx.updateMainWorkspaceUI === 'function') {
             ctx.updateMainWorkspaceUI(ctx)
@@ -595,8 +589,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
             updateTopBarUI(ctx)
         }
 
-        if (ctx.vm && typeof ctx.vm.setRightSidebarCollapsed === 'function') {
-            ctx.vm.setRightSidebarCollapsed(false)
+        if (ctx.vm && typeof ctx.vm.layout.setRightSidebarCollapsed === 'function') {
+            ctx.vm.layout.setRightSidebarCollapsed(false)
         }
         const rightSidebar = document.getElementById('right-sidebar')
         const toggleBtn = document.getElementById('toggle-right-sidebar-btn')
@@ -607,8 +601,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
 
         if (typeof ctx.selectEntity === 'function') {
             ctx.selectEntity(entity, 'scene')
-        } else if (ctx.vm && typeof ctx.vm.selectElement === 'function') {
-            ctx.vm.selectElement(entity, 'scene')
+        } else if (ctx.vm && typeof ctx.vm.selection.selectElement === 'function') {
+            ctx.vm.selection.selectElement(entity, 'scene')
         }
 
         const targetId = id || (entity.getId && entity.getId()) || ''
@@ -628,11 +622,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         // Location, NPC, Template, Item, Stat, Skill, Parameter, Feature, Tag, Hero:
         // Open details and description!
         if (ctx.vm) {
-            if (typeof ctx.vm.setRightSidebarCollapsed === 'function') {
-                ctx.vm.setRightSidebarCollapsed(false)
-            }
-            if (typeof ctx.vm.setRightSidebarOpen === 'function') {
-                ctx.vm.setRightSidebarOpen(true)
+            if (typeof ctx.vm.layout.setRightSidebarCollapsed === 'function') {
+                ctx.vm.layout.setRightSidebarCollapsed(false)
             }
         }
         const rightSidebar = document.getElementById('right-sidebar')
@@ -643,20 +634,20 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
         }
 
         // Switch left drawer to matching category tab if requested and drawer is open or available
-        if (shouldSwitchDrawerTab && ctx.vm && typeof ctx.vm.toggleLeftTab === 'function') {
+        if (shouldSwitchDrawerTab && ctx.vm && typeof ctx.vm.layout.toggleLeftTab === 'function') {
             if (type === 'character' || type === 'template') {
-                ctx.vm.toggleLeftTab('characters')
+                ctx.vm.layout.toggleLeftTab('characters')
             } else if (type === 'location') {
-                ctx.vm.toggleLeftTab('locations')
+                ctx.vm.layout.toggleLeftTab('locations')
             } else if (
                 type === 'stat' ||
                 type === 'skill' ||
                 type === 'parameter' ||
                 type === 'feature'
             ) {
-                ctx.vm.toggleLeftTab('traits')
+                ctx.vm.layout.toggleLeftTab('traits')
             } else if (type === 'tag') {
-                ctx.vm.toggleLeftTab('paragraphs')
+                ctx.vm.layout.toggleLeftTab('paragraphs')
             }
             if (typeof ctx.updateLeftDrawerUI === 'function') {
                 ctx.updateLeftDrawerUI()
@@ -665,8 +656,8 @@ export function executeQuickSearchAction(item, ctx, options = {}) {
 
         if (typeof ctx.selectEntity === 'function') {
             ctx.selectEntity(entity, type)
-        } else if (ctx.vm && typeof ctx.vm.selectElement === 'function') {
-            ctx.vm.selectElement(entity, type)
+        } else if (ctx.vm && typeof ctx.vm.selection.selectElement === 'function') {
+            ctx.vm.selection.selectElement(entity, type)
         }
 
         if (typeof ctx.renderHistoryBar === 'function') {
@@ -905,10 +896,10 @@ export function openQuickSearch(ctx) {
     if (searchInput) {
         if (
             ctx?.vm &&
-            typeof ctx.vm.isLeftDrawerOpen === 'function' &&
-            !ctx.vm.isLeftDrawerOpen()
+            typeof ctx.vm.layout.isLeftDrawerOpen === 'function' &&
+            !ctx.vm.layout.isLeftDrawerOpen()
         ) {
-            ctx.vm.toggleLeftTab('paragraphs')
+            ctx.vm.layout.toggleLeftTab('paragraphs')
             if (typeof ctx.updateLeftDrawerUI === 'function') ctx.updateLeftDrawerUI()
         }
         searchInput.focus()

@@ -32,8 +32,9 @@ export function renderQuickActionsModule(container, item, type, ctx) {
     const showGraphBtn = actionsMod.querySelector('#btn-details-show-graph')
     if (showGraphBtn) {
         showGraphBtn.addEventListener('click', () => {
-            if (ctx?.vm && typeof ctx.vm.setActiveMainView === 'function') {
-                ctx.vm.setActiveMainView('graph')
+            const layout = ctx?.vm?.layout
+            if (layout && typeof layout.setActiveMainView === 'function') {
+                layout.setActiveMainView('graph')
             }
             if (ctx && typeof ctx.updateMainWorkspaceUI === 'function') {
                 ctx.updateMainWorkspaceUI()

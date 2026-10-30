@@ -18,6 +18,7 @@ import * as state from './npcState.js'
  * @param {object} traits
  */
 function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
+    const factory = vm?.factory
     const { stats, vitals, skills, selectedTags, customAttrs } = traits
 
     // 1. Global Stats
@@ -33,8 +34,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === sName.toLowerCase()
             )
             if (!exists) {
-                const globalStat = vm?.createStat
-                    ? vm.createStat(sName)
+                const globalStat = factory?.createStat
+                    ? factory.createStat(sName)
                     : {
                           id: `stat_glob_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           name: sName,
@@ -78,8 +79,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
             )
             if (!exists) {
                 let globalParam = null
-                if (vm?.createParameter) {
-                    globalParam = vm.createParameter(pName, v.mode, v.value, v.formula)
+                if (vm?.factory?.createParameter) {
+                    globalParam = vm.factory.createParameter(pName, v.mode, v.value, v.formula)
                     if (typeof globalParam.setMode === 'function') globalParam.setMode(v.mode)
                     if (typeof globalParam.setValue === 'function') globalParam.setValue(v.value)
                     if (typeof globalParam.setFormula === 'function') {
@@ -147,8 +148,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
             )
             if (!exists) {
                 let globalSkill = null
-                if (vm?.createSkill) {
-                    globalSkill = vm.createSkill(
+                if (factory?.createSkill) {
+                    globalSkill = factory.createSkill(
                         skName,
                         sk.mode,
                         sk.value,
@@ -221,8 +222,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === tName.toLowerCase()
             )
             if (!exists) {
-                const globalTag = vm?.createTag
-                    ? vm.createTag(tName, t.color || '#3b82f6')
+                const globalTag = factory?.createTag
+                    ? factory.createTag(tName, t.color || '#3b82f6')
                     : {
                           id: t.id || `tag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           name: tName,
@@ -267,8 +268,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === aName.toLowerCase()
             )
             if (!exists) {
-                const globalFeat = vm?.createFeature
-                    ? vm.createFeature(aName, attr.value)
+                const globalFeat = factory?.createFeature
+                    ? factory.createFeature(aName, attr.value)
                     : {
                           id: `feat_glob_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           name: aName,
@@ -610,6 +611,7 @@ export function saveNpcEntity(config, ctx, options = {}) {
 
     const entityId = `${config.idPrefix}${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
     const vm = effectiveCtx.vm
+    const factory = vm?.factory
     const editingEntity = state.getEditingEntity()
     const isEdit = Boolean(editingEntity)
 
@@ -645,7 +647,9 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((s, i) => {
                 const statName = s.name.trim()
                 const statObj =
-                    vm && typeof vm.createStat === 'function' ? vm.createStat(statName) : null
+                    factory && typeof factory.createStat === 'function'
+                        ? factory.createStat(statName)
+                        : null
                 if (statObj) {
                     if (typeof statObj.setValue === 'function') statObj.setValue(s.value)
                     return statObj
@@ -680,8 +684,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((v, i) => {
                 const paramName = v.name.trim()
                 const paramObj =
-                    vm && typeof vm.createParameter === 'function'
-                        ? vm.createParameter(paramName, v.mode, v.value, v.formula)
+                    vm && typeof vm?.factory?.createParameter === 'function'
+                        ? vm.factory.createParameter(paramName, v.mode, v.value, v.formula)
                         : null
                 if (paramObj) {
                     if (typeof paramObj.setMode === 'function') paramObj.setMode(v.mode)
@@ -732,8 +736,14 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((sk, i) => {
                 const skillName = sk.name.trim()
                 const skillObj =
-                    vm && typeof vm.createSkill === 'function'
-                        ? vm.createSkill(skillName, sk.mode, sk.value, sk.statName, sk.modifier)
+                    factory && typeof factory.createSkill === 'function'
+                        ? factory.createSkill(
+                              skillName,
+                              sk.mode,
+                              sk.value,
+                              sk.statName,
+                              sk.modifier
+                          )
                         : null
                 if (skillObj) {
                     if (typeof skillObj.setMode === 'function') skillObj.setMode(sk.mode)
@@ -785,8 +795,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((attr, i) => {
                 const attrName = attr.name.trim()
                 const featObj =
-                    vm && typeof vm.createFeature === 'function'
-                        ? vm.createFeature(attrName, attr.value)
+                    factory && typeof factory.createFeature === 'function'
+                        ? factory.createFeature(attrName, attr.value)
                         : null
                 if (featObj) return featObj
                 return {
@@ -834,8 +844,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
                             ).toLowerCase() === tagName.toLowerCase()
                     )
                 }
-                if (!tagObj && vm && typeof vm.createTag === 'function') {
-                    tagObj = vm.createTag(tagName, t.color || '#3b82f6')
+                if (!tagObj && factory && typeof factory.createTag === 'function') {
+                    tagObj = factory.createTag(tagName, t.color || '#3b82f6')
                 }
                 if (!tagObj) {
                     tagObj = {
@@ -888,7 +898,7 @@ export function saveNpcEntity(config, ctx, options = {}) {
             stats.forEach(s => {
                 const statName = (s.name || '').trim()
                 if (!statName) return
-                const statObj = vm.createStat ? vm.createStat(statName) : null
+                const statObj = factory?.createStat ? factory.createStat(statName) : null
                 if (statObj) {
                     if (statObj.setValue) statObj.setValue(s.value)
                     createdEntity.addStat(statObj)
@@ -899,8 +909,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             vitals.forEach(v => {
                 const paramName = (v.name || '').trim()
                 if (!paramName) return
-                const paramObj = vm.createParameter
-                    ? vm.createParameter(paramName, v.mode, v.value, v.formula)
+                const paramObj = factory?.createParameter
+                    ? factory.createParameter(paramName, v.mode, v.value, v.formula)
                     : null
                 if (paramObj) {
                     if (typeof paramObj.setMode === 'function') paramObj.setMode(v.mode)
@@ -919,8 +929,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             skills.forEach(sk => {
                 const skillName = (sk.name || '').trim()
                 if (!skillName) return
-                const skillObj = vm.createSkill
-                    ? vm.createSkill(skillName, sk.mode, sk.value, sk.statName, sk.modifier)
+                const skillObj = factory?.createSkill
+                    ? factory.createSkill(skillName, sk.mode, sk.value, sk.statName, sk.modifier)
                     : null
                 if (skillObj) {
                     if (typeof skillObj.setMode === 'function') skillObj.setMode(sk.mode)
@@ -941,7 +951,9 @@ export function saveNpcEntity(config, ctx, options = {}) {
             customAttrs.forEach(attr => {
                 const attrName = (attr.name || '').trim()
                 if (!attrName) return
-                const featObj = vm.createFeature ? vm.createFeature(attrName, attr.value) : null
+                const featObj = factory?.createFeature
+                    ? factory.createFeature(attrName, attr.value)
+                    : null
                 if (featObj) {
                     if (typeof createdEntity.addFeature === 'function') {
                         createdEntity.addFeature(featObj)
@@ -963,8 +975,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
                             ).toLowerCase() === tagName.toLowerCase()
                     )
                 }
-                if (!tagObj && vm.createTag) {
-                    tagObj = vm.createTag(tagName, t.color || '#3b82f6')
+                if (!tagObj && factory?.createTag) {
+                    tagObj = factory.createTag(tagName, t.color || '#3b82f6')
                 }
                 if (tagObj && typeof createdEntity.addTag === 'function') {
                     createdEntity.addTag(tagObj)
@@ -1001,11 +1013,12 @@ export function saveNpcEntity(config, ctx, options = {}) {
             config.addToProject(effectiveCtx, vm, createdEntity)
         }
     } else {
+        const selectedItem = vm?.selection?.getSelectedItem()
         if (
-            vm?.getSelectedItem()?.id === createdEntity.getId?.() ||
-            vm?.getSelectedItem()?.id === createdEntity.id
+            selectedItem &&
+            (selectedItem.id === createdEntity.getId?.() || selectedItem.id === createdEntity.id)
         ) {
-            vm.selectedItem.name = name
+            selectedItem.name = name
         }
     }
 

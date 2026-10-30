@@ -589,7 +589,8 @@ export function renderNpcReadOnlyDetails(container, entity, item, type, ctx) {
     const showGraphBtn = actionsMod.querySelector('#btn-details-show-graph')
     if (showGraphBtn) {
         showGraphBtn.addEventListener('click', () => {
-            if (ctx?.vm?.setActiveMainView) ctx.vm.setActiveMainView('graph')
+            const layout = ctx?.vm?.layout
+            if (layout?.setActiveMainView) layout.setActiveMainView('graph')
             if (ctx?.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI()
             if (ctx?.storyGraphInstance?.focusOnElement) {
                 ctx.storyGraphInstance.focusOnElement(item?.id)

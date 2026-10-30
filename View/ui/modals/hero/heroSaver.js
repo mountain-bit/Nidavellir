@@ -53,8 +53,9 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === sName.toLowerCase()
             )
             if (!exists) {
-                const globalStat = vm?.createStat
-                    ? vm.createStat(sName)
+                const factory = vm?.factory
+                const globalStat = factory?.createStat
+                    ? factory.createStat(sName)
                     : new Stat(
                           `stat_glob_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           sName,

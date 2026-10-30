@@ -212,7 +212,8 @@ export function handleSaveChoiceName({
         }
     }
 
-    if (ctx?.vm && typeof ctx.vm.updateChoiceDetails === 'function') {
+    const graph = ctx?.vm?.graph
+    if (graph && typeof graph.updateChoiceDetails === 'function') {
         const cond =
             typeof choice?.getCondition === 'function' ? choice.getCondition() : choice?.condition
         const costs = typeof choice?.getCosts === 'function' ? choice.getCosts() : choice?.costs
@@ -221,7 +222,7 @@ export function handleSaveChoiceName({
         const diceCheck =
             typeof choice?.getDiceCheck === 'function' ? choice.getDiceCheck() : choice?.diceCheck
 
-        ctx.vm.updateChoiceDetails(choice, val, cond, costs, rewards, diceCheck)
+        graph.updateChoiceDetails(choice, val, cond, costs, rewards, diceCheck)
     } else if (choice) {
         if (typeof choice.setName === 'function') {
             choice.setName(val)
