@@ -10,20 +10,20 @@ The Gamebook Engine is an advanced desktop application designed for visual and t
 
 ### Technology Stack:
 
-| Domain                          | Technology / Tool                                    | Role & Scope                                                                        |
-| :------------------------------ | :--------------------------------------------------- | :---------------------------------------------------------------------------------- |
-| **Desktop Platform**            | **Electron 41**                                      | Multi-process runtime environment (Node.js + Chromium)                              |
-| **Language**                    | **TypeScript 6** / **JavaScript (ES2020)**           | Static typing across Models, ViewModels, Modules, and Utilities                     |
-| **Styling & UI**                | **Tailwind CSS v4** (`@tailwindcss/cli`)             | Modern, minimalist interface with curated dark theme palette (`#18181b`)            |
-| **Graph Visualization**         | **Cytoscape.js 3.33** + **Web Components**           | Node-based story canvas, bezier/curved edge routing, pan/zoom, anti-crossing        |
-| **Rich Text Editor**            | **TipTap 2.x** (`@tiptap/core`)                      | WYSIWYG Markdown, dialogue blocks, `@` entity mentions, custom text styles          |
-| **Document Export**             | **docx 8.x** + **Chromium printToPDF**               | Structured DOCX publishing, print-ready PDF with `@page` styling, standalone HTML   |
-| **Backup & Archive**            | **JSZip 3.x**                                        | Self-contained project zip packaging and automated restoration                      |
-| **Image Processing**            | **HTML5 Canvas 2D Engine**                           | In-app crop, scale, rotate, flip, and real-time color filters (`ImageProcessor.ts`) |
-| **Bundler & Build Pipeline**    | **esbuild 0.28** (`scripts/build-renderer.js`)       | Blazing fast ESM module bundling into `dist/`                                       |
-| **Internationalization (i18n)** | **i18next** + `i18next-fs-backend`                   | Synchronized localization: Polish (`pl`), English (`en`), German (`de`)             |
-| **Automated Testing**           | **Vitest 1.6** + **happy-dom**                       | Unit, domain logic, IPC handlers, and DOM Web Component tests (76 files, 821 tests) |
-| **Code Quality & Tooling**      | **ESLint**, **Prettier**, **Husky**, **lint-staged** | Code consistency, static analysis, automated formatting, pre-commit hooks           |
+| Domain                          | Technology / Tool                                    | Role & Scope                                                                          |
+| :------------------------------ | :--------------------------------------------------- | :------------------------------------------------------------------------------------ |
+| **Desktop Platform**            | **Electron 41**                                      | Multi-process runtime environment (Node.js + Chromium)                                |
+| **Language**                    | **TypeScript 6** / **JavaScript (ES2020)**           | Static typing across Models, ViewModels, Modules, and Utilities                       |
+| **Styling & UI**                | **Tailwind CSS v4** (`@tailwindcss/cli`)             | Modern, minimalist interface with curated dark theme palette (`#18181b`)              |
+| **Graph Visualization**         | **Cytoscape.js 3.33** + **Web Components**           | Node-based story canvas, bezier/curved edge routing, pan/zoom, anti-crossing          |
+| **Rich Text Editor**            | **TipTap 2.x** (`@tiptap/core`)                      | WYSIWYG Markdown, dialogue blocks, `@` entity mentions, custom text styles            |
+| **Document Export**             | **docx 8.x** + **Chromium printToPDF**               | Structured DOCX publishing, print-ready PDF with `@page` styling, standalone HTML     |
+| **Backup & Archive**            | **JSZip 3.x**                                        | Self-contained project zip packaging and automated restoration                        |
+| **Image Processing**            | **HTML5 Canvas 2D Engine**                           | In-app crop, scale, rotate, flip, and real-time color filters (`ImageProcessor.ts`)   |
+| **Bundler & Build Pipeline**    | **esbuild 0.28** (`scripts/build-renderer.js`)       | Blazing fast ESM module bundling into `dist/`                                         |
+| **Internationalization (i18n)** | **i18next** + `i18next-fs-backend`                   | Synchronized localization: Polish (`pl`), English (`en`), German (`de`)               |
+| **Automated Testing**           | **Vitest 1.6** + **happy-dom**                       | Unit, domain logic, IPC handlers, and DOM Web Component tests (133 files, 1664 tests) |
+| **Code Quality & Tooling**      | **ESLint**, **Prettier**, **Husky**, **lint-staged** | Code consistency, static analysis, automated formatting, pre-commit hooks             |
 
 ---
 
@@ -409,8 +409,8 @@ graph LR
     - Dead ends (paragraphs without choices and not marked as story endings).
     - Unreachable nodes (disconnected narrative islands).
     - Cycles and infinite loops with visual loop path tracing.
-- **Playtester Walkthrough Debugger (`View/ui/modals/playtest/playtestModal.js`)**:
-  Allows authors to test their gamebooks interactively directly within the IDE, testing condition branches, stats, vital formulas, dynamic choices, and dice mechanics with step undo capability.
+- **Playtester Walkthrough Debugger (`View/ui/modals/playtest/`)**:
+  Allows authors to test their gamebooks interactively directly within the IDE, powered by a decoupled simulation engine (`playtestEngine.js`), custom markdown choices renderer (`playtestMarkdown.js`), and interactive modal view (`playtestModal.js`) with step undo capability.
 
 ---
 
@@ -471,7 +471,7 @@ pnpm build
 # Watch renderer TypeScript files with esbuild:
 pnpm renderer:watch
 
-# Execute the complete Vitest test suite (76 test files, 821 tests):
+# Execute the complete Vitest test suite (133 test files, 1664 tests):
 pnpm test:run
 
 # Lint and auto-format the codebase:
@@ -487,6 +487,8 @@ pnpm format
     - [Main Process Architecture (MAIN_PROCESS_ARCHITECTURE.md)](MAIN_PROCESS_ARCHITECTURE.md)
 - In-depth guide for the UI architecture, MVVM layer, and Cytoscape graph subsystem:
     - [Frontend Architecture (FRONTEND_ARCHITECTURE.md)](FRONTEND_ARCHITECTURE.md)
+- Comprehensive View/UI layer modularization and refactoring log:
+    - [View Layer Modularization Guide (VIEW_LAYER_MODULARIZATION.md)](VIEW_LAYER_MODULARIZATION.md)
 - Reference for Choice details panel and narrative branching submodules:
     - [Choice Subsystem Architecture (CHOICE_SUBSYSTEM.md)](CHOICE_SUBSYSTEM.md)
 - Reference for custom TipTap editor extensions, blocks, and transclusion:
