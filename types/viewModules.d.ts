@@ -1719,6 +1719,16 @@ declare module '*/View/ui/modals/playtest/playtestModal.js' {
     export function renderPlaytestView(): void
 }
 
+declare module '*/View/ui/modals/playtest/playtestEngine.js' {
+    export { PlaytestEngine } from '*/View/ui/modals/playtest/playtestModal.js'
+}
+
+declare module '*/View/ui/modals/playtest/playtestMarkdown.js' {
+    export function formatMarkdown(text: string): string
+    export function formatInlineMarkdown(text: string): string
+    export function parseMarkdownTable(lines: string[]): string | null
+}
+
 declare module '*/Services/ParagraphNumberingService.js' {
     import type { Paragraph } from '../Model/Paragraph'
 
@@ -2425,8 +2435,54 @@ declare module '*/View/ui/modals/export/exportStyleService.js' {
 }
 
 declare module '*/View/ui/modals/export/gamebookCompiler.js' {
+    export * from '*/View/ui/modals/export/compiler/compilerCharacterSheet.js'
+    export * from '*/View/ui/modals/export/compiler/compilerCombat.js'
+    export * from '*/View/ui/modals/export/compiler/compilerExtractors.js'
+    export * from '*/View/ui/modals/export/compiler/compilerMarkdown.js'
+    export * from '*/View/ui/modals/export/compiler/compilerPrint.js'
+    export function compileGamebook(
+        ctx: unknown,
+        options?: Record<string, unknown>,
+        styleConfig?: unknown
+    ): unknown
+}
+
+declare module '*/View/ui/modals/export/compiler/compilerExtractors.js' {
     export function extractText(entityOrDesc: unknown, ctx?: unknown): string
-    export function compileGamebook(options: unknown): Promise<unknown>
+    export function extractEntityMarkdown(entityOrDesc: unknown, ctx?: unknown): string
+    export function getAvailablePlayerCharacters(ctx: unknown): unknown[]
+}
+
+declare module '*/View/ui/modals/export/compiler/compilerCharacterSheet.js' {
+    export function compileCharacterSheet(hero: unknown): unknown
+}
+
+declare module '*/View/ui/modals/export/compiler/compilerCombat.js' {
+    export function parseCombatBlock(
+        combatText: string,
+        paragraphMap?: Record<string, number> | Map<string, number>
+    ): unknown
+    export function renderCombatHtml(
+        combatData: unknown,
+        paragraphMap?: Record<string, number> | Map<string, number>
+    ): string
+}
+
+declare module '*/View/ui/modals/export/compiler/compilerMarkdown.js' {
+    export function escapeHtml(str: string): string
+    export function stripEmojis(text: string): string
+    export function formatInlineMarkdown(
+        str: string,
+        paragraphMap?: Record<string, number> | Map<string, number>
+    ): string
+    export function markdownToHtml(
+        mdText: string,
+        paragraphMap?: Record<string, number> | Map<string, number>
+    ): string
+}
+
+declare module '*/View/ui/modals/export/compiler/compilerPrint.js' {
+    export function generatePrintHtml(bookData: unknown, styleConfig?: unknown): string
 }
 
 declare module '*/View/ui/modals/export/index.js' {
