@@ -1,11 +1,11 @@
-import { CustomStylesService, MarkdownEditor } from '../../../dist/Modules/Editor/index.js'
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { importDroppedImage, setupElementDropZone } from '../assets/assetPicker.js'
-import { openImageEditor } from '../assets/imageEditorModal.js'
-import { setupToolbarButtons, updateToolbarActiveStates } from './editorToolbar.js'
-import { extractAvailableProjectEntities, openEntityLinkModal } from './entityLinkModal.js'
-import { setupEditorContextMenu } from './mainEditor.js'
+import { CustomStylesService, MarkdownEditor } from '../../../../dist/Modules/Editor/index.js'
+import { extractAvailableProjectEntities, openEntityLinkModal } from '../modals/entityLinkModal.js'
+import { setupEditorContextMenu } from '../toolbar/editorContextMenu.js'
+import { setupToolbarButtons, updateToolbarActiveStates } from '../toolbar/editorToolbar.js'
+import {
+    setupEditorImageDoubleClickHandler,
+    setupEditorImageDropZone,
+} from '../utils/editorImageHelpers.js'
 
 let heroEditorInstance = null
 
@@ -75,40 +75,8 @@ export function getOrCreateHeroEditor(ctx) {
         setupToolbarButtons(heroEditorInstance, ctx, { prefix: 'hero-' })
         setupEditorContextMenu(heroEditorInstance, ctx)
 
-        // Drop zone for images
-        setupElementDropZone(mount, {
-            highlightClass: 'ring-2 ring-blue-500 bg-blue-500/10',
-            onFileDrop: async file => {
-                const imported = await importDroppedImage(file, ctx, 'img')
-                if (imported && heroEditorInstance) {
-                    heroEditorInstance.setImage({
-                        src: imported.relativePath,
-                        alt: imported.fileName,
-                    })
-                    toast.success(t('asset.image_inserted') || 'Grafika została wstawiona')
-                }
-            },
-        })
-
-        // Image editor double-click
-        mount.addEventListener('dblclick', e => {
-            const img = e.target.closest('img')
-            if (img && img.src) {
-                e.preventDefault()
-                e.stopPropagation()
-                openImageEditor({
-                    imageSrc: img.src,
-                    onSaveSuccess: newAssetPath => {
-                        if (
-                            heroEditorInstance &&
-                            typeof heroEditorInstance.setImageSrc === 'function'
-                        ) {
-                            heroEditorInstance.setImageSrc(img, newAssetPath)
-                        }
-                    },
-                })
-            }
-        })
+        setupEditorImageDropZone(mount, () => heroEditorInstance, ctx)
+        setupEditorImageDoubleClickHandler(mount, () => heroEditorInstance, ctx)
 
         updateHeroEditorStats(heroEditorInstance)
         return heroEditorInstance

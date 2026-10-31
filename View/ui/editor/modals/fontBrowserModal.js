@@ -1,8 +1,8 @@
-import { CustomFontsService } from '../../../dist/Modules/Editor/index.js'
-import { getIconSvg } from '../../../dist/Utils/icons.js'
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { escapeHtml } from '../common/htmlTemplates.js'
+import { CustomFontsService } from '../../../../dist/Modules/Editor/index.js'
+import { getIconSvg } from '../../../../dist/Utils/icons.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { escapeHtml } from '../../common/htmlTemplates.js'
 
 /**
  * Sets up the Font Browser modal dialog.

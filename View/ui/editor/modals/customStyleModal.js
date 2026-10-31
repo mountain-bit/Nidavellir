@@ -2,9 +2,9 @@ import {
     CustomFontsService,
     CustomStylesService,
     getFontFamilyCss,
-} from '../../../dist/Modules/Editor/index.js'
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
+} from '../../../../dist/Modules/Editor/index.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
 import { setupFontBrowserUI } from './fontBrowserModal.js'
 
 /**

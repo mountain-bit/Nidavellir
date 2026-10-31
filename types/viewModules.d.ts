@@ -951,8 +951,9 @@ declare module '*/View/ui/detailsPanel/modules/itemsModule.js' {
     ): HTMLElement | null
 }
 
-declare module '*/View/ui/editor/editorToolbar.js' {
+declare module '*/View/ui/editor/toolbar/editorToolbar.js' {
     export const TOOLBAR_BUTTON_STATE_MAP: Array<{ id: string; key: string }>
+    export function getToolbarButtonMap(prefix?: string): Array<{ id: string; key: string }>
     export function updateToolbarActiveStates(
         activeStates: Record<string, unknown>,
         ctx: unknown,
@@ -965,7 +966,7 @@ declare module '*/View/ui/editor/editorToolbar.js' {
     ): void
 }
 
-declare module '*/View/ui/editor/customStylesMenu.js' {
+declare module '*/View/ui/editor/toolbar/customStylesMenu.js' {
     export function setupCustomStylesUI(
         editor: unknown,
         ctx: unknown,
@@ -981,21 +982,35 @@ declare module '*/View/ui/editor/customStylesMenu.js' {
     ): { renderList: () => void; openModal: (style?: unknown) => void }
 }
 
-declare module '*/View/ui/editor/customStyleModal.js' {
+declare module '*/View/ui/editor/toolbar/editorContextMenu.js' {
+    export function getActiveContextMenuData(): unknown
+    export function hideEditorContextMenu(): void
+    export function openEditorContextMenu(x: number, y: number, data?: unknown): void
+    export function setupEditorContextMenu(editor: unknown, ctx: unknown): void
+    export function attachEditorContextMenuListener(
+        mount: HTMLElement | null,
+        editor: unknown,
+        ctx: unknown,
+        canTrigger?: () => boolean
+    ): void
+}
+
+declare module '*/View/ui/editor/modals/customStyleModal.js' {
+    export function persistStylesAndFonts(ctx: unknown): Promise<void>
     export function setupCustomStyleModal(
         ctx: unknown,
-        options?: { onStyleSaved?: () => void; onStyleDeleted?: () => void }
+        options?: { onStyleSaved?: (style: unknown) => void; onStyleDeleted?: (id: string) => void }
     ): { openModal: (styleToEdit?: unknown) => void; closeModal: () => void }
 }
 
-declare module '*/View/ui/editor/fontBrowserModal.js' {
+declare module '*/View/ui/editor/modals/fontBrowserModal.js' {
     export function setupFontBrowserUI(
         ctx: unknown,
-        options?: { onFontSelected?: (fontName: string) => void }
+        onSelectFont?: (fontFamily: string) => void
     ): { open: () => void; close: () => void } | null
 }
 
-declare module '*/View/ui/editor/entityLinkModal.js' {
+declare module '*/View/ui/editor/modals/entityLinkModal.js' {
     export function extractAvailableProjectEntities(
         projectData?: unknown
     ): Array<{ id: string; name: string; type: string; description?: string }>
@@ -1015,7 +1030,7 @@ declare module '*/View/ui/editor/entityLinkModal.js' {
     export function closeEntityLinkModal(): void
 }
 
-declare module '*/View/ui/editor/descriptionEmbedModal.js' {
+declare module '*/View/ui/editor/modals/descriptionEmbedModal.js' {
     export function extractEmbeddableEntities(source?: unknown): Array<{
         id: string
         name: string
@@ -1037,14 +1052,13 @@ declare module '*/View/ui/editor/descriptionEmbedModal.js' {
         }
     ): void
     export function closeDescriptionEmbedModal(): void
-    export function setupDescriptionEmbedModalEvents(ctx?: unknown): void
 }
 
-declare module '*/View/ui/editor/mainEditor.js' {
+declare module '*/View/ui/editor/instances/mainEditor.js' {
     export function getMainEditorInstance(): unknown
     export function updateEditorStats(editor: unknown): void
     export function syncEntitiesWithActiveObject(ctx: unknown, entities: unknown[]): void
-    export function openEditorContextMenu(x: number, y: number, data: unknown): void
+    export function openEditorContextMenu(x: number, y: number, data?: unknown): void
     export function hideEditorContextMenu(): void
     export function setupEditorContextMenu(editor: unknown, ctx: unknown): void
     export function setEditorActiveState(isActive: boolean, editor?: unknown): void
@@ -1055,21 +1069,68 @@ declare module '*/View/ui/editor/mainEditor.js' {
     ): unknown
 }
 
-declare module '*/View/ui/editor/npcEditor.js' {
+declare module '*/View/ui/editor/instances/npcEditor.js' {
     export function getNpcEditorInstance(): unknown
     export function updateNpcEditorStats(editor?: unknown): void
     export function getOrCreateNpcEditor(ctx: unknown): unknown
     export function destroyNpcEditor(): void
 }
 
+declare module '*/View/ui/editor/instances/heroEditor.js' {
+    export function getHeroEditorInstance(): unknown
+    export function updateHeroEditorStats(): void
+    export function getOrCreateHeroEditor(ctx: unknown): unknown
+    export function destroyHeroEditor(): void
+}
+
+declare module '*/View/ui/editor/utils/editorEntityHelpers.js' {
+    export function getProjectEntityList(source: unknown, ...propNames: string[]): unknown[]
+    export function extractEntityDescription(obj: unknown): { text: string; summary: string }
+}
+
+declare module '*/View/ui/editor/utils/editorImageHelpers.js' {
+    export function setupEditorImageDropZone(
+        mount: HTMLElement | null,
+        getEditor: () => unknown,
+        ctx: unknown,
+        options?: { canDrop?: () => boolean }
+    ): void
+    export function setupEditorImageDoubleClickHandler(
+        mount: HTMLElement | null,
+        getEditor: () => unknown,
+        ctx: unknown,
+        canTrigger?: () => boolean
+    ): void
+}
+
+declare module '*/View/ui/editor/utils/editorPopoverUtils.js' {
+    export function positionFloatingPopover(
+        popover: HTMLElement | null,
+        targetRectOrPoint?: unknown,
+        options?: {
+            width?: number
+            height?: number
+            margin?: number
+            offsetPointY?: number
+            offsetRectY?: number
+        }
+    ): void
+}
+
 declare module '*/View/ui/editor/index.js' {
-    export * from '*/View/ui/editor/customStyleModal.js'
-    export * from '*/View/ui/editor/customStylesMenu.js'
-    export * from '*/View/ui/editor/editorToolbar.js'
-    export * from '*/View/ui/editor/entityLinkModal.js'
-    export * from '*/View/ui/editor/fontBrowserModal.js'
-    export * from '*/View/ui/editor/mainEditor.js'
-    export * from '*/View/ui/editor/npcEditor.js'
+    export * from '*/View/ui/editor/instances/heroEditor.js'
+    export * from '*/View/ui/editor/instances/mainEditor.js'
+    export * from '*/View/ui/editor/instances/npcEditor.js'
+    export * from '*/View/ui/editor/modals/customStyleModal.js'
+    export * from '*/View/ui/editor/modals/descriptionEmbedModal.js'
+    export * from '*/View/ui/editor/modals/entityLinkModal.js'
+    export * from '*/View/ui/editor/modals/fontBrowserModal.js'
+    export * from '*/View/ui/editor/toolbar/customStylesMenu.js'
+    export * from '*/View/ui/editor/toolbar/editorContextMenu.js'
+    export * from '*/View/ui/editor/toolbar/editorToolbar.js'
+    export * from '*/View/ui/editor/utils/editorEntityHelpers.js'
+    export * from '*/View/ui/editor/utils/editorImageHelpers.js'
+    export * from '*/View/ui/editor/utils/editorPopoverUtils.js'
 }
 
 declare module '*/View/ui/common/npcAvatars.js' {
@@ -2301,17 +2362,20 @@ declare module '*/View/ui/detailsPanel/choiceDetails.js' {
 declare module '*/View/ui/graph/index.js' {
     export function getStoryGraphInstance(): unknown
     export function setStoryGraphInstance(instance: unknown): void
+    export function destroyStoryGraph(): void
     export function centerStoryGraph(ctx?: unknown, animate?: boolean): void
     export function centerGraph(ctx?: unknown, animate?: boolean): void
     export function renderStoryGraph(forceRebuild?: boolean): void
     export function showStoryGraph(ctx: unknown, forceRebuild?: boolean): void
     export function showGraph(ctx: unknown, forceRebuild?: boolean): void
+    export function refreshEntityLists(ctx: unknown): void
     export function setupGraphDropZone(
         canvasContainer: HTMLElement,
         ctx: unknown,
         getGraphInstance: () => unknown
     ): void
     export function setupGraphZoomControls(ctx: unknown, getGraphInstance: () => unknown): void
+    export function cleanupGraphZoomControls(): void
 }
 
 declare module '*/View/ui/graph/storyGraphController.js' {

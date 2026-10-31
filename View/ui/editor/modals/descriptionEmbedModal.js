@@ -1,7 +1,9 @@
-import { getIconSvg } from '../../../dist/Utils/icons.js'
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { escapeHtml } from '../common/htmlTemplates.js'
+import { getIconSvg } from '../../../../dist/Utils/icons.js'
+import { toast } from '../../../../dist/Utils/toast.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { escapeHtml } from '../../common/htmlTemplates.js'
+import { extractEntityDescription, getProjectEntityList } from '../utils/editorEntityHelpers.js'
+import { positionFloatingPopover } from '../utils/editorPopoverUtils.js'
 
 let isInitialized = false
 let activeEditor = null
@@ -24,54 +26,13 @@ export function extractEmbeddableEntities(source) {
 
     const data = source.projectData || source
 
-    const getRawList = (...propNames) => {
-        for (const p of propNames) {
-            if (Array.isArray(data[p])) return data[p]
-            if (Array.isArray(source[p])) return source[p]
-            if (typeof data[p] === 'function') {
-                try {
-                    const res = data[p]()
-                    if (Array.isArray(res)) return res
-                } catch {
-                    // Ignore error in accessor
-                }
-            }
-            if (typeof source[p] === 'function') {
-                try {
-                    const res = source[p]()
-                    if (Array.isArray(res)) return res
-                } catch {
-                    // Ignore error in accessor
-                }
-            }
-        }
-        return []
-    }
-
-    const extractDesc = obj => {
-        const descObj =
-            typeof obj.getDescription === 'function'
-                ? obj.getDescription()
-                : obj.description ||
-                  (typeof obj.getContent === 'function' ? obj.getContent() : obj.content)
-
-        if (!descObj) return { text: '', summary: '' }
-        if (typeof descObj === 'string') return { text: descObj, summary: '' }
-
-        const text = typeof descObj.getText === 'function' ? descObj.getText() : descObj.text || ''
-        const summary =
-            typeof descObj.getSummary === 'function' ? descObj.getSummary() : descObj.summary || ''
-
-        return { text: String(text).trim(), summary: String(summary).trim() }
-    }
-
     // 1. Items
-    const items = getRawList('items', 'projectItems', 'getItems')
+    const items = getProjectEntityList(source, 'items', 'projectItems', 'getItems')
     items.forEach(it => {
         const id = typeof it.getId === 'function' ? it.getId() : it.id || it.name
         const name = typeof it.getName === 'function' ? it.getName() : it.name || it.id
         if (id && name && !list.some(e => e.id === id && e.type === 'item')) {
-            const { text, summary } = extractDesc(it)
+            const { text, summary } = extractEntityDescription(it)
             list.push({
                 id,
                 name,
@@ -83,12 +44,18 @@ export function extractEmbeddableEntities(source) {
     })
 
     // 2. Characters / NPCs
-    const characters = getRawList('characters', 'projectCharacters', 'getCharacters', 'npcs')
+    const characters = getProjectEntityList(
+        source,
+        'characters',
+        'projectCharacters',
+        'getCharacters',
+        'npcs'
+    )
     characters.forEach(c => {
         const id = typeof c.getId === 'function' ? c.getId() : c.id || c.name
         const name = typeof c.getName === 'function' ? c.getName() : c.name || c.id
         if (id && name && !list.some(e => e.id === id && e.type === 'character')) {
-            const { text, summary } = extractDesc(c)
+            const { text, summary } = extractEntityDescription(c)
             list.push({
                 id,
                 name,
@@ -100,12 +67,18 @@ export function extractEmbeddableEntities(source) {
     })
 
     // 3. Locations
-    const locations = getRawList('locations', 'projectLocations', 'getLocations', 'places')
+    const locations = getProjectEntityList(
+        source,
+        'locations',
+        'projectLocations',
+        'getLocations',
+        'places'
+    )
     locations.forEach(l => {
         const id = typeof l.getId === 'function' ? l.getId() : l.id || l.name
         const name = typeof l.getName === 'function' ? l.getName() : l.name || l.id
         if (id && name && !list.some(e => e.id === id && e.type === 'location')) {
-            const { text, summary } = extractDesc(l)
+            const { text, summary } = extractEntityDescription(l)
             list.push({
                 id,
                 name,
@@ -125,7 +98,7 @@ export function extractEmbeddableEntities(source) {
                 ? player.getName()
                 : player.name || 'Główny bohater'
         if (id && name && !list.some(e => e.id === id && e.type === 'character')) {
-            const { text, summary } = extractDesc(player)
+            const { text, summary } = extractEntityDescription(player)
             list.push({
                 id,
                 name: `${name} (Główny bohater)`,
@@ -146,58 +119,7 @@ export function extractEmbeddableEntities(source) {
  */
 export function positionDescriptionEmbedPopover(targetRectOrPoint) {
     const popover = document.getElementById('description-embed-modal')
-    if (!popover) return
-
-    const popoverWidth = 380
-    const popoverHeight = 520
-    const margin = 16
-
-    let left = 0
-    let top = 0
-
-    if (
-        targetRectOrPoint &&
-        typeof targetRectOrPoint.x === 'number' &&
-        typeof targetRectOrPoint.y === 'number'
-    ) {
-        left = targetRectOrPoint.x
-        top = targetRectOrPoint.y + 8
-    } else if (
-        targetRectOrPoint &&
-        typeof targetRectOrPoint.left === 'number' &&
-        typeof targetRectOrPoint.bottom === 'number'
-    ) {
-        left = targetRectOrPoint.left
-        top = targetRectOrPoint.bottom + 6
-    } else {
-        left = (window.innerWidth - popoverWidth) / 2
-        top = (window.innerHeight - popoverHeight) / 3
-    }
-
-    if (left + popoverWidth > window.innerWidth - margin) {
-        left = window.innerWidth - popoverWidth - margin
-    }
-    if (left < margin) {
-        left = margin
-    }
-
-    if (top + popoverHeight > window.innerHeight - margin) {
-        if (
-            targetRectOrPoint &&
-            typeof targetRectOrPoint.top === 'number' &&
-            targetRectOrPoint.top - popoverHeight - margin > 0
-        ) {
-            top = targetRectOrPoint.top - popoverHeight - 6
-        } else {
-            top = Math.max(margin, window.innerHeight - popoverHeight - margin)
-        }
-    }
-    if (top < margin) {
-        top = margin
-    }
-
-    popover.style.left = `${Math.round(left)}px`
-    popover.style.top = `${Math.round(top)}px`
+    positionFloatingPopover(popover, targetRectOrPoint, { width: 380, height: 520, margin: 16 })
 }
 
 /**
@@ -250,42 +172,31 @@ export function openDescriptionEmbedModal(editor, ctx, options = {}) {
     }
 
     variantRadios.forEach(radio => {
-        if (radio.value === currentVariant) {
-            radio.checked = true
-        }
+        radio.checked = radio.value === currentVariant
     })
 
     currentEntities = extractEmbeddableEntities(ctx)
 
     if (options.initialEntityId) {
-        selectedEntity =
-            currentEntities.find(
-                e =>
-                    e.id === options.initialEntityId &&
-                    (!options.initialType ||
-                        options.initialType === 'all' ||
-                        e.type === options.initialType)
-            ) || null
-
-        if (selectedEntity && labelInput && !labelInput.value) {
-            labelInput.value = `Opis: ${selectedEntity.name}`
-        }
+        selectedEntity = currentEntities.find(e => e.id === options.initialEntityId) || null
     }
 
     updateTypeFilterPills()
     renderEntitiesList()
     updateSelectedPreview()
 
-    positionDescriptionEmbedPopover(options.targetRect || options.point || null)
-
     modal.classList.remove('hidden')
-    if (searchInput) {
-        searchInput.focus()
-    }
+
+    const target = options.targetRect || options.point || null
+    positionDescriptionEmbedPopover(target)
+
+    setTimeout(() => {
+        searchInput?.focus()
+    }, 50)
 }
 
 /**
- * Closes the Description Embed Modal.
+ * Closes the description embed modal.
  */
 export function closeDescriptionEmbedModal() {
     const modal = document.getElementById('description-embed-modal')
@@ -347,22 +258,22 @@ function renderEntitiesList() {
 
     const typeConfig = {
         item: {
-            icon: 'item',
-            color: 'text-emerald-400',
-            bg: 'bg-emerald-500/10 border-emerald-500/30',
-            label: t('editor.toolbar.entity_item') || 'Przedmiot',
+            icon: 'box',
+            label: t('details.item') || 'Przedmiot',
+            color: 'text-amber-400',
+            bg: 'bg-amber-950/40 text-amber-300 border-amber-800/40',
         },
         character: {
-            icon: 'character',
-            color: 'text-amber-400',
-            bg: 'bg-amber-500/10 border-amber-500/30',
-            label: t('editor.toolbar.entity_character') || 'Postać',
+            icon: 'user',
+            label: t('details.character') || 'Postać',
+            color: 'text-purple-400',
+            bg: 'bg-purple-950/40 text-purple-300 border-purple-800/40',
         },
         location: {
-            icon: 'location',
-            color: 'text-blue-400',
-            bg: 'bg-blue-500/10 border-blue-500/30',
-            label: t('editor.toolbar.entity_location') || 'Lokacja',
+            icon: 'map-pin',
+            label: t('details.location') || 'Lokacja',
+            color: 'text-rose-400',
+            bg: 'bg-rose-950/40 text-rose-300 border-rose-800/40',
         },
     }
 
@@ -460,25 +371,31 @@ function updateSelectedPreview() {
 
         const textToPreview =
             currentVariant === 'summary'
-                ? selectedEntity.summaryText ||
-                  selectedEntity.descriptionText ||
-                  '(Brak tekstu podsumowania)'
-                : selectedEntity.descriptionText ||
-                  selectedEntity.summaryText ||
-                  '(Brak pełnego tekstu narracyjnego)'
+                ? selectedEntity.summaryText || selectedEntity.descriptionText
+                : selectedEntity.descriptionText || selectedEntity.summaryText
 
         if (previewContent) {
-            previewContent.textContent = textToPreview
-            previewContent.classList.remove('italic', 'text-zinc-600')
-            previewContent.classList.add('text-zinc-300')
+            if (textToPreview) {
+                previewContent.textContent = textToPreview
+                previewContent.classList.remove('italic', 'text-zinc-500')
+                previewContent.classList.add('text-zinc-300')
+            } else {
+                previewContent.textContent =
+                    t('editor.embed_modal.no_desc_placeholder') ||
+                    '(Brak tekstu opisu dla tego obiektu. Wstawka wyświetli pusty opis do momentu uzupełnienia danych obiektu.)'
+                previewContent.classList.add('italic', 'text-zinc-500')
+                previewContent.classList.remove('text-zinc-300')
+            }
         }
     } else {
-        selectedName.textContent = t('editor.embed_modal.no_selection') || '(brak wyboru)'
-        selectedName.className = 'font-semibold text-zinc-500'
+        selectedName.textContent = t('editor.embed_modal.none_selected') || 'Nie wybrano obiektu'
+        selectedName.className = 'italic text-zinc-500 font-normal'
         confirmBtn.setAttribute('disabled', 'true')
         if (previewContent) {
-            previewContent.textContent = 'Wybierz obiekt z listy powyżej, aby podejrzeć jego opis.'
-            previewContent.classList.add('italic', 'text-zinc-600')
+            previewContent.textContent =
+                t('editor.embed_modal.preview_placeholder') ||
+                'Wybierz obiekt z listy po lewej stronie, aby podejrzeć jego opis...'
+            previewContent.classList.add('italic', 'text-zinc-500')
             previewContent.classList.remove('text-zinc-300')
         }
     }

@@ -6,7 +6,7 @@ import {
     closeDescriptionEmbedModal,
     extractEmbeddableEntities,
     openDescriptionEmbedModal,
-} from '../../View/ui/editor/descriptionEmbedModal.js'
+} from '../../View/ui/editor/modals/descriptionEmbedModal.js'
 
 interface IMockDescriptionContext {
     vm: {

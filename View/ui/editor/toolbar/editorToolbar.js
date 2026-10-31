@@ -1,9 +1,9 @@
-import { CustomStylesService } from '../../../dist/Modules/Editor/index.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { pickProjectImage } from '../assets/assetPicker.js'
+import { CustomStylesService } from '../../../../dist/Modules/Editor/index.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { pickProjectImage } from '../../assets/assetPicker.js'
+import { openDescriptionEmbedModal } from '../modals/descriptionEmbedModal.js'
+import { openEntityLinkModal } from '../modals/entityLinkModal.js'
 import { setupCustomStylesUI } from './customStylesMenu.js'
-import { openDescriptionEmbedModal } from './descriptionEmbedModal.js'
-import { openEntityLinkModal } from './entityLinkModal.js'
 
 export const TOOLBAR_BUTTON_STATE_MAP = [
     { id: 'btn-editor-p', key: 'paragraph' },

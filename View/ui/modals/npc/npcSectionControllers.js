@@ -14,7 +14,7 @@ import {
 } from '../../assets/assetPicker.js'
 import { openImageEditor } from '../../assets/imageEditorModal.js'
 import { FANTASY_AVATARS, getAvatarById } from '../../common/npcAvatars.js'
-import { getNpcEditorInstance, updateNpcEditorStats } from '../../editor/npcEditor.js'
+import { getNpcEditorInstance, updateNpcEditorStats } from '../../editor/index.js'
 import { evaluateFormula } from './formulaEvaluator.js'
 import * as state from './npcState.js'
 import {

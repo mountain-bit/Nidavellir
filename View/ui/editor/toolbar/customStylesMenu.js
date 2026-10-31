@@ -1,7 +1,7 @@
-import { CustomStylesService } from '../../../dist/Modules/Editor/index.js'
-import { getIconSvg } from '../../../dist/Utils/icons.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { setupCustomStyleModal } from './customStyleModal.js'
+import { CustomStylesService } from '../../../../dist/Modules/Editor/index.js'
+import { getIconSvg } from '../../../../dist/Utils/icons.js'
+import { t } from '../../../../dist/Utils/translate.js'
+import { setupCustomStyleModal } from '../modals/customStyleModal.js'
 
 let sharedStyleModal = null
 const activeStyleRenderers = new Set()
