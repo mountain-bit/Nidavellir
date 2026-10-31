@@ -452,15 +452,44 @@ declare module '*/View/ui/modals/hero/heroModal.js' {
     export function hasUnsavedHeroChanges(): boolean
 }
 
-declare module '*/View/ui/detailsPanel/navigation/historyBar.js' {
+declare module '*/View/ui/detailsPanel/navigation/historyBarTemplates.js' {
+    import type { IHistoryItem } from '../ViewModel/mainWindow/types'
+
     export function renderEmptyHistoryHtml(): string
-    export function renderHistoryTabHtml(params: { item?: unknown; isActive?: boolean }): string
+    export function renderHistoryTabHtml(options?: {
+        item?: IHistoryItem | unknown
+        isActive?: boolean
+    }): string
     export function renderCloseAllButtonHtml(): string
-    export function renderHistoryBar(ctx?: unknown, onRefreshDetails?: (ctx: unknown) => void): void
+}
+
+declare module '*/View/ui/detailsPanel/navigation/historyBar.js' {
+    import type { IHistoryItem } from '../ViewModel/mainWindow/types'
+
+    export function renderEmptyHistoryHtml(): string
+    export function renderHistoryTabHtml(options?: {
+        item?: IHistoryItem | unknown
+        isActive?: boolean
+    }): string
+    export function renderCloseAllButtonHtml(): string
+    export function resolveHistoryContainer(
+        ctx?: unknown,
+        overrideContainer?: HTMLElement
+    ): HTMLElement | null
+    export function renderHistoryBar(
+        ctx?: unknown,
+        onRefreshDetailsOrOptions?:
+            | ((ctx: unknown) => void)
+            | {
+                  onRefreshDetails?: (ctx: unknown) => void
+                  container?: HTMLElement | null
+              }
+    ): void
 }
 
 declare module '*/View/ui/detailsPanel/navigation/index.js' {
     export * from '*/View/ui/detailsPanel/navigation/historyBar.js'
+    export * from '*/View/ui/detailsPanel/navigation/historyBarTemplates.js'
 }
 
 declare module '*/View/ui/detailsPanel/historyBar.js' {

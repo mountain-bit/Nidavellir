@@ -1,75 +1,153 @@
-import { getIconSvg } from '../../../../dist/Utils/icons.js'
-import { t } from '../../../../dist/Utils/translate.js'
-import { escapeHtml, getTypeIconSvg } from '../../common/htmlTemplates.js'
+/**
+ * Details Panel Navigation - History Bar Module
+ *
+ * Renders the top horizontal history bar of recently visited entities in the right sidebar.
+ * Supports accessible tabs (WAI-ARIA tablist), event delegation, scroll position preservation,
+ * focus retention, mouse wheel horizontal scrolling, and keyboard navigation.
+ */
+
+import {
+    renderCloseAllButtonHtml,
+    renderEmptyHistoryHtml,
+    renderHistoryTabHtml,
+} from './historyBarTemplates.js'
+
+// Re-export template functions for backward compatibility
+export { renderCloseAllButtonHtml, renderEmptyHistoryHtml, renderHistoryTabHtml }
 
 /**
- * Pure HTML template for empty history state.
+ * Resolves the DOM container for the history tabs bar.
+ *
+ * @param {object} [ctx] Application UI Context
+ * @param {HTMLElement} [overrideContainer]
+ * @returns {HTMLElement|null}
  */
-export function renderEmptyHistoryHtml() {
-    const historyTitle = t('details.history') || 'Historia'
-    const emptyTitle = t('details.history_empty') || 'brak'
-    return `<span class="text-[10px] text-gray-500 italic px-1 select-none">${escapeHtml(historyTitle)}: ${escapeHtml(emptyTitle)}</span>`
+export function resolveHistoryContainer(ctx, overrideContainer) {
+    if (overrideContainer && overrideContainer instanceof HTMLElement) {
+        return overrideContainer
+    }
+    if (ctx?.historyTabsContainer instanceof HTMLElement) {
+        return ctx.historyTabsContainer
+    }
+    return document.getElementById('history-tabs-container')
 }
 
 /**
- * Pure HTML template for a single history tab button.
+ * Handles keyboard navigation within the history tabs bar.
+ * Supports ArrowLeft, ArrowRight, Home, End, Enter, Space, and Delete.
+ *
+ * @param {KeyboardEvent} e
+ * @param {HTMLElement} scrollWrapper
+ * @param {object} selection
+ * @param {Function} refresh
  */
-export function renderHistoryTabHtml({ item, isActive }) {
-    const activeClasses = isActive
-        ? 'bg-[#2a2a2f] text-white border border-blue-500/50 font-medium'
-        : 'bg-[#1e1e22] text-[#a1a1aa] hover:bg-[#25252a] hover:text-white border border-transparent'
+function handleHistoryKeydown(e, scrollWrapper, selection, refresh) {
+    const tabs = Array.from(scrollWrapper.querySelectorAll('.history-tab-btn'))
+    const activeElement = document.activeElement
+    const currentIndex = tabs.findIndex(tab => tab === activeElement || tab.contains(activeElement))
 
-    const typeIconHtml = getTypeIconSvg(item?.type, 'w-3 h-3')
-    const closeIconHtml = getIconSvg('close', 'w-3 h-3')
-    const closeTitle = t('buttons.close') || 'Zamknij'
-    const itemName = item?.name || item?.id || ''
+    if (currentIndex === -1) return
 
-    return `
-        <button type="button" data-history-id="${escapeHtml(item?.id || '')}" class="history-tab-btn group flex items-center gap-1 px-2 py-0.5 rounded text-[11px] whitespace-nowrap transition-colors shrink-0 cursor-pointer ${activeClasses}">
-            <span class="text-[10px] opacity-80 shrink-0 inline-flex items-center">${typeIconHtml}</span>
-            <span class="truncate max-w-[100px]">${escapeHtml(itemName)}</span>
-            <span class="btn-close-history-item ml-0.5 hover:text-red-400 opacity-60 hover:opacity-100 rounded px-0.5 inline-flex items-center" title="${escapeHtml(closeTitle)}">
-                ${closeIconHtml}
-            </span>
-        </button>
-    `
-}
+    const currentTab = tabs[currentIndex]
+    const itemId = currentTab.dataset.historyId
 
-/**
- * Pure HTML template for close-all button.
- */
-export function renderCloseAllButtonHtml() {
-    const closeAllTitle = t('details.close_all') || 'Zamknij wszystko'
-    const iconHtml = getIconSvg('close-all', 'w-3.5 h-3.5')
-    return `
-        <button id="btn-close-all-history" type="button" class="shrink-0 ml-auto px-1.5 py-0.5 text-gray-400 hover:text-red-400 hover:bg-[#27272a] rounded transition-colors cursor-pointer flex items-center gap-1 text-[10px]" title="${escapeHtml(closeAllTitle)}">
-            ${iconHtml}
-        </button>
-    `
+    switch (e.key) {
+        case 'ArrowRight': {
+            e.preventDefault()
+            const nextTab = tabs[(currentIndex + 1) % tabs.length]
+            nextTab?.focus()
+            break
+        }
+        case 'ArrowLeft': {
+            e.preventDefault()
+            const prevTab = tabs[(currentIndex - 1 + tabs.length) % tabs.length]
+            prevTab?.focus()
+            break
+        }
+        case 'Home': {
+            e.preventDefault()
+            tabs[0]?.focus()
+            break
+        }
+        case 'End': {
+            e.preventDefault()
+            tabs[tabs.length - 1]?.focus()
+            break
+        }
+        case 'Enter':
+        case ' ': {
+            // Activate tab if not focused on close button
+            if (activeElement && !activeElement.classList.contains('btn-close-history-item')) {
+                e.preventDefault()
+                if (itemId) {
+                    selection?.selectHistoryItem?.(itemId)
+                    refresh()
+                }
+            }
+            break
+        }
+        case 'Delete': {
+            e.preventDefault()
+            if (itemId) {
+                // Determine next tab to focus before closing
+                const nextToFocus = tabs[currentIndex + 1] || tabs[currentIndex - 1] || null
+                const nextFocusId = nextToFocus?.dataset?.historyId
+
+                selection?.closeHistoryItem?.(itemId)
+                refresh({ focusItemId: nextFocusId })
+            }
+            break
+        }
+    }
 }
 
 /**
  * Renders the top history tabs bar in the right sidebar.
  *
  * @param {object} ctx Application UI Context
- * @param {Function} [onRefreshDetails] Optional callback to refresh details panel
+ * @param {Function|object} [onRefreshDetailsOrOptions] Optional callback to refresh details panel or options object
  */
-export function renderHistoryBar(ctx, onRefreshDetails) {
-    const container = document.getElementById('history-tabs-container')
-    if (!container) return
-    container.innerHTML = ''
+export function renderHistoryBar(ctx, onRefreshDetailsOrOptions) {
+    const onRefreshDetails =
+        typeof onRefreshDetailsOrOptions === 'function'
+            ? onRefreshDetailsOrOptions
+            : onRefreshDetailsOrOptions?.onRefreshDetails
+
+    const targetContainer = onRefreshDetailsOrOptions?.container || resolveHistoryContainer(ctx)
+
+    if (!targetContainer) return
+
+    // Preserve previous horizontal scroll offset if tabs were already rendered
+    const previousScrollWrapper = targetContainer.querySelector('.history-tabs-scroll-wrapper')
+    const previousScrollLeft = previousScrollWrapper ? previousScrollWrapper.scrollLeft : 0
+
+    // Check if an existing tab was focused to retain keyboard focus after re-render
+    const activeElement = document.activeElement
+    const focusedTabId =
+        onRefreshDetailsOrOptions?.focusItemId ||
+        (activeElement?.classList?.contains('history-tab-btn')
+            ? activeElement.dataset.historyId
+            : activeElement?.closest('.history-tab-btn')?.dataset.historyId)
+
+    targetContainer.innerHTML = ''
 
     const selection = ctx?.vm?.selection
     const history = selection?.getHistory ? selection.getHistory() : []
     const selected = selection?.getSelectedItem ? selection.getSelectedItem() : null
 
     if (!history || history.length === 0) {
-        container.innerHTML = renderEmptyHistoryHtml()
+        targetContainer.innerHTML = renderEmptyHistoryHtml()
         return
     }
 
-    const refresh = () => {
-        renderHistoryBar(ctx, onRefreshDetails)
+    const refresh = extraOptions => {
+        const mergedOptions =
+            typeof onRefreshDetailsOrOptions === 'function'
+                ? { onRefreshDetails, ...extraOptions }
+                : { ...onRefreshDetailsOrOptions, ...extraOptions }
+
+        renderHistoryBar(ctx, mergedOptions)
+
         if (typeof onRefreshDetails === 'function') {
             onRefreshDetails(ctx)
         } else if (typeof ctx?.renderDetailsPanel === 'function') {
@@ -77,47 +155,94 @@ export function renderHistoryBar(ctx, onRefreshDetails) {
         }
     }
 
+    // Create tabs scroll container with WAI-ARIA tablist semantics
     const scrollWrapper = document.createElement('div')
     scrollWrapper.className =
-        'flex items-center gap-1 min-w-0 flex-1 overflow-x-auto custom-scrollbar py-0.5'
+        'history-tabs-scroll-wrapper flex items-center gap-1 min-w-0 flex-1 overflow-x-auto custom-scrollbar py-0.5'
+    scrollWrapper.setAttribute('role', 'tablist')
+    scrollWrapper.setAttribute('aria-orientation', 'horizontal')
 
-    history.forEach(item => {
-        const isActive = selected && selected.id === item.id && selected.type === item.type
-        const tabWrapper = document.createElement('div')
-        tabWrapper.innerHTML = renderHistoryTabHtml({ item, isActive })
-        const tabBtn = tabWrapper.firstElementChild
+    // Generate tabs HTML in bulk
+    const tabsHtml = history
+        .map(item => {
+            const isActive =
+                Boolean(selected) && selected.id === item.id && selected.type === item.type
+            return renderHistoryTabHtml({ item, isActive })
+        })
+        .join('')
 
-        if (tabBtn) {
-            tabBtn.addEventListener('click', () => {
-                selection?.selectHistoryItem(item.id)
+    scrollWrapper.innerHTML = tabsHtml
+
+    // Delegated click handler on the scroll container (efficient, prevents memory leaks)
+    scrollWrapper.addEventListener('click', e => {
+        const target = e.target
+
+        // 1. Check if clicked on or within a tab close button
+        const closeBtn = target.closest('.btn-close-history-item')
+        if (closeBtn) {
+            e.stopPropagation()
+            const closeId =
+                closeBtn.dataset.closeId || closeBtn.closest('.history-tab-btn')?.dataset.historyId
+            if (closeId) {
+                selection?.closeHistoryItem?.(closeId)
                 refresh()
-            })
-
-            const closeBtn = tabBtn.querySelector('.btn-close-history-item')
-            if (closeBtn) {
-                closeBtn.addEventListener('click', e => {
-                    e.stopPropagation()
-                    selection?.closeHistoryItem(item.id)
-                    refresh()
-                })
             }
+            return
+        }
 
-            scrollWrapper.appendChild(tabBtn)
+        // 2. Check if clicked on or within a tab button
+        const tabBtn = target.closest('.history-tab-btn')
+        if (tabBtn) {
+            const historyId = tabBtn.dataset.historyId
+            if (historyId) {
+                selection?.selectHistoryItem?.(historyId)
+                refresh()
+            }
         }
     })
 
+    // Keyboard navigation support
+    scrollWrapper.addEventListener('keydown', e => {
+        handleHistoryKeydown(e, scrollWrapper, selection, refresh)
+    })
+
+    // Horizontal mouse wheel scrolling support
+    scrollWrapper.addEventListener(
+        'wheel',
+        e => {
+            if (e.deltaY !== 0 && scrollWrapper.scrollWidth > scrollWrapper.clientWidth) {
+                e.preventDefault()
+                scrollWrapper.scrollLeft += e.deltaY
+            }
+        },
+        { passive: false }
+    )
+
+    // Close all button
     const closeAllWrapper = document.createElement('div')
     closeAllWrapper.innerHTML = renderCloseAllButtonHtml()
     const closeAllBtn = closeAllWrapper.firstElementChild
+
     if (closeAllBtn) {
         closeAllBtn.addEventListener('click', () => {
-            selection?.closeAllHistory()
+            selection?.closeAllHistory?.()
             refresh()
         })
     }
 
-    container.appendChild(scrollWrapper)
+    targetContainer.appendChild(scrollWrapper)
     if (closeAllBtn) {
-        container.appendChild(closeAllBtn)
+        targetContainer.appendChild(closeAllBtn)
+    }
+
+    // Restore scroll position after DOM nodes are attached
+    if (previousScrollLeft > 0) {
+        scrollWrapper.scrollLeft = previousScrollLeft
+    }
+
+    // Retain keyboard focus after re-render if active element was a tab
+    if (focusedTabId) {
+        const tabToFocus = scrollWrapper.querySelector(`[data-history-id="${focusedTabId}"]`)
+        tabToFocus?.focus()
     }
 }
