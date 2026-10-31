@@ -1409,8 +1409,18 @@ declare module '*/View/ui/project/autoSaveService.js' {
     export function isAutoSaveRunningStatus(): boolean
 }
 
+declare module '*/View/ui/project/mainWindowProjectActions.js' {
+    export function applyLoadedProject(
+        appContext: unknown,
+        projectInstance: unknown,
+        projectPath?: string
+    ): void
+    export function setupProjectIpcActions(appContext: unknown): void
+}
+
 declare module '*/View/ui/project/index.js' {
     export * from '*/View/ui/project/autoSaveService.js'
+    export * from '*/View/ui/project/mainWindowProjectActions.js'
     export * from '*/View/ui/project/projectSaver.js'
     export * from '*/View/ui/project/projectStateTracker.js'
 }
@@ -1450,6 +1460,38 @@ declare module '*/View/ui/workspace/topBar.js' {
     export function openSettingsView(ctx: unknown): void
 }
 
+declare module '*/View/ui/workspace/topBarValidation.js' {
+    export function runGraphValidation(ctx: unknown): unknown
+}
+
+declare module '*/View/ui/workspace/quickSearchIndexer.js' {
+    export function getEntityText(desc: unknown): string
+    export function highlightMatch(text: string, query: string): string
+    export function getAllProjectObjects(
+        ctx: unknown
+    ): import('*/View/ui/workspace/quickSearch.js').ISearchCandidate[]
+}
+
+declare module '*/View/ui/workspace/quickSearchEngine.js' {
+    export function scoreCandidate(
+        candidate: import('*/View/ui/workspace/quickSearch.js').ISearchCandidate,
+        query: string
+    ): { matched: boolean; tier: number; score: number }
+    export function searchProjectObjects(
+        ctx: unknown,
+        query: string,
+        categoryFilter?: string
+    ): import('*/View/ui/workspace/quickSearch.js').ISearchCandidate[]
+}
+
+declare module '*/View/ui/workspace/quickSearchActions.js' {
+    export function executeQuickSearchAction(
+        item: import('*/View/ui/workspace/quickSearch.js').ISearchCandidate,
+        ctx: unknown,
+        options?: { switchDrawerTab?: boolean }
+    ): void
+}
+
 declare module '*/View/ui/workspace/quickSearch.js' {
     export interface ISearchCandidate {
         id: string
@@ -1481,11 +1523,36 @@ declare module '*/View/ui/workspace/quickSearch.js' {
         query: string,
         categoryFilter?: string
     ): ISearchCandidate[]
-    export function executeQuickSearchAction(item: ISearchCandidate, ctx: unknown): void
+    export function executeQuickSearchAction(
+        item: ISearchCandidate,
+        ctx: unknown,
+        options?: { switchDrawerTab?: boolean }
+    ): void
     export function renderQuickSearchResults(ctx: unknown, query: string): void
     export function openQuickSearch(ctx: unknown): void
     export function closeQuickSearch(): void
     export function initQuickSearch(ctx: unknown): void
+}
+
+declare module '*/View/ui/workspace/mainWindowHotkeys.js' {
+    export function setupMainWindowHotkeys(appContext: unknown): void
+}
+
+declare module '*/View/ui/workspace/mainWindowSettings.js' {
+    export function setupMainWindowSettings(appContext: unknown): void
+}
+
+declare module '*/View/ui/workspace/index.js' {
+    export * from '*/View/ui/workspace/contextMenu.js'
+    export * from '*/View/ui/workspace/mainWindowHotkeys.js'
+    export * from '*/View/ui/workspace/mainWindowSettings.js'
+    export * from '*/View/ui/workspace/quickSearch.js'
+    export * from '*/View/ui/workspace/quickSearchActions.js'
+    export * from '*/View/ui/workspace/quickSearchEngine.js'
+    export * from '*/View/ui/workspace/quickSearchIndexer.js'
+    export * from '*/View/ui/workspace/topBar.js'
+    export * from '*/View/ui/workspace/topBarValidation.js'
+    export * from '*/View/ui/workspace/workspace.js'
 }
 
 declare module '*/View/ui/assets/assetManagerModal.js' {
@@ -1663,6 +1730,16 @@ declare module '*/View/ui/assets/picker/assetPickerModal.js' {
 declare module '*/View/ui/assets/picker/index.js' {
     export * from '*/View/ui/assets/picker/assetPickerGrid.js'
     export * from '*/View/ui/assets/picker/assetPickerModal.js'
+}
+
+declare module '*/View/ui/assets/index.js' {
+    export * from '*/View/ui/assets/assetManagerModal.js'
+    export * from '*/View/ui/assets/assetPicker.js'
+    export * from '*/View/ui/assets/common/index.js'
+    export * from '*/View/ui/assets/editor/index.js'
+    export * from '*/View/ui/assets/imageEditorModal.js'
+    export * from '*/View/ui/assets/manager/index.js'
+    export * from '*/View/ui/assets/picker/index.js'
 }
 
 declare module '*/View/ui/modals/playtest/playtestModal.js' {

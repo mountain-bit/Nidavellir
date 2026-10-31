@@ -27,11 +27,15 @@ export class StartWindowView implements IStartWindowEvents {
     private npNameInput: HTMLInputElement | null = null
     private npFolderDisplay: HTMLElement | null = null
 
+    private unsubscribeVm: (() => void) | null = null
+    private onDocumentClickBound: (() => void) | null = null
+    private onDocumentKeydownBound: ((e: KeyboardEvent) => void) | null = null
+
     constructor(vm: StartWindowViewModel) {
         this.vm = vm
         this.cacheDOMElements()
         this.attachEventListeners()
-        this.vm.subscribe(this)
+        this.unsubscribeVm = this.vm.subscribe(this)
     }
 
     private cacheDOMElements(): void {
@@ -273,21 +277,62 @@ export class StartWindowView implements IStartWindowEvents {
             this.vm.toggleSettingsDropdown()
         })
 
-        document.addEventListener('click', () => {
+        this.onDocumentClickBound = (): void => {
             this.vm.closeSettingsDropdown()
-        })
+        }
+        document.addEventListener('click', this.onDocumentClickBound)
 
-        document.addEventListener('keydown', (e: KeyboardEvent) => {
+        this.onDocumentKeydownBound = (e: KeyboardEvent): void => {
             if (e.key === 'Escape') {
                 this.vm.closeNewProjectModal()
                 this.vm.closeSettingsDropdown()
             }
-        })
+        }
+        document.addEventListener('keydown', this.onDocumentKeydownBound)
 
         this.settingsDropdown?.addEventListener('click', e => e.stopPropagation())
 
         this.btnLangPl?.addEventListener('click', () => this.vm.changeLocale('pl'))
         this.btnLangEn?.addEventListener('click', () => this.vm.changeLocale('en'))
         this.btnLangDe?.addEventListener('click', () => this.vm.changeLocale('de'))
+    }
+
+    /**
+     * Cleans up all subscriptions, event listeners, and DOM references.
+     */
+    public destroy(): void {
+        if (this.unsubscribeVm) {
+            this.unsubscribeVm()
+            this.unsubscribeVm = null
+        }
+
+        if (typeof document !== 'undefined') {
+            if (this.onDocumentClickBound) {
+                document.removeEventListener('click', this.onDocumentClickBound)
+                this.onDocumentClickBound = null
+            }
+            if (this.onDocumentKeydownBound) {
+                document.removeEventListener('keydown', this.onDocumentKeydownBound)
+                this.onDocumentKeydownBound = null
+            }
+        }
+
+        this.btnCreateProject = null
+        this.btnOpenProject = null
+        this.btnRestoreProject = null
+        this.btnCloseApp = null
+        this.btnSettings = null
+        this.btnLangPl = null
+        this.btnLangEn = null
+        this.btnLangDe = null
+        this.settingsDropdown = null
+        this.recentProjectsList = null
+        this.newProjectModal = null
+        this.btnCancelNewProject = null
+        this.btnCloseNewProjectModal = null
+        this.btnSubmitNewProject = null
+        this.btnBrowseFolder = null
+        this.npNameInput = null
+        this.npFolderDisplay = null
     }
 }

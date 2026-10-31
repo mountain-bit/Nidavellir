@@ -1,16 +1,9 @@
-import { toast } from '../dist/Utils/toast.js'
-import {
-    applyTranslations,
-    getLanguage,
-    initTranslations,
-    setLanguage,
-    t,
-} from '../dist/Utils/translate.js'
+import { applyTranslations, initTranslations, t } from '../dist/Utils/translate.js'
 import { MainWindowViewModel, ProjectManager } from '../dist/ViewModel/MainWindowViewModel.js'
 if (typeof window !== 'undefined') {
     window.ProjectManager = ProjectManager
 }
-import { extractProjectData, loadProjectData } from './projectData.js'
+import { loadProjectData } from './projectData.js'
 import { renderDetailsPanel, renderHistoryBar } from './ui/detailsPanel/detailsPanel.js'
 import {
     populateFilterSelects,
@@ -36,23 +29,19 @@ import {
     setupGraphZoomControls,
     showStoryGraph,
 } from './ui/graph/index.js'
-import { confirmApplicationClose, markFileDirty } from './ui/modals/confirm/confirmModal.js'
+import { markFileDirty } from './ui/modals/confirm/confirmModal.js'
 import { openHeroModal, setupHeroModal } from './ui/modals/hero/heroModal.js'
 import {
-    executeNpcModalSave,
-    hasUnsavedNpcChanges,
     renderDynamicSuggestions,
     setupNpcModal,
     updateTraitsCounterUI,
 } from './ui/modals/npc/npcModal.js'
 import {
-    isAutoSaveEnabled,
-    setAutoSaveEnabled,
-    startAutoSave,
-} from './ui/project/autoSaveService.js'
+    applyLoadedProject,
+    setupProjectIpcActions,
+} from './ui/project/mainWindowProjectActions.js'
 import { saveFullProject } from './ui/project/projectSaver.js'
 import {
-    isProjectDirty,
     markProjectClean,
     markProjectDirty,
     updateProjectNameUI,
@@ -63,12 +52,13 @@ import {
     openContextMenu,
     setupSectionControlsAndContextMenu,
 } from './ui/workspace/contextMenu.js'
+import { setupMainWindowHotkeys } from './ui/workspace/mainWindowHotkeys.js'
+import { setupMainWindowSettings } from './ui/workspace/mainWindowSettings.js'
 import { initQuickSearch, openQuickSearch } from './ui/workspace/quickSearch.js'
 import { initTopBar, updateTopBarUI } from './ui/workspace/topBar.js'
 import {
     renderEditorTabs,
     saveActiveFile,
-    saveAllUnsavedFiles,
     setupResizers,
     updateMainWorkspaceUI,
     updateRightSidebarUI,
@@ -93,7 +83,7 @@ const viewGraphBtn = document.getElementById('view-mode-graph-btn')
 const fileEditor = document.getElementById('file-editor')
 const saveStatus = document.getElementById('save-status')
 
-// Active project data state (defaults to mock data; easily switchable to real data via loadProjectData)
+// Active project data state (defaults to mock data; switchable to real data via loadProjectData)
 let projectData = loadProjectData(vm)
 vm.factory.ensureStartParagraph(projectData.projectParagraphs)
 
@@ -630,211 +620,9 @@ document.querySelectorAll('[data-action="save"]').forEach(btn => {
     btn.addEventListener('click', () => saveFullProject(appContext))
 })
 
-function applyLoadedProject(projectInstance, projectPath) {
-    if (!projectInstance) return
-
-    vm.project = projectInstance
-    appContext.project = projectInstance
-    const realData = extractProjectData(projectInstance, {})
-    vm.factory.ensureStartParagraph(realData.projectParagraphs)
-    projectData = realData
-    appContext.projectPath = projectPath || ''
-    window.currentProjectPath = projectPath || ''
-
-    markProjectClean()
-    const projName =
-        projectInstance.getName() ||
-        (projectPath ? projectPath.split(/[\\/]/).filter(Boolean).pop() : '') ||
-        'Projekt'
-    updateProjectNameUI(projName)
-
-    if (typeof vm?.selection?.clearSelection === 'function') {
-        vm.selection.clearSelection()
-    }
-
-    renderParagraphsList(appContext)
-    renderScenesList(appContext)
-    renderConnectionsList(appContext)
-    renderCharactersList(appContext)
-    renderMainCharacter(appContext)
-    renderLocationsList(appContext)
-    renderTraitsList(appContext)
-    renderTagsList(appContext)
-    renderFilterTags(appContext)
-    populateFilterSelects(appContext)
-    renderHistoryBar(appContext)
-    renderDetailsPanel(appContext)
-    updateMainWorkspaceUI(appContext)
-
-    const sg = getStoryGraphInstance()
-    if (sg) {
-        sg.render(true)
-    }
-}
-
-document.querySelectorAll('[data-action="open-project"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        if (window.electronAPI && typeof window.electronAPI.openProject === 'function') {
-            try {
-                const res = await window.electronAPI.openProject()
-                if (res && res.success && res.project) {
-                    const projectDir = res.path
-                        ? res.path.endsWith('project.json')
-                            ? res.path.replace(/[\\/]project\.json$/i, '')
-                            : res.path
-                        : ''
-                    const projectInstance = ProjectManager.getInstance().load(
-                        res.project,
-                        res.entities || {},
-                        res.path || projectDir
-                    )
-                    applyLoadedProject(projectInstance, projectDir || res.path)
-                    toast.success(t('project.opened') || 'Projekt został pomyślnie otwarty')
-                } else if (res && !res.success && res.error) {
-                    toast.error(res.error)
-                }
-            } catch (err) {
-                console.error('Error opening project:', err)
-                toast.error(t('error.open_project_failed') || 'Nie udało się otworzyć projektu')
-            }
-        }
-    })
-})
-
-document.querySelectorAll('[data-action="restore-project"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        if (window.electronAPI && typeof window.electronAPI.restoreProjectZip === 'function') {
-            const canProceed = await confirmApplicationClose('project', appContext, {
-                hasUnsavedNpc: hasUnsavedNpcChanges,
-                saveNpc: () => executeNpcModalSave(appContext),
-                saveFiles: ctx => saveAllUnsavedFiles(ctx),
-                isProjectDirty: () => isProjectDirty(),
-                saveFullProject: ctx => saveFullProject(ctx),
-                markProjectClean: () => markProjectClean(),
-            })
-            if (!canProceed) return
-
-            try {
-                const res = await window.electronAPI.restoreProjectZip()
-                if (res && res.success && res.project) {
-                    const projectDir = res.path
-                        ? res.path.endsWith('project.json')
-                            ? res.path.replace(/[\\/]project\.json$/i, '')
-                            : res.path
-                        : ''
-                    const projectInstance = ProjectManager.getInstance().load(
-                        res.project,
-                        res.entities || {},
-                        res.path || projectDir
-                    )
-                    applyLoadedProject(projectInstance, projectDir || res.path)
-                    toast.success(
-                        t('start_window.restore_project_success') ||
-                            'Projekt został pomyślnie przywrócony z archiwum ZIP!'
-                    )
-                } else if (res && !res.success && !res.canceled && res.error) {
-                    toast.error(res.error)
-                }
-            } catch (err) {
-                console.error('Error restoring project from zip:', err)
-                toast.error(
-                    t('start_window.restore_project_error') ||
-                        'Nie udało się przywrócić projektu z pliku ZIP'
-                )
-            }
-        }
-    })
-})
-
-document.querySelectorAll('[data-action="close-project"]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const canClose = await confirmApplicationClose('project', appContext, {
-            hasUnsavedNpc: hasUnsavedNpcChanges,
-            saveNpc: () => executeNpcModalSave(appContext),
-            saveFiles: ctx => saveAllUnsavedFiles(ctx),
-            isProjectDirty: () => isProjectDirty(),
-            saveFullProject: ctx => saveFullProject(ctx),
-            markProjectClean: () => markProjectClean(),
-        })
-        if (
-            canClose &&
-            window.electronAPI &&
-            typeof window.electronAPI.loadStartWindow === 'function'
-        ) {
-            window.electronAPI.loadStartWindow()
-        }
-    })
-})
-
-if (window.electronAPI && typeof window.electronAPI.onAppCloseRequested === 'function') {
-    window.electronAPI.onAppCloseRequested(async () => {
-        const canClose = await confirmApplicationClose('app', appContext, {
-            hasUnsavedNpc: hasUnsavedNpcChanges,
-            saveNpc: () => executeNpcModalSave(appContext),
-            saveFiles: ctx => saveAllUnsavedFiles(ctx),
-            isProjectDirty: () => isProjectDirty(),
-            saveFullProject: ctx => saveFullProject(ctx),
-            markProjectClean: () => markProjectClean(),
-        })
-        if (canClose && typeof window.electronAPI.forceCloseApp === 'function') {
-            window.electronAPI.forceCloseApp()
-        }
-    })
-}
-
-// Prevent OS default file navigation on unhandled drag/drop in Electron
-window.addEventListener('dragover', e => {
-    e.preventDefault()
-})
-window.addEventListener('drop', e => {
-    e.preventDefault()
-})
-
-document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        saveFullProject(appContext)
-    } else if (e.key === 'Delete' || e.key === 'Backspace') {
-        const activeEl = document.activeElement
-        const isInput =
-            activeEl &&
-            (activeEl.tagName === 'INPUT' ||
-                activeEl.tagName === 'TEXTAREA' ||
-                activeEl.isContentEditable)
-        if (isInput) return
-
-        const sel = vm.selection.getSelectedItem()
-        if (sel && sel.type === 'paragraph' && sel.entity) {
-            if (sel.entity.getIsStart && sel.entity.getIsStart()) {
-                toast.warning(
-                    t('graph.start_node_cannot_be_deleted') ||
-                        'Węzeł START nie może zostać usunięty'
-                )
-                return
-            }
-            const confirmDel = confirm(
-                t('context_menu.confirm_delete', {
-                    name: sel.entity.getTitle() || sel.entity.getId(),
-                })
-            )
-            if (confirmDel) {
-                const deleted = vm.graph.deleteParagraph(
-                    sel.entity.getId(),
-                    projectData.projectParagraphs,
-                    projectData.projectScenes
-                )
-                if (deleted) {
-                    markProjectDirty()
-                    vm.selection.clearSelection()
-                    refreshActiveSection('paragraph')
-                    const sg = getStoryGraphInstance()
-                    if (sg) sg.render(true)
-                    toast.success(t('toast.paragraph_deleted') || 'Paragraf został usunięty')
-                }
-            }
-        }
-    }
-})
+// Setup modular project actions and global listeners
+setupProjectIpcActions(appContext)
+setupMainWindowHotkeys(appContext)
 
 if (fileEditor) {
     fileEditor.addEventListener('input', () => {
@@ -870,17 +658,7 @@ async function initApp() {
                                 openRes.entities || {},
                                 openRes.path || cur
                             )
-                            vm.project = projectInstance
-                            appContext.project = projectInstance
-                            projectData = extractProjectData(projectInstance, {})
-                            vm.factory.ensureStartParagraph(projectData.projectParagraphs)
-                            markProjectClean()
-                            const projName =
-                                projectInstance.getName() ||
-                                openRes.project.name ||
-                                (cur ? cur.split(/[\\/]/).filter(Boolean).pop() : '') ||
-                                'Projekt'
-                            updateProjectNameUI(projName)
+                            applyLoadedProject(appContext, projectInstance, openRes.path || cur)
                             projectLoaded = true
                         }
                     }
@@ -892,12 +670,7 @@ async function initApp() {
 
         if (!projectLoaded && ProjectManager.getInstance().getProject()) {
             const existingProj = ProjectManager.getInstance().getProject()
-            vm.project = existingProj
-            appContext.project = existingProj
-            projectData = extractProjectData(existingProj, {})
-            vm.factory.ensureStartParagraph(projectData.projectParagraphs)
-            markProjectClean()
-            updateProjectNameUI(existingProj.getName())
+            applyLoadedProject(appContext, existingProj, appContext.projectPath)
             projectLoaded = true
         }
 
@@ -959,108 +732,8 @@ async function initApp() {
         renderDetailsPanel(appContext)
         updateMainWorkspaceUI(appContext)
 
-        const langSelect = document.getElementById('settings-language-select')
-        if (langSelect) {
-            langSelect.value = getLanguage()
-            langSelect.addEventListener('change', async () => {
-                const newLang = langSelect.value
-                await setLanguage(newLang)
-                applyTranslations()
-                const currentProj = ProjectManager.getInstance().getProject()
-                if (currentProj && currentProj.getName()) {
-                    updateProjectNameUI(currentProj.getName())
-                } else {
-                    const titleEl = document.getElementById('project-name-display')
-                    const currentTitle = titleEl?.textContent?.trim()
-                    if (
-                        !titleEl ||
-                        titleEl.hasAttribute('data-i18n') ||
-                        !currentTitle ||
-                        currentTitle === t('topbar.project_placeholder')
-                    ) {
-                        updateProjectNameUI('')
-                    }
-                }
-                updateLeftDrawerUI()
-                renderFilterTags(appContext)
-                populateFilterSelects(appContext)
-                renderParagraphsList(appContext)
-                renderScenesList(appContext)
-                renderConnectionsList(appContext)
-                renderTagsList(appContext)
-                renderCharactersList(appContext)
-                renderMainCharacter(appContext)
-                renderLocationsList(appContext)
-                renderTraitsList(appContext)
-                renderHistoryBar(appContext)
-                renderDetailsPanel(appContext)
-                updateMainWorkspaceUI(appContext)
-            })
-        }
-
-        const zoomSensSlider = document.getElementById('settings-zoom-sensitivity')
-        const zoomSensValue = document.getElementById('settings-zoom-sensitivity-value')
-        if (zoomSensSlider) {
-            const currentSens = vm.layout.getZoomSensitivity()
-            zoomSensSlider.value = String(currentSens)
-            if (zoomSensValue) {
-                zoomSensValue.textContent = `${Math.round(currentSens * 100)}%`
-            }
-            zoomSensSlider.addEventListener('input', () => {
-                const val = parseFloat(zoomSensSlider.value)
-                vm.layout.setZoomSensitivity(val)
-                const sg = getStoryGraphInstance()
-                if (sg) {
-                    sg.setWheelSensitivity(val)
-                }
-                if (zoomSensValue) {
-                    zoomSensValue.textContent = `${Math.round(val * 100)}%`
-                }
-            })
-        }
-
-        const autoSaveCheckbox = document.getElementById('settings-auto-save')
-        if (autoSaveCheckbox) {
-            autoSaveCheckbox.checked = isAutoSaveEnabled()
-            autoSaveCheckbox.addEventListener('change', () => {
-                const enabled = autoSaveCheckbox.checked
-                setAutoSaveEnabled(enabled, appContext)
-                const title =
-                    typeof t === 'function' &&
-                    t('toast.auto_save_title') !== 'toast.auto_save_title'
-                        ? t('toast.auto_save_title')
-                        : 'Auto-zapis'
-                const msg = enabled
-                    ? typeof t === 'function' &&
-                      t('toast.auto_save_enabled') !== 'toast.auto_save_enabled'
-                        ? t('toast.auto_save_enabled')
-                        : 'Włączono automatyczny zapis w tle.'
-                    : typeof t === 'function' &&
-                        t('toast.auto_save_disabled') !== 'toast.auto_save_disabled'
-                      ? t('toast.auto_save_disabled')
-                      : 'Wyłączono automatyczny zapis w tle.'
-                toast.info(msg, title)
-            })
-        }
-
-        const showGridCheckbox = document.getElementById('settings-show-grid')
-        const gridSvg = document.getElementById('graph-grid-svg')
-        if (showGridCheckbox && gridSvg) {
-            const savedGridPref = localStorage.getItem('gamebook_setting_show_grid')
-            const isGridVisible = savedGridPref !== null ? savedGridPref === 'true' : true
-            showGridCheckbox.checked = isGridVisible
-            gridSvg.classList.toggle('hidden', !isGridVisible)
-
-            showGridCheckbox.addEventListener('change', () => {
-                const visible = showGridCheckbox.checked
-                localStorage.setItem('gamebook_setting_show_grid', String(visible))
-                gridSvg.classList.toggle('hidden', !visible)
-            })
-        }
-
-        if (isAutoSaveEnabled()) {
-            startAutoSave(appContext)
-        }
+        // Settings panel bindings
+        setupMainWindowSettings(appContext)
     } catch (err) {
         console.error('Fatal initialization error in MainWindow:', err)
     }
