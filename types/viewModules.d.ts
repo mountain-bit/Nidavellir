@@ -647,9 +647,223 @@ declare module '*/View/ui/detailsPanel/readonly/npcReadOnlyDetails.js' {
     ): void
 }
 
+declare module '*/View/ui/detailsPanel/readonly/readonlySharedHelpers.js' {
+    export function getEntityProp(
+        entity: unknown,
+        getterName: string,
+        fieldName: string,
+        defaultValue?: unknown
+    ): unknown
+    export function getEntityList(entity: unknown, getterName: string, fieldName: string): unknown[]
+    export function getEntityDescription(entity: unknown): {
+        currentSummary: string
+        currentNarrative: string
+    }
+    export function renderTagChips(tagsList?: unknown[]): string
+    export function renderCustomAttributeRows(customAttrs?: unknown[]): string
+    export function selectItemEntity(ctx: unknown, item: unknown): void
+}
+
+declare module '*/View/ui/detailsPanel/readonly/readonlySharedTemplates.js' {
+    export function renderEntityHeaderHtml(options: {
+        type: string
+        typeLabel: string
+        id?: string
+        fallbackId?: string
+    }): string
+    export function renderEntityNameHtml(options: {
+        entityName: string
+        label?: string
+        displayId?: string
+    }): string
+    export function renderEntitySummaryHtml(options: {
+        currentSummary: string
+        currentNarrative: string
+        summaryLabel?: string
+        noSummaryText?: string
+        narrativeLabel?: string
+    }): string
+    export function renderTagsSectionHtml(options: {
+        tagsCount: number
+        tagsChipsHtml: string
+        tagsLabel?: string
+        noTagsText?: string
+        listId?: string
+    }): string
+    export function renderBaseStatItemHtml(
+        stName: string,
+        stVal: unknown,
+        options?: { icon?: string; accentColor?: string; badgeColor?: string }
+    ): string
+    export function renderBaseStatsSectionHtml(options: {
+        statsCount: number
+        statsItemsHtml: string
+        statsLabel?: string
+        noTraitsText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+    export function renderParameterItemHtml(
+        p: unknown,
+        charStatsMap: unknown,
+        options?: { icon?: string; accentColor?: string; badgeColor?: string }
+    ): string
+    export function renderVitalsSectionHtml(options: {
+        paramsCount: number
+        paramsItemsHtml: string
+        vitalsLabel?: string
+        noParamsText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+    export function renderSkillItemHtml(
+        sk: unknown,
+        options?: { icon?: string; accentColor?: string; badgeColor?: string }
+    ): string
+    export function renderSkillsSectionHtml(options: {
+        skillsCount: number
+        skillsItemsHtml: string
+        skillsLabel?: string
+        noSkillsText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+    export function renderCustomAttributesSectionHtml(options: {
+        attrsCount: number
+        attrsRowsHtml: string
+        attributesLabel?: string
+        noAttrsText?: string
+        listId?: string
+    }): string
+    export function renderFeatureItemHtml(
+        f: unknown,
+        options?: { icon?: string; accentColor?: string }
+    ): string
+    export function renderFeaturesSectionHtml(options: {
+        featuresCount: number
+        featuresItemsHtml: string
+        featuresLabel?: string
+        noFeaturesText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+}
+
+declare module '*/View/ui/detailsPanel/readonly/readonlySharedHelpers.js' {
+    export function getEntityProp(
+        entity: unknown,
+        getterName: string,
+        fieldName: string,
+        defaultValue?: unknown
+    ): unknown
+    export function getEntityList(entity: unknown, getterName: string, fieldName: string): unknown[]
+    export function getEntityDescription(entity: unknown): {
+        currentSummary: string
+        currentNarrative: string
+    }
+    export function renderTagChips(tagsList?: unknown[]): string
+    export function renderCustomAttributeRows(customAttrs?: unknown[]): string
+    export function selectItemEntity(ctx: unknown, item: unknown): void
+}
+
+declare module '*/View/ui/detailsPanel/readonly/readonlySharedTemplates.js' {
+    export function renderEntityHeaderHtml(options: {
+        type: string
+        typeLabel: string
+        id?: string
+        fallbackId?: string
+    }): string
+    export function renderEntityNameHtml(options: {
+        entityName: string
+        label?: string
+        displayId?: string
+    }): string
+    export function renderEntitySummaryHtml(options: {
+        currentSummary: string
+        currentNarrative: string
+        summaryLabel?: string
+        noSummaryText?: string
+        narrativeLabel?: string
+    }): string
+    export function renderTagsSectionHtml(options: {
+        tagsCount: number
+        tagsChipsHtml: string
+        tagsLabel?: string
+        noTagsText?: string
+        listId?: string
+    }): string
+    export function renderBaseStatItemHtml(
+        stName: string,
+        stVal: unknown,
+        options?: { icon?: string; accentColor?: string; badgeColor?: string }
+    ): string
+    export function renderBaseStatsSectionHtml(options: {
+        statsCount: number
+        statsItemsHtml: string
+        statsLabel?: string
+        noTraitsText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+    export function renderParameterItemHtml(
+        p: unknown,
+        charStatsMap: unknown,
+        options?: { icon?: string; accentColor?: string; badgeColor?: string }
+    ): string
+    export function renderVitalsSectionHtml(options: {
+        paramsCount: number
+        paramsItemsHtml: string
+        vitalsLabel?: string
+        noParamsText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+    export function renderSkillItemHtml(
+        sk: unknown,
+        options?: { icon?: string; accentColor?: string; badgeColor?: string }
+    ): string
+    export function renderSkillsSectionHtml(options: {
+        skillsCount: number
+        skillsItemsHtml: string
+        skillsLabel?: string
+        noSkillsText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+    export function renderCustomAttributesSectionHtml(options: {
+        attrsCount: number
+        attrsRowsHtml: string
+        attributesLabel?: string
+        noAttrsText?: string
+        listId?: string
+    }): string
+    export function renderFeatureItemHtml(
+        f: unknown,
+        options?: { icon?: string; accentColor?: string }
+    ): string
+    export function renderFeaturesSectionHtml(options: {
+        featuresCount: number
+        featuresItemsHtml: string
+        featuresLabel?: string
+        noFeaturesText?: string
+        listId?: string
+        icon?: string
+        accentColor?: string
+    }): string
+}
+
 declare module '*/View/ui/detailsPanel/readonly/index.js' {
     export * from '*/View/ui/detailsPanel/readonly/heroReadOnlyDetails.js'
     export * from '*/View/ui/detailsPanel/readonly/npcReadOnlyDetails.js'
+    export * from '*/View/ui/detailsPanel/readonly/readonlySharedHelpers.js'
+    export * from '*/View/ui/detailsPanel/readonly/readonlySharedTemplates.js'
 }
 
 declare module '*/View/ui/detailsPanel/npcReadOnlyDetails.js' {
