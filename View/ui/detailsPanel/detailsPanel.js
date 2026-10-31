@@ -4,13 +4,11 @@
  * delegating sub-responsibilities to specialized modules.
  */
 
-import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { Choice } from '../../../dist/ViewModel/MainWindowViewModel.js'
-import { escapeHtml, renderEmptyPlaceholderHtml } from '../common/htmlTemplates.js'
+import { renderEmptyPlaceholderHtml } from '../common/htmlTemplates.js'
 import { renderChoiceDetails } from './choice/choiceDetails.js'
 import { renderCombatModule } from './combat/combatModule.js'
-import { createSection } from './common/domHelpers.js'
 import { renderItemDetails } from './item/itemDetails.js'
 import {
     renderCharactersModule,
@@ -40,6 +38,7 @@ import {
     renderSkillConfigModule,
     renderStatValueModule,
 } from './modules/rpgConfigModules.js'
+import { renderStartNodeDetails, renderStartNodeInfoHtml } from './modules/startNodeModule.js'
 import { renderHistoryBar as renderHistoryBarModule } from './navigation/historyBar.js'
 import { renderHeroReadOnlyDetails } from './readonly/heroReadOnlyDetails.js'
 import { renderNpcReadOnlyDetails } from './readonly/npcReadOnlyDetails.js'
@@ -68,6 +67,8 @@ export {
     renderQuickActionsModule,
     renderSkillConfigModule,
     renderSkillsModule,
+    renderStartNodeDetails,
+    renderStartNodeInfoHtml,
     renderStatValueModule,
     renderSummaryModule,
     renderTagsModule,
@@ -87,31 +88,93 @@ export function renderHistoryBar(ctx) {
  * Resolves the scope array of entities based on type for validation and uniqueness checks.
  *
  * @param {string} type
- * @param {object} ctx
+ * @param {object} [ctx]
  * @returns {Array<object>}
  */
-function resolveEntityScope(type, ctx) {
-    if (type === 'paragraph') return ctx.projectParagraphs || []
-    if (type === 'scene') return ctx.projectScenes || []
-    if (type === 'character') return ctx.projectCharacters || []
-    if (type === 'template') return ctx.projectTemplates || []
-    if (type === 'location') return ctx.projectLocations || []
-    if (type === 'item') return ctx.projectItems || []
-    if (type === 'stat' || type === 'trait') return ctx.projectStats || []
-    if (type === 'parameter') return ctx.projectParameters || []
-    if (type === 'skill') return ctx.projectSkills || []
-    if (type === 'feature') return ctx.projectFeatures || []
-    if (type === 'tag') return ctx.projectTags || []
-    return []
+export function resolveEntityScope(type, ctx) {
+    if (!ctx) return []
+
+    const scopeMap = {
+        paragraph: ctx.projectParagraphs,
+        scene: ctx.projectScenes,
+        character: ctx.projectCharacters,
+        template: ctx.projectTemplates,
+        location: ctx.projectLocations,
+        item: ctx.projectItems,
+        stat: ctx.projectStats,
+        trait: ctx.projectStats,
+        parameter: ctx.projectParameters,
+        skill: ctx.projectSkills,
+        feature: ctx.projectFeatures,
+        tag: ctx.projectTags,
+    }
+
+    return Array.isArray(scopeMap[type]) ? scopeMap[type] : []
+}
+
+/**
+ * Resolves the DOM container for the details panel.
+ *
+ * @param {object} [ctx]
+ * @param {HTMLElement} [containerOverride]
+ * @returns {HTMLElement|null}
+ */
+function resolveDetailsContainer(ctx, containerOverride) {
+    if (containerOverride instanceof HTMLElement) {
+        return containerOverride
+    }
+    if (ctx?.detailsContentContainer instanceof HTMLElement) {
+        return ctx.detailsContentContainer
+    }
+    return document.getElementById('details-content')
+}
+
+/**
+ * Renders standard inspection modules for an entity.
+ *
+ * @param {HTMLElement} container
+ * @param {object} entity
+ * @param {object} item
+ * @param {string} type
+ * @param {object} ctx
+ * @param {Function} onRefresh
+ */
+function renderStandardEntityModules(container, entity, item, type, ctx, onRefresh) {
+    const entityScope = resolveEntityScope(type, ctx)
+
+    renderEntityHeaderModule(container, item)
+    renderAvatarModule(container, entity, type, ctx, onRefresh)
+    renderNameModule(container, item, entityScope, ctx, onRefresh)
+    renderColorModule(container, entity, type, ctx)
+    renderParagraphNumberModule(container, entity, type, ctx)
+    renderParagraphRoleModule(container, entity, type, ctx, onRefresh)
+    renderStatValueModule(container, entity, type, ctx, onRefresh)
+    renderParameterConfigModule(container, entity, type, ctx, onRefresh)
+    renderSkillConfigModule(container, entity, type, ctx, onRefresh)
+    renderSummaryModule(container, entity, ctx)
+    renderFilesModule(container, entity, ctx)
+    renderLocationsModule(container, entity, type, ctx, onRefresh)
+    renderCharactersModule(container, entity, type, ctx, onRefresh)
+    renderTagsModule(container, entity, type, ctx, onRefresh)
+    renderTraitsModule(container, entity, type, ctx, onRefresh)
+    renderParametersModule(container, entity, type, ctx, onRefresh)
+    renderSkillsModule(container, entity, type, ctx, onRefresh)
+    renderFeaturesModule(container, entity, type, ctx, onRefresh)
+    renderCustomAttributesModule(container, entity, type, ctx, onRefresh)
+    renderItemsModule(container, entity, type, ctx, onRefresh)
+    renderExitsModule(container, entity, type, ctx, onRefresh)
+    renderCombatModule(container, entity, type, ctx, onRefresh)
+    renderQuickActionsModule(container, item, type, ctx)
 }
 
 /**
  * Renders the Right Details Panel for the currently selected entity or connection.
  *
  * @param {object} ctx Application UI Context
+ * @param {HTMLElement} [containerOverride] Optional DOM container override
  */
-export function renderDetailsPanel(ctx) {
-    const container = document.getElementById('details-content')
+export function renderDetailsPanel(ctx, containerOverride) {
+    const container = resolveDetailsContainer(ctx, containerOverride)
     if (!container) return
     container.innerHTML = ''
 
@@ -123,9 +186,10 @@ export function renderDetailsPanel(ctx) {
     }
 
     const { entity, type } = item
+    const onRefresh = () => renderDetailsPanel(ctx, container)
 
     if (type === 'choice' && entity instanceof Choice) {
-        renderChoiceDetails(container, entity, item, ctx, renderDetailsPanel)
+        renderChoiceDetails(container, entity, item, ctx, onRefresh)
         return
     }
 
@@ -140,7 +204,7 @@ export function renderDetailsPanel(ctx) {
     }
 
     if (type === 'item') {
-        renderItemDetails(container, entity, item, ctx, renderDetailsPanel)
+        renderItemDetails(container, entity, item, ctx, onRefresh)
         return
     }
 
@@ -149,87 +213,9 @@ export function renderDetailsPanel(ctx) {
         (Boolean(entity.getIsStart && entity.getIsStart()) || entity.isStart === true)
 
     if (isStartNode) {
-        renderStartNodeDetails(container, entity, item, ctx, renderDetailsPanel)
+        renderStartNodeDetails(container, entity, item, ctx, onRefresh)
         return
     }
 
-    const entityScope = resolveEntityScope(type, ctx)
-
-    renderEntityHeaderModule(container, item)
-    renderAvatarModule(container, entity, type, ctx, renderDetailsPanel)
-    renderNameModule(container, item, entityScope, ctx, renderDetailsPanel)
-    renderColorModule(container, entity, type, ctx)
-    renderParagraphNumberModule(container, entity, type, ctx)
-    renderParagraphRoleModule(container, entity, type, ctx, () => renderDetailsPanel(ctx))
-    renderStatValueModule(container, entity, type, ctx, renderDetailsPanel)
-    renderParameterConfigModule(container, entity, type, ctx, renderDetailsPanel)
-    renderSkillConfigModule(container, entity, type, ctx, renderDetailsPanel)
-    renderSummaryModule(container, entity, ctx)
-    renderFilesModule(container, entity, ctx)
-    renderLocationsModule(container, entity, type, ctx, renderDetailsPanel)
-    renderCharactersModule(container, entity, type, ctx, renderDetailsPanel)
-    renderTagsModule(container, entity, type, ctx, renderDetailsPanel)
-    renderTraitsModule(container, entity, type, ctx, renderDetailsPanel)
-    renderParametersModule(container, entity, type, ctx, renderDetailsPanel)
-    renderSkillsModule(container, entity, type, ctx, renderDetailsPanel)
-    renderFeaturesModule(container, entity, type, ctx, renderDetailsPanel)
-    renderCustomAttributesModule(container, entity, type, ctx, renderDetailsPanel)
-    renderItemsModule(container, entity, type, ctx, renderDetailsPanel)
-    renderExitsModule(container, entity, type, ctx, renderDetailsPanel)
-    renderCombatModule(container, entity, type, ctx, renderDetailsPanel)
-    renderQuickActionsModule(container, item, type, ctx)
-}
-
-/**
- * Pure HTML template for Start Node informational section.
- */
-export function renderStartNodeInfoHtml() {
-    const entryPointTitle = t('graph.start_node_entry_point') || 'Punkt startowy'
-    const technicalHint =
-        t('graph.start_node_technical_hint') ||
-        'Punkt wyjścia historii. Połącz z pierwszym paragrafem.'
-    return `
-        <div class="flex items-center gap-2">
-            <span class="text-emerald-400 shrink-0">${getIconSvg('play', 'w-3.5 h-3.5')}</span>
-            <span class="text-xs font-semibold text-zinc-200">
-                ${escapeHtml(entryPointTitle)}
-            </span>
-        </div>
-        <p class="text-[11px] text-zinc-400 leading-relaxed">
-            ${escapeHtml(technicalHint)}
-        </p>
-    `
-}
-
-/**
- * Renders dedicated technical inspection panel for the START node.
- * Contains technical badge, instructional steps for the author,
- * outgoing exits, and graph focus action.
- * Omits markdown files, narrative summary, tags, locations, characters and stats.
- *
- * @param {HTMLElement} container
- * @param {object} entity
- * @param {object} item
- * @param {object} ctx
- * @param {Function} onRefresh
- */
-export function renderStartNodeDetails(container, entity, item, ctx, onRefresh) {
-    // 1. Standard entity header (type badge + ID)
-    renderEntityHeaderModule(container, {
-        type: 'start',
-        id: entity.getId ? entity.getId() : item?.id || 'start',
-    })
-
-    // 2. Clean, elegant information section (consistent with details panel styling)
-    const infoSection = createSection(
-        'border-b border-[#333338] p-3 space-y-1',
-        renderStartNodeInfoHtml()
-    )
-    container.appendChild(infoSection)
-
-    // 3. Render outgoing exits from this start node
-    renderExitsModule(container, entity, 'paragraph', ctx, onRefresh)
-
-    // 4. Quick actions (focus on graph canvas)
-    renderQuickActionsModule(container, item, 'paragraph', ctx)
+    renderStandardEntityModules(container, entity, item, type, ctx, onRefresh)
 }

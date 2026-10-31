@@ -496,9 +496,21 @@ declare module '*/View/ui/detailsPanel/historyBar.js' {
     export * from '*/View/ui/detailsPanel/navigation/historyBar.js'
 }
 
+declare module '*/View/ui/detailsPanel/modules/startNodeModule.js' {
+    export function renderStartNodeInfoHtml(): string
+    export function renderStartNodeDetails(
+        container: unknown,
+        entity: unknown,
+        item: unknown,
+        ctx?: unknown,
+        onRefresh?: unknown
+    ): void
+}
+
 declare module '*/View/ui/detailsPanel/detailsPanel.js' {
-    export function renderDetailsPanel(ctx?: unknown): void
+    export function renderDetailsPanel(ctx?: unknown, containerOverride?: HTMLElement | null): void
     export function renderHistoryBar(ctx?: unknown): void
+    export function resolveEntityScope(type: string, ctx?: unknown): unknown[]
     export function renderStartNodeInfoHtml(): string
     export function renderStartNodeDetails(
         container: unknown,
