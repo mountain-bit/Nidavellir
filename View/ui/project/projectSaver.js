@@ -208,3 +208,19 @@ export async function saveFullProject(ctx, options = {}) {
         isSaving = false
     }
 }
+
+/**
+ * Returns whether a save operation is currently in progress.
+ *
+ * @returns {boolean}
+ */
+export function isSavingStatus() {
+    return isSaving
+}
+
+/**
+ * Resets the internal save lock state (useful for test teardown).
+ */
+export function resetProjectSaverState() {
+    isSaving = false
+}

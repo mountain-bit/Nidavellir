@@ -1379,6 +1379,8 @@ declare module '*/View/ui/project/projectStateTracker.js' {
     export function markProjectClean(): void
     export function setProjectSaving(): void
     export function setProjectSaved(): void
+    export function clearProjectSaveIndicatorTimeout(): void
+    export function resetProjectStateTracker(): void
     export function updateProjectSaveIndicatorUI(
         state: 'dirty' | 'saving' | 'saved' | 'clean',
         customProjectName?: string
@@ -1391,6 +1393,8 @@ declare module '*/View/ui/project/projectSaver.js' {
         ctx: unknown,
         options?: { isAutoSave?: boolean }
     ): Promise<{ success: boolean; canceled?: boolean; skipped?: boolean; error?: string }>
+    export function isSavingStatus(): boolean
+    export function resetProjectSaverState(): void
 }
 
 declare module '*/View/ui/project/autoSaveService.js' {
@@ -1403,6 +1407,12 @@ declare module '*/View/ui/project/autoSaveService.js' {
     export function startAutoSave(ctx: unknown, intervalMs?: number): void
     export function stopAutoSave(): void
     export function isAutoSaveRunningStatus(): boolean
+}
+
+declare module '*/View/ui/project/index.js' {
+    export * from '*/View/ui/project/autoSaveService.js'
+    export * from '*/View/ui/project/projectSaver.js'
+    export * from '*/View/ui/project/projectStateTracker.js'
 }
 
 declare module '*/View/ui/common/graphValidator.js' {
