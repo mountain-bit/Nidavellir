@@ -1874,7 +1874,19 @@ declare module '*/dist/Utils/toast.js' {
 }
 
 declare module '*/dist/Utils/translate.js' {
-    export * from '../Utils/i18n/translate'
+    export {
+        availableLanguages,
+        getLanguage,
+        initTranslations,
+        initTranslationsWithLocale,
+        isSupportedLanguage,
+        setLanguage,
+        type SupportedLanguage,
+        t,
+        type TranslationKey,
+        type Translations,
+    } from '../Utils/i18n/translate'
+    export function applyTranslations(): void
 }
 
 declare module '*/dist/ViewModel/MainWindowViewModel.js' {
@@ -1882,6 +1894,8 @@ declare module '*/dist/ViewModel/MainWindowViewModel.js' {
 
     export const ItemExportService: typeof ItemExportServiceClass
     export type ItemExportService = ItemExportServiceClass
+    export { DEFAULT_TAG_COLOR } from '../Model/constants'
+    export { Paragraph } from '../Model/Paragraph'
     export * from '../ViewModel/MainWindowViewModel'
 }
 

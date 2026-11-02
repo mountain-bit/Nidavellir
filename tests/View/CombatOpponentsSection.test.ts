@@ -156,7 +156,7 @@ describe('combatOpponentsSection Component', () => {
         })
 
         it('shows error toast when submitting empty NPC select', () => {
-            const toastSpy = vi.spyOn(toast, 'error').mockImplementation(() => '')
+            const toastSpy = vi.spyOn(toast, 'error').mockReturnValue(document.createElement('div'))
 
             renderCombatOpponentsSection(
                 container,
@@ -177,7 +177,9 @@ describe('combatOpponentsSection Component', () => {
         })
 
         it('successfully adds opponent when NPC is selected', () => {
-            const toastSpy = vi.spyOn(toast, 'success').mockImplementation(() => '')
+            const toastSpy = vi
+                .spyOn(toast, 'success')
+                .mockReturnValue(document.createElement('div'))
 
             renderCombatOpponentsSection(
                 container,

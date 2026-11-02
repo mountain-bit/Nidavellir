@@ -84,7 +84,9 @@ describe('itemHeaderSection Component', () => {
                 configurable: true,
             })
 
-            const toastSpy = vi.spyOn(toast, 'success').mockImplementation(() => '')
+            const toastSpy = vi
+                .spyOn(toast, 'success')
+                .mockReturnValue(document.createElement('div'))
 
             const section = createItemHeaderSection(item, 'it_sword_1', null, ctx)
             const copyBtn = section?.querySelector('#btn-copy-item-id') as HTMLButtonElement
