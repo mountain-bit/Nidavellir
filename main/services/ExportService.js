@@ -26,7 +26,7 @@ const {
     TableCell,
     WidthType,
 } = require('docx')
-const { resolveProjectDir } = require('../../Utils/fsSecurity')
+const { resolveProjectDir } = require('../../Utils/fs/fsSecurity')
 
 class ExportService {
     /**

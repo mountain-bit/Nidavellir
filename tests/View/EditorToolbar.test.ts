@@ -1,11 +1,11 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { extractAvailableProjectEntities } from '../../View/ui/editor/modals/entityLinkModal.js'
 import {
     TOOLBAR_BUTTON_STATE_MAP,
     updateToolbarActiveStates,
-} from '../../View/ui/editor/editorToolbar.js'
-import { extractAvailableProjectEntities } from '../../View/ui/editor/entityLinkModal.js'
+} from '../../View/ui/editor/toolbar/editorToolbar.js'
 
 describe('EditorToolbar', () => {
     beforeEach(() => {

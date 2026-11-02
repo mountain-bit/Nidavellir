@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
-import { StoryGraph } from '../../Modules/Graph/StoryGraph'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { StoryGraph } from '../../Modules/Graph/core/StoryGraph'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 
 describe('StoryGraph RMB (Right Mouse Button) Panning', () => {
     let wrapper: HTMLElement

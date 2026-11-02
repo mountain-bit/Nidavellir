@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { Choice } from '../../Model/Choice'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
-import { GraphValidationService } from '../../Services/GraphValidationService'
+import { GraphValidationService } from '../../Services/graph/GraphValidationService'
 
 describe('GraphValidationService (Services/GraphValidationService.ts)', () => {
     describe('Empty and Start/End Validation', () => {

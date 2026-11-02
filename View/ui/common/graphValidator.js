@@ -15,10 +15,10 @@
 import { GraphValidationService } from '../../../dist/Services/GraphValidationService.js'
 
 /**
- * @typedef {import('../../../Services/GraphValidationService').ValidationSeverity} ValidationSeverity
- * @typedef {import('../../../Services/GraphValidationService').ValidationErrorCode} ValidationErrorCode
- * @typedef {import('../../../Services/GraphValidationService').IGraphValidationIssue} ValidationIssue
- * @typedef {import('../../../Services/GraphValidationService').IGraphValidationReport} ValidationReport
+ * @typedef {import('../../../Services/graph/GraphValidationService').ValidationSeverity} ValidationSeverity
+ * @typedef {import('../../../Services/graph/GraphValidationService').ValidationErrorCode} ValidationErrorCode
+ * @typedef {import('../../../Services/graph/GraphValidationService').IGraphValidationIssue} ValidationIssue
+ * @typedef {import('../../../Services/graph/GraphValidationService').IGraphValidationReport} ValidationReport
  */
 
 /**

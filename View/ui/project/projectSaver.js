@@ -24,8 +24,8 @@ export async function saveFullProject(ctx, options = {}) {
 
     try {
         // Ensure any active file content in TipTap / textarea is flushed
-        if (ctx?.vm && typeof ctx.vm.getActiveFile === 'function') {
-            saveActiveFile(ctx)
+        if (ctx?.vm && typeof ctx.vm?.files?.getActiveFile === 'function') {
+            saveActiveFile(ctx, { silent: true })
         }
 
         let projectPath =
@@ -207,4 +207,20 @@ export async function saveFullProject(ctx, options = {}) {
     } finally {
         isSaving = false
     }
+}
+
+/**
+ * Returns whether a save operation is currently in progress.
+ *
+ * @returns {boolean}
+ */
+export function isSavingStatus() {
+    return isSaving
+}
+
+/**
+ * Resets the internal save lock state (useful for test teardown).
+ */
+export function resetProjectSaverState() {
+    isSaving = false
 }

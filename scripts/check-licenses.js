@@ -19,7 +19,9 @@ const allowedLicenses = new Set([
     'WTFPL',
 ])
 
-function isLicenseAllowed(licenseStr, allowedSet) {
+const normalizedAllowed = new Map(Array.from(allowedLicenses).map(lic => [lic.toLowerCase(), lic]))
+
+function isLicenseAllowed(licenseStr, allowedSet = allowedLicenses) {
     if (!licenseStr || typeof licenseStr !== 'string') return false
 
     const tokens = licenseStr.match(/\(|\)|OR|AND|[^\s()]+/gi)
@@ -31,6 +33,12 @@ function isLicenseAllowed(licenseStr, allowedSet) {
     }
     function consume() {
         return tokens[pos++]
+    }
+
+    function checkIdentifier(id) {
+        if (allowedSet.has(id)) return true
+        const canonical = normalizedAllowed.get(id.toLowerCase())
+        return Boolean(canonical && allowedSet.has(canonical))
     }
 
     function parsePrimary() {
@@ -47,7 +55,7 @@ function isLicenseAllowed(licenseStr, allowedSet) {
             return false
         }
         const id = consume()
-        return allowedSet.has(id)
+        return checkIdentifier(id)
     }
 
     function parseAnd() {
@@ -73,21 +81,44 @@ function isLicenseAllowed(licenseStr, allowedSet) {
     return Boolean(parseOr())
 }
 
-if (!fs.existsSync(virtualStoreDir)) {
-    console.error('pnpm dependencies not found. Please run pnpm install first.')
-    process.exit(1)
+function extractLicense(manifest) {
+    if (!manifest) return null
+
+    let license =
+        typeof manifest.license === 'string'
+            ? manifest.license
+            : (manifest.license?.type ?? manifest.license?.name)
+
+    if (!license && Array.isArray(manifest.licenses)) {
+        license = manifest.licenses
+            .map(l => (typeof l === 'string' ? l : (l?.type ?? l?.name)))
+            .filter(Boolean)
+            .join(' OR ')
+    }
+
+    return license || null
 }
 
-const invalidPackages = []
-const checkedPackages = new Set()
+function collectPackageManifests(
+    directory,
+    checkedPackages = new Set(),
+    invalidPackages = [],
+    allowedSet = allowedLicenses
+) {
+    let entries
+    try {
+        entries = fs.readdirSync(directory, { withFileTypes: true })
+    } catch (err) {
+        invalidPackages.push(`${directory}: błąd odczytu katalogu (${err.message})`)
+        return
+    }
 
-function collectPackageManifests(directory) {
-    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    for (const entry of entries) {
         if (!entry.isDirectory() || entry.name === '.bin') continue
 
         const entryPath = path.join(directory, entry.name)
         if (entry.name.startsWith('@')) {
-            collectPackageManifests(entryPath)
+            collectPackageManifests(entryPath, checkedPackages, invalidPackages, allowedSet)
             continue
         }
 
@@ -97,37 +128,100 @@ function collectPackageManifests(directory) {
             continue
         }
 
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+        let manifest
+        try {
+            manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+        } catch (err) {
+            invalidPackages.push(
+                `${manifestPath}: błąd odczytu lub parsowania JSON (${err.message})`
+            )
+            continue
+        }
+
         const packageId = `${manifest.name ?? entry.name}@${manifest.version ?? '?'}`
         if (checkedPackages.has(packageId)) continue
         checkedPackages.add(packageId)
 
-        let license =
-            typeof manifest.license === 'string' ? manifest.license : manifest.license?.type
-        if (!license && Array.isArray(manifest.licenses)) {
-            license = manifest.licenses
-                .map(l => (typeof l === 'string' ? l : l?.type))
-                .filter(Boolean)
-                .join(' OR ')
+        const license = extractLicense(manifest)
+        const isAllowed = isLicenseAllowed(license, allowedSet)
+        if (!isAllowed) {
+            invalidPackages.push(`${packageId}: ${license ?? 'brak licencji'}`)
         }
-
-        const isAllowed = isLicenseAllowed(license, allowedLicenses)
-        if (!isAllowed) invalidPackages.push(`${packageId}: ${license ?? 'brak licencji'}`)
     }
 }
 
-for (const storeEntry of fs.readdirSync(virtualStoreDir, { withFileTypes: true })) {
-    if (!storeEntry.isDirectory()) continue
-    const modulesDir = path.join(virtualStoreDir, storeEntry.name, 'node_modules')
-    if (fs.existsSync(modulesDir)) collectPackageManifests(modulesDir)
-}
+function checkLicenses(options = {}) {
+    const storeDir = options.virtualStoreDir ?? virtualStoreDir
+    const allowedSet = options.allowedLicenses ?? allowedLicenses
+    const invalidPackages = []
+    const checkedPackages = new Set()
 
-if (invalidPackages.length > 0) {
-    console.error('Found dependencies with disallowed or unknown license:')
-    for (const packageInfo of invalidPackages) {
-        console.error(`- ${packageInfo}`)
+    if (!fs.existsSync(storeDir)) {
+        return {
+            success: false,
+            error: 'pnpm dependencies not found. Please run pnpm install first.',
+            invalidPackages: [],
+            checkedCount: 0,
+        }
     }
-    process.exit(1)
+
+    let storeEntries
+    try {
+        storeEntries = fs.readdirSync(storeDir, { withFileTypes: true })
+    } catch (err) {
+        return {
+            success: false,
+            error: `Nie można odczytać katalogu ${storeDir}: ${err.message}`,
+            invalidPackages: [],
+            checkedCount: 0,
+        }
+    }
+
+    for (const storeEntry of storeEntries) {
+        if (!storeEntry.isDirectory()) continue
+        const modulesDir = path.join(storeDir, storeEntry.name, 'node_modules')
+        if (fs.existsSync(modulesDir)) {
+            collectPackageManifests(modulesDir, checkedPackages, invalidPackages, allowedSet)
+        }
+    }
+
+    return {
+        success: invalidPackages.length === 0,
+        invalidPackages,
+        checkedCount: checkedPackages.size,
+    }
 }
 
-console.log('Checked licenses for all dependencies: allowed licenses conform to project policy.')
+function run() {
+    const result = checkLicenses()
+    if (!result.success) {
+        if (result.error) {
+            console.error(result.error)
+        } else {
+            console.error('Found dependencies with disallowed or unknown license:')
+            for (const packageInfo of result.invalidPackages) {
+                console.error(`- ${packageInfo}`)
+            }
+        }
+        process.exit(1)
+    }
+
+    console.log(
+        `Checked licenses for all dependencies (${result.checkedCount} packages): allowed licenses conform to project policy.`
+    )
+}
+
+if (require.main === module) {
+    run()
+}
+
+module.exports = {
+    rootDir,
+    virtualStoreDir,
+    allowedLicenses,
+    isLicenseAllowed,
+    extractLicense,
+    collectPackageManifests,
+    checkLicenses,
+    run,
+}

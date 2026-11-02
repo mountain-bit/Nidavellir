@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from 'vitest'
 
-import { MarkdownEditor } from '../../Modules/Editor/MarkdownEditor'
+import { MarkdownEditor } from '../../Modules/Editor/core/MarkdownEditor'
 
 describe('DialogBlock & CustomUnderline integration', () => {
     let container: HTMLElement

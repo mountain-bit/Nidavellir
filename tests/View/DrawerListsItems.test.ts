@@ -117,7 +117,7 @@ describe('DrawerLists - Items & Inventory tab', () => {
         const item2 = new Item('item_2', 'Drewniana tarcza')
         ctx.projectItems = [item1, item2]
 
-        vm.setItemSearchQuery('topór')
+        vm.filter.setItemSearchQuery('topór')
         renderItemsList(ctx)
 
         const cards = container.querySelectorAll('.drawer-item[data-item-type="item"]')

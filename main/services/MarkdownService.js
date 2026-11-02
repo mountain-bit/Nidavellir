@@ -4,7 +4,7 @@ const {
     resolveProjectDir,
     isPathInsideBase,
     atomicWriteStringSync,
-} = require('../../Utils/fsSecurity')
+} = require('../../Utils/fs/fsSecurity')
 
 class MarkdownService {
     /**

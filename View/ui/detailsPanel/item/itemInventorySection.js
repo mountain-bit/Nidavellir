@@ -9,6 +9,21 @@ function tr(key, fallback) {
 }
 
 /**
+ * Formats slot summary string with proper localization and pluralization.
+ *
+ * @param {number|string} slotSize
+ * @returns {string}
+ */
+export function formatSlotSummary(slotSize) {
+    const size = typeof slotSize === 'number' ? slotSize : parseInt(slotSize, 10) || 0
+    const slotLabel =
+        size === 1
+            ? tr('details.item_slot_singular', 'slot')
+            : tr('details.item_slot_plural', 'sloty')
+    return `${size} ${slotLabel}`
+}
+
+/**
  * Synchronizes item in/out of the player's starting inventory.
  *
  * @param {object} itemEntity
@@ -17,6 +32,7 @@ function tr(key, fallback) {
  * @param {object} ctx
  */
 export function syncPlayerCharacterStartingInventory(itemEntity, inStarting, targetInvId, ctx) {
+    if (!itemEntity) return
     const hero = ctx?.projectPlayerCharacter || ctx?.playerCharacter
     if (!hero || typeof hero.hasItem !== 'function') return
 
@@ -41,50 +57,50 @@ export function syncPlayerCharacterStartingInventory(itemEntity, inStarting, tar
 }
 
 /**
- * Creates the Inventory Correlation & Slots Section for the Item Details Panel.
+ * Renders the HTML template string for Item Inventory Section.
  *
- * @param {object} entity The Item entity instance
- * @param {object} config Inventory configuration object
- * @param {object} ctx Application UI Context
- * @returns {HTMLElement}
+ * @param {object} [config={}]
+ * @param {Array<object>} [heroInventories=[]]
+ * @returns {string}
  */
-export function createItemInventorySection(entity, config, ctx) {
-    const hero = ctx?.projectPlayerCharacter || ctx?.playerCharacter
-    const heroInventories =
-        hero && typeof hero.getInventories === 'function' ? hero.getInventories() : []
+export function renderItemInventoryHtml(config = {}, heroInventories = []) {
+    const slotSize =
+        typeof config?.slotSize === 'number' ? config.slotSize : parseInt(config?.slotSize, 10) || 0
+    const weight =
+        typeof config?.weight === 'number' ? config.weight : parseFloat(config?.weight) || 0
+    const inStartingInventory = Boolean(config?.inStartingInventory)
+    const targetInventoryId = config?.targetInventoryId || ''
 
-    const invMod = createSection(
-        'border-b border-[#333338] p-3 space-y-2.5',
-        `
+    return `
         <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide flex items-center gap-1.5">
                 <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('backpack', 'w-3.5 h-3.5')}</span>
                 <span>${tr('details.item_inv_config', 'Zasady Ekwipunku')}</span>
             </span>
-            <span class="text-[10px] text-zinc-400 font-mono" id="details-item-slot-summary">${config.slotSize} ${config.slotSize === 1 ? 'slot' : 'sloty'}</span>
+            <span class="text-[10px] text-zinc-400 font-mono" id="details-item-slot-summary">${formatSlotSummary(slotSize)}</span>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
             <div>
-                <label for="details-item-slot-size" class="block text-[11px] text-zinc-400 mb-1">Zajmowane sloty:</label>
+                <label for="details-item-slot-size" class="block text-[11px] text-zinc-400 mb-1">${tr('details.item_slots_occupied', 'Zajmowane sloty:')}</label>
                 <input
                     id="details-item-slot-size"
                     type="number"
                     min="0"
                     max="99"
-                    value="${config.slotSize ?? 1}"
+                    value="${slotSize}"
                     class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500 font-mono text-center"
                 />
-                <span class="text-[9px] text-zinc-500 block mt-0.5 leading-tight">0 = drobiazg (nie zajmuje slotu)</span>
+                <span class="text-[9px] text-zinc-500 block mt-0.5 leading-tight">${tr('details.item_slots_hint', '0 = drobiazg (nie zajmuje slotu)')}</span>
             </div>
             <div>
-                <label for="details-item-weight" class="block text-[11px] text-zinc-400 mb-1">Waga (kg/jedn.):</label>
+                <label for="details-item-weight" class="block text-[11px] text-zinc-400 mb-1">${tr('details.item_weight_label', 'Waga (kg/jedn.):')}</label>
                 <input
                     id="details-item-weight"
                     type="number"
                     step="0.1"
                     min="0"
-                    value="${config.weight ?? 1}"
+                    value="${weight}"
                     class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500 font-mono text-center"
                 />
             </div>
@@ -93,26 +109,51 @@ export function createItemInventorySection(entity, config, ctx) {
         <!-- Starting Inventory Sync -->
         <div class="pt-2 border-t border-zinc-800/80 space-y-2">
             <label class="flex items-center gap-2 text-xs text-zinc-300 cursor-pointer select-none">
-                <input id="details-item-in-starting-inv" type="checkbox" ${config.inStartingInventory ? 'checked' : ''} class="rounded accent-amber-500 cursor-pointer" />
+                <input id="details-item-in-starting-inv" type="checkbox" ${inStartingInventory ? 'checked' : ''} class="rounded accent-amber-500 cursor-pointer" />
                 <span class="font-medium text-amber-200">${tr('details.item_in_starting_inventory', 'W początkowym ekwipunku gracza')}</span>
             </label>
 
-            <div id="details-item-target-inv-row" class="${config.inStartingInventory ? 'flex' : 'hidden'} flex-col gap-1 pl-5">
-                <label for="details-item-target-inv-select" class="text-[11px] text-zinc-400">Docelowy ekwipunek bohatera:</label>
+            <div id="details-item-target-inv-row" class="${inStartingInventory ? 'flex' : 'hidden'} flex-col gap-1 pl-5">
+                <label for="details-item-target-inv-select" class="text-[11px] text-zinc-400">${tr('details.item_target_inv_label', 'Docelowy ekwipunek bohatera:')}</label>
                 <select id="details-item-target-inv-select" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none focus:border-amber-500">
-                    <option value="">-- Domyślny ekwipunek --</option>
-                    ${heroInventories
+                    <option value="">${tr('details.item_default_inventory', '-- Domyślny ekwipunek --')}</option>
+                    ${(heroInventories || [])
                         .map(inv => {
-                            const iId = typeof inv.getId === 'function' ? inv.getId() : inv.id
+                            if (!inv) return ''
+                            const iId = typeof inv.getId === 'function' ? inv.getId() : inv.id || ''
                             const iName =
-                                typeof inv.getName === 'function' ? inv.getName() : inv.name
-                            return `<option value="${escapeHtml(iId)}" ${config.targetInventoryId === iId ? 'selected' : ''}>${escapeHtml(iName)}</option>`
+                                typeof inv.getName === 'function' ? inv.getName() : inv.name || iId
+                            return `<option value="${escapeHtml(iId)}" ${targetInventoryId === iId ? 'selected' : ''}>${escapeHtml(iName)}</option>`
                         })
                         .join('')}
                 </select>
             </div>
         </div>
     `
+}
+
+/**
+ * Creates the Inventory Correlation & Slots Section for the Item Details Panel.
+ *
+ * @param {object} entity The Item entity instance
+ * @param {object} [config] Inventory configuration object
+ * @param {object} [ctx] Application UI Context
+ * @returns {HTMLElement}
+ */
+export function createItemInventorySection(entity, config, ctx) {
+    const safeConfig =
+        config ||
+        (typeof entity?.getInventoryConfig === 'function'
+            ? entity.getInventoryConfig()
+            : entity?.inventoryConfig) ||
+        {}
+    const hero = ctx?.projectPlayerCharacter || ctx?.playerCharacter
+    const heroInventories =
+        hero && typeof hero.getInventories === 'function' ? hero.getInventories() : []
+
+    const invMod = createSection(
+        'border-b border-[#333338] p-3 space-y-2.5',
+        renderItemInventoryHtml(safeConfig, heroInventories)
     )
 
     const inpSlotSize = invMod.querySelector('#details-item-slot-size')
@@ -122,25 +163,56 @@ export function createItemInventorySection(entity, config, ctx) {
     const targetInvRow = invMod.querySelector('#details-item-target-inv-row')
     const selTargetInv = invMod.querySelector('#details-item-target-inv-select')
 
+    if (
+        !inpSlotSize ||
+        !inpWeight ||
+        !slotSummary ||
+        !chkStartingInv ||
+        !targetInvRow ||
+        !selTargetInv
+    ) {
+        return invMod
+    }
+
+    if (safeConfig?.targetInventoryId) {
+        selTargetInv.value = safeConfig.targetInventoryId
+    }
+
     inpSlotSize.addEventListener('change', () => {
         const val = Math.max(0, parseInt(inpSlotSize.value, 10) || 0)
         inpSlotSize.value = String(val)
-        if (typeof entity.setSlotSize === 'function') {
-            entity.setSlotSize(val)
-        } else if (entity.inventoryConfig) {
-            entity.inventoryConfig.slotSize = val
+        if (entity) {
+            if (typeof entity.setSlotSize === 'function') {
+                entity.setSlotSize(val)
+            } else if (typeof entity.getInventoryConfig === 'function') {
+                const conf = entity.getInventoryConfig()
+                if (conf) conf.slotSize = val
+            } else if (entity.inventoryConfig) {
+                entity.inventoryConfig.slotSize = val
+            }
         }
-        slotSummary.textContent = `${val} ${val === 1 ? 'slot' : 'sloty'}`
+        if (safeConfig) {
+            safeConfig.slotSize = val
+        }
+        slotSummary.textContent = formatSlotSummary(val)
         if (typeof ctx?.markDirty === 'function') ctx.markDirty()
     })
 
     inpWeight.addEventListener('change', () => {
         const val = Math.max(0, parseFloat(inpWeight.value) || 0)
         inpWeight.value = String(val)
-        if (typeof entity.setWeight === 'function') {
-            entity.setWeight(val)
-        } else if (entity.inventoryConfig) {
-            entity.inventoryConfig.weight = val
+        if (entity) {
+            if (typeof entity.setWeight === 'function') {
+                entity.setWeight(val)
+            } else if (typeof entity.getInventoryConfig === 'function') {
+                const conf = entity.getInventoryConfig()
+                if (conf) conf.weight = val
+            } else if (entity.inventoryConfig) {
+                entity.inventoryConfig.weight = val
+            }
+        }
+        if (safeConfig) {
+            safeConfig.weight = val
         }
         if (typeof ctx?.markDirty === 'function') ctx.markDirty()
     })
@@ -149,23 +221,41 @@ export function createItemInventorySection(entity, config, ctx) {
         const checked = chkStartingInv.checked
         if (checked) {
             targetInvRow.classList.remove('hidden')
+            targetInvRow.classList.add('flex')
         } else {
+            targetInvRow.classList.remove('flex')
             targetInvRow.classList.add('hidden')
         }
-        if (typeof entity.setInStartingInventory === 'function') {
-            entity.setInStartingInventory(checked)
-        } else if (entity.inventoryConfig) {
-            entity.inventoryConfig.inStartingInventory = checked
+        if (entity) {
+            if (typeof entity.setInStartingInventory === 'function') {
+                entity.setInStartingInventory(checked)
+            } else if (typeof entity.getInventoryConfig === 'function') {
+                const conf = entity.getInventoryConfig()
+                if (conf) conf.inStartingInventory = checked
+            } else if (entity.inventoryConfig) {
+                entity.inventoryConfig.inStartingInventory = checked
+            }
+        }
+        if (safeConfig) {
+            safeConfig.inStartingInventory = checked
         }
         syncPlayerCharacterStartingInventory(entity, checked, selTargetInv.value, ctx)
     })
 
     selTargetInv.addEventListener('change', () => {
         const newTarget = selTargetInv.value
-        if (typeof entity.setTargetInventoryId === 'function') {
-            entity.setTargetInventoryId(newTarget)
-        } else if (entity.inventoryConfig) {
-            entity.inventoryConfig.targetInventoryId = newTarget
+        if (entity) {
+            if (typeof entity.setTargetInventoryId === 'function') {
+                entity.setTargetInventoryId(newTarget)
+            } else if (typeof entity.getInventoryConfig === 'function') {
+                const conf = entity.getInventoryConfig()
+                if (conf) conf.targetInventoryId = newTarget
+            } else if (entity.inventoryConfig) {
+                entity.inventoryConfig.targetInventoryId = newTarget
+            }
+        }
+        if (safeConfig) {
+            safeConfig.targetInventoryId = newTarget
         }
         if (chkStartingInv.checked) {
             syncPlayerCharacterStartingInventory(entity, true, newTarget, ctx)

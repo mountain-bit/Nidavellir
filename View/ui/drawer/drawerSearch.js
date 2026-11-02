@@ -233,12 +233,13 @@ export function setupDrawerSearch(ctx) {
  */
 export function setupSectionSearchInputs(ctx) {
     if (!ctx || !ctx.vm) return
+    const filter = ctx?.vm?.filter
 
     // 1. Tags search
     const tagSearch = document.getElementById('tag-search-input')
     if (tagSearch) {
         tagSearch.addEventListener('input', () => {
-            ctx.vm.setTagSearchQuery(tagSearch.value)
+            filter?.setTagSearchQuery(tagSearch.value)
             renderTagsList(ctx)
         })
     }
@@ -247,7 +248,7 @@ export function setupSectionSearchInputs(ctx) {
     const sceneSearch = document.getElementById('scene-search-input')
     if (sceneSearch) {
         sceneSearch.addEventListener('input', () => {
-            ctx.vm.setSceneSearchQuery(sceneSearch.value)
+            filter?.setSceneSearchQuery(sceneSearch.value)
             renderScenesList(ctx)
         })
     }
@@ -256,7 +257,7 @@ export function setupSectionSearchInputs(ctx) {
     const connSearch = document.getElementById('connection-search-input')
     if (connSearch) {
         connSearch.addEventListener('input', () => {
-            ctx.vm.setConnectionSearchQuery(connSearch.value)
+            filter?.setConnectionSearchQuery(connSearch.value)
             renderConnectionsList(ctx)
         })
     }
@@ -265,7 +266,7 @@ export function setupSectionSearchInputs(ctx) {
     const charSearch = document.getElementById('character-search-input')
     if (charSearch) {
         charSearch.addEventListener('input', () => {
-            ctx.vm.setCharacterSearchQuery(charSearch.value)
+            filter?.setCharacterSearchQuery(charSearch.value)
             renderCharactersList(ctx)
         })
     }
@@ -274,7 +275,7 @@ export function setupSectionSearchInputs(ctx) {
     const locSearch = document.getElementById('location-search-input')
     if (locSearch) {
         locSearch.addEventListener('input', () => {
-            ctx.vm.setLocationSearchQuery(locSearch.value)
+            filter?.setLocationSearchQuery(locSearch.value)
             renderLocationsList(ctx)
         })
     }
@@ -284,10 +285,10 @@ export function setupSectionSearchInputs(ctx) {
     if (traitSearch) {
         traitSearch.addEventListener('input', () => {
             const query = traitSearch.value
-            ctx.vm.setStatSearchQuery(query)
-            ctx.vm.setSkillSearchQuery(query)
-            ctx.vm.setParameterSearchQuery(query)
-            ctx.vm.setFeatureSearchQuery(query)
+            filter?.setStatSearchQuery(query)
+            filter?.setSkillSearchQuery(query)
+            filter?.setParameterSearchQuery(query)
+            filter?.setFeatureSearchQuery(query)
             renderTraitsList(ctx)
         })
     }
@@ -296,8 +297,8 @@ export function setupSectionSearchInputs(ctx) {
     const itemSearch = document.getElementById('item-search-input')
     if (itemSearch) {
         itemSearch.addEventListener('input', () => {
-            if (typeof ctx.vm.setItemSearchQuery === 'function') {
-                ctx.vm.setItemSearchQuery(itemSearch.value)
+            if (typeof filter?.setItemSearchQuery === 'function') {
+                filter.setItemSearchQuery(itemSearch.value)
             }
             if (typeof ctx.renderItemsList === 'function') {
                 ctx.renderItemsList()

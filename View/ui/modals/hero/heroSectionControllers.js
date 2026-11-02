@@ -342,8 +342,9 @@ export function initHeroTagsController(ctx) {
         btnCreateNew.onclick = () => {
             const rawName = searchInp.value.trim()
             if (!rawName) return
-            const newTag = ctx?.vm?.createTag
-                ? ctx.vm.createTag(rawName)
+            const factory = ctx?.vm?.factory
+            const newTag = factory?.createTag
+                ? factory.createTag(rawName)
                 : {
                       id: `tag_${Date.now()}`,
                       name: rawName,

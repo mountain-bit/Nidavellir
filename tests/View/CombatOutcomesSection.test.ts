@@ -1,10 +1,16 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { initTranslationsWithLocale } from '../../dist/Utils/translate.js'
 import { Combat } from '../../Model/Combat'
 import { Paragraph } from '../../Model/Paragraph'
-import { initTranslationsWithLocale } from '../../Utils/translate'
-import { renderCombatOutcomesSection } from '../../View/ui/detailsPanel/combat/combatOutcomesSection.js'
+import {
+    calculateNewOutcomeNodePosition,
+    populateTargetParagraphSelect,
+    renderCombatOutcomesSection,
+    renderEmptyOutcomesListHtml,
+    renderOutcomesHeaderHtml,
+} from '../../View/ui/detailsPanel/combat/combatOutcomesSection.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 interface IMockCombatCtx {
@@ -267,5 +273,94 @@ describe('CombatOutcomesSection Component', () => {
         badge.click()
 
         expect(ctx.selectEntity).toHaveBeenCalledWith(targetParagraph1, 'paragraph')
+    })
+
+    it('returns null when container, combat, or entity is invalid', () => {
+        expect(
+            renderCombatOutcomesSection(null as unknown as HTMLElement, sourceParagraph, combat, [
+                sourceParagraph,
+            ])
+        ).toBeNull()
+        expect(
+            renderCombatOutcomesSection(container, null as unknown as Paragraph, combat, [
+                sourceParagraph,
+            ])
+        ).toBeNull()
+        expect(
+            renderCombatOutcomesSection(container, sourceParagraph, null as unknown as Combat, [
+                sourceParagraph,
+            ])
+        ).toBeNull()
+    })
+
+    it('handles editing outcome name and removing outcome', () => {
+        combat.addOutcome({
+            id: 'out_1',
+            name: 'Ucieczka',
+            targetParagraphId: targetParagraph1.getId(),
+            description: '',
+        })
+
+        renderCombatOutcomesSection(
+            container,
+            sourceParagraph,
+            combat,
+            [sourceParagraph, targetParagraph1],
+            ctx,
+            onModify,
+            onFullRefresh
+        )
+
+        const row = container.querySelector('[data-outcome-id="out_1"]') as HTMLElement
+        expect(row).not.toBeNull()
+
+        // Edit name
+        const nameInput = row.querySelector('.outcome-name-input') as HTMLInputElement
+        nameInput.value = 'Brawurowa Ucieczka'
+        nameInput.dispatchEvent(new Event('change'))
+
+        expect(combat.getOutcomes()[0].name).toBe('Brawurowa Ucieczka')
+        expect(onModify).toHaveBeenCalled()
+
+        // Remove outcome
+        const removeBtn = row.querySelector('.btn-remove-outcome') as HTMLButtonElement
+        removeBtn.click()
+
+        expect(combat.getOutcomes().length).toBe(0)
+        expect(onFullRefresh).toHaveBeenCalled()
+    })
+
+    it('verifies helper functions behavior', () => {
+        expect(renderEmptyOutcomesListHtml()).toContain('Brak zdefiniowanych wyników')
+
+        const headerHtml = renderOutcomesHeaderHtml(2)
+        expect(headerHtml).toContain('Możliwe wyniki walki')
+        expect(headerHtml).toContain('2')
+
+        const select = document.createElement('select')
+        populateTargetParagraphSelect(select, [sourceParagraph, targetParagraph1])
+        expect(select.options.length).toBe(3)
+        expect(select.options[0].value).toBe('')
+
+        const pos = calculateNewOutcomeNodePosition(sourceParagraph, 2)
+        expect(pos.x).toBe(360)
+        expect(pos.y).toBe(330)
+    })
+
+    it('supports multi-language translations (EN, DE)', async () => {
+        await initTranslationsWithLocale('en')
+        const sectionEn = renderCombatOutcomesSection(container, sourceParagraph, combat, [
+            sourceParagraph,
+        ])
+        expect(sectionEn?.textContent).toContain('Possible Combat Outcomes')
+        expect(sectionEn?.textContent).toContain('Add combat outcome')
+
+        await initTranslationsWithLocale('de')
+        container.innerHTML = ''
+        const sectionDe = renderCombatOutcomesSection(container, sourceParagraph, combat, [
+            sourceParagraph,
+        ])
+        expect(sectionDe?.textContent).toContain('Mögliche Kampfergebnisse')
+        expect(sectionDe?.textContent).toContain('Kampfergebnis hinzufügen')
     })
 })

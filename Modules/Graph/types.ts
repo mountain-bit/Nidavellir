@@ -4,8 +4,10 @@ import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { Tag } from '../../Model/Tag'
-import type { TranslationKey } from '../../Utils/translate'
-import { ConnectionLineStyle, ICytoscapeStyleRule } from './StoryGraphStyles'
+import type { TranslationKey } from '../../Utils/i18n/translate'
+import type { ConnectionLineStyle, ICytoscapeStyleRule } from './styles/StoryGraphStyles'
+
+export type { ConnectionLineStyle, ICytoscapeStyleRule }
 
 export interface IStoryGraphOptions {
     canvasContainer: HTMLElement

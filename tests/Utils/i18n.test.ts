@@ -11,7 +11,7 @@ const mockApp = {
     getLocale: (): string => 'pl-PL',
 }
 
-const i18n = require('../../Utils/i18n.js') as {
+const i18n = require('../../Utils/i18n/i18n.js') as {
     initI18n: (deps?: { app?: typeof mockApp }) => Promise<void>
     t: (key: string, options?: Record<string, unknown>) => string
     getTranslations: () => Record<string, unknown>

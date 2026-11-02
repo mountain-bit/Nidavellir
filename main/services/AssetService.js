@@ -1,9 +1,9 @@
 const fs = require('fs')
 const path = require('path')
 const { dialog, shell } = require('electron')
-const { resolveProjectDir, isPathInsideBase } = require('../../Utils/fsSecurity')
-const { slugifyEntityName, generateUniqueSlug } = require('../../Utils/pathSanitizer')
-const { t } = require('../../Utils/i18n')
+const { resolveProjectDir, isPathInsideBase } = require('../../Utils/fs/fsSecurity')
+const { slugifyEntityName, generateUniqueSlug } = require('../../Utils/fs/pathSanitizer')
+const { t } = require('../../Utils/i18n/i18n')
 const {
     ASSETS_IMAGES_DIR,
     IMAGE_EXTENSIONS,
@@ -11,7 +11,7 @@ const {
     buildAssetUrl,
     buildRelativeImagePath,
     isAllowedImageExtension,
-} = require('../../Utils/assetConstants')
+} = require('../../Utils/assets/assetConstants')
 const ProjectService = require('./ProjectService')
 
 /**

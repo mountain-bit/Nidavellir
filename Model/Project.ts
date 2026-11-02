@@ -1,5 +1,4 @@
-import { IFontDefinition } from '../Modules/Editor/CustomFontsService'
-import { ICustomTextStyle } from '../Modules/Editor/types'
+import { ICustomTextStyle, IFontDefinition } from '../Modules/Editor'
 import type { EntitiesData, ProjectData } from '../types/ipc'
 import { CharacterClass } from './CharacterClass'
 import { Description } from './Description'

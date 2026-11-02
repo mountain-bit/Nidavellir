@@ -1,5 +1,5 @@
 const { app, BrowserWindow, Menu } = require('electron')
-const { initI18n } = require('./Utils/i18n')
+const { initI18n } = require('./Utils/i18n/i18n')
 const { createStartWindow } = require('./main/windowManager')
 const { registerAllIpc } = require('./main/ipc')
 const {

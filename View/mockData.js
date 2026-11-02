@@ -3,10 +3,16 @@ import {
     DEFAULT_SCENE_COLOR,
     Description,
     Paragraph,
-    ProjectManager,
     Scene,
     TextCondition,
 } from '../dist/ViewModel/MainWindowViewModel.js'
+
+export {
+    extractProjectData,
+    loadProjectData,
+    loadRealProjectData,
+    USE_MOCK,
+} from './projectData.js'
 
 /**
  * Mock files state representing Markdown documents in development mode.
@@ -32,37 +38,38 @@ export const mockFiles = {
  * }}
  */
 export function createMockProjectData(vm) {
+    const factory = vm?.factory
     const projectTags = [
-        vm.createTag('Ważne', '#ef4444'),
-        vm.createTag('Walka', '#dc2626'),
-        vm.createTag('Magia', '#8b5cf6'),
+        factory.createTag('Ważne', '#ef4444'),
+        factory.createTag('Walka', '#dc2626'),
+        factory.createTag('Magia', '#8b5cf6'),
     ]
 
     const projectCharacters = [
-        vm.createCharacter('Strażnik miejski'),
-        vm.createCharacter('Kupiec Jan'),
+        factory.createCharacter('Strażnik miejski'),
+        factory.createCharacter('Kupiec Jan'),
     ]
 
     const projectTemplates = [
-        vm.createTemplate('Archetyp Strażnika'),
-        vm.createTemplate('Bandyta leśny (szablon)'),
+        factory.createTemplate('Archetyp Strażnika'),
+        factory.createTemplate('Bandyta leśny (szablon)'),
     ]
 
     const projectLocations = [
-        vm.createLocation('Karczma Pod Różą'),
-        vm.createLocation('Mroczny Las'),
+        factory.createLocation('Karczma Pod Różą'),
+        factory.createLocation('Mroczny Las'),
     ]
 
-    const projectStats = [vm.createStat('Siła'), vm.createStat('Zręczność')]
+    const projectStats = [factory.createStat('Siła'), factory.createStat('Zręczność')]
     const projectSkills = [
-        vm.createSkill('Walka wręcz', 'Skill', 'direct', '+3'),
-        vm.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2'),
+        factory.createSkill('Walka wręcz', 'Skill', 'direct', '+3'),
+        factory.createSkill('Skradanie', 'Skill', 'stat_mod', '', 'Zręczność', '+2'),
     ]
     const projectParameters = [
-        vm.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
-        vm.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
+        factory.createParameter('Punkty Życia (HP)', 'Param', 'direct', 100),
+        factory.createParameter('Mana', 'Param', 'formula', '', 'Inteligencja * 2', 20),
     ]
-    const projectFeatures = [vm.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
+    const projectFeatures = [factory.createFeature('Noktowizja', 'Pozwala widzieć w ciemnościach')]
     const projectItems = [
         {
             id: 'item_sword',
@@ -236,195 +243,4 @@ export function createMockProjectData(vm) {
         projectParagraphs,
         projectScenes,
     }
-}
-
-/**
- * Global default flag controlling whether MainWindow should initialize with mock data.
- * Set to false when ready to switch to live project data by default.
- */
-export const USE_MOCK = false
-
-/**
- * Extracts entities and files from a domain Project model instance into the
- * structure expected by MainWindow and its modular UI controllers.
- *
- * @param {import('../Model/Project').Project} project
- * @param {Record<string, string>} [files={}]
- * @returns {{
- *   files: Record<string, string>,
- *   projectTags: Array<any>,
- *   projectCharacters: Array<any>,
- *   projectLocations: Array<any>,
- *   projectStats: Array<any>,
- *   projectSkills: Array<any>,
- *   projectParameters: Array<any>,
- *   projectFeatures: Array<any>,
- *   projectParagraphs: Array<any>,
- *   projectScenes: Array<any>
- * }}
- */
-export function extractProjectData(project, files = {}) {
-    if (!project) {
-        return {
-            files: {},
-            projectTags: [],
-            projectCharacters: [],
-            playerCharacter: null,
-            playerCharacters: [],
-            projectTemplates: [],
-            projectLocations: [],
-            projectStats: [],
-            projectSkills: [],
-            projectParameters: [],
-            projectFeatures: [],
-            projectParagraphs: [],
-            projectScenes: [],
-        }
-    }
-
-    const scenes = typeof project.getScenes === 'function' ? project.getScenes() : []
-    let paragraphs = []
-    if (typeof project.getParagraphs === 'function' && project.getParagraphs().length > 0) {
-        paragraphs = [...project.getParagraphs()]
-    } else {
-        paragraphs = scenes.flatMap(s =>
-            typeof s.getParagraphs === 'function' ? s.getParagraphs() : []
-        )
-    }
-    const tags =
-        typeof project.getAllTags === 'function'
-            ? project.getAllTags()
-            : typeof project.getTagList === 'function'
-              ? project.getTagList()
-              : []
-    const characters = typeof project.getCharacters === 'function' ? project.getCharacters() : []
-    const templates = typeof project.getTemplates === 'function' ? project.getTemplates() : []
-    const locations = typeof project.getLocations === 'function' ? project.getLocations() : []
-    const stats = typeof project.getGlobalStats === 'function' ? project.getGlobalStats() : []
-    const skills = typeof project.getGlobalSkills === 'function' ? project.getGlobalSkills() : []
-    const parameters =
-        typeof project.getGlobalParameters === 'function' ? project.getGlobalParameters() : []
-    const features =
-        typeof project.getGlobalFeatures === 'function' ? project.getGlobalFeatures() : []
-    const items = typeof project.getItems === 'function' ? project.getItems() : project.items || []
-    const playerCharacter =
-        typeof project.getPlayerCharacter === 'function'
-            ? project.getPlayerCharacter()
-            : project.playerCharacter || null
-    const playerCharacters =
-        typeof project.getPlayerCharacters === 'function'
-            ? project.getPlayerCharacters()
-            : project.playerCharacters || (playerCharacter ? [playerCharacter] : [])
-
-    return {
-        files: files || {},
-        projectTags: tags,
-        projectCharacters: characters,
-        playerCharacter,
-        playerCharacters,
-        projectTemplates: templates,
-        projectLocations: locations,
-        projectItems: items,
-        items,
-        projectStats: stats,
-        projectSkills: skills,
-        projectParameters: parameters,
-        projectFeatures: features,
-        projectParagraphs: paragraphs,
-        projectScenes: scenes,
-    }
-}
-
-/**
- * Adapter scaffold for loading live project data.
- * Can accept an existing project instance via options.project, or connect
- * to ProjectManager / window.electronAPI.
- *
- * @param {import('../ViewModel/MainWindowViewModel').MainWindowViewModel} vm
- * @param {{ project?: any, projectPath?: string, files?: Record<string, string> }} [options={}]
- * @returns {Promise<{
- *   files: Record<string, string>,
- *   projectTags: Array<any>,
- *   projectCharacters: Array<any>,
- *   projectLocations: Array<any>,
- *   projectStats: Array<any>,
- *   projectSkills: Array<any>,
- *   projectParameters: Array<any>,
- *   projectFeatures: Array<any>,
- *   projectParagraphs: Array<any>,
- *   projectScenes: Array<any>
- * }>}
- */
-export async function loadRealProjectData(vm, options = {}) {
-    if (options.project) {
-        return extractProjectData(options.project, options.files)
-    }
-
-    if (
-        typeof ProjectManager !== 'undefined' &&
-        ProjectManager &&
-        typeof ProjectManager.getInstance === 'function'
-    ) {
-        const curProj = ProjectManager.getInstance().getProject()
-        if (curProj) {
-            return extractProjectData(curProj, options.files)
-        }
-    }
-
-    // Default empty scaffold when no real project is provided yet
-    return {
-        files: options.files || {},
-        projectTags: [],
-        projectCharacters: [],
-        projectTemplates: [],
-        projectLocations: [],
-        projectStats: [],
-        projectSkills: [],
-        projectParameters: [],
-        projectFeatures: [],
-        projectParagraphs: [],
-        projectScenes: [],
-    }
-}
-
-/**
- * Loads project data based on the provided configuration.
- * When useMock is true (or not specified, using USE_MOCK), returns mock data.
- * When useMock is false, switches to live project data.
- *
- * @param {import('../ViewModel/MainWindowViewModel').MainWindowViewModel} vm
- * @param {{ useMock?: boolean, project?: any, projectPath?: string, files?: Record<string, string> }} [options={}]
- * @returns {{
- *   files: Record<string, string>,
- *   projectTags: Array<any>,
- *   projectCharacters: Array<any>,
- *   projectLocations: Array<any>,
- *   projectStats: Array<any>,
- *   projectParagraphs: Array<any>,
- *   projectScenes: Array<any>
- * }}
- */
-export function loadProjectData(vm, options = {}) {
-    const useMock = options.useMock !== undefined ? options.useMock : USE_MOCK
-
-    if (useMock) {
-        return createMockProjectData(vm)
-    }
-
-    if (options.project) {
-        return extractProjectData(options.project, options.files)
-    }
-
-    if (
-        typeof ProjectManager !== 'undefined' &&
-        ProjectManager &&
-        typeof ProjectManager.getInstance === 'function'
-    ) {
-        const curProj = ProjectManager.getInstance().getProject()
-        if (curProj) {
-            return extractProjectData(curProj, options.files)
-        }
-    }
-
-    return extractProjectData(null, options.files)
 }

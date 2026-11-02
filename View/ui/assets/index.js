@@ -1,3 +1,7 @@
 export * from './assetManagerModal.js'
 export * from './assetPicker.js'
+export * from './common/index.js'
+export * from './editor/index.js'
 export * from './imageEditorModal.js'
+export * from './manager/index.js'
+export * from './picker/index.js'

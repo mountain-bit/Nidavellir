@@ -6,7 +6,7 @@ import {
     getNpcEditorInstance,
     getOrCreateNpcEditor,
     updateNpcEditorStats,
-} from '../../View/ui/editor/npcEditor.js'
+} from '../../View/ui/editor/instances/npcEditor.js'
 import {
     getNpcDescription,
     resetNpcModalForm,

@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { showToast, toast } from '../../Utils/toast'
+import { showToast, toast } from '../../Utils/ui/toast'
 
 describe('Toast Notification System', () => {
     beforeEach(() => {
@@ -48,12 +48,14 @@ describe('Toast Notification System', () => {
         expect(el.className).toContain('border-blue-500')
     })
 
-    it('powinien usunąć toast po kliknięciu przycisku zamknięcia', () => {
-        toast.info('Do usunięcia')
+    it('powinien usunąć toast po kliknięciu przycisku zamknięcia i wyczyścić timer auto-zamykania', () => {
+        toast.info('Do usunięcia', undefined, 5000)
         const container = document.getElementById('toast-container')
         const closeBtn = container?.querySelector('button')
         expect(closeBtn).not.toBeNull()
 
+        closeBtn?.click()
+        // Double click should be a safe no-op
         closeBtn?.click()
         vi.advanceTimersByTime(350)
         expect(container?.children.length).toBe(0)

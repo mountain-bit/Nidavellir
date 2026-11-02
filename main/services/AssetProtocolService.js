@@ -2,8 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const { pathToFileURL } = require('url')
 const { protocol, net } = require('electron')
-const { isPathInsideBase } = require('../../Utils/fsSecurity')
-const { ASSET_PROTOCOL_SCHEME, ASSET_PROTOCOL_HOST } = require('../../Utils/assetConstants')
+const { isPathInsideBase } = require('../../Utils/fs/fsSecurity')
+const { ASSET_PROTOCOL_SCHEME, ASSET_PROTOCOL_HOST } = require('../../Utils/assets/assetConstants')
 const ProjectService = require('./ProjectService')
 
 /**

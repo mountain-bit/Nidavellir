@@ -4,7 +4,7 @@ import os from 'os'
 import path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { ProjectManager } from '../../Services/ProjectManager'
+import { ProjectManager } from '../../Services/project/ProjectManager'
 import { extractProjectData } from '../../View/mockData.js'
 
 const require = createRequire(import.meta.url)
@@ -197,7 +197,7 @@ describe('ProjectService.saveFullProject Integration Tests', () => {
         const extracted = extractProjectData(projectInstance, openRes.files)
         expect(extracted.projectParagraphs.length).toBeGreaterThanOrEqual(2)
         const loadedStart = extracted.projectParagraphs.find(
-            (p: any) => p.getId && p.getId() === 'p_start'
+            (p: { getId?: () => string }) => p.getId && p.getId() === 'p_start'
         )
         expect(loadedStart).toBeDefined()
         expect(loadedStart.getTitle()).toBe('Węzeł Początkowy')

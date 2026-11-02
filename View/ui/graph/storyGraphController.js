@@ -5,11 +5,9 @@
  */
 
 import { StoryGraph } from '../../../dist/Modules/Graph/index.js'
-import { toast } from '../../../dist/Utils/toast.js'
-import { t } from '../../../dist/Utils/translate.js'
-import { markProjectDirty } from '../project/projectStateTracker.js'
 import { updateZoomToolbarUI } from '../workspace/workspace.js'
 import { setupGraphDropZone } from './graphDropZone.js'
+import { createStoryGraphConfig, refreshEntityLists } from './graphEventHandlers.js'
 
 let _storyGraphInstance = null
 
@@ -31,6 +29,25 @@ export function setStoryGraphInstance(instance) {
     _storyGraphInstance = instance
     if (typeof window !== 'undefined') {
         window.storyGraphInstance = instance
+    }
+}
+
+/**
+ * Destroys and cleans up the active StoryGraph instance.
+ */
+export function destroyStoryGraph() {
+    if (_storyGraphInstance) {
+        if (typeof _storyGraphInstance.destroy === 'function') {
+            try {
+                _storyGraphInstance.destroy()
+            } catch {
+                // Ignore teardown errors
+            }
+        }
+        _storyGraphInstance = null
+        if (typeof window !== 'undefined') {
+            window.storyGraphInstance = null
+        }
     }
 }
 
@@ -59,24 +76,6 @@ export function renderStoryGraph(forceRebuild = true) {
 }
 
 /**
- * Helper to ensure the right inspector sidebar is expanded when selecting nodes.
- *
- * @param {object} ctx Application context
- */
-function openRightSidebarIfCollapsed(ctx) {
-    if (
-        ctx.vm &&
-        typeof ctx.vm.isRightSidebarCollapsed === 'function' &&
-        ctx.vm.isRightSidebarCollapsed()
-    ) {
-        ctx.vm.setRightSidebarCollapsed(false)
-        if (typeof ctx.updateRightSidebarUI === 'function') {
-            ctx.updateRightSidebarUI()
-        }
-    }
-}
-
-/**
  * Initializes or re-renders the Cytoscape story graph.
  *
  * @param {object} ctx Application context
@@ -88,115 +87,20 @@ export function showStoryGraph(ctx, forceRebuild = false) {
     if (!canvasContainer || !nodesLayer) return
 
     const paragraphs = ctx.projectParagraphs || ctx.projectData?.projectParagraphs || []
-    if (ctx.vm && typeof ctx.vm.ensureStartParagraph === 'function') {
-        ctx.vm.ensureStartParagraph(paragraphs)
+    const factory = ctx?.vm?.factory
+
+    if (factory && typeof factory.ensureStartParagraph === 'function') {
+        factory.ensureStartParagraph(paragraphs)
     }
 
     if (!_storyGraphInstance) {
-        _storyGraphInstance = new StoryGraph({
+        const config = createStoryGraphConfig(
+            ctx,
             canvasContainer,
             nodesLayer,
-            lineStyle:
-                typeof ctx.vm.getConnectionLineStyle === 'function'
-                    ? ctx.vm.getConnectionLineStyle()
-                    : 'curved',
-            wheelSensitivity:
-                typeof ctx.vm.getZoomSensitivity === 'function' ? ctx.vm.getZoomSensitivity() : 0.2,
-            onZoomChange: lvl => updateZoomToolbarUI(_storyGraphInstance, lvl),
-            getParagraphs: () => ctx.projectParagraphs || ctx.projectData?.projectParagraphs || [],
-            getScenes: () => ctx.projectScenes || ctx.projectData?.projectScenes || [],
-            getTags: () => ctx.projectTags || ctx.projectData?.projectTags || [],
-            getCharacters: () => ctx.projectCharacters || ctx.projectData?.projectCharacters || [],
-            getLocations: () => ctx.projectLocations || ctx.projectData?.projectLocations || [],
-            onGraphModified: () => markProjectDirty(),
-            onItemAssigned: () => {
-                markProjectDirty()
-                if (typeof ctx.renderParagraphsList === 'function') ctx.renderParagraphsList()
-                if (typeof ctx.renderScenesList === 'function') ctx.renderScenesList()
-                if (typeof ctx.renderTagsList === 'function') ctx.renderTagsList()
-                if (typeof ctx.renderCharactersList === 'function') ctx.renderCharactersList()
-                if (typeof ctx.renderLocationsList === 'function') ctx.renderLocationsList()
-                if (typeof ctx.renderDetailsPanel === 'function') ctx.renderDetailsPanel()
-                if (_storyGraphInstance) _storyGraphInstance.render(true)
-            },
-            onSelectParagraph: (p, scene) => {
-                openRightSidebarIfCollapsed(ctx)
-                if (typeof ctx.selectEntity === 'function') {
-                    ctx.selectEntity(p, 'paragraph', scene)
-                }
-            },
-            onSelectScene: scene => {
-                openRightSidebarIfCollapsed(ctx)
-                if (typeof ctx.selectEntity === 'function') {
-                    ctx.selectEntity(scene, 'scene')
-                }
-            },
-            onSelectChoice: (choice, fromP) => {
-                openRightSidebarIfCollapsed(ctx)
-                if (typeof ctx.selectEntity === 'function') {
-                    ctx.selectEntity(choice, 'choice', fromP)
-                }
-            },
-            onSceneAssignmentChange: () => {
-                markProjectDirty()
-                if (typeof ctx.renderScenesList === 'function') ctx.renderScenesList()
-                if (typeof ctx.renderParagraphsList === 'function') ctx.renderParagraphsList()
-                if (typeof ctx.populateFilterSelects === 'function') ctx.populateFilterSelects()
-            },
-            onCreateParagraph: title => {
-                const newP = ctx.vm.createParagraph(title)
-                const targetParagraphs = ctx.projectParagraphs || ctx.projectData?.projectParagraphs
-                if (Array.isArray(targetParagraphs)) {
-                    targetParagraphs.push(newP)
-                }
-                markProjectDirty()
-                if (typeof ctx.renderParagraphsList === 'function') ctx.renderParagraphsList()
-                return newP
-            },
-            onCreateScene: (name, position, width, height, assignedParagraphs) => {
-                const newScene = ctx.vm.createScene(name)
-                if (position) newScene.setPosition(position)
-                if (width) newScene.setWidth(width)
-                if (height) newScene.setHeight(height)
-                if (Array.isArray(assignedParagraphs)) {
-                    assignedParagraphs.forEach(p => newScene.addParagraph(p))
-                }
-                const targetScenes = ctx.projectScenes || ctx.projectData?.projectScenes
-                if (Array.isArray(targetScenes) && !targetScenes.includes(newScene)) {
-                    targetScenes.push(newScene)
-                }
-                markProjectDirty()
-                if (typeof ctx.renderScenesList === 'function') ctx.renderScenesList()
-                return newScene
-            },
-            onCreateConnection: (fromParagraph, toParagraph, choiceName) => {
-                const existingChoices = fromParagraph.getChoices ? fromParagraph.getChoices() : []
-                const toId = toParagraph.getId()
-                const alreadyExists = existingChoices.some(
-                    c =>
-                        c.getToParagraphId() === toId && (!choiceName || c.getName() === choiceName)
-                )
-                if (alreadyExists) {
-                    return null
-                }
-                const choice = ctx.vm.createChoice(fromParagraph, toParagraph, choiceName)
-                markProjectDirty()
-                if (typeof ctx.renderConnectionsList === 'function') {
-                    ctx.renderConnectionsList()
-                }
-                if (typeof ctx.renderParagraphsList === 'function') {
-                    ctx.renderParagraphsList()
-                }
-                return choice
-            },
-            onToast: (type, msg, title) => {
-                if (type === 'success') toast.success(msg, title)
-                else if (type === 'error') toast.error(msg, title)
-                else if (type === 'warning') toast.warning(msg, title)
-                else toast.info(msg, title)
-            },
-            t,
-        })
+            getStoryGraphInstance
+        )
+        _storyGraphInstance = new StoryGraph(config)
     }
 
     setupGraphDropZone(canvasContainer, ctx, getStoryGraphInstance)
@@ -208,5 +112,5 @@ export function showStoryGraph(ctx, forceRebuild = false) {
     updateZoomToolbarUI(_storyGraphInstance)
 }
 
-// Aliases for convenient usage
-export { centerStoryGraph as centerGraph, showStoryGraph as showGraph }
+// Aliases and utility exports
+export { centerStoryGraph as centerGraph, refreshEntityLists, showStoryGraph as showGraph }

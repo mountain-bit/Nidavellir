@@ -158,7 +158,7 @@ export function handleColorSelection(newColor, ctx) {
                 sceneEl.themeColor = newColor
             }
         }
-        if (ctx.vm.getSelectedItem()?.id === activeEntityForColor.getId()) {
+        if (ctx.vm.selection.getSelectedItem()?.id === activeEntityForColor.getId()) {
             if (ctx.renderDetailsPanel) ctx.renderDetailsPanel(ctx)
         }
     } else {
@@ -168,7 +168,7 @@ export function handleColorSelection(newColor, ctx) {
         if (ctx.storyGraphInstance) {
             ctx.storyGraphInstance.render(true)
         }
-        if (ctx.vm.getSelectedItem()?.id === activeEntityForColor.getId()) {
+        if (ctx.vm.selection.getSelectedItem()?.id === activeEntityForColor.getId()) {
             if (ctx.renderDetailsPanel) ctx.renderDetailsPanel(ctx)
         }
     }
@@ -293,26 +293,26 @@ export function setupSectionControlsAndContextMenu(ctx) {
                 let category = null
 
                 if (sec.type === 'tag') {
-                    createdItem = ctx.vm.createTag(name, DEFAULT_TAG_COLOR, defaultName)
+                    createdItem = ctx.vm.factory.createTag(name, DEFAULT_TAG_COLOR, defaultName)
                     ctx.projectTags.push(createdItem)
                     ctx.renderTagsList()
                     if (ctx.renderFilterTags) ctx.renderFilterTags()
                     markProjectDirty()
                 } else if (sec.type === 'scene') {
-                    createdItem = ctx.vm.createScene(name, defaultName)
+                    createdItem = ctx.vm.factory.createScene(name, defaultName)
                     category = ENTITY_CATEGORIES.SCENES
                     ctx.projectScenes.push(createdItem)
                     ctx.renderScenesList()
                     if (ctx.populateFilterSelects) ctx.populateFilterSelects()
                     markProjectDirty()
                 } else if (sec.type === 'location') {
-                    createdItem = ctx.vm.createLocation(name, defaultName)
+                    createdItem = ctx.vm.factory.createLocation(name, defaultName)
                     category = ENTITY_CATEGORIES.LOCATIONS
                     ctx.projectLocations.push(createdItem)
                     ctx.renderLocationsList()
                     markProjectDirty()
                 } else if (sec.type === 'item') {
-                    createdItem = ctx.vm.createItem(name, defaultName)
+                    createdItem = ctx.vm.factory.createItem(name, defaultName)
                     category = ENTITY_CATEGORIES.ITEMS
                     if (!Array.isArray(ctx.projectItems)) ctx.projectItems = []
                     ctx.projectItems.push(createdItem)
@@ -357,7 +357,7 @@ export function setupSectionControlsAndContextMenu(ctx) {
                             customVal.includes('-') ||
                             customVal.includes('*') ||
                             customVal.includes('/')
-                        createdItem = ctx.vm.createParameter(
+                        createdItem = ctx.vm.factory.createParameter(
                             traitName,
                             defaultTraitName,
                             isFormula ? 'formula' : 'direct',
@@ -372,7 +372,7 @@ export function setupSectionControlsAndContextMenu(ctx) {
                             projectModel.addParameter(createdItem)
                         }
                     } else if (selectedType === 'skill') {
-                        createdItem = ctx.vm.createSkill(
+                        createdItem = ctx.vm.factory.createSkill(
                             traitName,
                             defaultTraitName,
                             'direct',
@@ -386,7 +386,7 @@ export function setupSectionControlsAndContextMenu(ctx) {
                             projectModel.addSkill(createdItem)
                         }
                     } else if (selectedType === 'feature') {
-                        createdItem = ctx.vm.createFeature(traitName, defaultTraitName)
+                        createdItem = ctx.vm.factory.createFeature(traitName, defaultTraitName)
                         if (customVal && createdItem.getDescription) {
                             createdItem.getDescription().setText(customVal)
                         }
@@ -398,7 +398,7 @@ export function setupSectionControlsAndContextMenu(ctx) {
                             projectModel.addFeature(createdItem)
                         }
                     } else {
-                        createdItem = ctx.vm.createStat(traitName, defaultTraitName)
+                        createdItem = ctx.vm.factory.createStat(traitName, defaultTraitName)
                         if (customVal) createdItem.setValue(customVal)
                         if (!Array.isArray(ctx.projectStats)) ctx.projectStats = []
                         ctx.projectStats.push(createdItem)
@@ -497,32 +497,32 @@ export function setupSectionControlsAndContextMenu(ctx) {
             searchInput.addEventListener('input', () => {
                 const val = searchInput.value
                 if (sec.type === 'tag') {
-                    ctx.vm.setTagSearchQuery(val)
+                    ctx.vm.filter.setTagSearchQuery(val)
                     ctx.renderTagsList()
                 } else if (sec.type === 'scene') {
-                    ctx.vm.setSceneSearchQuery(val)
+                    ctx.vm.filter.setSceneSearchQuery(val)
                     ctx.renderScenesList()
                 } else if (sec.type === 'character') {
-                    ctx.vm.setCharacterSearchQuery(val)
+                    ctx.vm.filter.setCharacterSearchQuery(val)
                     ctx.renderCharactersList()
                 } else if (sec.type === 'location') {
-                    ctx.vm.setLocationSearchQuery(val)
+                    ctx.vm.filter.setLocationSearchQuery(val)
                     ctx.renderLocationsList()
                 } else if (sec.type === 'item') {
-                    if (typeof ctx.vm.setItemSearchQuery === 'function') {
-                        ctx.vm.setItemSearchQuery(val)
+                    if (typeof ctx.vm?.filter?.setItemSearchQuery === 'function') {
+                        ctx.vm.filter.setItemSearchQuery(val)
                     }
                     if (ctx.renderItemsList) ctx.renderItemsList()
                 } else if (sec.type === 'trait') {
-                    ctx.vm.setStatSearchQuery(val)
-                    if (typeof ctx.vm.setParameterSearchQuery === 'function') {
-                        ctx.vm.setParameterSearchQuery(val)
+                    ctx.vm.filter.setStatSearchQuery(val)
+                    if (typeof ctx.vm?.filter?.setParameterSearchQuery === 'function') {
+                        ctx.vm.filter.setParameterSearchQuery(val)
                     }
-                    if (typeof ctx.vm.setSkillSearchQuery === 'function') {
-                        ctx.vm.setSkillSearchQuery(val)
+                    if (typeof ctx.vm?.filter?.setSkillSearchQuery === 'function') {
+                        ctx.vm.filter.setSkillSearchQuery(val)
                     }
-                    if (typeof ctx.vm.setFeatureSearchQuery === 'function') {
-                        ctx.vm.setFeatureSearchQuery(val)
+                    if (typeof ctx.vm?.filter?.setFeatureSearchQuery === 'function') {
+                        ctx.vm.filter.setFeatureSearchQuery(val)
                     }
                     ctx.renderTraitsList()
                 }
@@ -595,8 +595,8 @@ export function setupSectionControlsAndContextMenu(ctx) {
                         ? activeContextMenuTarget.item.getId()
                         : activeContextMenuTarget.item.id || ''
 
-                if (typeof ctx?.vm?.updateFileDisplayNameForEntity === 'function') {
-                    ctx.vm.updateFileDisplayNameForEntity(oldName, trimmed, targetId)
+                if (typeof ctx?.vm?.files?.updateFileDisplayNameForEntity === 'function') {
+                    ctx.vm.files.updateFileDisplayNameForEntity(oldName, trimmed, targetId)
                 }
 
                 if (oldName && oldName !== trimmed) {
@@ -646,7 +646,7 @@ export function setupSectionControlsAndContextMenu(ctx) {
                     if (idx !== -1) ctx.projectTags.splice(idx, 1)
                     if (ctx.renderFilterTags) ctx.renderFilterTags()
                 } else if (activeContextMenuTarget.type === 'paragraph') {
-                    const deleted = ctx.vm.deleteParagraph(
+                    const deleted = ctx.vm.graph.deleteParagraph(
                         id,
                         ctx.projectParagraphs,
                         ctx.projectScenes

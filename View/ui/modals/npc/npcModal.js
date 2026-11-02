@@ -10,7 +10,7 @@ import {
     getNpcEditorInstance,
     getOrCreateNpcEditor,
     updateNpcEditorStats,
-} from '../../editor/npcEditor.js'
+} from '../../editor/index.js'
 import { showUnsavedChangesModal } from '../confirm/confirmModal.js'
 import { evaluateFormula, parseStatValueAsNumber } from './formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcCharacterSaver.js'

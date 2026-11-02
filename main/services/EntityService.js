@@ -4,12 +4,12 @@ const {
     resolveProjectDir,
     isPathInsideBase,
     atomicWriteJsonSync,
-} = require('../../Utils/fsSecurity')
+} = require('../../Utils/fs/fsSecurity')
 const {
     slugifyEntityName,
     generateUniqueSlug,
     formatDescriptionFileName,
-} = require('../../Utils/pathSanitizer')
+} = require('../../Utils/fs/pathSanitizer')
 
 class EntityService {
     /**

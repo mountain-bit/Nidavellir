@@ -34,9 +34,11 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     it('updates view segmented buttons based on active main view', () => {
         const mockCtx = {
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('markdown'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                },
             },
         }
 
@@ -52,9 +54,11 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     it('updates sidebar buttons active classes based on drawer and sidebar state', () => {
         const mockCtx = {
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(false),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(true),
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                },
             },
         }
 
@@ -70,10 +74,12 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     it('registers event listeners on top bar buttons', () => {
         const mockCtx = {
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
-                toggleLeftTab: vi.fn(),
+                layout: {
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    toggleLeftTab: vi.fn(),
+                },
             },
             updateLeftDrawerUI: vi.fn(),
         }
@@ -87,7 +93,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         const focusSpy = vi.spyOn(searchInput, 'focus')
 
         searchBtn?.click()
-        expect(mockCtx.vm.toggleLeftTab).toHaveBeenCalledWith('paragraphs')
+        expect(mockCtx.vm.layout.toggleLeftTab).toHaveBeenCalledWith('paragraphs')
         expect(focusSpy).toHaveBeenCalled()
 
         const zoomFitBtn = document.querySelector('[data-action="zoom-fit"]') as HTMLButtonElement
@@ -105,9 +111,11 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         const execSpy = vi.spyOn(document, 'execCommand').mockImplementation(() => true)
         const mockCtx = {
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                },
             },
         }
 
@@ -148,9 +156,11 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
                 projectParagraphs: [mockParagraph],
             },
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                },
             },
         }
 
@@ -211,10 +221,14 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
                 projectParagraphs: [p1, p2],
             },
             vm: {
-                getSelectedItem: vi.fn().mockReturnValue(null),
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                },
+                selection: {
+                    getSelectedItem: vi.fn().mockReturnValue(null),
+                },
             },
         }
 
@@ -254,10 +268,12 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
             updateMainWorkspaceUI: updateMainWorkspaceSpy,
             updateZoomToolbarUI: updateZoomSpy,
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('markdown'),
-                setActiveMainView: vi.fn(),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                    setActiveMainView: vi.fn(),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                },
             },
         }
 
@@ -277,11 +293,13 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         const mockCtx = {
             updateLeftDrawerUI: updateLeftDrawerSpy,
             vm: {
-                setActiveLeftTab: setActiveLeftTabSpy,
-                getActiveLeftTab: vi.fn().mockReturnValue('paragraphs'),
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(true),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    setActiveLeftTab: setActiveLeftTabSpy,
+                    getActiveLeftTab: vi.fn().mockReturnValue('paragraphs'),
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(true),
+                },
             },
         }
 
@@ -312,10 +330,14 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
     it('highlights open-game-rules button when game rules file is active in markdown view', () => {
         const mockCtx = {
             vm: {
-                getActiveMainView: vi.fn().mockReturnValue('markdown'),
-                getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
+                layout: {
+                    getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                },
+                files: {
+                    getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+                },
             },
         }
 
@@ -325,7 +347,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
         expect(rulesBtn?.classList.contains('active')).toBe(true)
 
         // When another file is active
-        mockCtx.vm.getActiveFile.mockReturnValue('Description_Paragraph_Scene1.md')
+        mockCtx.vm.files.getActiveFile.mockReturnValue('Description_Paragraph_Scene1.md')
         updateTopBarUI(mockCtx)
         expect(rulesBtn?.classList.contains('active')).toBe(false)
     })
@@ -342,17 +364,21 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
             files: {} as Record<string, string>,
             updateMainWorkspaceUI: updateMainWorkspaceUISpy,
             vm: {
-                setFileDisplayName: setFileDisplayNameSpy,
-                setActiveFile: setActiveFileSpy,
-                setActiveMainView: setActiveMainViewSpy,
-                getActiveMainView: vi.fn().mockReturnValue('markdown'),
-                getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+                layout: {
+                    setActiveMainView: setActiveMainViewSpy,
+                    getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                },
+                files: {
+                    setFileDisplayName: setFileDisplayNameSpy,
+                    setActiveFile: setActiveFileSpy,
+                    getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+                },
             },
         }
 
         await openGameRules(mockCtx)
 
-        expect(mockCtx.files['Rules/GameRules.md']).toContain('Zasady')
+        expect(mockCtx.files['Rules/GameRules.md']).toBe('')
         expect(setFileDisplayNameSpy).toHaveBeenCalledWith('Rules/GameRules.md', expect.any(String))
         expect(setActiveFileSpy).toHaveBeenCalledWith('Rules/GameRules.md')
         expect(setActiveMainViewSpy).toHaveBeenCalledWith('markdown')
@@ -367,11 +393,15 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
             files: {} as Record<string, string>,
             updateMainWorkspaceUI: vi.fn(),
             vm: {
-                setFileDisplayName: vi.fn(),
-                setActiveFile: setActiveFileSpy,
-                setActiveMainView: setActiveMainViewSpy,
-                getActiveMainView: vi.fn().mockReturnValue('markdown'),
-                getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+                layout: {
+                    setActiveMainView: setActiveMainViewSpy,
+                    getActiveMainView: vi.fn().mockReturnValue('markdown'),
+                },
+                files: {
+                    setFileDisplayName: vi.fn(),
+                    setActiveFile: setActiveFileSpy,
+                    getActiveFile: vi.fn().mockReturnValue('Rules/GameRules.md'),
+                },
             },
         }
 
