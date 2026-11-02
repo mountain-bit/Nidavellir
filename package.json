@@ -31,9 +31,25 @@
             "eslint --fix"
         ]
     },
-    "keywords": [],
-    "author": "",
+    "keywords": [
+        "gamebook",
+        "interactive-fiction",
+        "electron",
+        "story-graph",
+        "rpg",
+        "tiptap",
+        "game-engine"
+    ],
+    "author": "Kamil Jekiełek",
     "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mountain-bit/SilnikGierParagrafowych.git"
+    },
+    "bugs": {
+        "url": "https://github.com/mountain-bit/SilnikGierParagrafowych/issues"
+    },
+    "homepage": "https://github.com/mountain-bit/SilnikGierParagrafowych#readme",
     "description": "Nidavelir — zaawansowane środowisko do tworzenia gier paragrafowych",
     "dependencies": {
         "@tiptap/core": "^3.31.4",

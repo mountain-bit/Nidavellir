@@ -7,32 +7,32 @@ Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktop
 ## Główne Funkcjonalności (Key Features)
 
 - **Wizualny Graf Fabuły (Story Graph):**
-  - Oparty o Cytoscape.js i Web Components (`<paragraph-node>`, `<scene-node>`).
-  - Przeciąganie, płynny zoom, zakrzywione krawędzie bez kolizji, grupowanie paragrafów w sceny.
+    - Oparty o Cytoscape.js i Web Components (`<paragraph-node>`, `<scene-node>`).
+    - Przeciąganie, płynny zoom, zakrzywione krawędzie bez kolizji, grupowanie paragrafów w sceny.
 - **Diagnostyka i Walidacja Grafu (Graph Validator):**
-  - Automatyczne wykrywanie paragrafów-sierot (brak wejść/wyjść), ślepych zaułków oraz nieosiągalnych fragmentów historii.
-  - Wykrywanie pętli fabularnych z trasowaniem cykli i 1-klikiem nawigacji do problematycznych węzłów.
+    - Automatyczne wykrywanie paragrafów-sierot (brak wejść/wyjść), ślepych zaułków oraz nieosiągalnych fragmentów historii.
+    - Wykrywanie pętli fabularnych z trasowaniem cykli i 1-klikiem nawigacji do problematycznych węzłów.
 - **Zaawansowany Edytor TipTap Markdown:**
-  - Wygodna edycja WYSIWYG z blokami dialogowymi (`— `), formatowaniem tekstu i statystykami słów.
-  - System wzmianek encji (`@`) z dwukierunkowymi linkami (`entity://type/id`) i aliasami gramatycznymi.
-  - Style własne (zaklęcia, myśli, szepty) z ochroną CSS/XSS oraz katalog fontów Google Fonts z trybem offline.
+    - Wygodna edycja WYSIWYG z blokami dialogowymi (`— `), formatowaniem tekstu i statystykami słów.
+    - System wzmianek encji (`@`) z dwukierunkowymi linkami (`entity://type/id`) i aliasami gramatycznymi.
+    - Style własne (zaklęcia, myśli, szepty) z ochroną CSS/XSS oraz katalog fontów Google Fonts z trybem offline.
 - **Karty Postaci i System RPG:**
-  - Karta Głównego Bohatera (Protagonista) oraz Folio Postaci Niezależnych (NPC) i Szablonów (Archetypów).
-  - Statystyki, cechy, dynamiczne parametry witalne z ewaluatorem formuł matematycznych (np. `Pancerz + Zręczność * 2`).
-  - System umiejętności z modyfikatorami cech bazowych oraz ekwipunek przedmiotów.
+    - Karta Głównego Bohatera (Protagonista) oraz Folio Postaci Niezależnych (NPC) i Szablonów (Archetypów).
+    - Statystyki, cechy, dynamiczne parametry witalne z ewaluatorem formuł matematycznych (np. `Pancerz + Zręczność * 2`).
+    - System umiejętności z modyfikatorami cech bazowych oraz ekwipunek przedmiotów.
 - **Menedżer Mediów i Edytor Grafiki:**
-  - Bezpieczny protokół `asset://` z ochroną przed Path Traversal (`Assets/Images/`).
-  - Wbudowany edytor obrazów Canvas 2D: kadrowanie (Rule of Thirds), precyzyjne skalowanie, obracanie, odbicia i korekcja barw (sepia, kontrast, nasycenie).
+    - Bezpieczny protokół `asset://` z ochroną przed Path Traversal (`Assets/Images/`).
+    - Wbudowany edytor obrazów Canvas 2D: kadrowanie (Rule of Thirds), precyzyjne skalowanie, obracanie, odbicia i korekcja barw (sepia, kontrast, nasycenie).
 - **Symulator i Debugger Rozgrywki (Playtester):**
-  - Interaktywny podgląd gry paragraf po paragrafie z dynamicznym testowaniem warunków wyborów.
-  - Podgląd na żywo stanu bohatera, ekwipunku, wbudowane rzuty kośćmi oraz historia kroków z opcją cofania.
+    - Interaktywny podgląd gry paragraf po paragrafie z dynamicznym testowaniem warunków wyborów.
+    - Podgląd na żywo stanu bohatera, ekwipunku, wbudowane rzuty kośćmi oraz historia kroków z opcją cofania.
 - **Wieloformatowy Moduł Publikacji i Eksportu:**
-  - **PDF:** Skład książkowy z nagłówkami, numeracją stron i stylami `@page`.
-  - **DOCX:** Gotowy do edycji plik Microsoft Word ze stylami akapitów, tabelami i sekcjami.
-  - **HTML:** Samodzielna wersja cyfrowa do czytania w przeglądarce.
-  - **ZIP:** Kompletny backup projektu z możliwością natychmiastowego przywrócenia.
-  - Opcjonalne tasowanie numeracji paragrafów z automatycznym przeliczaniem odnośników w wyborach.
-  - Automatycznie generowane dodatki: Karta Postaci, Bestiariusz NPC, zasady oraz spis treści.
+    - **PDF:** Skład książkowy z nagłówkami, numeracją stron i stylami `@page`.
+    - **DOCX:** Gotowy do edycji plik Microsoft Word ze stylami akapitów, tabelami i sekcjami.
+    - **HTML:** Samodzielna wersja cyfrowa do czytania w przeglądarce.
+    - **ZIP:** Kompletny backup projektu z możliwością natychmiastowego przywrócenia.
+    - Opcjonalne tasowanie numeracji paragrafów z automatycznym przeliczaniem odnośników w wyborach.
+    - Automatycznie generowane dodatki: Karta Postaci, Bestiariusz NPC, zasady oraz spis treści.
 
 ---
 
@@ -58,6 +58,7 @@ Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktop
 ## Wzorce Projektowe i Architektura (Design Patterns)
 
 ### 1. Wzorzec MVVM (Model-View-ViewModel)
+
 - **Model (`/Model/*.ts`)**: Czyste klasy domenowe w TypeScript (`Project`, `Scene`, `Paragraph`, `Choice`, `PlayerCharacter`, `NPC`, `NPC_Template`, `Location`, `Combat`, `Condition`, `Item`, `Stat`, `Parameter`, `Skill`, `Feature`, `Tag`, `Description`).
     - Pozbawione jakichkolwiek zależności od Electrona czy drzewa DOM.
     - Posiadają prywatne pola i stosują jednoznaczną angielską konwencję nazewniczą (`getId()`, `setName()`, `toJSON()`, `fromJSON()`).
@@ -65,15 +66,18 @@ Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktop
 - **ViewModel (`/ViewModel/*.ts`)**: Logika prezentacji i obsługa zdarzeń użytkownika (`StartWindowViewModel.ts`, `MainWindowViewModel.ts`). Łączy zdarzenia UI z operacjami na modelach oraz komunikacją z Electron IPC.
 
 ### 2. Bezpieczny Most IPC & Izolacja Procesów (Electron Security)
+
 - Procesy **Main Process** (`main.js`) oraz **Renderer Process** są od siebie odizolowane (`contextIsolation: true`, `nodeIntegration: false`).
 - Komunikacja odbywa się bezpiecznie przez skrypt powrotny **Preload** (`preload.js`) z użyciem `contextBridge.exposeInMainWorld('electronAPI', ...)`.
 - Dedykowane handlery IPC (`main/ipc/`) delegują operacje do czystych serwisów Node.js (`main/services/`).
 
 ### 3. Transakcyjny i Bezpieczny Zapis Danych
+
 - Wszelkie operacje zapisu plików JSON i Markdown wykonywane są transakcyjnie (`atomicWriteJsonSync`, `atomicWriteStringSync` w `Utils/fs/fsSecurity.js`) z zapisem do pliku tymczasowego i atomową zamianą nazwy.
 - Wszystkie ścieżki weryfikowane są funkcją `isPathInsideBase`, uniemożliwiając ataki typu Path Traversal.
 
 ### 4. Wzorzec Kontekstu Aplikacji (`appContext`)
+
 - Moduły UI w `View/ui/` nie używają zmiennych globalnych. Wszystkie zależności i metody pomocnicze przekazywane są jawnie przez obiekt `appContext` (`ctx`).
 
 ---
@@ -82,7 +86,7 @@ Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktop
 
 1. **White-Box Testing (Testowanie Białej Skrzynki)**:
     - Wszystkie moduły logiki biznesowej (`Model/`, `Utils/`, `ViewModel/`, `Services/`, `Modules/`, `View/ui/`) są testowane w środowisku Vitest z emulacją happy-dom.
-    - Aktualny stan zestawu testów: **76 plików testowych, 821 testów przechodzących pomyślnie (100% pass)**.
+    - Aktualny stan zestawu testów: **133 pliki testowe, 1666 testów przechodzących pomyślnie (100% pass)**.
 2. **Quality Gates & Automated Hooks (Husky)**:
     - **`pre-commit`**: Wymusza formatowanie Prettier oraz reguły ESLint na dodawanych plikach.
     - **`pre-push`**: Automatycznie wykonuje pełen zestaw testów jednostkowych (`pnpm test:run`) oraz weryfikację licencji.
@@ -182,7 +186,42 @@ SilnikGierParagrafowych/
 │   └── common/                 # Generatory identyfikatorów (idGenerator.ts)
 ├── Locales/                    # Słowniki tłumaczeń JSON (en, pl, de)
 ├── docs/                       # Szczegółowa dokumentacja architektoniczna
-└── tests/                      # Zestaw 76 plików testowych Vitest
+└── tests/                      # Zestaw 133 plików testowych Vitest (1666 testów)
+```
+
+---
+
+## Instalacja i Uruchomienie (Getting Started)
+
+### Wymagania wstępne (Prerequisites)
+
+- **Node.js**: `>= 20.0.0 < 22.0.0`
+- **pnpm**: `>= 9.0.0 < 10.0.0` (zalecany menedżer pakietów; projekt wymusza użycie pnpm)
+
+### Klonowanie i instalacja zależności
+
+```bash
+git clone https://github.com/mountain-bit/SilnikGierParagrafowych.git
+cd SilnikGierParagrafowych
+pnpm install
+```
+
+### Uruchomienie w trybie deweloperskim
+
+```bash
+pnpm start
+```
+
+> Polecenie to automatycznie kompiluje arkusze stylów Tailwind CSS, buduje moduły renderera za pomocą esbuild, weryfikuje typy TypeScript (`tsc --noEmit`) i uruchamia aplikację w oknie Electron.
+
+### Budowanie paczki produkcyjnej (Windows Installer)
+
+```bash
+# Budowanie instalatora Windows (.exe) w katalogu release-builds/
+pnpm run dist
+
+# Budowanie rozpakowanej aplikacji (katalog bez instalatora)
+pnpm run pack
 ```
 
 ---
@@ -191,7 +230,14 @@ SilnikGierParagrafowych/
 
 - `pnpm start` – kompiluje CSS, weryfikuje typy TypeScript, buduje skrypty renderera i uruchamia aplikację w Electronie.
 - `pnpm build` – pełny build: arkusze stylów Tailwind, kompilacja TS i bundling esbuild.
-- `pnpm test:run` – uruchamia kompletny zestaw testów jednostkowych i integracyjnych Vitest (821 testów).
+- `pnpm test:run` – uruchamia kompletny zestaw testów jednostkowych i integracyjnych Vitest (1666 testów).
 - `pnpm test:coverage` – generuje raport pokrycia kodu (`coverage/index.html`).
+- `pnpm license:check` – weryfikuje zgodność licencji wszystkich zależności z białą listą.
 - `pnpm lint` / `pnpm lint:fix` – uruchamia linter ESLint z automatyczną korektą.
 - `pnpm format` / `pnpm format:check` – formatuje kod przy użyciu Prettier.
+
+---
+
+## Licencja (License)
+
+Projekt jest udostępniany na warunkach licencji **ISC**. Szczegóły znajdują się w pliku [LICENSE](file:///c:/Projekty/SilnikGierParagrafowych/SilnikGierParagrafowych/LICENSE).
