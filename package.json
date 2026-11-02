@@ -1,6 +1,6 @@
 {
-    "name": "silnikgierparagrafowych",
-    "version": "1.3.24",
+    "name": "nidavelir",
+    "version": "1.3.25",
     "packageManager": "pnpm@9.15.5",
     "engines": {
         "node": ">=20 <22",
@@ -50,7 +50,7 @@
         "url": "https://github.com/mountain-bit/SilnikGierParagrafowych/issues"
     },
     "homepage": "https://github.com/mountain-bit/SilnikGierParagrafowych#readme",
-    "description": "Nidavelir — zaawansowane środowisko do tworzenia gier paragrafowych",
+    "description": "Nidavelir — środowisko do tworzenia gier paragrafowych",
     "dependencies": {
         "@tiptap/core": "^3.31.4",
         "@tiptap/extension-mention": "^3.31.4",
@@ -88,7 +88,7 @@
     },
     "build": {
         "appId": "com.mountainbit.nidavelir",
-        "productName": "Nidavelir",
+        "productName": "Nidavellir",
         "directories": {
             "output": "release-builds"
         },
@@ -121,7 +121,7 @@
             "allowToChangeInstallationDirectory": true,
             "createDesktopShortcut": true,
             "createStartMenuShortcut": true,
-            "shortcutName": "Nidavelir"
+            "shortcutName": "Nidavellir"
         }
     }
 }

@@ -1,204 +1,252 @@
-# Silnik Gier Paragrafowych (SGP) — Dokumentacja Projektu
+# Nidavellir — Interactive Fiction & Gamebook Engine
 
-Silnik Gier Paragrafowych (SGP) to profesjonalne, nowoczesne środowisko desktopowe służące do projektowania, edycji, wizualizacji grafowej, testowania oraz publikacji nieliniowych gier książkowych (Interactive Fiction / Gamebooks). Aplikacja łączy interaktywny edytor grafu scen i paragrafów, zaawansowany edytor tekstu TipTap Markdown, kompleksowe bazy postaci (Bohater i NPC) ze statystykami i formułami, menedżer zasobów graficznych, wbudowany symulator rozgrywki oraz wieloformatowy silnik publikacji (PDF, DOCX, HTML, ZIP).
+[![Electron](https://img.shields.io/badge/Electron-41.5.0-47848F?logo=electron&logoColor=white)](https://www.electronjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.3.3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Vitest](https://img.shields.io/badge/Tests-133%20suites%20%7C%201600%2B%20passed-22c55e?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
+[![Node](https://img.shields.io/badge/Node.js-%3E%3D20%20%3C22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-%3E%3D9%20%3C10-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
----
+**Nidavellir** (*Silnik Gier Paragrafowych*) is a desktop Integrated Authoring Environment (IDE) tailored for creating, visualizing, editing, testing, and publishing non-linear gamebooks and branching interactive fiction.
 
-## Główne Funkcjonalności (Key Features)
-
-- **Wizualny Graf Fabuły (Story Graph):**
-    - Oparty o Cytoscape.js i Web Components (`<paragraph-node>`, `<scene-node>`).
-    - Przeciąganie, płynny zoom, zakrzywione krawędzie bez kolizji, grupowanie paragrafów w sceny.
-- **Diagnostyka i Walidacja Grafu (Graph Validator):**
-    - Automatyczne wykrywanie paragrafów-sierot (brak wejść/wyjść), ślepych zaułków oraz nieosiągalnych fragmentów historii.
-    - Wykrywanie pętli fabularnych z trasowaniem cykli i 1-klikiem nawigacji do problematycznych węzłów.
-- **Zaawansowany Edytor TipTap Markdown:**
-    - Wygodna edycja WYSIWYG z blokami dialogowymi (`— `), formatowaniem tekstu i statystykami słów.
-    - System wzmianek encji (`@`) z dwukierunkowymi linkami (`entity://type/id`) i aliasami gramatycznymi.
-    - Style własne (zaklęcia, myśli, szepty) z ochroną CSS/XSS oraz katalog fontów Google Fonts z trybem offline.
-- **Karty Postaci i System RPG:**
-    - Karta Głównego Bohatera (Protagonista) oraz Folio Postaci Niezależnych (NPC) i Szablonów (Archetypów).
-    - Statystyki, cechy, dynamiczne parametry witalne z ewaluatorem formuł matematycznych (np. `Pancerz + Zręczność * 2`).
-    - System umiejętności z modyfikatorami cech bazowych oraz ekwipunek przedmiotów.
-- **Menedżer Mediów i Edytor Grafiki:**
-    - Bezpieczny protokół `asset://` z ochroną przed Path Traversal (`Assets/Images/`).
-    - Wbudowany edytor obrazów Canvas 2D: kadrowanie (Rule of Thirds), precyzyjne skalowanie, obracanie, odbicia i korekcja barw (sepia, kontrast, nasycenie).
-- **Symulator i Debugger Rozgrywki (Playtester):**
-    - Interaktywny podgląd gry paragraf po paragrafie z dynamicznym testowaniem warunków wyborów.
-    - Podgląd na żywo stanu bohatera, ekwipunku, wbudowane rzuty kośćmi oraz historia kroków z opcją cofania.
-- **Wieloformatowy Moduł Publikacji i Eksportu:**
-    - **PDF:** Skład książkowy z nagłówkami, numeracją stron i stylami `@page`.
-    - **DOCX:** Gotowy do edycji plik Microsoft Word ze stylami akapitów, tabelami i sekcjami.
-    - **HTML:** Samodzielna wersja cyfrowa do czytania w przeglądarce.
-    - **ZIP:** Kompletny backup projektu z możliwością natychmiastowego przywrócenia.
-    - Opcjonalne tasowanie numeracji paragrafów z automatycznym przeliczaniem odnośników w wyborach.
-    - Automatycznie generowane dodatki: Karta Postaci, Bestiariusz NPC, zasady oraz spis treści.
+It brings together an interactive Cytoscape.js story graph, an enhanced TipTap WYSIWYG Markdown editor, deep RPG character and trait sheets (Protagonist & NPC Folio), an in-app 2D media processor, an interactive playtester/simulator, and an automated multi-format publishing engine (PDF, DOCX, HTML, ZIP).
 
 ---
 
-## Użyte Technologie (Tech Stack)
+## Table of Contents
 
-| Warstwa / Obszar               | Technologia / Biblioteka                  | Opis i Zastosowanie                                                                                               |
-| :----------------------------- | :---------------------------------------- | :---------------------------------------------------------------------------------------------------------------- |
-| **Aplikacja Desktopowa**       | **Electron 41.5.0**                       | Wieloplatformowe środowisko uruchomieniowe (Chromium + Node.js) z pełną izolacją procesów.                        |
-| **Język Logiki Biznesowej**    | **TypeScript 6.0.0**                      | Statycznie typowany język programowania dla modeli domenowych, serwisów i warstwy ViewModel.                      |
-| **Stylizowanie UI**            | **TailwindCSS 4.3.3**                     | Nowoczesny dark mode (`#18181b`), elastyczne panele i skompilowany plik `MainWindow.generated.css`.               |
-| **Wizualizacja Grafowa**       | **Cytoscape.js 3.33.3**                   | Silnik renderujący grafy powiązań scen i paragrafów z dedykowanymi Custom Web Components.                         |
-| **Edytor Tekstu Markdown**     | **TipTap 2.x** (`@tiptap/core`)           | Beheadings, bloki dialogowe, system wzmianek `@`, autouzupełnianie encji i formatowanie.                          |
-| **Generowanie Dokumentów**     | **docx 8.x**, **Chromium printToPDF**     | Eksport strukturyzowanych plików Microsoft Word (DOCX) oraz profesjonalnych wydruków PDF.                         |
-| **Archiwizacja i Backup**      | **JSZip 3.x**                             | Pakowanie całego projektu z mediami do archiwum `.zip` oraz przywracanie projektów.                               |
-| **Przetwarzanie Obrazów**      | **HTML5 Canvas 2D Engine**                | Autorski procesor obrazów (`ImageProcessor.ts`): kadrowanie, skalowanie, rotacja i filtry barwne.                 |
-| **Umiędzynarodowienie (i18n)** | **i18next 26.3.6** + autorski moduł       | System obsługi wielojęzyczności (`en` domyślny, `pl`, `de`) z pełnym typowaniem kluczy w TypeScript.              |
-| **Build & Bundling**           | **esbuild 0.28.2** + **tsc**              | Błyskawiczne pakowanie skryptów dla procesów Renderer (`build-renderer.js`).                                      |
-| **Środowisko Testowe**         | **Vitest 1.6.1** + **happy-dom 20.11**    | Szybki framework testowy z emulacją drzewa DOM dla testów ViewModeli, modeli i serwisów.                          |
-| **Kontrola Jakości & Git**     | **ESLint 8**, **Prettier 3**, **Husky 9** | Automatyczne formatowanie kodu przed commitem (`lint-staged`) oraz uruchamianie testów przed pushem (`pre-push`). |
-
----
-
-## Wzorce Projektowe i Architektura (Design Patterns)
-
-### 1. Wzorzec MVVM (Model-View-ViewModel)
-
-- **Model (`/Model/*.ts`)**: Czyste klasy domenowe w TypeScript (`Project`, `Scene`, `Paragraph`, `Choice`, `PlayerCharacter`, `NPC`, `NPC_Template`, `Location`, `Combat`, `Condition`, `Item`, `Stat`, `Parameter`, `Skill`, `Feature`, `Tag`, `Description`).
-    - Pozbawione jakichkolwiek zależności od Electrona czy drzewa DOM.
-    - Posiadają prywatne pola i stosują jednoznaczną angielską konwencję nazewniczą (`getId()`, `setName()`, `toJSON()`, `fromJSON()`).
-- **View (`/View/*.html`, `View/ui/`)**: Warstwa prezentacyjna zbudowana w oparciu o HTML5, TailwindCSS i modułowe kontrolery JavaScript zorganizowane w logiczne podkatalogi.
-- **ViewModel (`/ViewModel/*.ts`)**: Logika prezentacji i obsługa zdarzeń użytkownika (`StartWindowViewModel.ts`, `MainWindowViewModel.ts`). Łączy zdarzenia UI z operacjami na modelach oraz komunikacją z Electron IPC.
-
-### 2. Bezpieczny Most IPC & Izolacja Procesów (Electron Security)
-
-- Procesy **Main Process** (`main.js`) oraz **Renderer Process** są od siebie odizolowane (`contextIsolation: true`, `nodeIntegration: false`).
-- Komunikacja odbywa się bezpiecznie przez skrypt powrotny **Preload** (`preload.js`) z użyciem `contextBridge.exposeInMainWorld('electronAPI', ...)`.
-- Dedykowane handlery IPC (`main/ipc/`) delegują operacje do czystych serwisów Node.js (`main/services/`).
-
-### 3. Transakcyjny i Bezpieczny Zapis Danych
-
-- Wszelkie operacje zapisu plików JSON i Markdown wykonywane są transakcyjnie (`atomicWriteJsonSync`, `atomicWriteStringSync` w `Utils/fs/fsSecurity.js`) z zapisem do pliku tymczasowego i atomową zamianą nazwy.
-- Wszystkie ścieżki weryfikowane są funkcją `isPathInsideBase`, uniemożliwiając ataki typu Path Traversal.
-
-### 4. Wzorzec Kontekstu Aplikacji (`appContext`)
-
-- Moduły UI w `View/ui/` nie używają zmiennych globalnych. Wszystkie zależności i metody pomocnicze przekazywane są jawnie przez obiekt `appContext` (`ctx`).
+- [Key Features](#key-features)
+- [Architecture & Design Principles](#architecture--design-principles)
+- [Tech Stack](#tech-stack)
+- [Project Directory Structure](#project-directory-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Running in Development Mode](#running-in-development-mode)
+  - [Packaging & Building Installers](#packaging--building-installers)
+- [Available Scripts](#available-scripts)
+- [Quality Assurance & Testing](#quality-assurance--testing)
+- [Documentation Links](#documentation-links)
+- [License](#license)
 
 ---
 
-## Metodyki Wytwarzania i Testowania (Testing & Quality)
+## Key Features
 
-1. **White-Box Testing (Testowanie Białej Skrzynki)**:
-    - Wszystkie moduły logiki biznesowej (`Model/`, `Utils/`, `ViewModel/`, `Services/`, `Modules/`, `View/ui/`) są testowane w środowisku Vitest z emulacją happy-dom.
-    - Aktualny stan zestawu testów: **133 pliki testowe, 1666 testów przechodzących pomyślnie (100% pass)**.
-2. **Quality Gates & Automated Hooks (Husky)**:
-    - **`pre-commit`**: Wymusza formatowanie Prettier oraz reguły ESLint na dodawanych plikach.
-    - **`pre-push`**: Automatycznie wykonuje pełen zestaw testów jednostkowych (`pnpm test:run`) oraz weryfikację licencji.
-3. **Typowana Wielojęzyczność (i18n)**:
-    - Moduł `Utils/i18n/translate.ts` weryfikuje klucze tłumaczeń na etapie kompilacji TypeScript (`TranslationKey`). Domyślnym językiem interfejsu jest angielski (`en`) z pełnym wsparciem dla języka polskiego (`pl`) i niemieckiego (`de`).
+### 1. Visual Story Graph Editor
+- **Cytoscape.js Canvas & Custom Web Components**: Custom `<paragraph-node>` and `<scene-node>` elements for visual node editing.
+- **Dynamic Layout & Routing**: Collision-free curved/bezier edges, drag-and-drop node positioning, smooth pan/zoom, and hierarchical grouping of paragraphs into scenes.
+- **Scene-level Isolation**: Organize complex branching narratives into manageable chapter-like scenes without losing global continuity.
+
+### 2. Graph Diagnostics & Structural Validator
+- **Integrity Validation**: Real-time detection of orphan nodes (missing incoming or outgoing connections), dead ends, and unreachable story paths.
+- **Cycle & Loop Detection**: Deep path exploration identifying story loops with cycle tracing and instant one-click navigation to problematic nodes.
+
+### 3. Advanced TipTap Markdown Editor
+- **WYSIWYG Markdown**: Full prose editing featuring standard Markdown styling, dialogue blocks (`— `), and real-time word/character statistics.
+- **Entity Mentions (`@`)**: Bidirectional linking to project entities (`entity://type/id`) with grammar alias resolution and hover previews.
+- **Custom Stylistic Blocks**: Distinct typographic styles (whispers, thoughts, spells) equipped with CSS/XSS sanitization.
+- **Typography Catalog**: Embedded Google Fonts catalog with offline caching and font switching.
+
+### 4. RPG Mechanics & Character Sheets
+- **Protagonist & NPC Folio**: Comprehensive character sheets for player characters, NPCs, and archetype templates.
+- **Attributes, Stats & Vital Parameters**: Formula evaluator supporting mathematical expressions (e.g., `Armor + Agility * 2`) for dynamic derived values.
+- **Skills & Inventory**: Skill trees with base modifier calculations, equipment slots, weight tracking, and inventory management.
+- **Combat Integration**: Integrated combat block synchronization connecting paragraph text with structured combat encounters.
+
+### 5. Media Asset Manager & 2D Image Editor
+- **Isolated Custom Protocol**: Secure `asset://` protocol confining all image access strictly to `Assets/Images/` with path-traversal protection.
+- **In-App Canvas 2D Processor (`ImageProcessor.ts`)**: Crop with Rule-of-Thirds overlay, precise scaling, 90° rotation, horizontal/vertical flipping, and real-time color filters (sepia, grayscale, contrast, brightness, saturation).
+- **Asset Reference Tracking**: Track where images are referenced throughout paragraphs, characters, and items to prevent accidental deletions.
+
+### 6. Interactive Playtester & Gamebook Simulator
+- **Live Story Simulation**: Play through the gamebook paragraph-by-paragraph with dynamic evaluation of choice conditions (e.g., required stats, items, or flags).
+- **State Inspector**: Live overview of hero statistics, current inventory, roll-the-dice emulator, and undoable step-by-step history log.
+
+### 7. Multi-Format Publishing Subsystem
+- **PDF Export**: Print-ready publishing layout with `@page` CSS formatting, book headers, dynamic page numbering, and table of contents.
+- **DOCX Export**: Structured, editable Microsoft Word document with formatted headings, custom styles, and formatted character sheets.
+- **Standalone HTML**: Self-contained web reader allowing users to play the gamebook in any modern browser without installing additional software.
+- **ZIP Backup & Restore**: One-click complete project packaging into `.zip` archives with full media inclusion and automated restoration.
+- **Paragraph Shuffling**: Optional paragraph renumbering/randomization with automatic recalculation of choice references and link targets.
+- **Automated Appendices**: Automatic generation of Hero Sheets, NPC Bestiaries, combat rules, and entity indices.
 
 ---
 
-## Struktura Katalogów Projektu
+## Architecture & Design Principles
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                   Renderer Process                       │
+│  ┌────────────────────┐         ┌─────────────────────┐  │
+│  │ View (HTML/CSS/JS) │ <=====> │   ViewModel (TS)    │  │
+│  │ (View/ui/*)        │         │ (MainWindowVM, etc) │  │
+│  └────────────────────┘         └──────────┬──────────┘  │
+│                                            │             │
+│                                 ┌──────────▼──────────┐  │
+│                                 │   Domain Models     │  │
+│                                 │   & Services (TS)   │  │
+│                                 └─────────────────────┘  │
+└────────────────────────────┬─────────────────────────────┘
+                             │ contextBridge (window.electronAPI)
+                             ▼
+┌──────────────────────────────────────────────────────────┐
+│                     Main Process                         │
+│  ┌────────────────────┐         ┌─────────────────────┐  │
+│  │  IPC Routers (CJS) │ ──────> │ Node.js Services    │  │
+│  │  (main/ipc/*)      │         │ (main/services/*)   │  │
+│  └────────────────────┘         └──────────┬──────────┘  │
+│                                            │             │
+│                                 ┌──────────▼──────────┐  │
+│                                 │ File System & OS    │  │
+│                                 │ (Atomic, Safe I/O)  │  │
+│                                 └─────────────────────┘  │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 1. Model–View–ViewModel (MVVM)
+- **Model (`Model/*.ts`)**: Pure TypeScript domain classes (`Project`, `Scene`, `Paragraph`, `Choice`, `PlayerCharacter`, `NPC`, `Item`, `Stat`, `Parameter`, `Skill`, `Location`, `Combat`, etc.). Fully decoupled from Electron APIs and DOM manipulation. Every model provides explicit getters/setters, `toJSON()`, and `static fromJSON()`.
+- **ViewModel (`ViewModel/*.ts`)**: Presentation state, filter/search coordination, selection state, and history stacks.
+- **View (`View/*.html`, `View/ui/**/*.js`)**: Modular ES modules in the browser. Modules communicate via an explicit application context (`appContext`) without relying on global state.
+
+### 2. Process Isolation & Security
+- **Strict Isolation**: Runs with `contextIsolation: true` and `nodeIntegration: false`.
+- **Typed IPC Bridge**: The preload script (`preload.js`) exposes a secure, constrained `window.electronAPI` interface.
+- **Transactional Atomic I/O**: File operations utilize atomic write patterns (`atomicWriteJsonSync`, `atomicWriteStringSync`) through temporary staging files and atomic renames. Path traversal attempts are blocked via strict boundary checks (`isPathInsideBase`).
+
+### 3. Application Context (`appContext`) Pattern
+UI controllers in `View/ui/` do not create or depend on global window variables. All shared state, view-model instances, event coordinators, and helper utilities are passed explicitly via a single context object (`ctx`).
+
+---
+
+## Tech Stack
+
+| Layer / Subsystem             | Technology / Package                      | Description                                                                     |
+| :---------------------------- | :---------------------------------------- | :------------------------------------------------------------------------------ |
+| **Desktop Runtime**           | **Electron 41.5.0**                       | Multi-process Chromium + Node.js container with strict IPC isolation            |
+| **Core Business Logic**       | **TypeScript 6.0.0**                      | Strongly-typed domain models, presentation logic, and frontend services         |
+| **UI Styling**                | **Tailwind CSS 4.3.3**                    | Dark mode theme (`#18181b`), flexible utility layout, compiled via `@tailwindcss/cli` |
+| **Graph Visualization**       | **Cytoscape.js 3.33.3**                   | Node-graph rendering engine with custom Web Components                          |
+| **Rich Text Editor**          | **TipTap 3.x** (`@tiptap/core`, starter)  | WYSIWYG editor with Markdown integration, `@` mentions, and custom blocks       |
+| **Document Publishing**       | **docx 9.11.0** & **Chromium printToPDF** | Generation of formatted Word documents (.docx) and print-ready PDFs             |
+| **Packaging & Archiving**     | **archiver 8.x** & **adm-zip 0.6.x**      | Project backups, zip generation, and archive restoration                        |
+| **Image Processing**          | **HTML5 Canvas 2D Engine**                | Custom `ImageProcessor.ts` for cropping, scaling, orientation, and color grading|
+| **Localization (i18n)**       | **i18next 26.3.6** + `i18next-fs-backend` | Type-safe translation engine with English (`en`), Polish (`pl`), and German (`de`)|
+| **Bundling & Build Pipeline** | **esbuild 0.28.2** + **tsc**              | High-performance compilation and bundling of renderer modules into `dist/`      |
+| **Automated Testing**         | **Vitest 1.x** + **happy-dom 20.x**       | Comprehensive unit and integration test suite (133 suites, 1600+ test cases)    |
+| **Code Quality & Linting**    | **ESLint 8**, **Prettier 3**, **Husky 9** | Enforced coding conventions, automatic import ordering, and pre-commit hooks    |
+
+---
+
+## Project Directory Structure
 
 ```text
 SilnikGierParagrafowych/
-├── main.js                     # Punkt wejścia procesu głównego Electrona
-├── preload.js                  # Bezpieczny most IPC (contextBridge: electronAPI)
-├── package.json                # Zależności, skrypty build i test (pnpm)
-├── tsconfig.json               # Konfiguracja kompilatora TypeScript (strict)
-├── vitest.config.ts            # Konfiguracja runnera testów Vitest
+├── main.js                      # Electron main process entry point
+├── preload.js                   # Secure context bridge (window.electronAPI)
+├── package.json                 # Project dependencies, build scripts, engine constraints
+├── tsconfig.json                # TypeScript compiler configuration (strict mode)
+├── vitest.config.ts             # Vitest test runner configuration
 │
-├── main/                       # Backend aplikacji (Electron Main Process)
-│   ├── windowManager.js        # Zarządzanie oknami BrowserWindow
-│   ├── ipc/                    # Moduły routerów IPC
-│   │   ├── index.js            # Agregator rejestracji IPC
-│   │   ├── projectIpc.js       # Zarządzanie projektem (tworzenie, otwieranie, zapis)
-│   │   ├── entityIpc.js        # Zarządzanie encjami projektu
-│   │   ├── markdownIpc.js      # Odczyt i zapis plików narracyjnych .md
-│   │   ├── assetIpc.js         # Import i przeglądanie mediów
-│   │   ├── exportIpc.js        # Eksport do PDF, DOCX, HTML, ZIP i przywracanie
-│   │   ├── recentProjectsIpc.js# Historia ostatnich projektów
-│   │   └── appIpc.js           # Ustawienia aplikacji, i18n, zamykanie
-│   └── services/               # Serwisy I/O i operacje plikowe procesu głównego
-│       ├── ProjectService.js   # Tworzenie struktury projektu, odczyt i zapis encji
-│       ├── EntityService.js    # Tworzenie slugów, katalogów i element.json
-│       ├── MarkdownService.js  # Bezpieczny odczyt i atomowy zapis plików Markdown
-│       ├── AssetService.js     # Zarządzanie plikami Assets/Images/ i importem
-│       ├── AssetProtocolService.js # Bezpieczny protokół niestandardowy asset://
-│       ├── ExportService.js    # Kompilacja eksportów PDF, DOCX, HTML, ZIP
-│       └── RecentProjectsService.js # Zapis historii projektów w userData
+├── main/                        # Electron Main Process backend
+│   ├── windowManager.js         # BrowserWindow lifecycle and window management
+│   ├── ipc/                     # Modular IPC route controllers
+│   │   ├── index.js             # IPC handler registration aggregator
+│   │   ├── projectIpc.js        # Project CRUD (create, open, save)
+│   │   ├── entityIpc.js         # Entity folder and element.json management
+│   │   ├── markdownIpc.js       # Atomic read/write operations for .md narratives
+│   │   ├── assetIpc.js          # Asset import, indexing, and resolution
+│   │   ├── exportIpc.js         # Multi-format exports (PDF, DOCX, HTML, ZIP)
+│   │   ├── recentProjectsIpc.js # Recent project history handlers
+│   │   └── appIpc.js            # App lifecycle, system settings, and i18n
+│   └── services/                # Pure Node.js business services
+│       ├── ProjectService.js    # Project disk scaffolding and entity serialization
+│       ├── EntityService.js     # Directory naming, slugs, and element metadata
+│       ├── MarkdownService.js   # Safe reading and atomic writing of Markdown
+│       ├── AssetService.js      # Image file management in Assets/Images/
+│       ├── AssetProtocolService.js # Custom asset:// protocol security boundary
+│       ├── ExportService.js     # Document compilation for PDF, DOCX, HTML, ZIP
+│       └── RecentProjectsService.js # Persistent recent projects store in userData
 │
-├── Model/                      # Klasy domenowe (TypeScript, nazewnictwo angielskie)
-│   ├── Project.ts              # Główny agregat projektu
-│   ├── Scene.ts                # Scena grupująca paragrafy
-│   ├── Paragraph.ts            # Węzeł narracyjny (wybory, walka, tagi, numer)
-│   ├── Choice.ts               # Odnośnik / przejście między paragrafami
-│   ├── Condition.ts            # Warunki logiczne wyborów
-│   ├── PlayerCharacter.ts      # Karta Głównego Bohatera (protagonisty)
-│   ├── CharacterClass.ts       # Klasa postaci
-│   ├── NPC.ts & NPC_Template.ts# Postacie niezależne i szablony archetypów
-│   ├── Location.ts             # Lokacja w świecie gry
-│   ├── Item.ts                 # Przedmiot i ekwipunek
-│   ├── Stat.ts                 # Statystyka / atrybut postaci
-│   ├── Parameter.ts            # Dynamiczny parametr witalny (wartość lub formuła)
-│   ├── Skill.ts                # Umiejętność (wartość bazowa lub modyfikator cechy)
-│   ├── Feature.ts              # Cechy specjalne i talenty
-│   ├── Combat.ts               # Parametry mechaniki walki
-│   ├── Tag.ts                  # Kolorowane tagi kategoryzacji
-│   └── Description.ts          # Opis encji (streszczenie + ścieżka do Markdown)
+├── Model/                       # Domain models (pure TypeScript, no UI/Electron imports)
+│   ├── Project.ts               # Root aggregate root
+│   ├── Scene.ts                 # Scene container grouping narrative paragraphs
+│   ├── Paragraph.ts             # Core narrative node (text, choices, combat, tags)
+│   ├── Choice.ts                # Directional link / branch between paragraphs
+│   ├── Condition.ts             # Choice logic and availability criteria
+│   ├── PlayerCharacter.ts       # Protagonist sheet
+│   ├── CharacterClass.ts        # Character class definitions
+│   ├── NPC.ts & NPC_Template.ts # Non-player characters and archetype templates
+│   ├── Location.ts              # World map / scene location entity
+│   ├── Item.ts                  # Inventory item and equipment definition
+│   ├── Stat.ts                  # Base attribute/stat
+│   ├── Parameter.ts             # Dynamic parameter (value or mathematical formula)
+│   ├── Skill.ts                 # Character skill with attribute modifier
+│   ├── Feature.ts               # Special traits and unique abilities
+│   ├── Combat.ts                # Turn-based combat parameters
+│   ├── Tag.ts                   # Colored category tags
+│   └── Description.ts           # Entity summary and linked Markdown path
 │
-├── Modules/                    # Dedykowane podsystemy silnika
-│   ├── Graph/                  # Silnik grafu Cytoscape.js i Web Components
-│   ├── Editor/                 # Edytor TipTap Markdown, style i katalog fontów
-│   └── ImageEditor/            # Silnik przetwarzania obrazów Canvas 2D
+├── Modules/                     # Dedicated standalone subsystems
+│   ├── Graph/                   # Cytoscape.js canvas and custom Web Components
+│   ├── Editor/                  # TipTap editor, custom Markdown extensions, fonts
+│   └── ImageEditor/             # Canvas 2D image processing engine
 │
-├── ViewModel/                  # Warstwa prezentacyjna MVVM (TypeScript)
-│   ├── StartWindowViewModel.ts # Logika okna powitalnego
-│   └── MainWindowViewModel.ts  # Stan edytora, selekcja, filtry, historia
+├── ViewModel/                   # MVVM Presentation layer (TypeScript)
+│   ├── StartWindowViewModel.ts  # Logic for startup & recent projects screen
+│   └── MainWindowViewModel.ts   # Main editor state, selection, filters, history
 │
-├── View/                       # Warstwa widoków (HTML, style Tailwind, kontrolery UI)
-│   ├── StartWindow.html        # Szablon okna startowego
-│   ├── MainWindow.html         # Główny interfejs edytora
-│   ├── MainWindow.js           # Główny koordynator widoku (tworzy appContext)
-│   ├── MainWindow.css          # Źródłowe style Tailwind CSS v4
-│   ├── MainWindow.generated.css# Skompilowany arkusz produkcyjny
-│   └── ui/                     # Zmodularyzowane kontrolery interfejsu
-│       ├── assets/             # Menedżer mediów i modal edytora grafiki
-│       ├── common/             # Współdzielone szablony HTML, modal potwierdzeń, awatary
-│       ├── detailsPanel/       # Prawy panel właściwości, walka, historia, formularze
-│       ├── drawer/             # Lewy panel encji, wyszukiwarka i popover filtrów
-│       ├── editor/             # Pasek narzędzi edytora, modal stylów, fontów, linkowania
-│       ├── graph/              # Kontroler grafu, strefy upuszczania, zoom
-│       ├── modals/             # Dedykowane modale: NPC, Bohater, Eksport, Playtest
-│       ├── project/            # Automatyczny zapis, śledzenie stanu dirty, persystencja
-│       └── workspace/          # Koordynator obszaru roboczego, pasek górny, menu kontekstowe
+├── View/                        # Presentation layer (HTML, Tailwind CSS, UI controllers)
+│   ├── StartWindow.html         # Startup window template
+│   ├── MainWindow.html          # Main application workspace layout
+│   ├── MainWindow.js            # Frontend coordinator and appContext builder
+│   ├── MainWindow.css           # Tailwind CSS source styles
+│   ├── MainWindow.generated.css # Compiled production stylesheet
+│   └── ui/                      # Modular UI controllers
+│       ├── assets/              # Media manager, asset picker, image editor modal
+│       ├── common/              # Shared templates, confirmation modals, avatars
+│       ├── detailsPanel/        # Right inspector panel, combat, exits, history
+│       ├── drawer/              # Left entity explorer, faceted search, tag filters
+│       ├── editor/              # TipTap toolbar, custom styles, font browser
+│       ├── graph/               # Graph controller, zoom controls, drop zones
+│       ├── modals/              # Export, Hero, NPC, and Playtester modals
+│       ├── project/             # Autosave service, dirty state tracker, saver
+│       └── workspace/           # Top bar, quick search palette, context menus
 │
-├── Services/                   # Serwisy aplikacyjne renderera pogrupowane funkcjonalnie
-│   ├── project/                # Singleton aktywnego projektu w pamięci UI (ProjectManager.ts)
-│   ├── graph/                  # Diagnostyka grafu i numeracja paragrafów
-│   ├── combat/                 # Synchronizacja i generowanie bloków walki Markdown
-│   ├── markdown/               # Transkluzja opisów i aktualizacja linków encji
-│   ├── export/                 # Walidacja eksportu/importu przedmiotów i zasad RPG
-│   └── helpers/                # Współdzielone wzorce wyrażeń regularnych i walidatory
+├── Services/                    # Frontend services
+│   ├── project/                 # ProjectManager active project memory singleton
+│   ├── graph/                   # Graph diagnostics and paragraph renumbering
+│   ├── combat/                  # Markdown combat block generation and sync
+│   ├── markdown/                # Entity link updates and text transclusion
+│   ├── export/                  # Export validation and RPG rule compile helpers
+│   └── helpers/                 # Regular expressions, validators, sanitizers
 │
-├── Utils/                      # Narzędzia pomocnicze pogrupowane funkcjonalnie
-│   ├── assets/                 # Stałe i narzędzia ścieżek zasobów oraz śledzenie referencji
-│   ├── fs/                     # Bezpieczeństwo ścieżek, atomowy zapis i sanityzacja nazw
-│   ├── i18n/                   # Wielojęzyczność backendu (i18n.js) i frontendu (translate.ts)
-│   ├── ui/                     # Rejestr ikon SVG (icons.ts) i powiadomienia (toast.ts)
-│   └── common/                 # Generatory identyfikatorów (idGenerator.ts)
-├── Locales/                    # Słowniki tłumaczeń JSON (en, pl, de)
-├── docs/                       # Szczegółowa dokumentacja architektoniczna
-└── tests/                      # Zestaw 133 plików testowych Vitest (1666 testów)
+├── Utils/                       # Cross-cutting utility modules
+│   ├── assets/                  # Asset path constants and reference checkers
+│   ├── fs/                      # Path security, atomic writes, name sanitizers
+│   ├── i18n/                    # Localization system (i18n.js, translate.ts)
+│   ├── ui/                      # SVG icon registry and toast notifications
+│   └── common/                  # Unique ID generators
+│
+├── Locales/                     # Localization JSON dictionaries (en, pl, de)
+├── docs/                        # Deep-dive architecture and design documentation
+└── tests/                       # Complete Vitest test suite (133 test files)
 ```
 
 ---
 
-## Instalacja i Uruchomienie (Getting Started)
+## Getting Started
 
-### Wymagania wstępne (Prerequisites)
+### Prerequisites
 
+Ensure your development environment meets the following requirements:
 - **Node.js**: `>= 20.0.0 < 22.0.0`
-- **pnpm**: `>= 9.0.0 < 10.0.0` (zalecany menedżer pakietów; projekt wymusza użycie pnpm)
+- **pnpm**: `>= 9.0.0 < 10.0.0` (*pnpm is enforced by the project*)
 
-### Klonowanie i instalacja zależności
+### Installation
+
+Clone the repository and install the dependencies using pnpm:
 
 ```bash
 git clone https://github.com/mountain-bit/SilnikGierParagrafowych.git
@@ -206,38 +254,81 @@ cd SilnikGierParagrafowych
 pnpm install
 ```
 
-### Uruchomienie w trybie deweloperskim
+### Running in Development Mode
+
+To build required assets and launch the Electron application:
 
 ```bash
 pnpm start
 ```
 
-> Polecenie to automatycznie kompiluje arkusze stylów Tailwind CSS, buduje moduły renderera za pomocą esbuild, weryfikuje typy TypeScript (`tsc --noEmit`) i uruchamia aplikację w oknie Electron.
+> **Note:** The `pnpm start` script executes Tailwind CSS compilation (`MainWindow.generated.css`), invokes `esbuild` for the renderer bundles via `scripts/build-renderer.js`, performs a static TypeScript type check (`tsc --noEmit`), and launches Electron.
 
-### Budowanie paczki produkcyjnej (Windows Installer)
+To develop with live rebuilds of CSS or renderer modules in separate terminals:
 
 ```bash
-# Budowanie instalatora Windows (.exe) w katalogu release-builds/
-pnpm run dist
+# Watch and rebuild renderer TypeScript scripts
+pnpm run renderer:watch
 
-# Budowanie rozpakowanej aplikacji (katalog bez instalatora)
+# Watch and rebuild Tailwind CSS stylesheets
+pnpm run css:watch
+```
+
+### Packaging & Building Installers
+
+Create production-ready distributions using Electron Builder:
+
+```bash
+# Build an unpacked executable folder for testing in release-builds/
 pnpm run pack
+
+# Build the complete Windows installer (.exe)
+pnpm run dist
 ```
 
 ---
 
-## Skrypty Dostępne w `package.json`
+## Available Scripts
 
-- `pnpm start` – kompiluje CSS, weryfikuje typy TypeScript, buduje skrypty renderera i uruchamia aplikację w Electronie.
-- `pnpm build` – pełny build: arkusze stylów Tailwind, kompilacja TS i bundling esbuild.
-- `pnpm test:run` – uruchamia kompletny zestaw testów jednostkowych i integracyjnych Vitest (1666 testów).
-- `pnpm test:coverage` – generuje raport pokrycia kodu (`coverage/index.html`).
-- `pnpm license:check` – weryfikuje zgodność licencji wszystkich zależności z białą listą.
-- `pnpm lint` / `pnpm lint:fix` – uruchamia linter ESLint z automatyczną korektą.
-- `pnpm format` / `pnpm format:check` – formatuje kod przy użyciu Prettier.
+| Command | Action |
+| :--- | :--- |
+| `pnpm start` | Builds styles, compiles renderer scripts, checks TypeScript types, and boots Electron. |
+| `pnpm build` | Full build of Tailwind CSS styles, esbuild bundling, and static type check. |
+| `pnpm renderer:watch` | Runs esbuild in watch mode to automatically rebuild renderer bundles on file changes. |
+| `pnpm css:build` | Compiles and minifies `View/MainWindow.css` into `View/MainWindow.generated.css`. |
+| `pnpm css:watch` | Watches for changes in HTML/JS templates and updates the generated CSS in real time. |
+| `pnpm test` | Starts the Vitest test runner in interactive watch mode. |
+| `pnpm test:run` | Runs the full Vitest test suite once across all 133 test files. |
+| `pnpm test:coverage` | Executes tests and generates a test coverage report (`coverage/index.html`). |
+| `pnpm license:check` | Verifies all runtime and build dependencies against the permitted open-source license list. |
+| `pnpm lint` | Runs ESLint across all TypeScript and JavaScript files. |
+| `pnpm lint:fix` | Automatically fixes ESLint errors and sorts imports via `eslint-plugin-simple-import-sort`. |
+| `pnpm format` | Formats all code according to project Prettier guidelines (no semicolons, single quotes, 4-space indent). |
+| `pnpm format:check` | Verifies whether all files conform to Prettier formatting rules without altering them. |
+| `pnpm pack` | Compiles the project and creates an unpacked Electron executable directory. |
+| `pnpm dist` | Compiles and builds the production installer for Windows. |
 
 ---
 
-## Licencja (License)
+## Quality Assurance & Testing
 
-Projekt jest udostępniany na warunkach licencji **ISC**. Szczegóły znajdują się w pliku [LICENSE](file:///c:/Projekty/SilnikGierParagrafowych/SilnikGierParagrafowych/LICENSE).
+- **Comprehensive Test Suite**: The repository maintains rigorous automated test coverage. All domain models, ViewModels, service layers, utilities, and UI adapters are tested using **Vitest** and **happy-dom**.
+- **Automated Git Hooks**:
+  - `pre-commit`: Executes `lint-staged` to format and lint staged files via Prettier and ESLint.
+  - `pre-push`: Runs the full test suite (`pnpm test:run`) and license verification (`pnpm license:check`) before changes can be pushed to remote branches.
+- **Type-Safe Internationalization**: Keys in `Locales/` (`en.json`, `pl.json`, `de.json`) are checked against the TypeScript type system (`TranslationKey`) to prevent missing string identifiers.
+
+---
+
+## Documentation Links
+
+For further technical details and architectural deep dives, see the documents in the [`docs/`](docs/) directory:
+
+- [System Architecture](docs/ARCHITECTURE.md)
+- [Frontend Architecture](docs/FRONTEND_ARCHITECTURE.md)
+- [Main Process Architecture](docs/MAIN_PROCESS_ARCHITECTURE.md)
+- [View Layer Modularization](docs/VIEW_LAYER_MODULARIZATION.md)
+- [Choice Subsystem Specification](docs/CHOICE_SUBSYSTEM.md)
+- [Editor Extensions & Custom Styles](docs/EDITOR_EXTENSIONS.md)
+
+---
