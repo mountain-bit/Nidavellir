@@ -1,3 +1,4 @@
+import { RulesExportService } from '../../../dist/Services/RulesExportService.js'
 import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
@@ -55,7 +56,7 @@ export function setupResizers(leftDrawer, rightSidebar, vm) {
                 const newWidth = Math.max(180, Math.min(600, Math.round(startWidth + delta)))
                 leftDrawer.style.width = `${newWidth}px`
                 leftDrawer.style.setProperty('--left-drawer-width', `${newWidth}px`)
-                vm.setLeftDrawerWidth(newWidth)
+                vm.layout.setLeftDrawerWidth(newWidth)
                 window.dispatchEvent(new Event('resize'))
             })
         })
@@ -100,7 +101,7 @@ export function setupResizers(leftDrawer, rightSidebar, vm) {
                 const newWidth = Math.max(220, Math.min(700, Math.round(startWidth + delta)))
                 rightSidebar.style.width = `${newWidth}px`
                 rightSidebar.style.setProperty('--right-sidebar-width', `${newWidth}px`)
-                vm.setRightSidebarWidth(newWidth)
+                vm.layout.setRightSidebarWidth(newWidth)
                 window.dispatchEvent(new Event('resize'))
             })
         })
@@ -149,7 +150,7 @@ export function updateRightSidebarUI(
     toggleRightSidebarBtn,
     reopenRightSidebarBtn
 ) {
-    const isCollapsed = vm.isRightSidebarCollapsed()
+    const isCollapsed = Boolean(vm?.layout?.isRightSidebarCollapsed?.())
     const rightResizer = document.getElementById('right-resizer')
     if (isCollapsed) {
         if (rightSidebar) rightSidebar.classList.add('collapsed')
@@ -170,7 +171,7 @@ export function updateRightSidebarUI(
  * @param {object} ctx Application UI Context
  */
 export function updateMainWorkspaceUI(ctx) {
-    const mainView = ctx.vm.getActiveMainView()
+    const mainView = ctx.vm.layout.getActiveMainView()
     const modeTitle = document.getElementById('workspace-mode-title')
     const markdownContainer = document.getElementById('markdown-container')
     const graphContainer = document.getElementById('graph-container')
@@ -210,13 +211,13 @@ export function updateMainWorkspaceUI(ctx) {
         }
     }
 
-    const active = ctx.vm.getActiveFile()
+    const active = ctx.vm.files.getActiveFile()
     const hasActiveFile = Boolean(active)
 
     if (activeLabel) {
         const displayName =
-            typeof ctx.vm?.getFileDisplayName === 'function'
-                ? ctx.vm.getFileDisplayName(active)
+            typeof ctx.vm?.files?.getFileDisplayName === 'function'
+                ? ctx.vm.files.getFileDisplayName(active)
                 : active
         activeLabel.textContent = displayName || t('editor.no_open_file')
         if (active) {
@@ -245,6 +246,49 @@ export function updateMainWorkspaceUI(ctx) {
         saveStatus.textContent = ''
     }
 
+    // Show/hide export rules button
+    const btnExportRules = document.getElementById('btn-export-game-rules')
+    if (btnExportRules) {
+        const isRulesActive =
+            hasActiveFile &&
+            (active === 'Rules/GameRules.md' ||
+                active === 'GameRules.md' ||
+                active.endsWith('GameRules.md'))
+        if (isRulesActive) {
+            btnExportRules.classList.remove('hidden')
+            btnExportRules.onclick = () => {
+                const projectName =
+                    document.getElementById('project-name-display')?.textContent?.trim() ||
+                    ctx?.vm?.project?.getName?.() ||
+                    'Gra'
+                const author = ctx?.vm?.project?.getAuthor?.() || ''
+                const version = ctx?.vm?.project?.getVersion?.() || '1.0.0'
+                const rulesContent = (hasActiveFile ? ctx.files[active] || '' : '') || ''
+
+                const htmlContent = RulesExportService.exportToHtml({
+                    title: `${projectName} — Zasady Gry`,
+                    author,
+                    version,
+                    content: rulesContent,
+                })
+                const cleanName = projectName.replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, '_')
+                RulesExportService.downloadFile(
+                    htmlContent,
+                    `${cleanName}_Zasady.html`,
+                    'text/html'
+                )
+                toast.success(
+                    (typeof t === 'function' ? t('rules.export_success') : '') ||
+                        'Zasady gry zostały pomyślnie wyeksportowane',
+                    'Eksport zasad'
+                )
+            }
+        } else {
+            btnExportRules.classList.add('hidden')
+            btnExportRules.onclick = null
+        }
+    }
+
     renderEditorTabs(ctx)
 }
 
@@ -257,8 +301,8 @@ export function renderEditorTabs(ctx) {
     const editorTabsContainer = document.getElementById('editor-tabs')
     if (!editorTabsContainer) return
 
-    const openFiles = ctx.vm.getOpenFiles()
-    const activeFile = ctx.vm.getActiveFile()
+    const openFiles = ctx.vm.files.getOpenFiles()
+    const activeFile = ctx.vm.files.getActiveFile()
     const closeFileTitle = t('editor.close_file')
 
     editorTabsContainer.innerHTML = openFiles
@@ -269,15 +313,22 @@ export function renderEditorTabs(ctx) {
                 : 'bg-[#27272a] text-[#a1a1aa] hover:bg-[#2e2e33] hover:text-white'
 
             const displayName =
-                typeof ctx.vm?.getFileDisplayName === 'function'
-                    ? ctx.vm.getFileDisplayName(file)
+                typeof ctx.vm?.files?.getFileDisplayName === 'function'
+                    ? ctx.vm.files.getFileDisplayName(file)
                     : file
+
+            const isRulesFile =
+                file === 'Rules/GameRules.md' ||
+                file === 'GameRules.md' ||
+                file.endsWith('GameRules.md')
+            const iconName = isRulesFile ? 'book' : 'paragraph'
+            const iconColor = isRulesFile ? 'text-amber-400' : 'text-blue-400'
 
             return `
             <div class="flex items-center gap-1.5 px-3 py-1 text-xs rounded-t cursor-pointer border-r border-[#333338] ${activeClasses}"
                 data-tab-file="${escapeHtml(file)}" title="${escapeHtml(file)}">
                 <span class="flex items-center gap-1.5">
-                    <span class="text-blue-400 shrink-0">${getIconSvg('paragraph', 'w-3.5 h-3.5')}</span>
+                    <span class="${iconColor} shrink-0">${getIconSvg(iconName, 'w-3.5 h-3.5')}</span>
                     <span>${escapeHtml(displayName)}</span>
                 </span>
                 <button class="close-tab-btn hover:text-red-400 p-0.5 rounded inline-flex items-center" data-close-file="${escapeHtml(file)}" title="${escapeHtml(closeFileTitle)}">${getIconSvg('close', 'w-3 h-3')}</button>
@@ -290,7 +341,7 @@ export function renderEditorTabs(ctx) {
         tab.addEventListener('click', e => {
             if (e.target.classList.contains('close-tab-btn')) return
             const file = tab.dataset.tabFile
-            ctx.vm.setActiveFile(file)
+            ctx.vm.files.setActiveFile(file)
             updateMainWorkspaceUI(ctx)
         })
     })
@@ -299,7 +350,7 @@ export function renderEditorTabs(ctx) {
         btn.addEventListener('click', e => {
             e.stopPropagation()
             const file = btn.dataset.closeFile
-            ctx.vm.closeFile(file)
+            ctx.vm.files.closeFile(file)
             updateMainWorkspaceUI(ctx)
         })
     })
@@ -343,9 +394,10 @@ export function updateZoomToolbarUI(storyGraphInstance, zoomLevel) {
  * Saves current active file to memory and disk via IPC.
  *
  * @param {object} ctx Application UI Context
+ * @param {{ silent?: boolean }} [options={}]
  */
-export function saveActiveFile(ctx) {
-    const active = ctx.vm.getActiveFile()
+export function saveActiveFile(ctx, options = {}) {
+    const active = ctx.vm.files.getActiveFile()
     if (!active) return
 
     const editor = getOrCreateMainEditor(ctx)
@@ -381,18 +433,33 @@ export function saveActiveFile(ctx) {
                             }
                         }, 2500)
                     }
-                    if (res.recreated || res.warning === 'recreated') {
-                        toast.warning(t('toast.file_recreated_warning'), t('toast.warning_title'))
-                    } else {
-                        toast.success(t('toast.save_success'), t('toast.success_title'))
+                    if (!options.silent) {
+                        if (res.recreated || res.warning === 'recreated') {
+                            toast.warning(
+                                t('toast.file_recreated_warning'),
+                                t('toast.warning_title')
+                            )
+                        } else {
+                            toast.success(t('toast.save_success'), t('toast.success_title'))
+                        }
                     }
                 } else if (res && !res.success) {
-                    toast.error(t('toast.save_error', { error: res.error }), t('toast.error_title'))
+                    if (!options.silent) {
+                        toast.error(
+                            t('toast.save_error', { error: res.error }),
+                            t('toast.error_title')
+                        )
+                    }
                 }
             })
             .catch(err => {
                 console.error('Error saving file:', err)
-                toast.error(t('toast.save_error', { error: err.message }), t('toast.error_title'))
+                if (!options.silent) {
+                    toast.error(
+                        t('toast.save_error', { error: err.message }),
+                        t('toast.error_title')
+                    )
+                }
             })
     } else {
         markFileClean(active)
@@ -405,7 +472,9 @@ export function saveActiveFile(ctx) {
                 }
             }, 2500)
         }
-        toast.success(t('toast.save_success'), t('toast.success_title'))
+        if (!options.silent) {
+            toast.success(t('toast.save_success'), t('toast.success_title'))
+        }
     }
 }
 

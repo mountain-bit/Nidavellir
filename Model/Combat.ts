@@ -150,6 +150,18 @@ export class Combat {
     }
 
     public addOutcome(outcome: CombatOutcome): void {
+        const existingIdx = this.outcomes.findIndex(
+            o =>
+                (outcome.id && o.id === outcome.id) ||
+                (o.targetParagraphId === outcome.targetParagraphId && o.name === outcome.name)
+        )
+        if (existingIdx !== -1) {
+            this.outcomes[existingIdx] = {
+                ...this.outcomes[existingIdx],
+                ...outcome,
+            }
+            return
+        }
         this.outcomes.push(outcome)
     }
 
@@ -214,14 +226,23 @@ export class Combat {
             )
         }
         if (json.outcomes && Array.isArray(json.outcomes)) {
-            w.setOutcomes(
-                json.outcomes.map((o: any) => ({
-                    id: String(o.id || ''),
-                    name: String(o.name || ''),
-                    targetParagraphId: String(o.targetParagraphId || ''),
+            const seenOutcomeKeys = new Set<string>()
+            const parsedOutcomes: CombatOutcome[] = []
+            for (const o of json.outcomes) {
+                const id = String(o.id || '')
+                const name = String(o.name || '')
+                const targetParagraphId = String(o.targetParagraphId || '')
+                const key = id ? `id:${id}` : `target:${targetParagraphId}:${name}`
+                if (seenOutcomeKeys.has(key)) continue
+                seenOutcomeKeys.add(key)
+                parsedOutcomes.push({
+                    id,
+                    name,
+                    targetParagraphId,
                     description: typeof o.description === 'string' ? o.description : '',
-                }))
-            )
+                })
+            }
+            w.setOutcomes(parsedOutcomes)
         }
         if (json.visibleStatIds && Array.isArray(json.visibleStatIds)) {
             w.setVisibleStatIds(json.visibleStatIds.map((s: any) => String(s)))

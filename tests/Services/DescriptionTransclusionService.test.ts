@@ -4,7 +4,7 @@ import { Description } from '../../Model/Description'
 import { Item } from '../../Model/Item'
 import { Location } from '../../Model/Location'
 import { NPC } from '../../Model/NPC'
-import { DescriptionTransclusionService } from '../../Services/DescriptionTransclusionService'
+import { DescriptionTransclusionService } from '../../Services/markdown/DescriptionTransclusionService'
 
 describe('DescriptionTransclusionService', () => {
     const item1 = new Item(

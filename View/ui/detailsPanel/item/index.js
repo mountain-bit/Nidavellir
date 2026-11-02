@@ -1,5 +1,6 @@
 export * from './itemCategorySection.js'
 export * from './itemDescriptionSection.js'
+export * from './itemDetails.js'
 export * from './itemExportSection.js'
 export * from './itemHeaderSection.js'
 export * from './itemInventorySection.js'

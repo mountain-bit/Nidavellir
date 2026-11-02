@@ -1,4 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IExportStyle } from './exportStyleService'
+
+export interface ICompiledCharacterSheet {
+    id: string
+    name: string
+    characterClass: string
+    summary: string
+    avatar: string
+    stats: Array<{ name: string; value: string | number }>
+    parameters: Array<{
+        name: string
+        value: string | number
+        currentValue?: string | number
+        maxValue?: string | number
+    }>
+    skills: Array<{ name: string; value: string | number }>
+    features: Array<{ name: string; description: string }>
+    items: Array<{ name: string }>
+    inventories: Array<{
+        id: string
+        name: string
+        capacity: number
+        items: Array<{ name: string; description: string }>
+    }>
+    tags: string[]
+    [key: string]: any
+}
 
 export interface ICompiledGamebook {
     title: string
@@ -39,3 +66,6 @@ export declare function parseCombatBlock(combatText: string, paragraphMap?: any)
 export declare function renderCombatHtml(combatData: any, paragraphMap?: any): string
 
 export declare function formatInlineMarkdown(str: string, paragraphMap?: any): string
+
+export declare function escapeHtml(str: string): string
+export declare function stripEmojis(text: string): string

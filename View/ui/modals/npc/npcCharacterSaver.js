@@ -32,16 +32,29 @@ export function saveNpcCharacter(ctx, options = {}) {
             defaultCreatedMsg: name => `Pomyślnie utworzono postać ${name}`,
             defaultUpdatedTitle: 'Postać zaktualizowana',
             defaultCreatedTitle: 'Postać utworzona',
-            createVmEntity: (vm, name) =>
-                vm && typeof vm.createCharacter === 'function' ? vm.createCharacter(name) : null,
+            createVmEntity: (vm, name) => {
+                const factory = vm?.factory
+                return factory && typeof factory.createCharacter === 'function'
+                    ? factory.createCharacter(name)
+                    : null
+            },
             addToProject: (effectiveCtx, vm, entity) => {
-                if (Array.isArray(effectiveCtx.projectCharacters)) {
-                    effectiveCtx.projectCharacters.push(entity)
-                }
                 if (vm?.project && typeof vm.project.addCharacter === 'function') {
                     vm.project.addCharacter(entity)
                 }
+                if (Array.isArray(effectiveCtx.projectCharacters)) {
+                    const exists = effectiveCtx.projectCharacters.some(
+                        c =>
+                            c === entity ||
+                            (typeof c.getId === 'function' ? c.getId() : c.id) ===
+                                (typeof entity.getId === 'function' ? entity.getId() : entity.id)
+                    )
+                    if (!exists) {
+                        effectiveCtx.projectCharacters.push(entity)
+                    }
+                }
             },
+            ipcCategory: 'NPC',
         },
         ctx,
         options

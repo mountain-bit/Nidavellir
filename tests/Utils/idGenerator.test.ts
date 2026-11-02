@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { defaultIdGenerator, generateId } from '../../Utils/idGenerator'
+import { defaultIdGenerator, generateId } from '../../Utils/common/idGenerator'
 
 describe('ID Generator Utility', () => {
     it('generuje identyfikator z domyślnym formatem i timestampem', () => {

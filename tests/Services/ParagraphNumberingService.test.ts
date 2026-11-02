@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { Paragraph } from '../../Model/Paragraph'
-import { ParagraphNumberingService } from '../../Services/ParagraphNumberingService'
+import { ParagraphNumberingService } from '../../Services/graph/ParagraphNumberingService'
 
 describe('ParagraphNumberingService', () => {
     it('never assigns locked number 12 to any other paragraph', () => {

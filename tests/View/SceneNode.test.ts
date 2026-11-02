@@ -6,9 +6,9 @@ import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { Tag } from '../../Model/Tag'
-import { SceneNode } from '../../Modules/Graph/SceneNode'
-import { instantiateSceneNodeTemplate } from '../../Modules/Graph/SceneNodeTemplate'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { SceneNode } from '../../Modules/Graph/nodes/SceneNode'
+import { instantiateSceneNodeTemplate } from '../../Modules/Graph/nodes/SceneNodeTemplate'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 
 describe('instantiateSceneNodeTemplate', () => {
     it('should clone template and return all interactive element references', () => {

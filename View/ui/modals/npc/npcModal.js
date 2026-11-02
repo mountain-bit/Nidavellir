@@ -10,7 +10,7 @@ import {
     getNpcEditorInstance,
     getOrCreateNpcEditor,
     updateNpcEditorStats,
-} from '../../editor/npcEditor.js'
+} from '../../editor/index.js'
 import { showUnsavedChangesModal } from '../confirm/confirmModal.js'
 import { evaluateFormula, parseStatValueAsNumber } from './formulaEvaluator.js'
 import { saveNpcCharacter as saveNpcCharacterHelper } from './npcCharacterSaver.js'
@@ -682,12 +682,20 @@ export function hasUnsavedNpcChanges() {
  * @param {object} [ctx]
  * @returns {object|null}
  */
+let isSavingModal = false
+
 export function executeNpcModalSave(ctx = state.getActiveCtx()) {
-    syncActiveModalInputs()
-    if (state.getModalMode() === 'template') {
-        return saveNpcTemplate(ctx)
-    } else {
-        return saveNpcCharacter(ctx)
+    if (isSavingModal) return null
+    isSavingModal = true
+    try {
+        syncActiveModalInputs()
+        if (state.getModalMode() === 'template') {
+            return saveNpcTemplate(ctx)
+        } else {
+            return saveNpcCharacter(ctx)
+        }
+    } finally {
+        isSavingModal = false
     }
 }
 
@@ -946,7 +954,8 @@ export function setupNpcModal(ctx) {
     }
 
     // Open when clicking "Postać" in left drawer
-    if (btnAddCharacter) {
+    if (btnAddCharacter && !btnAddCharacter.dataset.openCharListenerAttached) {
+        btnAddCharacter.dataset.openCharListenerAttached = 'true'
         btnAddCharacter.addEventListener('click', e => {
             e.preventDefault()
             e.stopPropagation()
@@ -955,7 +964,8 @@ export function setupNpcModal(ctx) {
     }
 
     // Open when clicking "Szablon" in left drawer
-    if (btnAddTemplate) {
+    if (btnAddTemplate && !btnAddTemplate.dataset.openTplListenerAttached) {
+        btnAddTemplate.dataset.openTplListenerAttached = 'true'
         btnAddTemplate.addEventListener('click', e => {
             e.preventDefault()
             e.stopPropagation()
@@ -1141,7 +1151,8 @@ export function setupNpcModal(ctx) {
 
     // Setup action buttons: Save & Cancel
     const btnCancel = document.getElementById('btn-cancel-npc-modal')
-    if (btnCancel) {
+    if (btnCancel && !btnCancel.dataset.cancelListenerAttached) {
+        btnCancel.dataset.cancelListenerAttached = 'true'
         btnCancel.addEventListener('click', e => {
             e.preventDefault()
             requestCloseNpcModal()
@@ -1150,14 +1161,16 @@ export function setupNpcModal(ctx) {
 
     const btnSave = document.getElementById('btn-save-npc-modal')
     const form = document.getElementById('npc-create-modal-form')
-    const executeSave = () => executeNpcModalSave(ctx)
-    if (btnSave) {
+    const executeSave = () => executeNpcModalSave(state.getActiveCtx() || ctx)
+    if (btnSave && !btnSave.dataset.saveListenerAttached) {
+        btnSave.dataset.saveListenerAttached = 'true'
         btnSave.addEventListener('click', e => {
             e.preventDefault()
             executeSave()
         })
     }
-    if (form) {
+    if (form && !form.dataset.submitListenerAttached) {
+        form.dataset.submitListenerAttached = 'true'
         form.addEventListener('submit', e => {
             e.preventDefault()
             executeSave()

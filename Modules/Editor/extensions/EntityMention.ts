@@ -2,12 +2,29 @@ import { mergeAttributes } from '@tiptap/core'
 import Mention, { MentionOptions } from '@tiptap/extension-mention'
 import { SuggestionOptions } from '@tiptap/suggestion'
 
+import { t } from '../../../Utils/i18n/translate'
 import { IEntityMentionItem } from '../types'
 import { ISuggestionProps, MentionSuggestionRenderer } from '../ui/MentionSuggestionRenderer'
 
 export interface IEntityMentionOptions extends Omit<MentionOptions, 'suggestion'> {
     getEntities?: () => IEntityMentionItem[]
     suggestion?: Partial<SuggestionOptions<IEntityMentionItem>>
+}
+
+function getEntityTypeName(type: string): string {
+    switch (type.toLowerCase()) {
+        case 'character':
+            return t('details.type_character') || 'Postać'
+        case 'item':
+            return t('details.type_item') || 'Przedmiot'
+        case 'trait':
+            return t('details.type_stat') || 'Cecha'
+        case 'tag':
+            return t('details.type_tag') || 'Tag'
+        case 'location':
+        default:
+            return t('details.type_location') || 'Lokacja'
+    }
 }
 
 export const EntityMention = Mention.extend<IEntityMentionOptions>({
@@ -23,7 +40,13 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
                     if (did) return did
                     const href = element.getAttribute('href') || ''
                     const match = href.match(/^entity:\/\/[^/]+\/(.+)$/)
-                    if (match) return match[1]
+                    if (match) {
+                        try {
+                            return decodeURIComponent(match[1])
+                        } catch {
+                            return match[1]
+                        }
+                    }
                     return null
                 },
                 renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
@@ -61,7 +84,13 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
                     if (dt) return dt
                     const href = element.getAttribute('href') || ''
                     const match = href.match(/^entity:\/\/([^/]+)\//)
-                    if (match) return match[1]
+                    if (match) {
+                        try {
+                            return decodeURIComponent(match[1])
+                        } catch {
+                            return match[1]
+                        }
+                    }
                     return 'location'
                 },
                 renderHTML: (attributes: Record<string, unknown>): Record<string, string> => {
@@ -83,16 +112,27 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
                 tag: 'span[data-mention]',
             },
             {
+                tag: 'span.entity-mention-badge',
+            },
+            {
                 tag: 'a[href^="entity://"]',
                 getAttrs: (dom: HTMLElement | string): false | Record<string, unknown> => {
                     if (typeof dom === 'string') return false
                     const href = dom.getAttribute('href') || ''
                     const match = href.match(/^entity:\/\/([^/]+)\/(.+)$/)
                     if (match) {
+                        let entityType = match[1]
+                        let entityId = match[2]
+                        try {
+                            entityType = decodeURIComponent(entityType)
+                            entityId = decodeURIComponent(entityId)
+                        } catch {
+                            // Zachowaj surowe wartości jeśli dekodowanie URI rzuci błąd
+                        }
                         return {
-                            type: match[1],
-                            id: match[2],
-                            label: dom.textContent?.trim() || match[2],
+                            type: entityType,
+                            id: entityId,
+                            label: dom.textContent?.trim() || entityId,
                         }
                     }
                     return false
@@ -105,21 +145,10 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
         const type = String(node.attrs.type || 'location').toLowerCase()
         const label = String(node.attrs.label || node.attrs.id || '')
         const id = String(node.attrs.id || '')
-
-        let typeName = 'Lokacja'
-
-        if (type === 'character') {
-            typeName = 'Postać (NPC)'
-        } else if (type === 'trait' || type === 'tag') {
-            typeName = 'Cecha / Tag'
-        } else if (type === 'item') {
-            typeName = 'Przedmiot'
-        }
+        const typeName = getEntityTypeName(type)
 
         const tooltip =
-            id && id !== label
-                ? `${typeName}: ${id} (w tekście jako: „${label}”)`
-                : `${typeName}: ${label}`
+            id && id !== label ? `${typeName}: ${id} (${label})` : `${typeName}: ${label}`
 
         return [
             'span',
@@ -151,13 +180,18 @@ export const EntityMention = Mention.extend<IEntityMentionOptions>({
                     state: { write: (text: string) => void },
                     node: { attrs: { label?: string; id?: string; type?: string } }
                 ): void {
-                    const label = node.attrs.label || node.attrs.id || 'encja'
-                    const type = node.attrs.type || 'location'
-                    const id = node.attrs.id || ''
-                    state.write(`[${label}](entity://${type}/${id})`)
+                    const rawLabel = String(node.attrs.label || node.attrs.id || '')
+                    const cleanLabel =
+                        rawLabel.replace(/[[\]]/g, '').trim() ||
+                        String(node.attrs.id || '')
+                            .replace(/[[\]]/g, '')
+                            .trim()
+                    const type = String(node.attrs.type || 'location').trim()
+                    const id = String(node.attrs.id || '').trim()
+                    state.write(`[${cleanLabel}](entity://${type}/${id})`)
                 },
                 parse: {
-                    // Handled automatically via markdown-it link parser and parseHTML() above
+                    // Parsowane automatycznie przez parser linków oraz parseHTML() powyżej
                 },
             },
         }
@@ -176,8 +210,16 @@ export function createEntitySuggestionConfig(
             if (!query) {
                 return list.slice(0, 7)
             }
-            const cleanQuery = query.toLowerCase()
-            return list.filter(item => item.name.toLowerCase().includes(cleanQuery)).slice(0, 7)
+            const cleanQuery = query.toLowerCase().trim()
+            return list
+                .filter(item => {
+                    const nameMatch = item.name
+                        ? item.name.toLowerCase().includes(cleanQuery)
+                        : false
+                    const idMatch = item.id ? item.id.toLowerCase().includes(cleanQuery) : false
+                    return nameMatch || idMatch
+                })
+                .slice(0, 7)
         },
         render: (): Record<string, (props: never) => void | boolean> => {
             return {

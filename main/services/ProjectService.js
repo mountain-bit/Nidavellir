@@ -8,14 +8,14 @@ const {
     validateProjectData,
     atomicWriteJsonSync,
     atomicWriteStringSync,
-} = require('../../Utils/fsSecurity')
-const { t } = require('../../Utils/i18n')
-const { ASSETS_IMAGES_DIR } = require('../../Utils/assetConstants')
+} = require('../../Utils/fs/fsSecurity')
+const { t } = require('../../Utils/i18n/i18n')
+const { ASSETS_IMAGES_DIR } = require('../../Utils/assets/assetConstants')
 const {
     slugifyEntityName,
     generateUniqueSlug,
     formatDescriptionFileName,
-} = require('../../Utils/pathSanitizer')
+} = require('../../Utils/fs/pathSanitizer')
 const RecentProjectsService = require('./RecentProjectsService')
 
 const DEFAULT_PROJECT_FOLDERS = [
@@ -297,6 +297,7 @@ class ProjectService {
                       ? metaData.elementy
                       : []
 
+                const seenElementIds = new Set()
                 for (const element of elementList) {
                     const elementPath = path.resolve(metaDir, element)
                     if (!isPathInsideBase(projectDir, elementPath)) {
@@ -321,6 +322,16 @@ class ProjectService {
                     if (typeof elementData !== 'object' || elementData === null) {
                         console.warn(`Invalid element data structure: ${elementPath}`)
                         continue
+                    }
+
+                    if (elementData.id) {
+                        if (seenElementIds.has(elementData.id)) {
+                            console.warn(
+                                `Skipped duplicate element id ${elementData.id} from: ${elementPath}`
+                            )
+                            continue
+                        }
+                        seenElementIds.add(elementData.id)
                     }
 
                     entities[folderName].push(elementData)
@@ -666,9 +677,11 @@ class ProjectService {
                 for (const item of items) {
                     if (!item || typeof item !== 'object') continue
 
-                    // Determine folder name
+                    // Determine folder name: always prioritize item.id so saving is consistent
                     let folderSlug = ''
-                    if (item.description && typeof item.description.filePath === 'string') {
+                    if (item.id) {
+                        folderSlug = slugifyEntityName(String(item.id))
+                    } else if (item.description && typeof item.description.filePath === 'string') {
                         const parts = item.description.filePath.replace(/\\/g, '/').split('/')
                         const catIdx = parts.findIndex(
                             p => p.toLowerCase() === category.toLowerCase()
@@ -686,6 +699,32 @@ class ProjectService {
                     }
 
                     existingFolderNames.add(folderSlug)
+
+                    // Clean up any obsolete duplicate folder if item.description.filePath pointed elsewhere
+                    if (item.description && typeof item.description.filePath === 'string') {
+                        const parts = item.description.filePath.replace(/\\/g, '/').split('/')
+                        const catIdx = parts.findIndex(
+                            p => p.toLowerCase() === category.toLowerCase()
+                        )
+                        if (
+                            catIdx !== -1 &&
+                            parts[catIdx + 1] &&
+                            parts[catIdx + 1] !== folderSlug
+                        ) {
+                            const oldFolderSlug = parts[catIdx + 1]
+                            const oldDir = path.join(categoryDir, oldFolderSlug)
+                            if (isPathInsideBase(projectDir, oldDir) && fs.existsSync(oldDir)) {
+                                try {
+                                    fs.rmSync(oldDir, { recursive: true, force: true })
+                                } catch (e) {
+                                    console.warn(
+                                        `Could not remove obsolete duplicate entity folder ${oldDir}:`,
+                                        e
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     const entityDir = path.join(categoryDir, folderSlug)
                     if (!isPathInsideBase(projectDir, entityDir)) continue

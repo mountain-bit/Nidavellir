@@ -32,19 +32,30 @@ export function saveNpcTemplate(ctx, options = {}) {
             defaultCreatedMsg: name => `Pomyślnie utworzono szablon ${name}`,
             defaultUpdatedTitle: 'Szablon zaktualizowany',
             defaultCreatedTitle: 'Szablon utworzony',
-            createVmEntity: (vm, name) =>
-                vm && typeof vm.createTemplate === 'function'
-                    ? vm.createTemplate(name)
-                    : vm && typeof vm.createCharacter === 'function'
-                      ? vm.createCharacter(name)
-                      : null,
+            createVmEntity: (vm, name) => {
+                const factory = vm?.factory
+                return factory && typeof factory.createTemplate === 'function'
+                    ? factory.createTemplate(name)
+                    : factory && typeof factory.createCharacter === 'function'
+                      ? factory.createCharacter(name)
+                      : null
+            },
             addToProject: (effectiveCtx, vm, entity) => {
-                if (!Array.isArray(effectiveCtx.projectTemplates)) {
-                    effectiveCtx.projectTemplates = []
-                }
-                effectiveCtx.projectTemplates.push(entity)
                 if (vm?.project && typeof vm.project.addTemplate === 'function') {
                     vm.project.addTemplate(entity)
+                }
+                if (Array.isArray(effectiveCtx.projectTemplates)) {
+                    const exists = effectiveCtx.projectTemplates.some(
+                        t =>
+                            t === entity ||
+                            (typeof t.getId === 'function' ? t.getId() : t.id) ===
+                                (typeof entity.getId === 'function' ? entity.getId() : entity.id)
+                    )
+                    if (!exists) {
+                        effectiveCtx.projectTemplates.push(entity)
+                    }
+                } else if (!vm?.project) {
+                    effectiveCtx.projectTemplates = [entity]
                 }
             },
             ipcCategory: 'Templates',

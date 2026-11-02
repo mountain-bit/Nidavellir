@@ -5,10 +5,13 @@ import { Location } from '../../Model/Location'
 import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { getContrastTextColor, ParagraphNode } from '../../Modules/Graph/ParagraphNode'
-import { instantiateParagraphNodeTemplate } from '../../Modules/Graph/ParagraphNodeTemplate'
-import { StoryGraph } from '../../Modules/Graph/StoryGraph'
-import { initTranslationsWithLocale, setLanguage, t } from '../../Utils/translate'
+import { StoryGraph } from '../../Modules/Graph/core/StoryGraph'
+import { getContrastTextColor, ParagraphNode } from '../../Modules/Graph/nodes/ParagraphNode'
+import {
+    createCombatPill,
+    instantiateParagraphNodeTemplate,
+} from '../../Modules/Graph/nodes/ParagraphNodeTemplate'
+import { initTranslationsWithLocale, setLanguage, t } from '../../Utils/i18n/translate'
 
 describe('getContrastTextColor utility', () => {
     it('should return dark text for light background colors', () => {
@@ -167,15 +170,13 @@ describe('ParagraphNode Web Component', () => {
         const summaryContainer = node.querySelector('.paragraph-node-summary')
         expect(summaryContainer?.classList.contains('hidden')).toBe(true)
 
-        // Technical instruction card is rendered
+        // Simplified label is rendered
         const instructionEl = node.querySelector('.start-node-instruction')
         expect(instructionEl).not.toBeNull()
         expect(node.querySelector('.start-node-badge')?.textContent).toContain(
             t('graph.start_node_entry_point')
         )
-        expect(node.querySelector('.start-node-hint')?.textContent).toContain(
-            t('graph.start_node_technical_hint')
-        )
+        expect(node.querySelector('.start-node-hint')).toBeNull()
 
         // START node cannot be expanded
         expect(node.isExpanded).toBe(false)
@@ -371,6 +372,7 @@ describe('StoryGraph focusOnElement', () => {
         })
 
         let animatedCenterEles: unknown = null
+        const mockStop = vi.fn()
         const mockCy = {
             pan: () => ({ x: 0, y: 0 }),
             zoom: () => 1,
@@ -378,6 +380,7 @@ describe('StoryGraph focusOnElement', () => {
             destroy: () => {},
             on: () => {},
             removeListener: () => {},
+            stop: mockStop,
             getElementById: (id: string) => {
                 if (id === 'p-focus-1') {
                     return {
@@ -401,6 +404,7 @@ describe('StoryGraph focusOnElement', () => {
         storyGraph.render(true)
         storyGraph.focusOnElement('p-focus-1')
 
+        expect(mockStop).toHaveBeenCalled()
         expect(animatedCenterEles).not.toBeNull()
         storyGraph.destroy()
         canvasContainer.remove()
@@ -480,6 +484,42 @@ describe('StoryGraph focusOnElement', () => {
             expect(mockCy._private.options.wheelSensitivity).toBe(0.35)
             expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
 
+            // Test getCtrlWheelMultiplier and setCtrlWheelMultiplier
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(2.5)
+            storyGraph.setCtrlWheelMultiplier(3.0)
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(3.0)
+            storyGraph.setCtrlWheelMultiplier(0.5)
+            expect(storyGraph.getCtrlWheelMultiplier()).toBe(1.0)
+            storyGraph.setCtrlWheelMultiplier(2.5)
+
+            // Test wheel event on canvasContainer with and without ctrlKey
+            const normalWheelEv = new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: 100,
+                ctrlKey: false,
+            })
+            canvasContainer.dispatchEvent(normalWheelEv)
+            expect(mockCy._private.renderer.wheelSensitivity).toBe(0.35)
+
+            const ctrlWheelEv = new WheelEvent('wheel', {
+                bubbles: true,
+                cancelable: true,
+                deltaY: 100,
+            })
+            Object.defineProperty(ctrlWheelEv, 'ctrlKey', {
+                value: true,
+                configurable: true,
+            })
+            canvasContainer.dispatchEvent(ctrlWheelEv)
+            expect(ctrlWheelEv.defaultPrevented).toBe(true)
+            expect(mockCy._private.renderer.wheelSensitivity).toBeCloseTo(0.35 * 2.5)
+            expect(currentZoomLevel).toBeLessThan(1.0)
+
+            // Reset zoom to 1.0 before testing zoomIn / zoomOut
+            storyGraph.resetZoom()
+            expect(currentZoomLevel).toBe(1.0)
+
             // Test zoomIn
             storyGraph.zoomIn(1.2)
             expect(currentZoomLevel).toBeCloseTo(1.2)
@@ -551,6 +591,64 @@ describe('StoryGraph focusOnElement', () => {
             storyGraph.destroy()
             canvasContainer.remove()
             nodesLayer.remove()
+        })
+    })
+
+    describe('Localization of badges and pills', () => {
+        it('should localize combat pill in different languages', async () => {
+            await initTranslationsWithLocale('pl')
+            const plPill = createCombatPill(0)
+            expect(plPill.textContent).toBe('Walka')
+            expect(plPill.title).toBe('Starcie z przeciwnikami (Walka)')
+
+            const plCountPill = createCombatPill(3)
+            expect(plCountPill.textContent).toBe('Walka (3)')
+
+            await initTranslationsWithLocale('en')
+            const enPill = createCombatPill(0)
+            expect(enPill.textContent).toBe('Combat')
+            expect(enPill.title).toBe('Combat encounter')
+
+            const enCountPill = createCombatPill(2)
+            expect(enCountPill.textContent).toBe('Combat (2)')
+
+            await initTranslationsWithLocale('de')
+            const dePill = createCombatPill(0)
+            expect(dePill.textContent).toBe('Kampf')
+            expect(dePill.title).toBe('Kampfbegegnung')
+
+            const deCountPill = createCombatPill(4)
+            expect(deCountPill.textContent).toBe('Kampf (4)')
+        })
+
+        it('should localize end node badge text and title on ParagraphNode', async () => {
+            const node = new ParagraphNode()
+            document.body.appendChild(node)
+
+            const p = new Paragraph('p-end', 'Ending')
+            p.setIsEnd(true)
+
+            await initTranslationsWithLocale('pl')
+            node.paragraph = p
+            let badge = node.querySelector('.end-node-badge') as HTMLElement
+            const titleEl = node.querySelector('.paragraph-node-title') as HTMLElement
+            expect(badge).not.toBeNull()
+            expect(badge.textContent).toBe('KONIEC')
+            expect(titleEl.title).toContain('Finał opowieści')
+
+            await initTranslationsWithLocale('en')
+            node.render()
+            badge = node.querySelector('.end-node-badge') as HTMLElement
+            expect(badge.textContent).toBe('END')
+            expect(titleEl.title).toContain('Story finale')
+
+            await initTranslationsWithLocale('de')
+            node.render()
+            badge = node.querySelector('.end-node-badge') as HTMLElement
+            expect(badge.textContent).toBe('ENDE')
+            expect(titleEl.title).toContain('Finale der Geschichte')
+
+            node.remove()
         })
     })
 })

@@ -4,12 +4,12 @@ const {
     resolveProjectDir,
     isPathInsideBase,
     atomicWriteJsonSync,
-} = require('../../Utils/fsSecurity')
+} = require('../../Utils/fs/fsSecurity')
 const {
     slugifyEntityName,
     generateUniqueSlug,
     formatDescriptionFileName,
-} = require('../../Utils/pathSanitizer')
+} = require('../../Utils/fs/pathSanitizer')
 
 class EntityService {
     /**
@@ -72,9 +72,24 @@ class EntityService {
             `new_${category.toLowerCase()}`
 
         const rawSlug = slugifyEntityName(String(nameSource))
-        const entityFolderSlug = generateUniqueSlug(rawSlug, candidate =>
-            fs.existsSync(path.join(categoryDir, candidate))
-        )
+        const entityFolderSlug = generateUniqueSlug(rawSlug, candidate => {
+            const candPath = path.join(categoryDir, candidate)
+            if (!fs.existsSync(candPath)) return false
+            if (entityData?.id) {
+                const candJson = path.join(candPath, 'element.json')
+                if (fs.existsSync(candJson)) {
+                    try {
+                        const existingData = JSON.parse(fs.readFileSync(candJson, 'utf8'))
+                        if (existingData && existingData.id === entityData.id) {
+                            return false
+                        }
+                    } catch {
+                        // ignore malformed JSON or read error
+                    }
+                }
+            }
+            return true
+        })
         const entityDir = path.join(categoryDir, entityFolderSlug)
 
         if (!isPathInsideBase(projectDir, entityDir)) {
@@ -118,10 +133,36 @@ class EntityService {
                 metaData.elements = []
             }
 
+            if (entityData?.id) {
+                metaData.elements = metaData.elements.filter(elRelPath => {
+                    if (elRelPath === relativeElementPath) return true
+                    const otherJsonPath = path.resolve(categoryDir, elRelPath)
+                    if (fs.existsSync(otherJsonPath)) {
+                        try {
+                            const otherData = JSON.parse(fs.readFileSync(otherJsonPath, 'utf8'))
+                            if (otherData && otherData.id === entityData.id) {
+                                try {
+                                    fs.rmSync(path.dirname(otherJsonPath), {
+                                        recursive: true,
+                                        force: true,
+                                    })
+                                } catch {
+                                    // ignore remove error
+                                }
+                                return false
+                            }
+                        } catch {
+                            // ignore other JSON parse or read error
+                        }
+                    }
+                    return true
+                })
+            }
+
             if (!metaData.elements.includes(relativeElementPath)) {
                 metaData.elements.push(relativeElementPath)
-                atomicWriteJsonSync(metaPath, metaData)
             }
+            atomicWriteJsonSync(metaPath, metaData)
 
             return {
                 success: true,

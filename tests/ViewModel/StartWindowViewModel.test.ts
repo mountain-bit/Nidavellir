@@ -1,8 +1,8 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ProjectManager } from '../../Services/ProjectManager'
-import { initTranslationsWithLocale, t } from '../../Utils/translate'
+import { ProjectManager } from '../../Services/project/ProjectManager'
+import { initTranslationsWithLocale, t } from '../../Utils/i18n/translate'
 import { StartWindowViewModel } from '../../ViewModel/StartWindowViewModel'
 
 const mockHTML = `
@@ -64,7 +64,7 @@ describe('StartWindowViewModel', () => {
         await initTranslationsWithLocale('pl')
 
         // Mock requestAnimationFrame
-        window.requestAnimationFrame = (cb: FrameRequestCallback) => {
+        window.requestAnimationFrame = (cb: FrameRequestCallback): number => {
             cb(0)
             return 0
         }
@@ -85,7 +85,7 @@ describe('StartWindowViewModel', () => {
             closeApp: vi.fn().mockResolvedValue(undefined),
             loadMainWindow: vi.fn().mockResolvedValue(undefined),
             getSystemUsername: vi.fn().mockResolvedValue('jan_user'),
-        } as any
+        } as unknown as typeof window.electronAPI
     })
 
     async function createViewModel(): Promise<StartWindowViewModel> {
@@ -258,7 +258,7 @@ describe('StartWindowViewModel', () => {
                 expect(btnSubmit.disabled).toBe(false)
             })
 
-            ;(window.electronAPI.chooseFolder as any).mockResolvedValueOnce({ canceled: true })
+            vi.mocked(window.electronAPI.chooseFolder).mockResolvedValueOnce({ canceled: true })
             btnBrowse?.click()
 
             await vi.waitFor(() => {
@@ -329,7 +329,7 @@ describe('StartWindowViewModel', () => {
         })
 
         it('obsługuje błąd pobierania nazwy użytkownika systemu', async () => {
-            ;(window.electronAPI.getSystemUsername as any).mockRejectedValueOnce(
+            vi.mocked(window.electronAPI.getSystemUsername).mockRejectedValueOnce(
                 new Error('IPC Error')
             )
             await createViewModel()
@@ -370,7 +370,7 @@ describe('StartWindowViewModel', () => {
         })
 
         it('wyświetla błąd Toast gdy createProject zwróci error', async () => {
-            ;(window.electronAPI.createProject as any).mockResolvedValueOnce({
+            vi.mocked(window.electronAPI.createProject).mockResolvedValueOnce({
                 success: false,
                 error: 'Folder już istnieje',
             })
@@ -395,7 +395,7 @@ describe('StartWindowViewModel', () => {
         })
 
         it('wyświetla błąd Toast gdy createProject rzuci wyjątek', async () => {
-            ;(window.electronAPI.createProject as any).mockRejectedValueOnce(
+            vi.mocked(window.electronAPI.createProject).mockRejectedValueOnce(
                 new Error('Brak uprawnień')
             )
 
@@ -434,7 +434,7 @@ describe('StartWindowViewModel', () => {
         })
 
         it('wyświetla Toast błędu gdy openProject zwróci success = false', async () => {
-            ;(window.electronAPI.openProject as any).mockResolvedValueOnce({
+            vi.mocked(window.electronAPI.openProject).mockResolvedValueOnce({
                 success: false,
                 error: 'Nieprawidłowy plik manifestu',
             })
@@ -471,7 +471,7 @@ describe('StartWindowViewModel', () => {
 
     describe('Lista Ostatnich Projektów', () => {
         it('wyświetla informację o braku projektów gdy lista jest pusta', async () => {
-            ;(window.electronAPI.getRecentProjects as any).mockResolvedValueOnce([])
+            vi.mocked(window.electronAPI.getRecentProjects).mockResolvedValueOnce([])
 
             await createViewModel()
 
@@ -487,7 +487,9 @@ describe('StartWindowViewModel', () => {
                     lastOpened: '2026-02-01T12:00:00.000Z',
                 },
             ]
-            ;(window.electronAPI.getRecentProjects as any).mockResolvedValueOnce(recentProjectsMock)
+            vi.mocked(window.electronAPI.getRecentProjects).mockResolvedValueOnce(
+                recentProjectsMock
+            )
 
             await createViewModel()
 
@@ -514,8 +516,10 @@ describe('StartWindowViewModel', () => {
                     lastOpened: '2026-02-01T12:00:00.000Z',
                 },
             ]
-            ;(window.electronAPI.getRecentProjects as any).mockResolvedValueOnce(recentProjectsMock)
-            ;(window.electronAPI.openProject as any).mockResolvedValueOnce({
+            vi.mocked(window.electronAPI.getRecentProjects).mockResolvedValueOnce(
+                recentProjectsMock
+            )
+            vi.mocked(window.electronAPI.openProject).mockResolvedValueOnce({
                 success: false,
                 error: 'Plik nie istnieje',
             })
@@ -540,7 +544,9 @@ describe('StartWindowViewModel', () => {
                     lastOpened: '2026-02-01T12:00:00.000Z',
                 },
             ]
-            ;(window.electronAPI.getRecentProjects as any).mockResolvedValueOnce(recentProjectsMock)
+            vi.mocked(window.electronAPI.getRecentProjects).mockResolvedValueOnce(
+                recentProjectsMock
+            )
             vi.spyOn(ProjectManager.getInstance(), 'load').mockImplementationOnce(() => {
                 throw new Error('Uszkodzony plik')
             })

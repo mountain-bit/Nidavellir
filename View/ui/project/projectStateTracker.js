@@ -180,3 +180,22 @@ export function setProjectSaved() {
     isDirty = false
     updateProjectSaveIndicatorUI('saved')
 }
+
+/**
+ * Clears any pending timeout for the save indicator transition.
+ */
+export function clearProjectSaveIndicatorTimeout() {
+    if (cleanTimeout) {
+        clearTimeout(cleanTimeout)
+        cleanTimeout = null
+    }
+}
+
+/**
+ * Fully resets the project state tracker (useful for project unloading and test teardown).
+ */
+export function resetProjectStateTracker() {
+    clearProjectSaveIndicatorTimeout()
+    isDirty = false
+    updateProjectSaveIndicatorUI('clean')
+}

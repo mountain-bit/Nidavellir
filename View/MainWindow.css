@@ -445,6 +445,36 @@ body.is-resizing .resizer-line {
     overflow: hidden;
 }
 
+#story-graph-wrapper.is-panning,
+#story-graph-wrapper.is-panning * {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
+
+#graph-selection-marquee {
+    position: absolute;
+    pointer-events: none;
+    z-index: 45;
+    border: 1.5px dashed #60a5fa;
+    background-color: rgba(59, 130, 246, 0.12);
+    border-radius: 4px;
+}
+
+#graph-selection-toolbar {
+    animation: fadeInSelectionToolbar 0.15s ease-out;
+}
+
+@keyframes fadeInSelectionToolbar {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -6px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
 #story-graph {
     position: absolute;
     top: 0;
@@ -503,12 +533,13 @@ paragraph-node,
 
 /* Special START Node on Story Graph */
 .paragraph-node.is-start-node {
-    border-color: #357357 !important;
+    border-color: #2b5944 !important;
+    background-color: #141517;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
 .paragraph-node.is-start-node:hover {
-    border-color: #448968 !important;
+    border-color: #3b7c5e !important;
     box-shadow: 0 5px 14px rgba(0, 0, 0, 0.55);
 }
 
@@ -519,7 +550,7 @@ paragraph-node,
 }
 
 .paragraph-node.is-start-node .paragraph-node-header {
-    background: #245842 !important;
+    background: #1b4332 !important;
     color: #ffffff !important;
     letter-spacing: 0.05em;
     font-weight: 700;
@@ -533,53 +564,32 @@ paragraph-node,
 
 .paragraph-node.is-start-node .paragraph-node-body {
     cursor: default;
-    background-color: #121315;
-    padding: 8px 10px;
+    background-color: #141517;
+    padding: 7px 10px;
 }
 
 .paragraph-node.is-start-node .paragraph-node-socket {
-    background-color: rgba(36, 88, 66, 0.45);
-    border-color: #4b8f70;
+    background-color: rgba(27, 67, 50, 0.5);
+    border-color: #3b7c5e;
     box-shadow: none;
 }
 
 .paragraph-node.is-start-node .paragraph-node-socket:hover {
-    background-color: #357357;
+    background-color: #245842;
     box-shadow: none;
 }
 
 .start-node-instruction {
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
     user-select: none;
 }
 
 .start-node-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #8ec8ad;
-    text-transform: uppercase;
-}
-
-.start-node-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: #357357;
-    box-shadow: none;
-    display: inline-block;
-}
-
-.start-node-hint {
     font-size: 10px;
-    line-height: 1.35;
-    color: #8b8e96;
-    font-family: inherit;
+    font-weight: 500;
+    color: #8ec8ad;
+    letter-spacing: 0.02em;
 }
 
 /* Special END Node on Story Graph */
@@ -1321,5 +1331,34 @@ scene-node.is-drag-target,
     border-style: dashed !important;
     border-width: 1.5px !important;
 }
+
+/* Graph Multi-Selection Marquee & Floating Toolbar */
+#graph-selection-marquee {
+    transition: none;
+    box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.25);
+}
+
+#graph-selection-toolbar {
+    animation: selection-toolbar-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes selection-toolbar-in {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -8px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+
+paragraph-node.is-selected .paragraph-node,
+.paragraph-node.is-selected {
+    box-shadow:
+        0 0 0 2px #3b82f6,
+        0 8px 24px rgba(0, 0, 0, 0.7) !important;
+}
+
 
 

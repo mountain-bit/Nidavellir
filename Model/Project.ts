@@ -1,5 +1,4 @@
-import { IFontDefinition } from '../Modules/Editor/CustomFontsService'
-import { ICustomTextStyle } from '../Modules/Editor/types'
+import { ICustomTextStyle, IFontDefinition } from '../Modules/Editor'
 import type { EntitiesData, ProjectData } from '../types/ipc'
 import { CharacterClass } from './CharacterClass'
 import { Description } from './Description'
@@ -133,7 +132,9 @@ export class Project {
     }
 
     public addScene(scene: Scene): void {
-        this.scenes.push(scene)
+        if (!this.hasScene(scene.getId())) {
+            this.scenes.push(scene)
+        }
     }
 
     public removeScene(id: string): void {
@@ -175,7 +176,9 @@ export class Project {
     }
 
     public addLocation(location: Location): void {
-        this.locations.push(location)
+        if (!this.hasLocation(location.getId())) {
+            this.locations.push(location)
+        }
     }
 
     public removeLocation(id: string): void {
@@ -199,7 +202,9 @@ export class Project {
     }
 
     public addCharacter(character: NPC): void {
-        this.characters.push(character)
+        if (!this.hasCharacter(character.getId())) {
+            this.characters.push(character)
+        }
     }
 
     public removeCharacter(id: string): void {
@@ -223,7 +228,9 @@ export class Project {
     }
 
     public addTemplate(template: NPC_Template): void {
-        this.templates.push(template)
+        if (!this.hasTemplate(template.getId())) {
+            this.templates.push(template)
+        }
     }
 
     public removeTemplate(idOrName: string): void {
@@ -249,7 +256,9 @@ export class Project {
     }
 
     public addItem(item: Item): void {
-        this.items.push(item)
+        if (!this.hasItem(item.getId())) {
+            this.items.push(item)
+        }
     }
 
     public removeItem(id: string): void {
@@ -273,7 +282,9 @@ export class Project {
     }
 
     public addCharacterClass(characterClass: CharacterClass): void {
-        this.characterClasses.push(characterClass)
+        if (!this.characterClasses.some(k => k.getId() === characterClass.getId())) {
+            this.characterClasses.push(characterClass)
+        }
     }
 
     public removeCharacterClass(id: string): void {
@@ -335,7 +346,15 @@ export class Project {
     }
 
     public addGlobalStat(stat: Stat): void {
-        this.globalStats.push(stat)
+        if (
+            !this.globalStats.some(
+                s =>
+                    s.getId() === stat.getId() ||
+                    s.getName().toLowerCase() === stat.getName().toLowerCase()
+            )
+        ) {
+            this.globalStats.push(stat)
+        }
     }
 
     public getStats(): Stat[] {
@@ -365,7 +384,15 @@ export class Project {
     }
 
     public addGlobalSkill(skill: Skill): void {
-        this.globalSkills.push(skill)
+        if (
+            !this.globalSkills.some(
+                s =>
+                    s.getId() === skill.getId() ||
+                    s.getName().toLowerCase() === skill.getName().toLowerCase()
+            )
+        ) {
+            this.globalSkills.push(skill)
+        }
     }
 
     public getSkills(): Skill[] {
@@ -395,7 +422,15 @@ export class Project {
     }
 
     public addGlobalFeature(feature: Feature): void {
-        this.globalFeatures.push(feature)
+        if (
+            !this.globalFeatures.some(
+                f =>
+                    f.getId() === feature.getId() ||
+                    f.getName().toLowerCase() === feature.getName().toLowerCase()
+            )
+        ) {
+            this.globalFeatures.push(feature)
+        }
     }
 
     public getFeatures(): Feature[] {
@@ -494,16 +529,33 @@ export class Project {
     }
 
     public static fromJSON(projectData: ProjectData, entities: EntitiesData = {}): Project {
-        const locations = (entities.Locations ?? entities.Lokacje ?? []).map(l =>
-            Location.fromJSON(l)
+        const dedupeById = <T extends { getId(): string }>(list: T[]): T[] => {
+            const seen = new Set<string>()
+            return list.filter(item => {
+                const id = typeof item.getId === 'function' ? item.getId() : ''
+                if (!id) return true
+                if (seen.has(id)) return false
+                seen.add(id)
+                return true
+            })
+        }
+
+        const locations = dedupeById(
+            (entities.Locations ?? entities.Lokacje ?? []).map(l => Location.fromJSON(l))
         )
-        const characters = (entities.NPC ?? entities.Postacie ?? []).map(n => NPC.fromJSON(n))
-        const templates = (entities.Templates ?? entities.Szablony ?? []).map(t =>
-            NPC_Template.fromJSON(t)
+        const characters = dedupeById(
+            (entities.NPC ?? entities.Postacie ?? []).map(n => NPC.fromJSON(n))
         )
-        const items = (entities.Items ?? entities.Przedmioty ?? []).map(p => Item.fromJSON(p))
-        const characterClasses = (entities.CharacterClasses ?? entities.KlasyPostaci ?? []).map(k =>
-            CharacterClass.fromJSON(k)
+        const templates = dedupeById(
+            (entities.Templates ?? entities.Szablony ?? []).map(t => NPC_Template.fromJSON(t))
+        )
+        const items = dedupeById(
+            (entities.Items ?? entities.Przedmioty ?? []).map(p => Item.fromJSON(p))
+        )
+        const characterClasses = dedupeById(
+            (entities.CharacterClasses ?? entities.KlasyPostaci ?? []).map(k =>
+                CharacterClass.fromJSON(k)
+            )
         )
 
         const rawParagraphEntities = entities.Paragraphs ?? entities.Paragrafy ?? []

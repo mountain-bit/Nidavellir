@@ -9,7 +9,7 @@ import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
-import { initTranslationsWithLocale } from '../../Utils/translate'
+import { initTranslationsWithLocale } from '../../Utils/i18n/translate'
 import { renderDetailsPanel, renderHistoryBar } from '../../View/ui/detailsPanel/detailsPanel.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
@@ -153,7 +153,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
                 new Feature('feat-2', 'Znak Igni', new Description('Płomienie')),
             ]
 
-            vm.selectElement(npc, 'character')
+            vm.selection.selectElement(npc, 'character')
         })
 
         it('should render header with NPC type badge and name', () => {
@@ -326,7 +326,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             )
 
             ctx.projectTemplates = [template]
-            vm.selectElement(template, 'template')
+            vm.selection.selectElement(template, 'template')
         })
 
         it('should render template with name, avatar and stats', () => {
@@ -381,7 +381,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
         it('should render Stat entity with base value editing and update it', () => {
             const stat = new Stat('stat-10', 'Charyzma', new Description('Urok osobisty'), '15')
             ctx.projectStats = [stat]
-            vm.selectElement(stat, 'stat')
+            vm.selection.selectElement(stat, 'stat')
 
             renderDetailsPanel(ctx)
 
@@ -411,7 +411,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             )
             ctx.projectParameters = [param]
             ctx.projectStats = [new Stat('stat-b', 'Budowa', new Description(), '10')]
-            vm.selectElement(param, 'parameter')
+            vm.selection.selectElement(param, 'parameter')
 
             renderDetailsPanel(ctx)
 
@@ -447,7 +447,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             )
             ctx.projectSkills = [skill]
             ctx.projectStats = [statDex]
-            vm.selectElement(skill, 'skill')
+            vm.selection.selectElement(skill, 'skill')
 
             renderDetailsPanel(ctx)
 
@@ -484,7 +484,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
                 new Description('Widzi do 18m w mroku', 'Widzi do 18m w mroku')
             )
             ctx.projectFeatures = [feature]
-            vm.selectElement(feature, 'feature')
+            vm.selection.selectElement(feature, 'feature')
 
             renderDetailsPanel(ctx)
 
@@ -498,7 +498,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
         it('should render tabs for history items and allow closing all', () => {
             const npc = new NPC('npc-1', 'Bohater')
             ctx.projectCharacters = [npc]
-            vm.selectElement(npc, 'character')
+            vm.selection.selectElement(npc, 'character')
 
             renderHistoryBar(ctx)
 
@@ -510,7 +510,7 @@ describe('DetailsPanel - NPC and RPG Traits (Stage 4)', () => {
             expect(closeAllBtn).not.toBeNull()
             closeAllBtn.click()
 
-            expect(vm.getHistory()).toHaveLength(0)
+            expect(vm.selection.getHistory()).toHaveLength(0)
         })
     })
 })

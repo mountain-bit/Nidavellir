@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Description } from '../../Model/Description'
 import { Feature } from '../../Model/Feature'
@@ -9,7 +9,11 @@ import { Parameter } from '../../Model/Parameter'
 import { Skill } from '../../Model/Skill'
 import { Stat } from '../../Model/Stat'
 import { Tag } from '../../Model/Tag'
-import { applyTranslations, initTranslationsWithLocale, setLanguage } from '../../Utils/translate'
+import {
+    applyTranslations,
+    initTranslationsWithLocale,
+    setLanguage,
+} from '../../Utils/i18n/translate'
 import {
     addCustomAttribute,
     addNpcSkill,
@@ -1501,11 +1505,13 @@ describe('NpcModal Floating Window Controller', () => {
 
         it('renderuje dynamiczne sugestie pobrane z ViewModel / aplikacji', () => {
             const mockVm = {
-                getSuggestedStats: (): string[] => ['Siła', 'Mądrość', 'Zwrotność'],
-                getSuggestedParameters: (): string[] => ['Punkty Życia (HP)', 'Tarcza Energii'],
-                getSuggestedSkills: (): string[] => ['Alchemia', 'Strzelectwo'],
-                getSuggestedFeatures: (): string[] => ['Frakcja', 'Archetyp'],
-                getSuggestedTags: (): string[] => ['VIP', 'Kluczowy'],
+                filter: {
+                    getSuggestedStats: (): string[] => ['Siła', 'Mądrość', 'Zwrotność'],
+                    getSuggestedParameters: (): string[] => ['Punkty Życia (HP)', 'Tarcza Energii'],
+                    getSuggestedSkills: (): string[] => ['Alchemia', 'Strzelectwo'],
+                    getSuggestedFeatures: (): string[] => ['Frakcja', 'Archetyp'],
+                    getSuggestedTags: (): string[] => ['VIP', 'Kluczowy'],
+                },
             }
             const ctx = { vm: mockVm }
 
@@ -1575,40 +1581,43 @@ describe('NpcModal Floating Window Controller', () => {
 
             const mockVm = {
                 project: mockProject,
-                createCharacter: (name: string): NPC => new NPC('npc-1', name),
-                createStat: (name: string): Stat => new Stat('st-1', name),
-                createParameter: (
-                    name: string,
-                    mode?: unknown,
-                    val?: unknown,
-                    formula?: unknown
-                ): Parameter =>
-                    new Parameter(
-                        'param-1',
-                        name,
-                        undefined,
-                        mode as never,
-                        val as never,
-                        formula as never
-                    ),
-                createSkill: (
-                    name: string,
-                    mode?: unknown,
-                    val?: unknown,
-                    statName?: unknown,
-                    mod?: unknown
-                ): Skill =>
-                    new Skill(
-                        'sk-1',
-                        name,
-                        undefined,
-                        mode as never,
-                        val as never,
-                        statName as never,
-                        mod as never
-                    ),
-                createFeature: (name: string, _desc?: string): Feature => new Feature('f-1', name),
-                createTag: (name: string, color?: string): Tag => new Tag('t-1', name, color),
+                factory: {
+                    createCharacter: (name: string): NPC => new NPC('npc-1', name),
+                    createStat: (name: string): Stat => new Stat('st-1', name),
+                    createParameter: (
+                        name: string,
+                        mode?: unknown,
+                        val?: unknown,
+                        formula?: unknown
+                    ): Parameter =>
+                        new Parameter(
+                            'param-1',
+                            name,
+                            undefined,
+                            mode as never,
+                            val as never,
+                            formula as never
+                        ),
+                    createSkill: (
+                        name: string,
+                        mode?: unknown,
+                        val?: unknown,
+                        statName?: unknown,
+                        mod?: unknown
+                    ): Skill =>
+                        new Skill(
+                            'sk-1',
+                            name,
+                            undefined,
+                            mode as never,
+                            val as never,
+                            statName as never,
+                            mod as never
+                        ),
+                    createFeature: (name: string, _desc?: string): Feature =>
+                        new Feature('f-1', name),
+                    createTag: (name: string, color?: string): Tag => new Tag('t-1', name, color),
+                },
             }
 
             const projectStats: Stat[] = []
@@ -1785,6 +1794,48 @@ describe('NpcModal Floating Window Controller', () => {
             expect(projectTemplates).toHaveLength(1)
             expect(projectTemplates[0].getName()).toBe('Szablon Rozbójnika')
             expect(refreshed).toBe(true)
+        })
+
+        it('zapisuje szablon z folderName równym ID szablonu (a nie nazwie), zapobiegając duplikatom', async () => {
+            setupNpcModal()
+            openNpcTemplateModal()
+
+            let createdPayload: any = null
+            ;(window as any).electronAPI = {
+                createEntity: vi.fn().mockImplementation((opts: any) => {
+                    createdPayload = opts
+                    return Promise.resolve({
+                        success: true,
+                        entity: {
+                            ...opts.entityData,
+                            description: {
+                                filePath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
+                                textPath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
+                            },
+                        },
+                    })
+                }),
+            }
+
+            const ctx = {
+                projectPath: 'C:/Projekty/Gra',
+                projectTemplates: [],
+                renderCharactersList: vi.fn(),
+                renderTraitsList: vi.fn(),
+            }
+
+            setNpcName('Bandyta')
+            setNpcSummary('Opis bandyty')
+
+            const tpl = saveNpcTemplate(ctx)
+            expect(tpl).toBeTruthy()
+            expect(createdPayload).toBeTruthy()
+            expect(createdPayload.category).toBe('Templates')
+            expect(createdPayload.folderName).toBe(tpl.getId())
+            expect(createdPayload.folderName).not.toBe('Bandyta')
+            expect(tpl.getDescription().filePath).toBe(
+                `./Templates/${tpl.getId()}/Description_Templates_Bandyta.md`
+            )
         })
     })
 

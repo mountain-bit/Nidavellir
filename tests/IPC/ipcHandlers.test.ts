@@ -4,7 +4,7 @@ import os from 'os'
 import path from 'path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { ProjectManager } from '../../Services/ProjectManager'
+import { ProjectManager } from '../../Services/project/ProjectManager'
 import { extractProjectData } from '../../View/mockData.js'
 
 const require = createRequire(import.meta.url)
@@ -15,7 +15,7 @@ const {
     validateProjectData,
     atomicWriteStringSync,
     atomicWriteJsonSync,
-} = require('../../Utils/fsSecurity.js')
+} = require('../../Utils/fs/fsSecurity.js')
 
 const ProjectService = require('../../main/services/ProjectService.js')
 const EntityService = require('../../main/services/EntityService.js')

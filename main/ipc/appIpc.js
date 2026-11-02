@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const os = require('os')
-const { getTranslations, setLocale, getLocale } = require('../../Utils/i18n')
+const { getTranslations, setLocale, getLocale } = require('../../Utils/i18n/i18n')
 const { createMainWindow, createStartWindow } = require('../windowManager')
 
 function registerAppIpc() {

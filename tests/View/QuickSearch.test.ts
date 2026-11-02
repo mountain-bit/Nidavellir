@@ -263,13 +263,13 @@ describe('QuickSearch', () => {
             const mockShowGraph = vi.fn()
             const mockSelectEntity = vi.fn()
             const mockVm = {
-                setSelectedParagraphId: vi.fn(),
-                setActiveMainView: vi.fn(),
-                getActiveMainView: vi.fn().mockReturnValue('graph'),
-                isLeftDrawerOpen: vi.fn().mockReturnValue(false),
-                isRightSidebarOpen: vi.fn().mockReturnValue(true),
-                setRightSidebarCollapsed: vi.fn(),
-                setRightSidebarOpen: vi.fn(),
+                layout: {
+                    setActiveMainView: vi.fn(),
+                    getActiveMainView: vi.fn().mockReturnValue('graph'),
+                    isLeftDrawerOpen: vi.fn().mockReturnValue(false),
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    setRightSidebarCollapsed: vi.fn(),
+                },
             }
 
             const mockCtx = {
@@ -292,7 +292,7 @@ describe('QuickSearch', () => {
             executeQuickSearchAction(paragraphItem as any, mockCtx)
 
             expect(mockShowGraph).toHaveBeenCalledWith(true)
-            expect(mockVm.setSelectedParagraphId).toHaveBeenCalledWith('p-10')
+            expect(mockVm.layout.setRightSidebarCollapsed).toHaveBeenCalledWith(false)
             expect(mockSelectEntity).toHaveBeenCalledWith(paragraphItem.entity, 'paragraph')
             expect(mockFocusOnElement).toHaveBeenCalledWith('p-10', true)
         })
@@ -302,7 +302,10 @@ describe('QuickSearch', () => {
             const mockRenderDetails = vi.fn()
             const mockRenderHistory = vi.fn()
             const mockVm = {
-                setRightSidebarOpen: vi.fn(),
+                layout: {
+                    setRightSidebarCollapsed: vi.fn(),
+                    isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                },
             }
 
             const mockCtx = {
@@ -323,7 +326,7 @@ describe('QuickSearch', () => {
             executeQuickSearchAction(npcItem as any, mockCtx)
 
             expect(mockSelectEntity).toHaveBeenCalledWith(npcItem.entity, 'character')
-            expect(mockVm.setRightSidebarOpen).toHaveBeenCalledWith(true)
+            expect(mockVm.layout.setRightSidebarCollapsed).toHaveBeenCalledWith(false)
             expect(mockRenderHistory).toHaveBeenCalled()
             expect(mockRenderDetails).toHaveBeenCalled()
         })
@@ -367,7 +370,12 @@ describe('QuickSearch', () => {
                     { getId: () => 'c2', getName: () => 'Jaskier' },
                 ],
                 selectEntity: mockSelectEntity,
-                vm: { setRightSidebarOpen: vi.fn() },
+                vm: {
+                    layout: {
+                        setRightSidebarCollapsed: vi.fn(),
+                        isRightSidebarCollapsed: vi.fn().mockReturnValue(false),
+                    },
+                },
             }
 
             initQuickSearch(mockCtx)

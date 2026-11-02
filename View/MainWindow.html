@@ -171,8 +171,21 @@
 
                 <div class="topbar-divider hidden sm:block"></div>
 
-                <!-- Grupa 5: Testowanie Gry (Playtest) -->
+                <!-- Grupa 5: Zasady Gry & Testowanie Gry (Playtest) -->
                 <div class="topbar-group">
+                    <button
+                        class="topbar-btn hover:text-amber-400"
+                        type="button"
+                        data-action="open-game-rules"
+                        data-i18n-title="topbar.buttons.game_rules_tooltip"
+                        title="Zasady gry (F3)"
+                    >
+                        <app-icon name="book" class="w-3.5 h-3.5 text-amber-400"></app-icon>
+                        <span class="hidden md:inline" data-i18n="topbar.buttons.game_rules"
+                            >Zasady gry</span
+                        >
+                    </button>
+
                     <button
                         class="topbar-btn hover:text-emerald-400"
                         type="button"
@@ -1373,6 +1386,43 @@
                             id="graph-nodes-layer"
                         ></div>
 
+                        <!-- Marquee Selection Box Layer -->
+                        <div id="graph-selection-marquee" class="hidden pointer-events-none absolute z-20 border border-dashed border-blue-400 bg-blue-500/15 rounded"></div>
+
+                        <!-- Floating Multi-Selection Action Toolbar -->
+                        <div
+                            id="graph-selection-toolbar"
+                            class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-30 items-center bg-[#202023]/95 backdrop-blur-md border border-blue-500/40 rounded-lg shadow-2xl p-1.5 px-3 gap-2.5 select-none"
+                            role="toolbar"
+                            aria-label="Pasek akcji zaznaczonych paragrafów"
+                        >
+                            <div class="flex items-center gap-1.5 text-xs font-medium text-zinc-300 pr-2 border-r border-zinc-700">
+                                <app-icon name="paragraph" class="w-3.5 h-3.5 text-blue-400"></app-icon>
+                                <span id="graph-selection-count-text">Zaznaczono: 0</span>
+                            </div>
+                            <button
+                                id="btn-selection-create-scene"
+                                type="button"
+                                class="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 transition-all cursor-pointer shadow-sm"
+                                title="Utwórz nową scenę obejmującą zaznaczone paragrafy (Ctrl+G)"
+                                data-i18n-title="graph.selection.create_scene_title"
+                            >
+                                <app-icon name="scene" class="w-3.5 h-3.5 text-white"></app-icon>
+                                <span data-i18n="graph.selection.create_scene">Utwórz scenę</span>
+                                <span class="text-[10px] opacity-75 font-normal">(Ctrl+G)</span>
+                            </button>
+                            <button
+                                id="btn-selection-clear"
+                                type="button"
+                                class="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all cursor-pointer"
+                                title="Wyczyść zaznaczenie (Esc)"
+                                data-i18n-title="graph.selection.clear_selection_title"
+                                aria-label="Wyczyść zaznaczenie"
+                            >
+                                <app-icon name="close" class="w-3.5 h-3.5"></app-icon>
+                            </button>
+                        </div>
+
                         <!-- Floating Zoom Controller Toolbar -->
                         <div
                             id="graph-zoom-toolbar"
@@ -1466,6 +1516,15 @@
                             <span id="save-status" class="text-[11px] text-zinc-400"></span>
                         </div>
                         <div class="flex items-center gap-3">
+                            <button
+                                id="btn-export-game-rules"
+                                type="button"
+                                class="hidden px-2.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+                                title="Eksportuj zasady gry (HTML / Markdown)"
+                            >
+                                <app-icon name="export" class="w-3 h-3 text-amber-400"></app-icon>
+                                <span data-i18n="rules.export_btn">Eksportuj zasady</span>
+                            </button>
                             <span id="editor-stats" class="text-[11px] text-zinc-500"
                                 >0 słów · 0 znaków</span
                             >
@@ -4570,6 +4629,7 @@
                             type="text"
                             id="asset-picker-search"
                             placeholder="Filtruj grafiki..."
+                            data-i18n-placeholder="asset_picker.search_placeholder"
                             class="w-full pl-8 pr-3 py-1.5 bg-[#26262a] border border-[#38383e] focus:border-[#4f6b8a] rounded-md text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none"
                         />
                     </div>
@@ -4594,8 +4654,8 @@
                         class="hidden h-full flex flex-col items-center justify-center text-center p-8 text-zinc-500"
                     >
                         <app-icon name="image" class="w-12 h-12 text-zinc-600 mb-2"></app-icon>
-                        <p class="text-sm font-medium text-zinc-400">Brak pasujących grafik</p>
-                        <p class="text-xs text-zinc-500 mt-1">
+                        <p class="text-sm font-medium text-zinc-400" data-i18n="asset_picker.empty_title">Brak pasujących grafik</p>
+                        <p class="text-xs text-zinc-500 mt-1" data-i18n="asset_picker.empty_desc">
                             Użyj przycisku "Wgraj nowy z dysku", aby dodać plik do projektu.
                         </p>
                     </div>
@@ -4608,6 +4668,7 @@
                     <span
                         id="asset-picker-selected-label"
                         class="text-xs text-zinc-400 truncate max-w-md"
+                        data-i18n="asset_picker.none_selected"
                         >Nie wybrano grafiki</span
                     >
                     <div class="flex items-center gap-2">
@@ -4615,6 +4676,7 @@
                             type="button"
                             id="btn-asset-picker-cancel"
                             class="px-4 py-1.5 bg-[#222429] hover:bg-[#2c2e35] text-zinc-300 rounded-md text-xs font-medium transition-colors cursor-pointer border border-[#2e3037]"
+                            data-i18n="asset_picker.btn_cancel"
                         >
                             Anuluj
                         </button>
@@ -4623,6 +4685,7 @@
                             id="btn-asset-picker-select"
                             disabled
                             class="px-4 py-1.5 bg-[#3d4e61] hover:bg-[#485c72] disabled:opacity-50 disabled:cursor-not-allowed border border-[#4a5e74] text-white rounded-md text-xs font-medium transition-colors cursor-pointer shadow-sm"
+                            data-i18n="asset_picker.btn_select"
                         >
                             Wybierz
                         </button>
@@ -4811,9 +4874,12 @@
                                 </div>
 
                                 <div class="pt-3 border-t border-[#2d2d32]">
-                                    <label class="block font-medium text-zinc-300 mb-2"
-                                        >Obrót i odbicie:</label
+                                    <label
+                                        class="block font-medium text-zinc-300 mb-2"
+                                        data-i18n="image_editor.rotate_flip"
                                     >
+                                        Obrót i odbicie:
+                                    </label>
                                     <div class="grid grid-cols-2 gap-1.5">
                                         <button
                                             type="button"
@@ -7302,6 +7368,15 @@
                             Narzędzia i Gra
                         </h4>
                         <div class="grid grid-cols-2 gap-2 text-zinc-300">
+                            <div
+                                class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
+                            >
+                                <span>Zasady gry</span>
+                                <kbd
+                                    class="px-1.5 py-0.5 rounded bg-[#222429] border border-[#3d4048] font-mono text-[10px] text-zinc-200"
+                                    >F3</kbd
+                                >
+                            </div>
                             <div
                                 class="flex items-center justify-between p-2 rounded bg-[#17181b] border border-[#2e3037]"
                             >

@@ -1,5 +1,5 @@
 const { ipcMain, dialog } = require('electron')
-const { t } = require('../../Utils/i18n')
+const { t } = require('../../Utils/i18n/i18n')
 const ProjectService = require('../services/ProjectService')
 
 function registerProjectIpc() {

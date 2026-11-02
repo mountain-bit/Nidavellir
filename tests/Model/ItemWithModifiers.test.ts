@@ -283,7 +283,7 @@ describe('ItemWithModifiers - Domain Models & ViewModel (Stage 1)', () => {
     describe('MainWindowViewModel Item Integration', () => {
         it('creates item with custom category and description', () => {
             const vm = new MainWindowViewModel()
-            const item = vm.createItem('Mikstura Many', 'Eliksir', 'consumable')
+            const item = vm.factory.createItem('Mikstura Many', 'Eliksir', 'consumable')
 
             expect(item.getId().startsWith('item_')).toBe(true)
             expect(item.getName()).toBe('Mikstura Many')
@@ -292,11 +292,11 @@ describe('ItemWithModifiers - Domain Models & ViewModel (Stage 1)', () => {
 
         it('supports adding tags and modifiers to selected item', () => {
             const vm = new MainWindowViewModel()
-            const item = vm.createItem('Rękawice Zręczności')
-            vm.selectElement(item, 'item')
+            const item = vm.factory.createItem('Rękawice Zręczności')
+            vm.selection.selectElement(item, 'item')
 
             const tag = new Tag('tag_armor', 'Pancerz')
-            vm.addTagToSelectedItem(tag)
+            vm.selection.addTagToSelectedItem(tag)
             expect(item.hasTag('Pancerz')).toBe(true)
 
             const modifier: IItemModifier = {
@@ -306,24 +306,24 @@ describe('ItemWithModifiers - Domain Models & ViewModel (Stage 1)', () => {
                 value: 2,
                 operator: '+',
             }
-            vm.addModifierToSelectedItem(modifier)
+            vm.selection.addModifierToSelectedItem(modifier)
             expect(item.hasModifier('Zręczność')).toBe(true)
 
-            vm.updateSelectedItemInventoryConfig({ slotSize: 1, weight: 0.5 })
+            vm.selection.updateSelectedItemInventoryConfig({ slotSize: 1, weight: 0.5 })
             expect(item.getSlotSize()).toBe(1)
             expect(item.getWeight()).toBe(0.5)
 
             // Removal
-            vm.removeModifierFromSelectedItem('mod_dex')
+            vm.selection.removeModifierFromSelectedItem('mod_dex')
             expect(item.hasModifier('mod_dex')).toBe(false)
-            vm.removeTagFromSelectedItem('Pancerz')
+            vm.selection.removeTagFromSelectedItem('Pancerz')
             expect(item.hasTag('Pancerz')).toBe(false)
         })
 
         it('supports adding item actions to selected paragraph', () => {
             const vm = new MainWindowViewModel()
-            const paragraph = vm.createParagraph('Skarbiec')
-            vm.selectElement(paragraph, 'paragraph')
+            const paragraph = vm.factory.createParagraph('Skarbiec')
+            vm.selection.selectElement(paragraph, 'paragraph')
 
             const action: IParagraphItemAction = {
                 id: 'act_find',
@@ -332,10 +332,10 @@ describe('ItemWithModifiers - Domain Models & ViewModel (Stage 1)', () => {
                 action: 'give',
             }
 
-            vm.addItemActionToSelectedParagraph(action)
+            vm.selection.addItemActionToSelectedParagraph(action)
             expect(paragraph.hasItemAction('it_relic')).toBe(true)
 
-            vm.removeItemActionFromSelectedParagraph('it_relic')
+            vm.selection.removeItemActionFromSelectedParagraph('it_relic')
             expect(paragraph.hasItemAction('it_relic')).toBe(false)
         })
     })

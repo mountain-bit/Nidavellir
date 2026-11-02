@@ -98,7 +98,9 @@ describe('Playtest & Narrative Simulator Engine (View/ui/playtestModal.js)', () 
                 projectScenes: [mockScene1, mockScene2],
             },
             vm: {
-                getSelectedItem: () => null,
+                selection: {
+                    getSelectedItem: () => null,
+                },
             },
         }
     })

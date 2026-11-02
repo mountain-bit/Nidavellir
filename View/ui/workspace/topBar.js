@@ -1,13 +1,13 @@
-import { getIconSvg } from '../../../dist/Utils/icons.js'
 import { toast } from '../../../dist/Utils/toast.js'
 import { t } from '../../../dist/Utils/translate.js'
 import { openAssetManager } from '../assets/assetManagerModal.js'
-import { validateStoryGraph } from '../common/graphValidator.js'
 import { openExportModal as openAdvancedExportModal } from '../modals/export/exportModal.js'
 import { openPlaytestSimulator as openAdvancedPlaytestSimulator } from '../modals/playtest/playtestModal.js'
-import { saveFullProject } from '../project/projectSaver.js'
 import { openQuickSearch } from './quickSearch.js'
+import { runGraphValidation } from './topBarValidation.js'
 import { updateZoomToolbarUI } from './workspace.js'
+
+export { runGraphValidation } from './topBarValidation.js'
 
 /**
  * Updates active visual indicators on top bar buttons
@@ -19,11 +19,17 @@ export function updateTopBarUI(ctx) {
     if (!ctx || !ctx.vm) return
 
     const activeView =
-        typeof ctx.vm.getActiveMainView === 'function' ? ctx.vm.getActiveMainView() : 'graph'
+        typeof ctx.vm?.layout?.getActiveMainView === 'function'
+            ? ctx.vm.layout.getActiveMainView()
+            : 'graph'
     const isLeftOpen =
-        typeof ctx.vm.isLeftDrawerOpen === 'function' ? ctx.vm.isLeftDrawerOpen() : false
+        typeof ctx.vm?.layout?.isLeftDrawerOpen === 'function'
+            ? ctx.vm.layout.isLeftDrawerOpen()
+            : false
     const isRightOpen =
-        typeof ctx.vm.isRightSidebarOpen === 'function' ? ctx.vm.isRightSidebarOpen() : true
+        typeof ctx.vm?.layout?.isRightSidebarCollapsed === 'function'
+            ? !ctx.vm.layout.isRightSidebarCollapsed()
+            : true
 
     // Update segmented view buttons
     const btnGraph = document.querySelector('[data-action="show-graph"]')
@@ -57,228 +63,24 @@ export function updateTopBarUI(ctx) {
             btnToggleRight.classList.remove('active')
         }
     }
-}
 
-/**
- * Handles running graph validation and rendering the validation report modal.
- *
- * @param {object} ctx - Application context
- */
-export function runGraphValidation(ctx) {
-    const report = validateStoryGraph(ctx)
-
-    // Update badge on top bar
-    const badge = document.getElementById('topbar-validation-badge')
-    if (badge) {
-        if (report.isValid && report.issuesCount === 0) {
-            badge.className = 'topbar-badge topbar-badge-ok ml-0.5'
-            badge.textContent = t('topbar.buttons.validation_clean') || '0 błędów'
+    // Update game rules button active state
+    const activeFile =
+        typeof ctx.vm?.files?.getActiveFile === 'function' ? ctx.vm.files.getActiveFile() : null
+    const isRulesActive =
+        activeView === 'markdown' &&
+        activeFile &&
+        (activeFile === 'Rules/GameRules.md' ||
+            activeFile === 'GameRules.md' ||
+            activeFile.endsWith('GameRules.md'))
+    const btnRules = document.querySelector('[data-action="open-game-rules"]')
+    if (btnRules) {
+        if (isRulesActive) {
+            btnRules.classList.add('active')
         } else {
-            badge.className = 'topbar-badge topbar-badge-warning ml-0.5'
-            badge.textContent = `${report.issuesCount} uwag`
+            btnRules.classList.remove('active')
         }
     }
-
-    // Render report inside modal
-    const modal = document.getElementById('modal-validation-report')
-    const container = document.getElementById('validation-issues-container')
-    const summaryText = document.getElementById('validation-summary-text')
-
-    if (!modal || !container) {
-        if (report.isValid) {
-            toast.success('Graf jest w pełni spójny — brak wykrytych problemów!', 'Walidacja grafu')
-        } else {
-            toast.warning(
-                `Wykryto ${report.issuesCount} uwag w strukturze grafu.`,
-                'Walidacja grafu'
-            )
-        }
-        return report
-    }
-
-    if (summaryText) {
-        const infoPart = report.infoCount ? ` · Informacje: ${report.infoCount}` : ''
-        summaryText.textContent = `Błędy: ${report.errorCount} · Ostrzeżenia: ${report.warningCount}${infoPart}`
-    }
-
-    if (report.issuesCount === 0) {
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center p-8 text-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-                    ${getIconSvg('check', 'w-6 h-6')}
-                </div>
-                <h4 class="font-bold text-base text-zinc-100">Graf jest w 100% poprawny!</h4>
-                <p class="text-xs text-zinc-400 max-w-sm">Wszystkie paragrafy posiadają prawidłowe przeskoki, węzeł startowy oraz zakończenia są wyznaczone, a w fabule nie występują martwe zakończenia ani błędne linki.</p>
-            </div>
-        `
-    } else {
-        container.innerHTML = report.issues
-            .map(issue => {
-                const isError = issue.type === 'error'
-                const isInfo = issue.type === 'info'
-                const borderClass = isError
-                    ? 'border-rose-500/40 bg-rose-950/20'
-                    : isInfo
-                      ? 'border-sky-500/40 bg-sky-950/20'
-                      : 'border-amber-500/40 bg-amber-950/20'
-                const textClass = isError
-                    ? 'text-rose-400'
-                    : isInfo
-                      ? 'text-sky-400'
-                      : 'text-amber-400'
-                const iconName = isError ? 'alert-triangle' : isInfo ? 'info' : 'alert-triangle'
-
-                const paragraphsList =
-                    ctx.projectData?.projectParagraphs || ctx.projectParagraphs || []
-
-                const cycleTrace =
-                    issue.cycleIds && issue.cycleIds.length > 0
-                        ? `
-                        <div class="flex items-center flex-wrap gap-1 mt-1.5 pt-1.5 border-t border-zinc-800/80">
-                            <span class="text-[10px] text-zinc-500 mr-1 font-medium">Ścieżka pętli:</span>
-                            ${issue.cycleIds
-                                .map((cId, idx) => {
-                                    const node = paragraphsList.find(
-                                        p =>
-                                            (typeof p.getId === 'function' ? p.getId() : p.id) ===
-                                            cId
-                                    )
-                                    const title = node
-                                        ? (typeof node.getTitle === 'function'
-                                              ? node.getTitle()
-                                              : node.title) || cId
-                                        : cId
-                                    return `
-                                <button type="button" class="btn-goto-paragraph text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-mono transition-colors border border-zinc-700 cursor-pointer" data-paragraph-id="${cId}" title="Pokaż ${escapeHtml(title)} na grafie">
-                                    ${escapeHtml(title)}
-                                </button>
-                                ${idx < issue.cycleIds.length - 1 ? '<span class="text-zinc-600 text-[10px]">→</span>' : ''}
-                            `
-                                })
-                                .join('')}
-                        </div>
-                    `
-                        : ''
-
-                const targetEntityId = issue.paragraphId || issue.sceneId || ''
-
-                return `
-                <div class="p-3.5 rounded-lg border ${borderClass} flex items-start justify-between gap-3">
-                    <div class="flex items-start gap-2.5 min-w-0 flex-1">
-                        <span class="${textClass} shrink-0 mt-0.5">${getIconSvg(iconName, 'w-4 h-4')}</span>
-                        <div class="min-w-0 flex-1">
-                            <div class="font-semibold text-zinc-100 text-xs">${escapeHtml(issue.title)}</div>
-                            <div class="text-[11px] text-zinc-400 mt-0.5 leading-relaxed">${escapeHtml(issue.description)}</div>
-                            ${cycleTrace}
-                        </div>
-                    </div>
-                    ${
-                        targetEntityId
-                            ? `
-                        <button
-                            type="button"
-                            class="btn-goto-paragraph shrink-0 px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-[11px] font-medium transition-colors border border-zinc-700 cursor-pointer"
-                            data-paragraph-id="${issue.paragraphId || ''}"
-                            data-scene-id="${issue.sceneId || ''}"
-                            title="Przejdź do źródła błędu"
-                        >
-                            Pokaż
-                        </button>
-                    `
-                            : ''
-                    }
-                </div>
-            `
-            })
-            .join('')
-
-        container.querySelectorAll('.btn-goto-paragraph').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const pId = btn.dataset.paragraphId || ''
-                const sId = btn.dataset.sceneId || ''
-                modal.classList.add('hidden')
-
-                if (ctx.vm) {
-                    ctx.vm.setActiveMainView('graph')
-                    if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
-                    updateTopBarUI(ctx)
-
-                    const paragraphs =
-                        ctx.projectData?.projectParagraphs ||
-                        ctx.projectParagraphs ||
-                        (typeof ctx.getParagraphs === 'function' ? ctx.getParagraphs() : []) ||
-                        []
-                    const scenes =
-                        ctx.projectData?.projectScenes ||
-                        ctx.projectScenes ||
-                        (typeof ctx.getScenes === 'function' ? ctx.getScenes() : []) ||
-                        []
-
-                    if (pId) {
-                        const targetParagraph = paragraphs.find(
-                            p => (typeof p.getId === 'function' ? p.getId() : p.id) === pId
-                        )
-                        const parentScene = scenes.find(s => {
-                            const sParagraphs =
-                                typeof s.getParagraphs === 'function'
-                                    ? s.getParagraphs()
-                                    : s.paragraphs || []
-                            return sParagraphs.some(
-                                p => (typeof p.getId === 'function' ? p.getId() : p.id) === pId
-                            )
-                        })
-
-                        // Upewnij się, że prawy panel właściwości jest rozwinięty
-                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
-                            ctx.vm.setRightSidebarCollapsed(false)
-                        }
-
-                        if (targetParagraph && typeof ctx.selectEntity === 'function') {
-                            ctx.selectEntity(targetParagraph, 'paragraph', parentScene)
-                        } else if (typeof ctx.selectEntity === 'function') {
-                            ctx.selectEntity(
-                                {
-                                    getId: () => pId,
-                                    getTitle: () => pId,
-                                    getName: () => pId,
-                                    id: pId,
-                                },
-                                'paragraph',
-                                parentScene
-                            )
-                        }
-
-                        // Wycentruj i zaznacz węzeł na kanwie grafu
-                        const graph =
-                            ctx.storyGraphInstance ||
-                            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
-                        if (graph && typeof graph.focusOnElement === 'function') {
-                            graph.focusOnElement(pId, true)
-                        }
-                    } else if (sId) {
-                        const targetScene = scenes.find(
-                            s => (typeof s.getId === 'function' ? s.getId() : s.id) === sId
-                        )
-                        if (ctx.vm.isRightSidebarCollapsed && ctx.vm.isRightSidebarCollapsed()) {
-                            ctx.vm.setRightSidebarCollapsed(false)
-                        }
-                        if (targetScene && typeof ctx.selectEntity === 'function') {
-                            ctx.selectEntity(targetScene, 'scene')
-                        }
-                        const graph =
-                            ctx.storyGraphInstance ||
-                            (typeof window !== 'undefined' ? window.storyGraphInstance : null)
-                        if (graph && typeof graph.focusOnElement === 'function') {
-                            graph.focusOnElement(sId, true)
-                        }
-                    }
-                }
-            })
-        })
-    }
-
-    modal.classList.remove('hidden')
-    return report
 }
 
 /**
@@ -300,17 +102,96 @@ export function openExportModal(ctx) {
 }
 
 /**
- * Escapes HTML characters for safe rendering.
+ * Handles opening or creating the Game Rules markdown file (Rules/GameRules.md).
+ *
+ * @param {object} ctx - Application context
  */
-function escapeHtml(str) {
-    if (!str) return ''
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+export async function openGameRules(ctx) {
+    if (!ctx || !ctx.vm) return
+
+    const rulesPath = 'Rules/GameRules.md'
+    const fallbackPath = 'GameRules.md'
+
+    if (!ctx.files) {
+        ctx.files = {}
+    }
+
+    // 1. Check if already loaded in memory
+    let content =
+        typeof ctx.files[rulesPath] === 'string'
+            ? ctx.files[rulesPath]
+            : typeof ctx.files[fallbackPath] === 'string'
+              ? ctx.files[fallbackPath]
+              : undefined
+
+    // 2. If not in memory, try reading from disk via Electron API
+    if (typeof content !== 'string') {
+        const projectPath =
+            ctx.projectPath ||
+            (typeof window !== 'undefined' ? window.currentProjectPath : '') ||
+            (typeof window !== 'undefined' &&
+            window.electronAPI &&
+            typeof window.electronAPI.getCurrentProject === 'function'
+                ? await window.electronAPI.getCurrentProject()
+                : '')
+
+        if (
+            projectPath &&
+            typeof window !== 'undefined' &&
+            window.electronAPI &&
+            typeof window.electronAPI.readMarkdownFile === 'function'
+        ) {
+            try {
+                let res = await window.electronAPI.readMarkdownFile(projectPath, rulesPath)
+                if (res && res.success && !res.isVirtual && typeof res.content === 'string') {
+                    content = res.content
+                } else {
+                    res = await window.electronAPI.readMarkdownFile(projectPath, fallbackPath)
+                    if (res && res.success && !res.isVirtual && typeof res.content === 'string') {
+                        content = res.content
+                    }
+                }
+            } catch (err) {
+                console.warn('[TopBar] Error reading game rules from disk:', err)
+            }
+        }
+    }
+
+    // 3. If file does not exist yet, initialize as empty file
+    if (typeof content !== 'string') {
+        content = ''
+    }
+
+    ctx.files[rulesPath] = content
+    ctx.files[fallbackPath] = content
+
+    const displayName =
+        (typeof t === 'function' ? t('topbar.buttons.game_rules') : '') || 'Zasady gry'
+
+    if (typeof ctx.vm?.files?.setFileDisplayName === 'function') {
+        ctx.vm.files.setFileDisplayName(rulesPath, displayName)
+        ctx.vm.files.setFileDisplayName(fallbackPath, displayName)
+    }
+
+    if (typeof ctx.vm?.files?.setActiveFile === 'function') {
+        ctx.vm.files.setActiveFile(rulesPath)
+    }
+
+    if (typeof ctx.vm?.layout?.setActiveMainView === 'function') {
+        ctx.vm.layout.setActiveMainView('markdown')
+    }
+
+    if (typeof ctx.updateMainWorkspaceUI === 'function') {
+        ctx.updateMainWorkspaceUI(ctx)
+    }
+
+    updateTopBarUI(ctx)
+
+    const openedToast =
+        (typeof t === 'function' ? t('rules.opened_toast') : '') || 'Otwarto plik zasad gry'
+    toast.info(openedToast, displayName)
 }
+
 /**
  * Registers global keyboard shortcuts for the entire top bar ecosystem.
  *
@@ -325,17 +206,17 @@ function registerGlobalShortcuts(ctx) {
                 target.tagName === 'TEXTAREA' ||
                 target.isContentEditable)
 
-        // Ctrl + S: Zapisz projekt
-        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-            e.preventDefault()
-            saveFullProject(ctx)
-            return
-        }
-
         // F5: Playtest (nie odświeżaj Electrona)
         if (e.key === 'F5') {
             e.preventDefault()
             openPlaytestSimulator(ctx)
+            return
+        }
+
+        // F3: Zasady gry
+        if (e.key === 'F3') {
+            e.preventDefault()
+            openGameRules(ctx)
             return
         }
 
@@ -407,7 +288,7 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + 1: Graf historii
         if ((e.ctrlKey || e.metaKey) && e.key === '1') {
             e.preventDefault()
-            ctx.vm.setActiveMainView('graph')
+            ctx.vm.layout.setActiveMainView('graph')
             if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
             updateTopBarUI(ctx)
             return
@@ -416,7 +297,7 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + 2: Edytor tekstu
         if ((e.ctrlKey || e.metaKey) && e.key === '2') {
             e.preventDefault()
-            ctx.vm.setActiveMainView('markdown')
+            ctx.vm.layout.setActiveMainView('markdown')
             if (ctx.updateMainWorkspaceUI) ctx.updateMainWorkspaceUI(ctx)
             updateTopBarUI(ctx)
             return
@@ -425,10 +306,10 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + B: Panel lewy
         if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'b' || e.key === 'B')) {
             e.preventDefault()
-            if (ctx.vm.isLeftDrawerOpen()) {
-                ctx.vm.closeLeftDrawer()
+            if (ctx.vm.layout.isLeftDrawerOpen()) {
+                ctx.vm.layout.closeLeftDrawer()
             } else {
-                ctx.vm.toggleLeftTab(ctx.vm.getActiveLeftTab() || 'paragraphs')
+                ctx.vm.layout.toggleLeftTab(ctx.vm.layout.getActiveLeftTab() || 'paragraphs')
             }
             if (ctx.updateLeftDrawerUI) ctx.updateLeftDrawerUI()
             updateTopBarUI(ctx)
@@ -438,7 +319,7 @@ function registerGlobalShortcuts(ctx) {
         // Ctrl + Alt + B: Panel prawy
         if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'b' || e.key === 'B')) {
             e.preventDefault()
-            ctx.vm.toggleRightSidebar()
+            ctx.vm.layout.toggleRightSidebar()
             const rightSidebar = document.getElementById('right-sidebar')
             const toggleBtn = document.getElementById('toggle-right-sidebar-btn')
             const reopenBtn = document.getElementById('reopen-right-sidebar-btn')
@@ -462,8 +343,8 @@ export function centerGraphView(ctx) {
     // 1. Switch to graph view if not active
     if (typeof ctx.showGraph === 'function') {
         ctx.showGraph(true)
-    } else if (ctx.vm && typeof ctx.vm.setActiveMainView === 'function') {
-        ctx.vm.setActiveMainView('graph')
+    } else if (ctx.vm && typeof ctx.vm?.layout?.setActiveMainView === 'function') {
+        ctx.vm.layout.setActiveMainView('graph')
     }
     if (typeof ctx.updateMainWorkspaceUI === 'function') {
         ctx.updateMainWorkspaceUI(ctx)
@@ -523,19 +404,19 @@ export function openSettingsView(ctx) {
     }
 
     if (ctx.vm) {
-        if (typeof ctx.vm.setActiveLeftTab === 'function') {
-            ctx.vm.setActiveLeftTab('settings')
-        } else if (typeof ctx.vm.toggleLeftTab === 'function') {
+        if (typeof ctx.vm?.layout?.setActiveLeftTab === 'function') {
+            ctx.vm.layout.setActiveLeftTab('settings')
+        } else if (typeof ctx.vm?.layout?.toggleLeftTab === 'function') {
             if (
-                typeof ctx.vm.getActiveLeftTab === 'function' &&
-                ctx.vm.getActiveLeftTab() !== 'settings'
+                typeof ctx.vm?.layout?.getActiveLeftTab === 'function' &&
+                ctx.vm.layout.getActiveLeftTab() !== 'settings'
             ) {
-                ctx.vm.toggleLeftTab('settings')
+                ctx.vm.layout.toggleLeftTab('settings')
             } else if (
-                typeof ctx.vm.isLeftDrawerOpen === 'function' &&
-                !ctx.vm.isLeftDrawerOpen()
+                typeof ctx.vm?.layout?.isLeftDrawerOpen === 'function' &&
+                !ctx.vm.layout.isLeftDrawerOpen()
             ) {
-                ctx.vm.toggleLeftTab('settings')
+                ctx.vm.layout.toggleLeftTab('settings')
             }
         }
     }
@@ -640,6 +521,14 @@ export function initTopBar(ctx) {
     document.querySelectorAll('[data-action="run-game"]').forEach(btn => {
         btn.addEventListener('click', () => {
             openPlaytestSimulator(ctx)
+        })
+    })
+
+    // Game rules button
+    document.querySelectorAll('[data-action="open-game-rules"]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault()
+            openGameRules(ctx)
         })
     })
     const btnClosePlaytest = document.getElementById('btn-close-playtest-modal')

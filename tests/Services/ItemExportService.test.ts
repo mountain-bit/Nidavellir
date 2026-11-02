@@ -5,7 +5,7 @@ import { Description } from '../../Model/Description'
 import { Item } from '../../Model/Item'
 import { Paragraph } from '../../Model/Paragraph'
 import { Tag } from '../../Model/Tag'
-import { ItemExportService } from '../../Services/ItemExportService'
+import { ItemExportService } from '../../Services/export/ItemExportService'
 
 describe('ItemExportService (Stage 4)', () => {
     let sword: Item

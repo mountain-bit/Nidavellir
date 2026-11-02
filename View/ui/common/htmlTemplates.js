@@ -30,7 +30,7 @@ export function getTypeIconSvg(type, extraClasses = 'w-3.5 h-3.5 shrink-0') {
 /**
  * Color palette presets for tags and scenes.
  */
-export const PRESET_COLORS = [
+export const PRESET_COLORS = Object.freeze([
     '#4a5b6d', // Stal grafitowa
     '#3f5263', // Ciemny łupek
     '#3e5445', // Szałwia leśna
@@ -43,7 +43,7 @@ export const PRESET_COLORS = [
     '#4f545c', // Chłodny popiel
     '#57524c', // Kamienny taupe
     '#3b3d42', // Neutralny antracyt
-]
+])
 
 /**
  * Returns Tailwind badge classes according to entity type.
@@ -52,7 +52,14 @@ export const PRESET_COLORS = [
  * @returns {string}
  */
 export function getTypeBadgeColor(type) {
-    switch (type) {
+    const normalizedType = String(type || '')
+        .trim()
+        .toLowerCase()
+
+    switch (normalizedType) {
+        case 'start':
+        case 'start_node':
+            return 'bg-emerald-950/70 text-emerald-300 border-emerald-700/50'
         case 'paragraph':
             return 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50'
         case 'scene':
@@ -60,7 +67,7 @@ export function getTypeBadgeColor(type) {
         case 'character':
             return 'bg-purple-900/60 text-purple-300 border-purple-700/50'
         case 'player_character':
-        case 'playerCharacter':
+        case 'playercharacter':
         case 'main-character':
             return 'bg-amber-900/60 text-amber-300 border-amber-600/50'
         case 'template':
@@ -91,11 +98,11 @@ export function getTypeBadgeColor(type) {
 /**
  * Renders an empty state placeholder.
  *
- * @param {string} iconText
- * @param {string} message
+ * @param {string} [iconText='']
+ * @param {string} [message='']
  * @returns {string}
  */
-export function renderEmptyPlaceholderHtml(iconText, message) {
+export function renderEmptyPlaceholderHtml(iconText = '', message = '') {
     return `
         <div class="flex flex-col items-center justify-center p-8 text-center text-gray-500 h-64">
             <div class="text-3xl mb-3 text-gray-600">${escapeHtml(iconText)}</div>
@@ -107,14 +114,16 @@ export function renderEmptyPlaceholderHtml(iconText, message) {
 /**
  * Renders color preset buttons HTML.
  *
- * @param {string[]} presetColors
- * @param {string} currentColor
+ * @param {string[]} [presetColors=PRESET_COLORS]
+ * @param {string} [currentColor='']
  * @returns {string}
  */
-export function renderColorPresetButtonsHtml(presetColors, currentColor) {
-    return presetColors
+export function renderColorPresetButtonsHtml(presetColors = PRESET_COLORS, currentColor = '') {
+    const colors = Array.isArray(presetColors) ? presetColors : PRESET_COLORS
+    return colors
         .map(c => {
-            const isMatch = c.toLowerCase() === (currentColor || '').toLowerCase()
+            const isMatch =
+                String(c || '').toLowerCase() === String(currentColor || '').toLowerCase()
             const borderClass = isMatch
                 ? 'border-white ring-2 ring-white/50 scale-105'
                 : 'border-white/15'

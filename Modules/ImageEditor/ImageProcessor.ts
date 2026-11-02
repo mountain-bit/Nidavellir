@@ -73,8 +73,10 @@ export function buildCssFilter(adjustments?: Partial<IImageAdjustments>): string
  * Clamps crop rectangle inside image boundaries.
  */
 export function clampCropRect(rect: ICropRect, imageWidth: number, imageHeight: number): ICropRect {
-    const x = Math.max(0, Math.min(rect.x, imageWidth))
-    const y = Math.max(0, Math.min(rect.y, imageHeight))
+    const safeMaxX = Math.max(0, imageWidth - 1)
+    const safeMaxY = Math.max(0, imageHeight - 1)
+    const x = Math.max(0, Math.min(rect.x, safeMaxX))
+    const y = Math.max(0, Math.min(rect.y, safeMaxY))
     const width = Math.max(1, Math.min(rect.width, imageWidth - x))
     const height = Math.max(1, Math.min(rect.height, imageHeight - y))
 
@@ -122,6 +124,7 @@ export function calculateAspectDimensions(
  * Normalizes rotation degrees to [0, 90, 180, 270].
  */
 export function normalizeRotation(deg: number): number {
+    if (!Number.isFinite(deg)) return 0
     const mod = ((deg % 360) + 360) % 360
     return (Math.round(mod / 90) * 90) % 360
 }
@@ -137,8 +140,8 @@ export function processImageToCanvas(
     const rotation = normalizeRotation(transform.rotation)
 
     const isRotated90 = rotation === 90 || rotation === 270
-    const sourceW = source.width
-    const sourceH = source.height
+    const sourceW = (source as HTMLImageElement).naturalWidth || source.width
+    const sourceH = (source as HTMLImageElement).naturalHeight || source.height
 
     // 1. Stage 1: Orientation & rotation transform canvas
     const transformedCanvas = document.createElement('canvas')
@@ -209,4 +212,15 @@ export function canvasToDataUrl(
     quality: number = 0.92
 ): string {
     return canvas.toDataURL(mimeType, quality)
+}
+
+/**
+ * Processes source image and returns resulting base64 data URL string.
+ */
+export function processImageToDataUrl(
+    source: HTMLImageElement | HTMLCanvasElement,
+    options: IProcessImageOptions = {}
+): string {
+    const canvas = processImageToCanvas(source, options)
+    return canvasToDataUrl(canvas, options.mimeType, options.quality)
 }

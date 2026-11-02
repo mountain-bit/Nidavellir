@@ -2,16 +2,16 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import {
-    closeEntityLinkModal,
-    openEntityLinkModal,
-    positionPopover,
-} from '../../View/ui/editor/entityLinkModal.js'
-import {
     hideEditorContextMenu,
     openEditorContextMenu,
     setEditorActiveState,
     setupEditorContextMenu,
-} from '../../View/ui/editor/mainEditor.js'
+} from '../../View/ui/editor/instances/mainEditor.js'
+import {
+    closeEntityLinkModal,
+    openEntityLinkModal,
+    positionPopover,
+} from '../../View/ui/editor/modals/entityLinkModal.js'
 
 describe('EditorContextMenuAndPopover', () => {
     beforeEach(() => {

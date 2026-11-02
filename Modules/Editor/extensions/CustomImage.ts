@@ -1,6 +1,6 @@
 import { CommandProps, mergeAttributes, Node } from '@tiptap/core'
 
-import { toAssetUrl, toRelativeAssetPath } from '../../../Utils/assetUtils'
+import { toAssetUrl, toRelativeAssetPath } from '../../../Utils/assets/assetUtils'
 
 declare module '@tiptap/core' {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -14,7 +14,7 @@ declare module '@tiptap/core' {
 interface IMarkdownSerializerState {
     write: (text: string) => void
     closeBlock: (node: unknown) => void
-    esc: (text: string) => string
+    esc?: (text: string) => string
 }
 
 export const CustomImage = Node.create({
@@ -41,13 +41,27 @@ export const CustomImage = Node.create({
     parseHTML() {
         return [
             {
+                tag: 'div.gamebook-image-container',
+                getAttrs: (dom: HTMLElement | string) => {
+                    if (typeof dom === 'string') return false
+                    const img = dom.querySelector('img')
+                    if (!img) return false
+                    const rawSrc = img.getAttribute('src') || ''
+                    return {
+                        src: toRelativeAssetPath(rawSrc),
+                        alt: img.getAttribute('alt') || '',
+                        title: img.getAttribute('title') || null,
+                    }
+                },
+            },
+            {
                 tag: 'img[src]',
                 getAttrs: (dom: HTMLElement | string) => {
-                    if (typeof dom === 'string') return {}
+                    if (typeof dom === 'string') return false
                     const rawSrc = dom.getAttribute('src') || ''
                     return {
                         src: toRelativeAssetPath(rawSrc),
-                        alt: dom.getAttribute('alt') || null,
+                        alt: dom.getAttribute('alt') || '',
                         title: dom.getAttribute('title') || null,
                     }
                 },
@@ -61,11 +75,15 @@ export const CustomImage = Node.create({
 
         return [
             'div',
-            { class: 'gamebook-image-container my-3 text-center' },
+            {
+                class: 'gamebook-image-container my-3 text-center',
+                'data-gamebook-image': 'true',
+            },
             [
                 'img',
                 mergeAttributes(HTMLAttributes, {
                     src: displaySrc,
+                    alt: HTMLAttributes.alt ?? '',
                     class: 'gamebook-image rounded-lg border border-[#3f3f46] max-w-full h-auto shadow-md mx-auto inline-block',
                     loading: 'lazy',
                 }),
@@ -96,10 +114,18 @@ export const CustomImage = Node.create({
                     state: IMarkdownSerializerState,
                     node: { attrs: { src?: string; alt?: string; title?: string } }
                 ): void {
-                    const alt = state.esc(node.attrs.alt || '')
+                    const esc =
+                        typeof state.esc === 'function'
+                            ? (text: string) => state.esc!(text)
+                            : (text: string) => text
+                    const alt = esc(node.attrs.alt || '')
                     const cleanSrc = toRelativeAssetPath(node.attrs.src || '')
-                    const title = node.attrs.title ? ` "${state.esc(node.attrs.title)}"` : ''
-                    state.write(`![${alt}](${cleanSrc}${title})`)
+                    const formattedSrc =
+                        cleanSrc.includes(' ') && !cleanSrc.startsWith('<')
+                            ? `<${cleanSrc}>`
+                            : cleanSrc
+                    const title = node.attrs.title ? ` "${esc(node.attrs.title)}"` : ''
+                    state.write(`![${alt}](${formattedSrc}${title})`)
                     state.closeBlock(node)
                 },
                 parse: {

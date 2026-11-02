@@ -2,6 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import ExportService from '../../main/services/ExportService.js'
+import { RulesExportService } from '../../Services/export/RulesExportService'
 import { setupCharacterSheetUI } from '../../View/ui/modals/export/exportModal.js'
 import {
     deleteCustomStyle,
@@ -192,12 +193,16 @@ describe('Export System Tests', () => {
             const compiledSequential = compileGamebook(tenParagraphsCtx, {
                 shuffleParagraphs: false,
             })
-            const seqNumbers = compiledSequential.paragraphs.map((p: any) => p.displayNumber)
+            const seqNumbers = compiledSequential.paragraphs.map(
+                (p: { displayNumber: number }) => p.displayNumber
+            )
             expect(seqNumbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
             // Shuffled export
             const compiledShuffled = compileGamebook(tenParagraphsCtx, { shuffleParagraphs: true })
-            const shufNumbers = compiledShuffled.paragraphs.map((p: any) => p.displayNumber)
+            const shufNumbers = compiledShuffled.paragraphs.map(
+                (p: { displayNumber: number }) => p.displayNumber
+            )
             expect(shufNumbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
 
             // Start paragraph must always be 1
@@ -205,8 +210,8 @@ describe('Export System Tests', () => {
             expect(compiledShuffled.paragraphs[0].displayNumber).toBe(1)
 
             // Choice targets must all be valid numbers in range 1..10
-            compiledShuffled.paragraphs.forEach((p: any) => {
-                p.choices.forEach((ch: any) => {
+            compiledShuffled.paragraphs.forEach((p: { choices: { targetNumber: number }[] }) => {
+                p.choices.forEach((ch: { targetNumber: number }) => {
                     expect(ch.targetNumber).toBeGreaterThanOrEqual(1)
                     expect(ch.targetNumber).toBeLessThanOrEqual(10)
                 })
@@ -230,7 +235,9 @@ describe('Export System Tests', () => {
             }
 
             const compiled = compileGamebook(ctxWithInvalidLock, { shuffleParagraphs: true })
-            const numbers = compiled.paragraphs.map((p: any) => p.displayNumber)
+            const numbers = compiled.paragraphs.map(
+                (p: { displayNumber: number }) => p.displayNumber
+            )
             expect(numbers).toEqual([1, 2, 3])
             expect(numbers).not.toContain(999)
         })
@@ -260,6 +267,58 @@ describe('Export System Tests', () => {
             expect(html).toContain('Glosariusz i Słowniczek')
         })
 
+        it('compiles dedicated game rules file and includes it in print HTML export', () => {
+            const rulesCtx = {
+                projectData: {
+                    projectParagraphs: [
+                        { id: 'p1', number: 1, isStartNode: true, text: 'Początek.' },
+                    ],
+                },
+                files: {
+                    'Rules/GameRules.md':
+                        '# Oficjalne Zasady\n\nJak grać: Rzuć kośćmi przed walką.',
+                },
+            }
+
+            const compiled = compileGamebook(rulesCtx, {
+                includeRules: true,
+            })
+
+            expect(compiled.rulesContent).toContain('Oficjalne Zasady')
+            expect(compiled.rulesContent).toContain('Rzuć kośćmi przed walką.')
+
+            const html = generatePrintHtml(compiled, getStyleById('classic-fantasy'))
+            expect(html).toContain('gamebook-rules-section')
+            expect(html).toContain('Zasady Gry i Wprowadzenie')
+            expect(html).toContain('Oficjalne Zasady')
+        })
+
+        it('RulesExportService correctly formats standalone HTML and Markdown handouts', () => {
+            const htmlHandout = RulesExportService.exportToHtml({
+                title: 'Zasady Świata',
+                author: 'Mistrz Gry',
+                version: '2.0',
+                content: '# Reguły\n\n- Punkt 1\n- Punkt 2',
+            })
+
+            expect(htmlHandout).toContain('<!DOCTYPE html>')
+            expect(htmlHandout).toContain('Zasady Świata')
+            expect(htmlHandout).toContain('Mistrz Gry')
+            expect(htmlHandout).toContain('<li>Punkt 1</li>')
+
+            const mdHandout = RulesExportService.exportToMarkdown({
+                title: 'Zasady Świata',
+                author: 'Mistrz Gry',
+                version: '2.0',
+                content: '# Reguły\n\nTreść reguł.',
+            })
+
+            expect(mdHandout).toContain('---')
+            expect(mdHandout).toContain('title: "Zasady Świata"')
+            expect(mdHandout).toContain('author: "Mistrz Gry"')
+            expect(mdHandout).toContain('Treść reguł.')
+        })
+
         it('compiles choices with conditions, costs, rewards, and branching dice checks', () => {
             const ctxWithAdvancedChoices = {
                 projectData: {
@@ -273,7 +332,7 @@ describe('Export System Tests', () => {
                                 {
                                     text: 'Przekup trolla złotem',
                                     targetId: 'p2',
-                                    condition: { getSummary: () => 'Posiadasz Złoto x 5' },
+                                    condition: { getSummary: (): string => 'Posiadasz Złoto x 5' },
                                     costs: [{ name: 'Złoto', value: 5, type: 'parameter' }],
                                     rewards: [{ name: 'Przepustka', value: 1, type: 'item' }],
                                 },
@@ -373,8 +432,15 @@ describe('Export System Tests', () => {
                     projectParagraphs: [
                         {
                             id: 'p1',
-                            getContent: () => ({ getText: () => 'To jest treść paragrafu.' }),
-                            choices: [{ getName: () => 'Wybór 1', getTargetId: () => 'p2' }],
+                            getContent: (): { getText: () => string } => ({
+                                getText: (): string => 'To jest treść paragrafu.',
+                            }),
+                            choices: [
+                                {
+                                    getName: (): string => 'Wybór 1',
+                                    getTargetId: (): string => 'p2',
+                                },
+                            ],
                         },
                     ],
                 },
@@ -549,7 +615,7 @@ Wybierz swój dalszy krok.
             expect(styles.default.document.run.size).toBe(22)
             expect(styles.default.document.run.color).toBe('222222')
 
-            const paragraphStyleIds = styles.paragraphStyles.map((s: any) => s.id)
+            const paragraphStyleIds = styles.paragraphStyles.map((s: { id: string }) => s.id)
             expect(paragraphStyleIds).toContain('GamebookParagraph')
             expect(paragraphStyleIds).toContain('GamebookParagraphHeader')
             expect(paragraphStyleIds).toContain('GamebookChoice')
@@ -557,18 +623,20 @@ Wybierz swój dalszy krok.
             expect(paragraphStyleIds).toContain('GamebookQuote')
             expect(paragraphStyleIds).toContain('GamebookSectionTitle')
 
-            const pStyle = styles.paragraphStyles.find((s: any) => s.id === 'GamebookParagraph')
+            const pStyle = styles.paragraphStyles.find(
+                (s: { id: string }) => s.id === 'GamebookParagraph'
+            )
             expect(pStyle.name).toBe('Paragraf Gry')
             expect(pStyle.run.font).toBe('Merriweather')
 
             const hStyle = styles.paragraphStyles.find(
-                (s: any) => s.id === 'GamebookParagraphHeader'
+                (s: { id: string }) => s.id === 'GamebookParagraphHeader'
             )
             expect(hStyle.name).toBe('Numer Paragrafu (§)')
             expect(hStyle.run.font).toBe('Cinzel')
             expect(hStyle.run.color).toBe('990000')
 
-            const charStyleIds = styles.characterStyles.map((s: any) => s.id)
+            const charStyleIds = styles.characterStyles.map((s: { id: string }) => s.id)
             expect(charStyleIds).toContain('GamebookLocationLink')
             expect(charStyleIds).toContain('GamebookCharacterLink')
             expect(charStyleIds).toContain('GamebookItemLink')
@@ -614,7 +682,7 @@ Wybierz swój dalszy krok.
                 projectData: {
                     playerCharacter: {
                         id: 'hero1',
-                        getName: () => 'Kaelen',
+                        getName: (): string => 'Kaelen',
                         name: 'Kaelen',
                     },
                 },
@@ -638,35 +706,42 @@ Wybierz swój dalszy krok.
 
         it('compiles detailed character sheet matching hero domain data', () => {
             const mockHero = {
-                getId: () => 'hero-123',
-                getName: () => 'Aleron z Rivii',
-                getCharacterClass: () => ({ getName: () => 'Zwiadowca' }),
-                getSummary: () => 'Doświadczony tropiciel i łucznik.',
-                getAvatar: () => 'archer',
-                getStats: () => [
-                    { getName: () => 'Zręczność', getValue: () => 16 },
-                    { getName: () => 'Siła', getValue: () => 12 },
+                getId: (): string => 'hero-123',
+                getName: (): string => 'Aleron z Rivii',
+                getCharacterClass: (): { getName: () => string } => ({
+                    getName: (): string => 'Zwiadowca',
+                }),
+                getSummary: (): string => 'Doświadczony tropiciel i łucznik.',
+                getAvatar: (): string => 'archer',
+                getStats: (): { getName: () => string; getValue: () => number }[] => [
+                    { getName: (): string => 'Zręczność', getValue: (): number => 16 },
+                    { getName: (): string => 'Siła', getValue: (): number => 12 },
                 ],
-                getParameters: () => [
+                getParameters: (): {
+                    getName: () => string
+                    getCurrentValue?: () => number
+                    getMaxValue?: () => number
+                    getValue?: () => number
+                }[] => [
                     {
-                        getName: () => 'Zdrowie',
-                        getCurrentValue: () => 20,
-                        getMaxValue: () => 20,
+                        getName: (): string => 'Zdrowie',
+                        getCurrentValue: (): number => 20,
+                        getMaxValue: (): number => 20,
                     },
-                    { getName: () => 'Złoto', getValue: () => 50 },
+                    { getName: (): string => 'Złoto', getValue: (): number => 50 },
                 ],
-                getSkills: () => [
-                    { getName: () => 'Strzelectwo', getValue: () => '+3' },
-                    { getName: () => 'Skradanie', getValue: () => '+2' },
+                getSkills: (): { getName: () => string; getValue: () => string }[] => [
+                    { getName: (): string => 'Strzelectwo', getValue: (): string => '+3' },
+                    { getName: (): string => 'Skradanie', getValue: (): string => '+2' },
                 ],
-                getFeatures: () => [
-                    { getName: () => 'Sokoli Wzrok', description: 'Widzi w ciemności.' },
+                getFeatures: (): { getName: () => string; description: string }[] => [
+                    { getName: (): string => 'Sokoli Wzrok', description: 'Widzi w ciemności.' },
                 ],
-                getItems: () => [
-                    { getName: () => 'Długi łuk' },
-                    { getName: () => 'Kołczan strzał' },
+                getItems: (): { getName: () => string }[] => [
+                    { getName: (): string => 'Długi łuk' },
+                    { getName: (): string => 'Kołczan strzał' },
                 ],
-                getTags: () => ['Elf', 'Szybki'],
+                getTags: (): string[] => ['Elf', 'Szybki'],
             }
 
             const sheet = compileCharacterSheet(mockHero)
@@ -680,7 +755,10 @@ Wybierz swój dalszy krok.
             expect(sheet.parameters[0].name).toBe('Zdrowie')
             expect(sheet.parameters[0].currentValue).toBe(20)
             expect(sheet.skills[0].name).toBe('Strzelectwo')
-            expect(sheet.items.map((i: any) => i.name)).toEqual(['Długi łuk', 'Kołczan strzał'])
+            expect(sheet.items.map((i: { name: string }) => i.name)).toEqual([
+                'Długi łuk',
+                'Kołczan strzał',
+            ])
         })
 
         it('supports multi-selection of heroes during export compilation', () => {
@@ -688,19 +766,19 @@ Wybierz swój dalszy krok.
                 projectData: {
                     playerCharacters: [
                         {
-                            getId: () => 'h1',
-                            getName: () => 'Wojownik',
-                            getCharacterClass: () => 'Rycerz',
+                            getId: (): string => 'h1',
+                            getName: (): string => 'Wojownik',
+                            getCharacterClass: (): string => 'Rycerz',
                         },
                         {
-                            getId: () => 'h2',
-                            getName: () => 'Czarodziejka',
-                            getCharacterClass: () => 'Mag',
+                            getId: (): string => 'h2',
+                            getName: (): string => 'Czarodziejka',
+                            getCharacterClass: (): string => 'Mag',
                         },
                         {
-                            getId: () => 'h3',
-                            getName: () => 'Złodziej',
-                            getCharacterClass: () => 'Łotrzyk',
+                            getId: (): string => 'h3',
+                            getName: (): string => 'Złodziej',
+                            getCharacterClass: (): string => 'Łotrzyk',
                         },
                     ],
                     projectParagraphs: [{ id: 'p1', number: 1, text: 'Start' }],
@@ -738,24 +816,31 @@ Wybierz swój dalszy krok.
         it('compiles and renders multiple inventories with capacities and initial items', () => {
             const heroWithInventories = {
                 id: 'hero_inv',
-                getName: () => 'Kupiec Korzenny',
-                getCharacterClass: () => 'Handlarz',
-                getSummary: () => 'Zamożny podróżnik',
-                getInventories: () => [
+                getName: (): string => 'Kupiec Korzenny',
+                getCharacterClass: (): string => 'Handlarz',
+                getSummary: (): string => 'Zamożny podróżnik',
+                getInventories: (): {
+                    getId: () => string
+                    getName: () => string
+                    getCapacity: () => number
+                    getItems: () => { getName: () => string }[]
+                }[] => [
                     {
-                        getId: () => 'inv_bag',
-                        getName: () => 'Skórzana Torba',
-                        getCapacity: () => 3,
-                        getItems: () => [
-                            { getName: () => 'Zwój pergaminu' },
-                            { getName: () => 'Atrament' },
+                        getId: (): string => 'inv_bag',
+                        getName: (): string => 'Skórzana Torba',
+                        getCapacity: (): number => 3,
+                        getItems: (): { getName: () => string }[] => [
+                            { getName: (): string => 'Zwój pergaminu' },
+                            { getName: (): string => 'Atrament' },
                         ],
                     },
                     {
-                        getId: () => 'inv_wagon',
-                        getName: () => 'Wóz Kupiecki',
-                        getCapacity: () => 0,
-                        getItems: () => [{ getName: () => 'Beczka piwa' }],
+                        getId: (): string => 'inv_wagon',
+                        getName: (): string => 'Wóz Kupiecki',
+                        getCapacity: (): number => 0,
+                        getItems: (): { getName: () => string }[] => [
+                            { getName: (): string => 'Beczka piwa' },
+                        ],
                     },
                 ],
             }
@@ -800,7 +885,7 @@ Wybierz swój dalszy krok.
         it('renders only elements explicitly set by the author, without unconfigured placeholders or default fillers', () => {
             const minimalHero = {
                 id: 'min_hero',
-                getName: () => 'Samotny Wędrowiec',
+                getName: (): string => 'Samotny Wędrowiec',
             }
 
             const ctx = {
@@ -845,14 +930,18 @@ Wybierz swój dalszy krok.
                 projectData: {
                     locations: [
                         {
-                            getName: () => 'Stara Twierdza',
-                            getDescription: () => ({ getText: () => locDescMd }),
+                            getName: (): string => 'Stara Twierdza',
+                            getDescription: (): { getText: () => string } => ({
+                                getText: (): string => locDescMd,
+                            }),
                         },
                     ],
                     npcs: [
                         {
-                            getName: () => 'Barnaba',
-                            getDescription: () => ({ getText: () => npcDescMd }),
+                            getName: (): string => 'Barnaba',
+                            getDescription: (): { getText: () => string } => ({
+                                getText: (): string => npcDescMd,
+                            }),
                         },
                     ],
                     projectParagraphs: [{ id: 'p1', number: 1, text: 'Początek drogi.' }],
@@ -927,8 +1016,8 @@ Wybierz swój dalszy krok.
             const singleHeroCtx = {
                 projectData: {
                     playerCharacter: {
-                        getName: () => 'Thorgal',
-                        getCharacterClass: () => 'Wojownik Północy',
+                        getName: (): string => 'Thorgal',
+                        getCharacterClass: (): string => 'Wojownik Północy',
                     },
                 },
             }
@@ -977,14 +1066,14 @@ Wybierz swój dalszy krok.
                 projectData: {
                     playerCharacters: [
                         {
-                            getId: () => 'h1',
-                            getName: () => 'Geralt',
-                            getCharacterClass: () => 'Wiedźmin',
+                            getId: (): string => 'h1',
+                            getName: (): string => 'Geralt',
+                            getCharacterClass: (): string => 'Wiedźmin',
                         },
                         {
-                            getId: () => 'h2',
-                            getName: () => 'Yennefer',
-                            getCharacterClass: () => 'Czarodziejka',
+                            getId: (): string => 'h2',
+                            getName: (): string => 'Yennefer',
+                            getCharacterClass: (): string => 'Czarodziejka',
                         },
                     ],
                 },
@@ -1023,8 +1112,8 @@ Wybierz swój dalszy krok.
                 projectData: {
                     name: 'Gra Testowa',
                     playerCharacters: [
-                        { getId: () => 'hero-1', getName: () => 'Bohater A' },
-                        { getId: () => 'hero-2', getName: () => 'Bohater B' },
+                        { getId: (): string => 'hero-1', getName: (): string => 'Bohater A' },
+                        { getId: (): string => 'hero-2', getName: (): string => 'Bohater B' },
                     ],
                 },
             }

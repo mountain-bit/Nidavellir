@@ -4,7 +4,10 @@ import { NPC } from '../../Model/NPC'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
 import { Tag } from '../../Model/Tag'
-import { ConnectionLineStyle, ICytoscapeStyleRule } from './StoryGraphStyles'
+import type { TranslationKey } from '../../Utils/i18n/translate'
+import type { ConnectionLineStyle, ICytoscapeStyleRule } from './styles/StoryGraphStyles'
+
+export type { ConnectionLineStyle, ICytoscapeStyleRule }
 
 export interface IStoryGraphOptions {
     canvasContainer: HTMLElement
@@ -29,19 +32,28 @@ export interface IStoryGraphOptions {
         targetParagraph?: Paragraph
     ) => void
     onCreateParagraph: (title: string, parentParagraph: Paragraph) => Paragraph
+    onCreateScene?: (
+        name: string,
+        position: { x: number; y: number },
+        width: number,
+        height: number,
+        assignedParagraphs?: Paragraph[]
+    ) => Scene | null
     onCreateConnection?: (
         sourceParagraph: Paragraph,
         targetParagraph: Paragraph,
         name?: string
     ) => Choice | null
+    onSelectionChange?: (selectedParagraphIds: string[]) => void
     onToast: (
         type: 'success' | 'info' | 'error' | 'warning',
         message: string,
         title?: string
     ) => void
-    t: (key: string, options?: Record<string, unknown>) => string
+    t: (key: TranslationKey, options?: Record<string, unknown>) => string
     customStyles?: ICytoscapeStyleRule[]
     wheelSensitivity?: number
+    ctrlWheelMultiplier?: number
     onZoomChange?: (zoomLevel: number) => void
     onGraphModified?: () => void
 }

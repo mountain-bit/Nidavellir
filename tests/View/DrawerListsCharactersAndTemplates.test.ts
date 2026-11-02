@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { NPC } from '../../Model/NPC'
 import { NPC_Template } from '../../Model/NPC_Template'
+import { Project } from '../../Model/Project'
 import {
     getCharactersSectionCollapsed,
     getTemplatesSectionCollapsed,
@@ -10,7 +11,7 @@ import {
     setCharactersSectionCollapsed,
     setTemplatesSectionCollapsed,
 } from '../../View/ui/drawer/drawerLists.js'
-import { setupNpcModal } from '../../View/ui/modals/npc/npcModal.js'
+import { openNpcModal, setupNpcModal } from '../../View/ui/modals/npc/npcModal.js'
 import { MainWindowViewModel } from '../../ViewModel/MainWindowViewModel'
 
 describe('DrawerLists - Characters and Templates Independent Collapsible Sections', () => {
@@ -190,5 +191,37 @@ describe('DrawerLists - Characters and Templates Independent Collapsible Section
         btnAddTemplate?.click()
         expect(modal?.classList.contains('hidden')).toBe(false)
         expect(modalTitle?.textContent?.toLowerCase()).toContain('szablon')
+    })
+
+    it('nie tworzy dwóch kopii postaci w panelu bocznym przy wspólnym obiekcie projektu i ctx.projectCharacters', () => {
+        const project = new Project('proj-1', 'Nowa Opowieść')
+        // Współdzielona referencja tak jak w działającej aplikacji
+        ctx.projectCharacters = project.getCharacters()
+        ;(vm as any).project = project
+        ctx.renderCharactersList = renderCharactersList
+
+        setupNpcModal(ctx)
+
+        openNpcModal({ mode: 'character' })
+
+        const nameInput = document.getElementById('npc-name-input') as HTMLInputElement
+        nameInput.value = 'Mędrzec Elrond'
+
+        const btnSave = document.getElementById('btn-save-npc-modal')
+        btnSave?.click()
+
+        // Postać powinna być dokładnie jedna w kolekcji oraz w projekcie
+        expect(ctx.projectCharacters).toHaveLength(1)
+        expect(project.getCharacters()).toHaveLength(1)
+
+        renderCharactersList(ctx)
+
+        const charsBody = document.getElementById('characters-section-body')
+        const items = charsBody?.querySelectorAll('[data-item-type="character"]')
+        expect(items).toHaveLength(1)
+        expect(charsBody?.textContent).toContain('Mędrzec Elrond')
+
+        const btnToggleChars = document.getElementById('btn-toggle-characters-section')
+        expect(btnToggleChars?.textContent).toContain('1')
     })
 })

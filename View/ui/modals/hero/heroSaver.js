@@ -53,8 +53,9 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === sName.toLowerCase()
             )
             if (!exists) {
-                const globalStat = vm?.createStat
-                    ? vm.createStat(sName)
+                const factory = vm?.factory
+                const globalStat = factory?.createStat
+                    ? factory.createStat(sName)
                     : new Stat(
                           `stat_glob_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           sName,
@@ -62,9 +63,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                           s.value
                       )
                 if (globalStat.setValue) globalStat.setValue(s.value)
-                projectStats.push(globalStat)
                 if (vm?.project && typeof vm.project.addGlobalStat === 'function') {
                     vm.project.addGlobalStat(globalStat)
+                }
+                const alreadyExists = projectStats.some(
+                    ps =>
+                        (typeof ps.getName === 'function'
+                            ? ps.getName()
+                            : ps.name || ''
+                        ).toLowerCase() === sName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    projectStats.push(globalStat)
                 }
                 anyAdded = true
             }
@@ -93,9 +103,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     v.formula || '',
                     v.calculatedValue || null
                 )
-                projectParameters.push(globalParam)
                 if (vm?.project && typeof vm.project.addGlobalParameter === 'function') {
                     vm.project.addGlobalParameter(globalParam)
+                }
+                const alreadyExists = projectParameters.some(
+                    pp =>
+                        (typeof pp.getName === 'function'
+                            ? pp.getName()
+                            : pp.name || ''
+                        ).toLowerCase() === pName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    projectParameters.push(globalParam)
                 }
                 anyAdded = true
             }
@@ -123,9 +142,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     sk.value || '+1',
                     sk.statName || ''
                 )
-                projectSkills.push(globalSkill)
                 if (vm?.project && typeof vm.project.addGlobalSkill === 'function') {
                     vm.project.addGlobalSkill(globalSkill)
+                }
+                const alreadyExists = projectSkills.some(
+                    psk =>
+                        (typeof psk.getName === 'function'
+                            ? psk.getName()
+                            : psk.name || ''
+                        ).toLowerCase() === skName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    projectSkills.push(globalSkill)
                 }
                 anyAdded = true
             }
@@ -145,9 +173,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === tName.toLowerCase()
             )
             if (!exists) {
-                projectTags.push(tag)
                 if (vm?.project && typeof vm.project.addTag === 'function') {
                     vm.project.addTag(tag)
+                }
+                const alreadyExists = projectTags.some(
+                    pt =>
+                        (typeof pt.getName === 'function'
+                            ? pt.getName()
+                            : pt.name || ''
+                        ).toLowerCase() === tName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    projectTags.push(tag)
                 }
                 anyAdded = true
             }
@@ -342,6 +379,20 @@ export function saveHeroCharacter(ctx, options = {}) {
         markProjectDirty()
     }
 
+    /* eslint-disable-next-line no-control-regex */
+    const cleanHeroName = (rawName || 'hero').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    const heroDescPath = `./PlayerCharacter/${heroId}/Description_PlayerCharacter_${cleanHeroName}.md`
+    if (hero.description && typeof hero.description === 'object') {
+        hero.description.filePath = heroDescPath
+        hero.description.textPath = heroDescPath
+    } else if (typeof hero.getDescription === 'function') {
+        const desc = hero.getDescription()
+        if (desc) {
+            desc.filePath = heroDescPath
+            desc.textPath = heroDescPath
+        }
+    }
+
     if (
         projectPath &&
         typeof window !== 'undefined' &&
@@ -355,7 +406,7 @@ export function saveHeroCharacter(ctx, options = {}) {
                 projectPath,
                 category: 'PlayerCharacter',
                 entityData: cleanPayload,
-                folderName: rawName,
+                folderName: heroId,
             })
             .catch(err => {
                 console.warn('Could not persist PlayerCharacter via IPC:', err)

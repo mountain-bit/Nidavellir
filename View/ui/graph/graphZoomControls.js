@@ -5,6 +5,9 @@
 
 import { updateZoomToolbarUI } from '../workspace/workspace.js'
 
+let isResizeBound = false
+let activeResizeHandler = null
+
 /**
  * Sets up event listeners for the story graph zoom toolbar buttons and window resize events.
  *
@@ -60,13 +63,25 @@ export function setupGraphZoomControls(ctx, getGraphInstance) {
         })
     }
 
-    if (typeof window !== 'undefined' && !window._graphResizeBound) {
-        window._graphResizeBound = true
-        window.addEventListener('resize', () => {
+    if (typeof window !== 'undefined' && !isResizeBound) {
+        isResizeBound = true
+        activeResizeHandler = () => {
             const instance = getGraphInstance()
-            if (instance) {
+            if (instance && typeof instance.resize === 'function') {
                 instance.resize()
             }
-        })
+        }
+        window.addEventListener('resize', activeResizeHandler)
+    }
+}
+
+/**
+ * Unbinds window resize listener and resets zoom controls state.
+ */
+export function cleanupGraphZoomControls() {
+    if (typeof window !== 'undefined' && isResizeBound && activeResizeHandler) {
+        window.removeEventListener('resize', activeResizeHandler)
+        isResizeBound = false
+        activeResizeHandler = null
     }
 }

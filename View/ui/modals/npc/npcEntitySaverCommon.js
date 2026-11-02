@@ -18,6 +18,7 @@ import * as state from './npcState.js'
  * @param {object} traits
  */
 function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
+    const factory = vm?.factory
     const { stats, vitals, skills, selectedTags, customAttrs } = traits
 
     // 1. Global Stats
@@ -33,8 +34,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === sName.toLowerCase()
             )
             if (!exists) {
-                const globalStat = vm?.createStat
-                    ? vm.createStat(sName)
+                const globalStat = factory?.createStat
+                    ? factory.createStat(sName)
                     : {
                           id: `stat_glob_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           name: sName,
@@ -47,9 +48,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                           },
                       }
                 if (globalStat.setValue) globalStat.setValue(s.value)
-                effectiveCtx.projectStats.push(globalStat)
                 if (vm?.project && typeof vm.project.addStat === 'function') {
                     vm.project.addStat(globalStat)
+                }
+                const alreadyExists = effectiveCtx.projectStats.some(
+                    ps =>
+                        (typeof ps.getName === 'function'
+                            ? ps.getName()
+                            : ps.name || ''
+                        ).toLowerCase() === sName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectStats.push(globalStat)
                 }
             }
         })
@@ -69,8 +79,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
             )
             if (!exists) {
                 let globalParam = null
-                if (vm?.createParameter) {
-                    globalParam = vm.createParameter(pName, v.mode, v.value, v.formula)
+                if (vm?.factory?.createParameter) {
+                    globalParam = vm.factory.createParameter(pName, v.mode, v.value, v.formula)
                     if (typeof globalParam.setMode === 'function') globalParam.setMode(v.mode)
                     if (typeof globalParam.setValue === 'function') globalParam.setValue(v.value)
                     if (typeof globalParam.setFormula === 'function') {
@@ -107,9 +117,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                         },
                     }
                 }
-                effectiveCtx.projectParameters.push(globalParam)
                 if (vm?.project && typeof vm.project.addGlobalParameter === 'function') {
                     vm.project.addGlobalParameter(globalParam)
+                }
+                const alreadyExists = effectiveCtx.projectParameters.some(
+                    pp =>
+                        (typeof pp.getName === 'function'
+                            ? pp.getName()
+                            : pp.name || ''
+                        ).toLowerCase() === pName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectParameters.push(globalParam)
                 }
             }
         })
@@ -129,8 +148,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
             )
             if (!exists) {
                 let globalSkill = null
-                if (vm?.createSkill) {
-                    globalSkill = vm.createSkill(
+                if (factory?.createSkill) {
+                    globalSkill = factory.createSkill(
                         skName,
                         sk.mode,
                         sk.value,
@@ -173,9 +192,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                         },
                     }
                 }
-                effectiveCtx.projectSkills.push(globalSkill)
                 if (vm?.project && typeof vm.project.addSkill === 'function') {
                     vm.project.addSkill(globalSkill)
+                }
+                const alreadyExists = effectiveCtx.projectSkills.some(
+                    ps =>
+                        (typeof ps.getName === 'function'
+                            ? ps.getName()
+                            : ps.name || ''
+                        ).toLowerCase() === skName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectSkills.push(globalSkill)
                 }
             }
         })
@@ -194,8 +222,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === tName.toLowerCase()
             )
             if (!exists) {
-                const globalTag = vm?.createTag
-                    ? vm.createTag(tName, t.color || '#3b82f6')
+                const globalTag = factory?.createTag
+                    ? factory.createTag(tName, t.color || '#3b82f6')
                     : {
                           id: t.id || `tag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           name: tName,
@@ -210,9 +238,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                               return this.color
                           },
                       }
-                effectiveCtx.projectTags.push(globalTag)
                 if (vm?.project && typeof vm.project.addTag === 'function') {
                     vm.project.addTag(globalTag)
+                }
+                const alreadyExists = effectiveCtx.projectTags.some(
+                    pt =>
+                        (typeof pt.getName === 'function'
+                            ? pt.getName()
+                            : pt.name || ''
+                        ).toLowerCase() === tName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectTags.push(globalTag)
                 }
             }
         })
@@ -231,8 +268,8 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                     ).toLowerCase() === aName.toLowerCase()
             )
             if (!exists) {
-                const globalFeat = vm?.createFeature
-                    ? vm.createFeature(aName, attr.value)
+                const globalFeat = factory?.createFeature
+                    ? factory.createFeature(aName, attr.value)
                     : {
                           id: `feat_glob_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                           name: aName,
@@ -247,9 +284,18 @@ function registerGlobalProjectTraits(effectiveCtx, vm, traits) {
                               return this.value
                           },
                       }
-                effectiveCtx.projectFeatures.push(globalFeat)
                 if (vm?.project && typeof vm.project.addFeature === 'function') {
                     vm.project.addFeature(globalFeat)
+                }
+                const alreadyExists = effectiveCtx.projectFeatures.some(
+                    pf =>
+                        (typeof pf.getName === 'function'
+                            ? pf.getName()
+                            : pf.name || ''
+                        ).toLowerCase() === aName.toLowerCase()
+                )
+                if (!alreadyExists) {
+                    effectiveCtx.projectFeatures.push(globalFeat)
                 }
             }
         })
@@ -565,6 +611,7 @@ export function saveNpcEntity(config, ctx, options = {}) {
 
     const entityId = `${config.idPrefix}${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
     const vm = effectiveCtx.vm
+    const factory = vm?.factory
     const editingEntity = state.getEditingEntity()
     const isEdit = Boolean(editingEntity)
 
@@ -600,7 +647,9 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((s, i) => {
                 const statName = s.name.trim()
                 const statObj =
-                    vm && typeof vm.createStat === 'function' ? vm.createStat(statName) : null
+                    factory && typeof factory.createStat === 'function'
+                        ? factory.createStat(statName)
+                        : null
                 if (statObj) {
                     if (typeof statObj.setValue === 'function') statObj.setValue(s.value)
                     return statObj
@@ -635,8 +684,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((v, i) => {
                 const paramName = v.name.trim()
                 const paramObj =
-                    vm && typeof vm.createParameter === 'function'
-                        ? vm.createParameter(paramName, v.mode, v.value, v.formula)
+                    vm && typeof vm?.factory?.createParameter === 'function'
+                        ? vm.factory.createParameter(paramName, v.mode, v.value, v.formula)
                         : null
                 if (paramObj) {
                     if (typeof paramObj.setMode === 'function') paramObj.setMode(v.mode)
@@ -687,8 +736,14 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((sk, i) => {
                 const skillName = sk.name.trim()
                 const skillObj =
-                    vm && typeof vm.createSkill === 'function'
-                        ? vm.createSkill(skillName, sk.mode, sk.value, sk.statName, sk.modifier)
+                    factory && typeof factory.createSkill === 'function'
+                        ? factory.createSkill(
+                              skillName,
+                              sk.mode,
+                              sk.value,
+                              sk.statName,
+                              sk.modifier
+                          )
                         : null
                 if (skillObj) {
                     if (typeof skillObj.setMode === 'function') skillObj.setMode(sk.mode)
@@ -740,8 +795,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             .map((attr, i) => {
                 const attrName = attr.name.trim()
                 const featObj =
-                    vm && typeof vm.createFeature === 'function'
-                        ? vm.createFeature(attrName, attr.value)
+                    factory && typeof factory.createFeature === 'function'
+                        ? factory.createFeature(attrName, attr.value)
                         : null
                 if (featObj) return featObj
                 return {
@@ -789,8 +844,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
                             ).toLowerCase() === tagName.toLowerCase()
                     )
                 }
-                if (!tagObj && vm && typeof vm.createTag === 'function') {
-                    tagObj = vm.createTag(tagName, t.color || '#3b82f6')
+                if (!tagObj && factory && typeof factory.createTag === 'function') {
+                    tagObj = factory.createTag(tagName, t.color || '#3b82f6')
                 }
                 if (!tagObj) {
                     tagObj = {
@@ -843,7 +898,7 @@ export function saveNpcEntity(config, ctx, options = {}) {
             stats.forEach(s => {
                 const statName = (s.name || '').trim()
                 if (!statName) return
-                const statObj = vm.createStat ? vm.createStat(statName) : null
+                const statObj = factory?.createStat ? factory.createStat(statName) : null
                 if (statObj) {
                     if (statObj.setValue) statObj.setValue(s.value)
                     createdEntity.addStat(statObj)
@@ -854,8 +909,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             vitals.forEach(v => {
                 const paramName = (v.name || '').trim()
                 if (!paramName) return
-                const paramObj = vm.createParameter
-                    ? vm.createParameter(paramName, v.mode, v.value, v.formula)
+                const paramObj = factory?.createParameter
+                    ? factory.createParameter(paramName, v.mode, v.value, v.formula)
                     : null
                 if (paramObj) {
                     if (typeof paramObj.setMode === 'function') paramObj.setMode(v.mode)
@@ -874,8 +929,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
             skills.forEach(sk => {
                 const skillName = (sk.name || '').trim()
                 if (!skillName) return
-                const skillObj = vm.createSkill
-                    ? vm.createSkill(skillName, sk.mode, sk.value, sk.statName, sk.modifier)
+                const skillObj = factory?.createSkill
+                    ? factory.createSkill(skillName, sk.mode, sk.value, sk.statName, sk.modifier)
                     : null
                 if (skillObj) {
                     if (typeof skillObj.setMode === 'function') skillObj.setMode(sk.mode)
@@ -896,7 +951,9 @@ export function saveNpcEntity(config, ctx, options = {}) {
             customAttrs.forEach(attr => {
                 const attrName = (attr.name || '').trim()
                 if (!attrName) return
-                const featObj = vm.createFeature ? vm.createFeature(attrName, attr.value) : null
+                const featObj = factory?.createFeature
+                    ? factory.createFeature(attrName, attr.value)
+                    : null
                 if (featObj) {
                     if (typeof createdEntity.addFeature === 'function') {
                         createdEntity.addFeature(featObj)
@@ -918,8 +975,8 @@ export function saveNpcEntity(config, ctx, options = {}) {
                             ).toLowerCase() === tagName.toLowerCase()
                     )
                 }
-                if (!tagObj && vm.createTag) {
-                    tagObj = vm.createTag(tagName, t.color || '#3b82f6')
+                if (!tagObj && factory?.createTag) {
+                    tagObj = factory.createTag(tagName, t.color || '#3b82f6')
                 }
                 if (tagObj && typeof createdEntity.addTag === 'function') {
                     createdEntity.addTag(tagObj)
@@ -956,11 +1013,12 @@ export function saveNpcEntity(config, ctx, options = {}) {
             config.addToProject(effectiveCtx, vm, createdEntity)
         }
     } else {
+        const selectedItem = vm?.selection?.getSelectedItem()
         if (
-            vm?.getSelectedItem()?.id === createdEntity.getId?.() ||
-            vm?.getSelectedItem()?.id === createdEntity.id
+            selectedItem &&
+            (selectedItem.id === createdEntity.getId?.() || selectedItem.id === createdEntity.id)
         ) {
-            vm.selectedItem.name = name
+            selectedItem.name = name
         }
     }
 
@@ -969,6 +1027,27 @@ export function saveNpcEntity(config, ctx, options = {}) {
         effectiveCtx.projectPath ||
         (typeof effectiveCtx.getProjectPath === 'function' ? effectiveCtx.getProjectPath() : '') ||
         ''
+    const actualEntityId =
+        (typeof createdEntity.getId === 'function' ? createdEntity.getId() : createdEntity.id) ||
+        entityId
+
+    if (config.ipcCategory) {
+        /* eslint-disable-next-line no-control-regex */
+        const cleanName = (name || 'element').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+        const descFileName = `Description_${config.ipcCategory}_${cleanName}.md`
+        const descRelPath = `./${config.ipcCategory}/${actualEntityId}/${descFileName}`
+        if (createdEntity.description && typeof createdEntity.description === 'object') {
+            createdEntity.description.filePath = descRelPath
+            createdEntity.description.textPath = descRelPath
+        } else if (typeof createdEntity.getDescription === 'function') {
+            const desc = createdEntity.getDescription()
+            if (desc) {
+                desc.filePath = descRelPath
+                desc.textPath = descRelPath
+            }
+        }
+    }
+
     if (
         config.ipcCategory &&
         projectPath &&
@@ -983,7 +1062,24 @@ export function saveNpcEntity(config, ctx, options = {}) {
                 projectPath,
                 category: config.ipcCategory,
                 entityData: payloadData,
-                folderName: name,
+                folderName: actualEntityId,
+            })
+            .then(res => {
+                if (res && res.success && res.entity && res.entity.description) {
+                    if (
+                        createdEntity.description &&
+                        typeof createdEntity.description === 'object'
+                    ) {
+                        createdEntity.description.filePath = res.entity.description.filePath
+                        createdEntity.description.textPath = res.entity.description.textPath
+                    } else if (typeof createdEntity.getDescription === 'function') {
+                        const desc = createdEntity.getDescription()
+                        if (desc) {
+                            desc.filePath = res.entity.description.filePath
+                            desc.textPath = res.entity.description.textPath
+                        }
+                    }
+                }
             })
             .catch(err => {
                 console.warn(`Could not persist ${config.entityType} to disk via IPC:`, err)
