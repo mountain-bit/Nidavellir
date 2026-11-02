@@ -18,6 +18,7 @@ import {
     renderColorPresetButtonsHtml,
 } from '../../common/htmlTemplates.js'
 import { FANTASY_AVATARS, getAvatarById } from '../../common/npcAvatars.js'
+import { getStoryGraphInstance } from '../../graph/storyGraphController.js'
 import { markProjectDirty } from '../../project/projectStateTracker.js'
 import { syncCombatToParagraphDescription } from '../combatModule.js'
 import { createSection } from '../common/domHelpers.js'
@@ -670,11 +671,15 @@ export function renderParagraphNumberModule(container, entity, type, ctx = {}) {
  * @returns {string} HTML string
  */
 export function renderParagraphRoleModuleHtml(isEnd = false) {
-    const title = escapeHtml(t('details.narrative_role'))
-    const roleFinale = escapeHtml(t('details.role_finale'))
-    const roleRegular = escapeHtml(t('details.role_regular'))
-    const checkboxLabel = escapeHtml(t('details.end_paragraph_checkbox'))
-    const hintText = escapeHtml(t('details.end_paragraph_hint'))
+    const title = escapeHtml(t('details.narrative_role') || 'Rola narracyjna')
+    const roleFinale = escapeHtml(t('details.role_finale') || 'FINAŁ (KONIEC)')
+    const roleEndLabel = escapeHtml(
+        t('details.role_end') && t('details.role_end') !== 'details.role_end'
+            ? t('details.role_end')
+            : 'Koniec'
+    )
+    const roleRegular = escapeHtml(t('details.role_regular') || 'Zwykły paragraf')
+    const hintText = escapeHtml(t('details.end_paragraph_hint') || '')
 
     const badgeClass = isEnd
         ? 'bg-rose-950/70 text-rose-300 border border-rose-700/60'
@@ -689,13 +694,17 @@ export function renderParagraphRoleModuleHtml(isEnd = false) {
             </span>
         </div>
         <div class="space-y-1.5 pt-0.5">
-            <label class="flex items-center gap-2 text-xs text-[#d4d4d8] cursor-pointer select-none">
-                <input type="checkbox" id="details-paragraph-is-end" ${isEnd ? 'checked' : ''} class="rounded accent-rose-500 cursor-pointer w-4 h-4" />
-                <span class="font-medium text-zinc-200">${checkboxLabel}</span>
-            </label>
-            <p class="text-[11px] text-zinc-400 leading-relaxed">
-                ${hintText}
-            </p>
+            <div class="flex items-center gap-4 py-1">
+                <label class="flex items-center gap-2 text-xs text-[#d4d4d8] cursor-pointer select-none">
+                    <input type="radio" name="details-paragraph-role" value="regular" id="details-paragraph-role-regular" ${!isEnd ? 'checked' : ''} class="accent-blue-500 cursor-pointer w-3.5 h-3.5" />
+                    <span class="font-medium text-zinc-200">${roleRegular}</span>
+                </label>
+                <label class="flex items-center gap-2 text-xs text-[#d4d4d8] cursor-pointer select-none">
+                    <input type="radio" name="details-paragraph-role" value="end" id="details-paragraph-role-end" ${isEnd ? 'checked' : ''} class="accent-rose-500 cursor-pointer w-3.5 h-3.5" />
+                    <span class="font-medium text-zinc-200">${roleEndLabel}</span>
+                </label>
+            </div>
+            ${hintText ? `<p class="text-[11px] text-zinc-400 leading-relaxed">${hintText}</p>` : ''}
         </div>
     `
 }
@@ -722,36 +731,64 @@ export function renderParagraphRoleModule(container, entity, type, ctx = {}, onR
         renderParagraphRoleModuleHtml(isEnd)
     )
 
-    const checkbox = roleMod.querySelector('#details-paragraph-is-end')
+    const radioInputs = roleMod.querySelectorAll('input[name="details-paragraph-role"]')
     const roleBadge = roleMod.querySelector('#details-paragraph-role-badge')
 
-    if (checkbox) {
-        checkbox.addEventListener('change', () => {
-            const checked = checkbox.checked
-            if (typeof entity.setIsEnd === 'function') {
-                entity.setIsEnd(checked)
-            } else {
-                entity.isEnd = checked
-            }
-            if (typeof markProjectDirty === 'function') {
-                markProjectDirty()
-            }
-            if (roleBadge) {
-                roleBadge.className = checked
-                    ? 'text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-950/70 text-rose-300 border border-rose-700/60'
-                    : 'text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700'
-                roleBadge.textContent = checked
+    const updateRole = checked => {
+        if (typeof entity.setIsEnd === 'function') {
+            entity.setIsEnd(checked)
+        } else {
+            entity.isEnd = checked
+        }
+        if (typeof markProjectDirty === 'function') {
+            markProjectDirty()
+        }
+        if (roleBadge) {
+            roleBadge.className = checked
+                ? 'text-[10px] font-semibold px-2 py-0.5 rounded bg-rose-950/70 text-rose-300 border border-rose-700/60'
+                : 'text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700'
+            roleBadge.textContent = checked
+                ? t('details.role_finale') && t('details.role_finale') !== 'details.role_finale'
                     ? t('details.role_finale')
-                    : t('details.role_regular')
-            }
+                    : 'FINAŁ (KONIEC)'
+                : t('details.role_regular') && t('details.role_regular') !== 'details.role_regular'
+                  ? t('details.role_regular')
+                  : 'Zwykły paragraf'
+        }
 
-            if (typeof ctx?.renderParagraphsList === 'function') ctx.renderParagraphsList()
-            if (ctx?.storyGraph && typeof ctx.storyGraph.renderGraph === 'function') {
-                ctx.storyGraph.renderGraph()
+        if (typeof ctx?.renderParagraphsList === 'function') ctx.renderParagraphsList()
+
+        // Immediate Graph refresh
+        const pId = typeof entity.getId === 'function' ? entity.getId() : entity.id
+        if (pId) {
+            const nodeEl = document.querySelector(`paragraph-node[data-id="${pId}"]`)
+            if (nodeEl && typeof nodeEl.render === 'function') {
+                nodeEl.render()
             }
-            if (typeof onRefresh === 'function') {
-                onRefresh()
-            }
+        }
+        const sg =
+            ctx?.storyGraphInstance ||
+            ctx?.storyGraph ||
+            (typeof getStoryGraphInstance === 'function' ? getStoryGraphInstance() : null)
+        if (sg && typeof sg.render === 'function') {
+            sg.render(true)
+        }
+        if (typeof onRefresh === 'function') {
+            onRefresh()
+        }
+    }
+
+    radioInputs.forEach(radio => {
+        radio.addEventListener('change', () => {
+            const isEndVal = radio.value === 'end'
+            updateRole(isEndVal)
+        })
+    })
+
+    const legacyCheckbox = roleMod.querySelector('#details-paragraph-is-end')
+    if (legacyCheckbox) {
+        legacyCheckbox.addEventListener('change', () => {
+            updateRole(legacyCheckbox.checked)
         })
     }
 

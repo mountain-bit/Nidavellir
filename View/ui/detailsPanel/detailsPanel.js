@@ -147,7 +147,6 @@ function renderStandardEntityModules(container, entity, item, type, ctx, onRefre
     renderNameModule(container, item, entityScope, ctx, onRefresh)
     renderColorModule(container, entity, type, ctx)
     renderParagraphNumberModule(container, entity, type, ctx)
-    renderParagraphRoleModule(container, entity, type, ctx, onRefresh)
     renderStatValueModule(container, entity, type, ctx, onRefresh)
     renderParameterConfigModule(container, entity, type, ctx, onRefresh)
     renderSkillConfigModule(container, entity, type, ctx, onRefresh)
@@ -161,9 +160,12 @@ function renderStandardEntityModules(container, entity, item, type, ctx, onRefre
     renderSkillsModule(container, entity, type, ctx, onRefresh)
     renderFeaturesModule(container, entity, type, ctx, onRefresh)
     renderCustomAttributesModule(container, entity, type, ctx, onRefresh)
-    renderItemsModule(container, entity, type, ctx, onRefresh)
+    if (type !== 'paragraph') {
+        renderItemsModule(container, entity, type, ctx, onRefresh)
+    }
     renderExitsModule(container, entity, type, ctx, onRefresh)
     renderCombatModule(container, entity, type, ctx, onRefresh)
+    renderParagraphRoleModule(container, entity, type, ctx, onRefresh)
     renderQuickActionsModule(container, item, type, ctx)
 }
 

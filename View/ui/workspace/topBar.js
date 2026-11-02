@@ -3,7 +3,6 @@ import { t } from '../../../dist/Utils/translate.js'
 import { openAssetManager } from '../assets/assetManagerModal.js'
 import { openExportModal as openAdvancedExportModal } from '../modals/export/exportModal.js'
 import { openPlaytestSimulator as openAdvancedPlaytestSimulator } from '../modals/playtest/playtestModal.js'
-import { saveFullProject } from '../project/projectSaver.js'
 import { openQuickSearch } from './quickSearch.js'
 import { runGraphValidation } from './topBarValidation.js'
 import { updateZoomToolbarUI } from './workspace.js'
@@ -118,7 +117,12 @@ export async function openGameRules(ctx) {
     }
 
     // 1. Check if already loaded in memory
-    let content = ctx.files[rulesPath] || ctx.files[fallbackPath]
+    let content =
+        typeof ctx.files[rulesPath] === 'string'
+            ? ctx.files[rulesPath]
+            : typeof ctx.files[fallbackPath] === 'string'
+              ? ctx.files[fallbackPath]
+              : undefined
 
     // 2. If not in memory, try reading from disk via Electron API
     if (typeof content !== 'string') {
@@ -139,21 +143,11 @@ export async function openGameRules(ctx) {
         ) {
             try {
                 let res = await window.electronAPI.readMarkdownFile(projectPath, rulesPath)
-                if (
-                    res &&
-                    res.success &&
-                    typeof res.content === 'string' &&
-                    res.content.length > 0
-                ) {
+                if (res && res.success && !res.isVirtual && typeof res.content === 'string') {
                     content = res.content
                 } else {
                     res = await window.electronAPI.readMarkdownFile(projectPath, fallbackPath)
-                    if (
-                        res &&
-                        res.success &&
-                        typeof res.content === 'string' &&
-                        res.content.length > 0
-                    ) {
+                    if (res && res.success && !res.isVirtual && typeof res.content === 'string') {
                         content = res.content
                     }
                 }
@@ -163,13 +157,9 @@ export async function openGameRules(ctx) {
         }
     }
 
-    // 3. If still empty, initialize with default starter template
-    if (typeof content !== 'string' || content.trim().length === 0) {
-        const defaultTemplate =
-            typeof t === 'function' && t('rules.template') !== 'rules.template'
-                ? t('rules.template')
-                : '# Zasady Gry\n\n## Wprowadzenie\nWitaj w grze paragrafowej!\n'
-        content = defaultTemplate
+    // 3. If file does not exist yet, initialize as empty file
+    if (typeof content !== 'string') {
+        content = ''
     }
 
     ctx.files[rulesPath] = content
@@ -215,13 +205,6 @@ function registerGlobalShortcuts(ctx) {
             (target.tagName === 'INPUT' ||
                 target.tagName === 'TEXTAREA' ||
                 target.isContentEditable)
-
-        // Ctrl + S: Zapisz projekt
-        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-            e.preventDefault()
-            saveFullProject(ctx)
-            return
-        }
 
         // F5: Playtest (nie odświeżaj Electrona)
         if (e.key === 'F5') {

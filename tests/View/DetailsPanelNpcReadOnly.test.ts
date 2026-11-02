@@ -198,7 +198,7 @@ describe('npcReadOnlyDetails & readonly index', () => {
             expect(emptySec).toContain(translate('details.no_skills'))
         })
 
-        it('renders feature item and features section', () => {
+        it('renders feature item and features section with value and standalone name', () => {
             const featHtml = renderNpcFeatureItemHtml({
                 getName: (): string => 'Nocne widzenie',
                 getDescription: (): { getText: () => string } => ({
@@ -207,6 +207,18 @@ describe('npcReadOnlyDetails & readonly index', () => {
             })
             expect(featHtml).toContain('Nocne widzenie')
             expect(featHtml).toContain('Widzi w całkowitych ciemnościach.')
+
+            const valFeatHtml = renderNpcFeatureItemHtml({
+                getName: (): string => 'Pochodzenie',
+                getValue: (): string => 'Miasto',
+            })
+            expect(valFeatHtml).toContain('Pochodzenie')
+            expect(valFeatHtml).toContain('Miasto')
+
+            const standaloneFeatHtml = renderNpcFeatureItemHtml({
+                getName: (): string => 'Utalentowany',
+            })
+            expect(standaloneFeatHtml).toContain('Utalentowany')
 
             const secHtml = renderNpcFeaturesSectionHtml({
                 featuresCount: 1,

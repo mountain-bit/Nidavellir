@@ -19,7 +19,7 @@ export function setupMainWindowHotkeys(appContext) {
     })
 
     document.addEventListener('keydown', e => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
             e.preventDefault()
             saveFullProject(appContext)
         } else if (e.key === 'Delete' || e.key === 'Backspace') {

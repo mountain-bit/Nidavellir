@@ -1123,6 +1123,7 @@
         "number_taken": "Ten numer jest już zajęty, wybierz inny",
         "narrative_role": "Rola narracyjna",
         "role_finale": "FINAŁ (KONIEC)",
+        "role_end": "Koniec",
         "role_regular": "Zwykły paragraf",
         "end_paragraph_checkbox": "Paragraf końcowy (Finał historii)",
         "end_paragraph_hint": "Oznacza ten węzeł jako oficjalne zakończenie opowieści. Walidator grafu uznaje go za prawidłowy finał i nie zgłasza go jako ślepy zaułek.",

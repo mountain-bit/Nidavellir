@@ -278,7 +278,7 @@ describe('DetailsPanel - Items Module in Paragraph (Stage 2)', () => {
         window.prompt = originalPrompt
     })
 
-    it('renders inside renderDetailsPanel when paragraph is selected', () => {
+    it('does not render separate items section on paragraph in renderDetailsPanel (items are placed on exits)', () => {
         const p = new Paragraph('p_main', 'Główna Komnata')
         p.addItemAction({
             itemId: 'it_chalice',
@@ -290,8 +290,7 @@ describe('DetailsPanel - Items Module in Paragraph (Stage 2)', () => {
 
         renderDetailsPanel(ctx)
 
-        expect(detailsContent.textContent).toContain('Przedmioty')
-        expect(detailsContent.textContent).toContain('Złoty Kielich')
+        expect(detailsContent.querySelector('#details-items-list')).toBeNull()
     })
 
     describe('ItemsModule Template Helpers and Functions', () => {

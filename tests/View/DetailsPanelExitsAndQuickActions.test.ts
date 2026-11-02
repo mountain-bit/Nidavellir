@@ -271,6 +271,88 @@ describe('DetailsPanel - Exits & Quick Actions Modules', () => {
             expect(mockRefresh).toHaveBeenCalled()
         })
 
+        it('updates condition on condition input change', () => {
+            const p1 = new Paragraph('p_1', 'Origin')
+            const mockSetCondition = vi.fn()
+            const mockChoice = {
+                getId: (): string => 'ch_1',
+                getName: (): string => 'Passage',
+                getToParagraphId: (): string => 'p_2',
+                getCondition: (): null => null,
+                setCondition: mockSetCondition,
+            }
+            ;(p1 as unknown as { getChoices: () => unknown[] }).getChoices = (): unknown[] => [
+                mockChoice,
+            ]
+
+            const mockRefresh = vi.fn()
+            const mockGraphRender = vi.fn()
+            const ctx = {
+                projectParagraphs: [p1],
+                renderConnectionsList: vi.fn(),
+                storyGraphInstance: { render: mockGraphRender },
+            }
+
+            renderExitsModule(container, p1, 'paragraph', ctx, mockRefresh)
+            const condInput = container.querySelector('.exit-condition-input') as HTMLInputElement
+            expect(condInput).toBeDefined()
+
+            condInput.value = 'Wymaga klucza'
+            condInput.dispatchEvent(new Event('change'))
+
+            expect(mockSetCondition).toHaveBeenCalled()
+            expect(mockGraphRender).toHaveBeenCalledWith(true)
+            expect(mockRefresh).toHaveBeenCalled()
+        })
+
+        it('adds and removes item reward on exit card', () => {
+            const p1 = new Paragraph('p_1', 'Origin')
+            const rewards: Array<{ id: string; name: string; value: number; type: string }> = []
+            const mockChoice = {
+                getId: (): string => 'ch_1',
+                getName: (): string => 'Passage',
+                getToParagraphId: (): string => 'p_2',
+                getRewards: (): unknown[] => rewards,
+                setRewards: vi.fn((newRew: unknown[]) => {
+                    rewards.length = 0
+                    rewards.push(...(newRew as typeof rewards))
+                }),
+                addReward: vi.fn(
+                    (rew: { id: string; name: string; value: number; type: string }) => {
+                        rewards.push(rew)
+                    }
+                ),
+            }
+            ;(p1 as unknown as { getChoices: () => unknown[] }).getChoices = (): unknown[] => [
+                mockChoice,
+            ]
+
+            const mockRefresh = vi.fn()
+            const ctx = {
+                projectParagraphs: [p1],
+                projectItems: [{ getName: (): string => 'Złoty Klucz' }],
+                renderConnectionsList: vi.fn(),
+            }
+
+            renderExitsModule(container, p1, 'paragraph', ctx, mockRefresh)
+
+            const selectItem = container.querySelector('.exit-item-select') as HTMLSelectElement
+            const addBtn = container.querySelector('.btn-add-exit-item') as HTMLButtonElement
+
+            expect(selectItem).toBeDefined()
+            selectItem.value = 'Złoty Klucz'
+            addBtn.click()
+
+            expect(mockChoice.addReward).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    name: 'Złoty Klucz',
+                    value: 1,
+                    type: 'item',
+                })
+            )
+            expect(mockRefresh).toHaveBeenCalled()
+        })
+
         it('inspects choice when clicking inspect button', () => {
             const p1 = new Paragraph('p_1', 'Origin')
             const mockChoice = {

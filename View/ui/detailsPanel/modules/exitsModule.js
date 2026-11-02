@@ -7,6 +7,7 @@ import {
     TextCondition,
 } from '../../../../dist/ViewModel/MainWindowViewModel.js'
 import { escapeHtml } from '../../common/htmlTemplates.js'
+import { markProjectDirty } from '../../project/projectStateTracker.js'
 import { createSection } from '../common/domHelpers.js'
 import { renderHistoryBar } from '../historyBar.js'
 
@@ -158,17 +159,116 @@ export function renderAddExitFormHtml(targetOptionsHtml = '') {
 }
 
 /**
+ * Pure template for exit items (rewards / costs) subsection.
+ *
+ * @param {object} choice
+ * @param {Array<object>} [projectItems=[]]
+ * @returns {string}
+ */
+export function renderExitItemsSectionHtml(choice, projectItems = []) {
+    const rewards =
+        (typeof choice?.getRewards === 'function' ? choice.getRewards() : choice?.rewards) || []
+    const costs = (typeof choice?.getCosts === 'function' ? choice.getCosts() : choice?.costs) || []
+    const itemRewards = rewards.filter(r => (r.type || 'item') === 'item')
+    const itemCosts = costs.filter(c => (c.type || 'item') === 'item')
+
+    const hasItems = itemRewards.length > 0 || itemCosts.length > 0
+
+    const badgesHtml = hasItems
+        ? `
+            <div class="flex flex-wrap gap-1 items-center">
+                ${itemRewards
+                    .map(
+                        (r, i) => `
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 font-mono">
+                        <span>+${r.value || 1} ${escapeHtml(r.name)}</span>
+                        <button type="button" class="btn-remove-exit-reward hover:text-white cursor-pointer px-0.5 leading-none" data-reward-name="${escapeHtml(r.name)}" data-reward-index="${i}" title="${escapeHtml(t('buttons.delete') || 'Usuń')}">&times;</button>
+                    </span>
+                `
+                    )
+                    .join('')}
+                ${itemCosts
+                    .map(
+                        (c, i) => `
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-red-950/60 text-red-300 border border-red-800/40 font-mono">
+                        <span>-${c.value || 1} ${escapeHtml(c.name)}</span>
+                        <button type="button" class="btn-remove-exit-cost hover:text-white cursor-pointer px-0.5 leading-none" data-cost-name="${escapeHtml(c.name)}" data-cost-index="${i}" title="${escapeHtml(t('buttons.delete') || 'Usuń')}">&times;</button>
+                    </span>
+                `
+                    )
+                    .join('')}
+            </div>
+        `
+        : `<span class="text-[10px] text-gray-500 italic">${escapeHtml(t('details.no_items') || 'Brak modyfikatorów przedmiotów')}</span>`
+
+    const itemOptions = (Array.isArray(projectItems) ? projectItems : [])
+        .map(it => {
+            const name = typeof it?.getName === 'function' ? it.getName() : it?.name || ''
+            return `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`
+        })
+        .join('')
+
+    return `
+        <div class="space-y-1.5 pt-1.5 border-t border-[#27272a]">
+            <div class="flex items-center justify-between">
+                <label class="block text-[10px] text-gray-400 uppercase font-semibold flex items-center gap-1">
+                    <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('item', 'w-3 h-3')}</span>
+                    <span>${escapeHtml(t('details.items') || 'Przedmioty')} (${escapeHtml(t('details.exit_badge_reward') || 'Zysk')} / ${escapeHtml(t('details.exit_badge_cost') || 'Utrata')})</span>
+                </label>
+            </div>
+            ${badgesHtml}
+            <div class="flex items-center gap-1 pt-0.5">
+                <select class="exit-item-mode bg-[#27272a] border border-[#3f3f46] rounded px-1.5 py-1 text-[11px] text-zinc-300 focus:outline-none focus:border-blue-500">
+                    <option value="give">+ ${escapeHtml(t('details.action_badge_give') || 'Zdobycie')}</option>
+                    <option value="remove">- ${escapeHtml(t('details.action_badge_remove') || 'Utrata')}</option>
+                </select>
+                <select class="exit-item-select flex-1 bg-[#27272a] border border-[#3f3f46] rounded px-1.5 py-1 text-[11px] text-zinc-300 focus:outline-none focus:border-blue-500">
+                    <option value="">-- ${escapeHtml(t('details.select_item') || 'Wybierz przedmiot')} --</option>
+                    ${itemOptions}
+                </select>
+                <input type="number" min="1" value="1" class="exit-item-qty w-12 bg-[#27272a] border border-[#3f3f46] rounded px-1.5 py-1 text-[11px] text-zinc-300 text-center focus:outline-none focus:border-blue-500" title="${escapeHtml(t('details.quantity') || 'Ilość')}" />
+                <button type="button" class="btn-add-exit-item px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs text-white font-medium cursor-pointer transition-colors" title="${escapeHtml(t('buttons.add') || 'Dodaj')}">+</button>
+            </div>
+        </div>
+    `
+}
+
+/**
  * Pure template for a single exit card.
  *
  * @param {object} choice
  * @param {string} toTitle
  * @param {string} targetOptionsHtml
  * @param {string} exitBadgesHtml
+ * @param {string} [conditionText='']
+ * @param {string} [itemActionsHtml='']
  * @returns {string}
  */
-export function renderExitCardHtml(choice, toTitle, targetOptionsHtml, exitBadgesHtml) {
+export function renderExitCardHtml(
+    choice,
+    toTitle,
+    targetOptionsHtml,
+    exitBadgesHtml,
+    conditionText = '',
+    itemActionsHtml = ''
+) {
     if (!choice) return ''
     const choiceName = typeof choice.getName === 'function' ? choice.getName() : choice.name || ''
+
+    let condText = conditionText
+    if (!condText && choice) {
+        const cond =
+            typeof choice.getCondition === 'function' ? choice.getCondition() : choice.condition
+        if (cond instanceof TextCondition) {
+            condText = cond.getText()
+        } else if (typeof cond?.getSummary === 'function') {
+            condText = cond.getSummary()
+        } else if (cond?.text) {
+            condText = cond.text
+        } else if (cond?.itemName || cond?.item) {
+            condText = `${t('details.action_badge_require') || 'Wymaga'}: ${cond.itemName || cond.item}`
+        }
+    }
 
     return `
         <div class="flex items-center justify-between gap-1">
@@ -199,6 +299,13 @@ export function renderExitCardHtml(choice, toTitle, targetOptionsHtml, exitBadge
                 ${targetOptionsHtml}
             </select>
         </div>
+
+        <div class="space-y-1">
+            <label class="block text-[10px] text-gray-400 uppercase font-semibold">${t('details.condition_text')} (${t('left_panel.condition_text_optional') || 'opcjonalny'})</label>
+            <input type="text" class="exit-condition-input w-full bg-[#27272a] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" value="${escapeHtml(condText)}" placeholder="${t('details.condition_placeholder') || 'np. Wymaga klucza lub Zręczność >= 12'}" />
+        </div>
+
+        ${itemActionsHtml}
     `
 }
 
@@ -247,6 +354,10 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
 
     const choices = (typeof entity.getChoices === 'function' ? entity.getChoices() : []) || []
     const projectParagraphs = (ctx && ctx.projectParagraphs) || []
+    const projectItems =
+        (ctx && ctx.projectItems) ||
+        (ctx && ctx.projectData && (ctx.projectData.projectItems || ctx.projectData.items)) ||
+        (ctx?.vm?.project?.getItems ? ctx.vm.project.getItems() : [])
 
     const addExitFormHtml = renderAddExitFormHtml(
         renderTargetParagraphOptionsHtml(projectParagraphs, '', entity.getId ? entity.getId() : '')
@@ -373,6 +484,7 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
 
                 const targetOptionsHtml = renderTargetParagraphOptionsHtml(projectParagraphs, toId)
                 const exitBadgesHtml = renderExitBadgesHtml(choice, choiceCondText)
+                const itemsSectionHtml = renderExitItemsSectionHtml(choice, projectItems)
 
                 const card = document.createElement('div')
                 card.className =
@@ -381,7 +493,9 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                     choice,
                     toTitle,
                     targetOptionsHtml,
-                    exitBadgesHtml
+                    exitBadgesHtml,
+                    choiceCondText,
+                    itemsSectionHtml
                 )
 
                 const exitNameInput = card.querySelector('.exit-name-input')
@@ -494,6 +608,167 @@ export function renderExitsModule(container, entity, type, ctx, onRefreshDetails
                             }
                             toast.success(t('toast.target_updated'))
                         }
+                    })
+                }
+
+                const exitCondInput = card.querySelector('.exit-condition-input')
+                if (exitCondInput) {
+                    const handleCondUpdate = () => {
+                        const newCond = exitCondInput.value.trim()
+                        const curCond =
+                            typeof choice.getCondition === 'function'
+                                ? choice.getCondition()
+                                : choice.condition
+                        const curText =
+                            curCond instanceof TextCondition
+                                ? curCond.getText()
+                                : curCond?.getSummary
+                                  ? curCond.getSummary()
+                                  : curCond?.text || ''
+                        if (newCond !== curText) {
+                            if (!newCond) {
+                                if (typeof choice.setCondition === 'function') {
+                                    choice.setCondition(null)
+                                } else {
+                                    choice.condition = null
+                                }
+                            } else {
+                                if (curCond instanceof TextCondition) {
+                                    curCond.setText(newCond)
+                                } else {
+                                    const idGen =
+                                        ctx?.vm?.factory?.idGenerator ||
+                                        (() => `cond_${Date.now()}`)
+                                    const newCondition = new TextCondition(
+                                        idGen('condition'),
+                                        newCond,
+                                        newCond
+                                    )
+                                    if (typeof choice.setCondition === 'function') {
+                                        choice.setCondition(newCondition)
+                                    } else {
+                                        choice.condition = newCondition
+                                    }
+                                }
+                            }
+                            if (typeof markProjectDirty === 'function') markProjectDirty()
+                            if (ctx && typeof ctx.renderConnectionsList === 'function')
+                                ctx.renderConnectionsList()
+                            if (
+                                ctx &&
+                                ctx.storyGraphInstance &&
+                                typeof ctx.storyGraphInstance.render === 'function'
+                            ) {
+                                ctx.storyGraphInstance.render(true)
+                            }
+                            refreshDetails()
+                        }
+                    }
+                    exitCondInput.addEventListener('change', handleCondUpdate)
+                }
+
+                card.querySelectorAll('.btn-remove-exit-reward').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.stopPropagation()
+                        const idx = parseInt(btn.dataset.rewardIndex, 10)
+                        const rewards = [
+                            ...(typeof choice.getRewards === 'function'
+                                ? choice.getRewards()
+                                : choice.rewards || []),
+                        ]
+                        if (!isNaN(idx) && idx >= 0 && idx < rewards.length) {
+                            rewards.splice(idx, 1)
+                            if (typeof choice.setRewards === 'function') {
+                                choice.setRewards(rewards)
+                            } else {
+                                choice.rewards = rewards
+                            }
+                            if (typeof markProjectDirty === 'function') markProjectDirty()
+                            if (
+                                ctx &&
+                                ctx.storyGraphInstance &&
+                                typeof ctx.storyGraphInstance.render === 'function'
+                            ) {
+                                ctx.storyGraphInstance.render(true)
+                            }
+                            refreshDetails()
+                        }
+                    })
+                })
+
+                card.querySelectorAll('.btn-remove-exit-cost').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        e.stopPropagation()
+                        const idx = parseInt(btn.dataset.costIndex, 10)
+                        const costs = [
+                            ...(typeof choice.getCosts === 'function'
+                                ? choice.getCosts()
+                                : choice.costs || []),
+                        ]
+                        if (!isNaN(idx) && idx >= 0 && idx < costs.length) {
+                            costs.splice(idx, 1)
+                            if (typeof choice.setCosts === 'function') {
+                                choice.setCosts(costs)
+                            } else {
+                                choice.costs = costs
+                            }
+                            if (typeof markProjectDirty === 'function') markProjectDirty()
+                            if (
+                                ctx &&
+                                ctx.storyGraphInstance &&
+                                typeof ctx.storyGraphInstance.render === 'function'
+                            ) {
+                                ctx.storyGraphInstance.render(true)
+                            }
+                            refreshDetails()
+                        }
+                    })
+                })
+
+                const addExitItemBtn = card.querySelector('.btn-add-exit-item')
+                const exitItemMode = card.querySelector('.exit-item-mode')
+                const exitItemSelect = card.querySelector('.exit-item-select')
+                const exitItemQty = card.querySelector('.exit-item-qty')
+
+                if (addExitItemBtn && exitItemSelect) {
+                    addExitItemBtn.addEventListener('click', () => {
+                        const selectedItemName = exitItemSelect.value.trim()
+                        if (!selectedItemName) return
+                        const mode = exitItemMode?.value || 'give'
+                        const qty = parseInt(exitItemQty?.value, 10) || 1
+
+                        const modifier = {
+                            id: `${mode}_${Date.now()}`,
+                            name: selectedItemName,
+                            value: qty,
+                            type: 'item',
+                        }
+
+                        if (mode === 'give') {
+                            if (typeof choice.addReward === 'function') {
+                                choice.addReward(modifier)
+                            } else {
+                                if (!Array.isArray(choice.rewards)) choice.rewards = []
+                                choice.rewards.push(modifier)
+                            }
+                        } else {
+                            if (typeof choice.addCost === 'function') {
+                                choice.addCost(modifier)
+                            } else {
+                                if (!Array.isArray(choice.costs)) choice.costs = []
+                                choice.costs.push(modifier)
+                            }
+                        }
+
+                        if (typeof markProjectDirty === 'function') markProjectDirty()
+                        if (
+                            ctx &&
+                            ctx.storyGraphInstance &&
+                            typeof ctx.storyGraphInstance.render === 'function'
+                        ) {
+                            ctx.storyGraphInstance.render(true)
+                        }
+                        refreshDetails()
                     })
                 }
 

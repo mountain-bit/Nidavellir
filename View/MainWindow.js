@@ -232,6 +232,9 @@ const appContext = {
     get storyGraphInstance() {
         return getStoryGraphInstance()
     },
+    get storyGraph() {
+        return getStoryGraphInstance()
+    },
     updateRightSidebarUI: () =>
         updateRightSidebarUI(vm, rightSidebar, toggleRightSidebarBtn, reopenRightSidebarBtn),
     saveActiveFile: () => saveActiveFile(appContext),

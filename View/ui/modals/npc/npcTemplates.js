@@ -112,12 +112,18 @@ export function renderAttributeRowHtml(attr) {
     `
     }
 
+    const hasValue =
+        attr.value !== undefined && attr.value !== null && String(attr.value).trim() !== ''
+    const valueDisplay = hasValue
+        ? `<span class="text-xs text-zinc-400 font-medium shrink-0">${escapeAttr(attr.name || safeT('npc.attr_unnamed', 'Atrybut'))}:</span>
+           <span class="text-xs font-semibold text-zinc-100 truncate">${escapeAttr(attr.value)}</span>`
+        : `<span class="text-xs font-semibold text-zinc-100 truncate">${escapeAttr(attr.name || safeT('npc.attr_unnamed', 'Atrybut'))}</span>`
+
     return `
         <div class="npc-attribute-row flex items-center justify-between gap-2 py-1 px-2.5 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-[#4a5e74]/40 transition-all group cursor-pointer" data-attr-id="${escapeAttr(attr.id)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
             <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-[#9bb7d4] pl-0.5 select-none shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
-                <span class="text-xs text-zinc-400 font-medium shrink-0">${escapeAttr(attr.name || safeT('npc.attr_unnamed', 'Atrybut'))}:</span>
-                <span class="text-xs font-semibold text-zinc-100 truncate">${escapeAttr(attr.value || '-')}</span>
+                ${valueDisplay}
             </div>
             <div class="flex items-center gap-1 shrink-0">
                 <button

@@ -1123,6 +1123,7 @@
         "number_taken": "This number is already taken, please choose another",
         "narrative_role": "Narrative role",
         "role_finale": "FINALE (END)",
+        "role_end": "End",
         "role_regular": "Regular paragraph",
         "end_paragraph_checkbox": "Ending paragraph (Story finale)",
         "end_paragraph_hint": "Marks this node as an official conclusion of the story. Graph validator treats it as a valid finale rather than a dead end.",

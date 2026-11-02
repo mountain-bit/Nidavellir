@@ -394,8 +394,9 @@ export function updateZoomToolbarUI(storyGraphInstance, zoomLevel) {
  * Saves current active file to memory and disk via IPC.
  *
  * @param {object} ctx Application UI Context
+ * @param {{ silent?: boolean }} [options={}]
  */
-export function saveActiveFile(ctx) {
+export function saveActiveFile(ctx, options = {}) {
     const active = ctx.vm.files.getActiveFile()
     if (!active) return
 
@@ -432,18 +433,33 @@ export function saveActiveFile(ctx) {
                             }
                         }, 2500)
                     }
-                    if (res.recreated || res.warning === 'recreated') {
-                        toast.warning(t('toast.file_recreated_warning'), t('toast.warning_title'))
-                    } else {
-                        toast.success(t('toast.save_success'), t('toast.success_title'))
+                    if (!options.silent) {
+                        if (res.recreated || res.warning === 'recreated') {
+                            toast.warning(
+                                t('toast.file_recreated_warning'),
+                                t('toast.warning_title')
+                            )
+                        } else {
+                            toast.success(t('toast.save_success'), t('toast.success_title'))
+                        }
                     }
                 } else if (res && !res.success) {
-                    toast.error(t('toast.save_error', { error: res.error }), t('toast.error_title'))
+                    if (!options.silent) {
+                        toast.error(
+                            t('toast.save_error', { error: res.error }),
+                            t('toast.error_title')
+                        )
+                    }
                 }
             })
             .catch(err => {
                 console.error('Error saving file:', err)
-                toast.error(t('toast.save_error', { error: err.message }), t('toast.error_title'))
+                if (!options.silent) {
+                    toast.error(
+                        t('toast.save_error', { error: err.message }),
+                        t('toast.error_title')
+                    )
+                }
             })
     } else {
         markFileClean(active)
@@ -456,7 +472,9 @@ export function saveActiveFile(ctx) {
                 }
             }, 2500)
         }
-        toast.success(t('toast.save_success'), t('toast.success_title'))
+        if (!options.silent) {
+            toast.success(t('toast.save_success'), t('toast.success_title'))
+        }
     }
 }
 

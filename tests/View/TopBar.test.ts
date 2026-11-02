@@ -378,7 +378,7 @@ describe('TopBar UI Controller (View/ui/topBar.js)', () => {
 
         await openGameRules(mockCtx)
 
-        expect(mockCtx.files['Rules/GameRules.md']).toContain('Zasady')
+        expect(mockCtx.files['Rules/GameRules.md']).toBe('')
         expect(setFileDisplayNameSpy).toHaveBeenCalledWith('Rules/GameRules.md', expect.any(String))
         expect(setActiveFileSpy).toHaveBeenCalledWith('Rules/GameRules.md')
         expect(setActiveMainViewSpy).toHaveBeenCalledWith('markdown')

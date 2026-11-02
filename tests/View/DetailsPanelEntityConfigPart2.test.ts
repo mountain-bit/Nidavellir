@@ -114,30 +114,40 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
         let paragraph: Paragraph
         let mockCtx: {
             renderParagraphsList: ReturnType<typeof vi.fn>
-            storyGraph: { renderGraph: ReturnType<typeof vi.fn> }
+            storyGraph: {
+                render: ReturnType<typeof vi.fn>
+                renderGraph: ReturnType<typeof vi.fn>
+            }
+            storyGraphInstance?: {
+                render: ReturnType<typeof vi.fn>
+                renderGraph?: ReturnType<typeof vi.fn>
+            }
         }
 
         beforeEach(() => {
             paragraph = new Paragraph('p-2', 'Zakończenie')
+            const sgMock = {
+                render: vi.fn(),
+                renderGraph: vi.fn(),
+            }
             mockCtx = {
                 renderParagraphsList: vi.fn(),
-                storyGraph: {
-                    renderGraph: vi.fn(),
-                },
+                storyGraph: sgMock,
+                storyGraphInstance: sgMock,
             }
         })
 
         it('renderParagraphRoleModuleHtml renders finale badge when isEnd is true', () => {
             const html = renderParagraphRoleModuleHtml(true)
-            expect(html).toContain('FINAŁ (KONIEC)')
+            expect(html).toContain('details-paragraph-role-end')
             expect(html).toContain('checked')
             expect(html).toContain('bg-rose-950/70')
         })
 
         it('renderParagraphRoleModuleHtml renders regular badge when isEnd is false', () => {
             const html = renderParagraphRoleModuleHtml(false)
-            expect(html).toContain('Zwykły paragraf')
-            expect(html).not.toContain('checked')
+            expect(html).toContain('details-paragraph-role-regular')
+            expect(html).toContain('checked')
         })
 
         it('does not render role module for START node', () => {
@@ -146,22 +156,22 @@ describe('entityConfigModules - Part 2 (ParagraphNumber, Role, Summary, Files)',
             expect(renderParagraphRoleModule(container, startP, 'paragraph', mockCtx)).toBeNull()
         })
 
-        it('toggles isEnd flag on checkbox change', () => {
+        it('toggles isEnd flag on radio change and refreshes story graph', () => {
             const onRefresh = vi.fn()
             renderParagraphRoleModule(container, paragraph, 'paragraph', mockCtx, onRefresh)
 
-            const checkbox = container.querySelector(
-                '#details-paragraph-is-end'
+            const radioEnd = container.querySelector(
+                '#details-paragraph-role-end'
             ) as HTMLInputElement
             const badge = container.querySelector('#details-paragraph-role-badge') as HTMLElement
 
-            checkbox.checked = true
-            checkbox.dispatchEvent(new Event('change'))
+            radioEnd.checked = true
+            radioEnd.dispatchEvent(new Event('change'))
 
             expect(paragraph.getIsEnd()).toBe(true)
-            expect(badge.textContent).toContain('FINAŁ (KONIEC)')
+            expect(badge.textContent).toMatch(/Koniec|FINAŁ/i)
             expect(mockCtx.renderParagraphsList).toHaveBeenCalled()
-            expect(mockCtx.storyGraph.renderGraph).toHaveBeenCalled()
+            expect(mockCtx.storyGraph.render).toHaveBeenCalledWith(true)
             expect(onRefresh).toHaveBeenCalled()
         })
     })

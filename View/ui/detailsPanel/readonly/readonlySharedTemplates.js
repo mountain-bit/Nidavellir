@@ -304,6 +304,9 @@ export function renderFeatureItemHtml(
     { icon = 'feature', accentColor = 'text-purple-400' } = {}
 ) {
     const fName = typeof f.getName === 'function' ? f.getName() : f.name || ''
+    const rawVal =
+        typeof f.getValue === 'function' ? f.getValue() : f.value !== undefined ? f.value : null
+    const hasValue = rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== ''
     const descText =
         typeof f.getDescription === 'function'
             ? f.getDescription()?.getText?.() || f.getDescription()?.getSummary?.() || ''
@@ -312,9 +315,12 @@ export function renderFeatureItemHtml(
     return `
         <div class="flex items-center justify-between bg-[#18181b] px-2.5 py-1.5 rounded border border-[#27272a] text-xs">
             <div class="min-w-0 flex flex-col flex-1 pr-2">
-                <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5 truncate">
-                    <span class="${accentColor} shrink-0 inline-flex items-center">${getIconSvg(icon, 'w-3 h-3')}</span>
-                    <span class="truncate">${escapeHtml(fName)}</span>
+                <span class="text-[#d4d4d8] font-medium flex items-center justify-between gap-1.5 truncate">
+                    <span class="flex items-center gap-1.5 truncate">
+                        <span class="${accentColor} shrink-0 inline-flex items-center">${getIconSvg(icon, 'w-3 h-3')}</span>
+                        <span class="truncate">${escapeHtml(fName)}</span>
+                    </span>
+                    ${hasValue ? `<span class="text-gray-400 font-normal shrink-0"><span class="text-gray-500 font-mono mr-1">:</span><span class="text-white font-medium">${escapeHtml(String(rawVal))}</span></span>` : ''}
                 </span>
                 ${descText ? `<span class="text-[10px] text-gray-400 truncate pl-4.5 italic" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span>` : ''}
             </div>

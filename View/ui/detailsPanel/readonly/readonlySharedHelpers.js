@@ -94,15 +94,24 @@ export function renderTagChips(tagsList = []) {
  */
 export function renderCustomAttributeRows(customAttrs = []) {
     return customAttrs
-        .map(
-            attr => `
+        .map(attr => {
+            const hasVal =
+                attr.value !== undefined && attr.value !== null && String(attr.value).trim() !== ''
+            if (hasVal) {
+                return `
         <div class="flex items-center justify-between gap-2 bg-[#18181b] px-2.5 py-1.5 rounded border border-[#27272a] text-xs">
             <span class="font-medium text-[#d4d4d8] truncate">${escapeHtml(attr.name)}</span>
             <span class="text-gray-500 font-mono">:</span>
             <span class="font-mono text-white text-right truncate">${escapeHtml(String(attr.value))}</span>
         </div>
     `
-        )
+            }
+            return `
+        <div class="flex items-center justify-between gap-2 bg-[#18181b] px-2.5 py-1.5 rounded border border-[#27272a] text-xs">
+            <span class="font-medium text-[#d4d4d8] truncate">${escapeHtml(attr.name)}</span>
+        </div>
+    `
+        })
         .join('')
 }
 

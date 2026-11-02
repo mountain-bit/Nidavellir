@@ -1107,6 +1107,7 @@
         "number_taken": "Diese Nummer ist bereits vergeben, bitte wählen Sie eine andere",
         "narrative_role": "Narrative Rolle",
         "role_finale": "FINALE (ENDE)",
+        "role_end": "Ende",
         "role_regular": "Standardabsatz",
         "end_paragraph_checkbox": "Endabsatz (Finale der Geschichte)",
         "end_paragraph_hint": "Markiert diesen Knoten als offizielles Ende der Geschichte. Der Graph-Validator erkennt ihn als gültiges Finale an und meldet ihn nicht als Sackgasse.",
