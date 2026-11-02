@@ -13,27 +13,27 @@ Built on **Electron** with **TypeScript** domain logic, **plain JavaScript** vie
 
 ## 2. Tech Stack (Exact Versions)
 
-| Layer                    | Technology                       | Details                                                                               |
-| ------------------------ | -------------------------------- | ------------------------------------------------------------------------------------- |
-| Desktop framework        | **Electron 41.5**                | Multi-process (Chromium + Node.js). `contextIsolation: true`, `nodeIntegration: false` |
-| Runtime                  | **Node.js ≥20 <22, pnpm ≥9 <10** | Enforced via `engines` in `package.json`. **Always use `pnpm`**, never `npm`          |
-| Domain logic language    | **TypeScript 6+** (`strict`)     | Pure domain models and MVVM presentation logic, compiled by esbuild                    |
-| View controllers         | **Plain JavaScript (ES modules)**| `View/*.js`, `View/ui/**/*.js` — ESM in browser, CommonJS on main process             |
-| Main process             | **Plain JavaScript (CommonJS)**  | `main.js`, `main/**/*.js` — CommonJS `require()`                                      |
-| Bundler                  | **esbuild 0.28+**                | Bundles TS→ESM for the renderer. Config: `scripts/build-renderer.js`                   |
-| UI & Styling             | **HTML5 + Tailwind CSS 4.3+**    | `@tailwindcss/cli`, source `View/MainWindow.css` → `View/MainWindow.generated.css`    |
-| Graph visualization      | **Cytoscape.js 3.33+**           | Node-graph renderer with custom Web Components (`<paragraph-node>`, `<scene-node>`)    |
-| Rich text editor         | **TipTap 2.x**                   | Headings, dialog blocks, `@` entity mentions, custom text styles, Google Fonts catalog |
-| Export & Publishing      | **docx 8.x + printToPDF**        | Structured DOCX documents, print-ready PDF via Chromium, standalone HTML              |
-| Backup & Archive         | **JSZip 3.x**                    | Self-contained project zip export and instant restore                                 |
-| Image processing         | **HTML5 Canvas 2D**              | Custom `ImageProcessor.ts`: crop, scale, rotate, flip, and color adjustment filters    |
-| Testing                  | **Vitest 1.x + happy-dom 20+**   | Fast unit/integration tests. 76 test files, 821 tests. Coverage via `@vitest/coverage-v8` |
-| Linting                  | **ESLint 8 + @typescript-eslint 7** | Type-aware rules for `.ts`, standard `espree` for `.js`                             |
-| Formatting               | **Prettier 3**                   | No semicolons, single quotes, trailing commas `es5`, 100 char width, 4-space indent    |
-| Import ordering          | **eslint-plugin-simple-import-sort** | Auto-sorted imports and exports in all `.ts` / `.js` files                          |
-| Git hooks                | **Husky 9 + lint-staged 15**     | `pre-commit`: Prettier + ESLint fix. `pre-push`: license check + test suite            |
-| Localization (i18n)      | **i18next 26 + i18next-fs-backend** | Three locales: `en` (canonical default), `pl`, `de`                                |
-| License compliance       | **`scripts/check-licenses.js`**  | Allowlist: MIT, ISC, Apache-2.0, BSD-2/3, 0BSD, CC0-1.0, MPL-2.0, Python-2.0          |
+| Layer                 | Technology                           | Details                                                                                   |
+| --------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Desktop framework     | **Electron 41.5**                    | Multi-process (Chromium + Node.js). `contextIsolation: true`, `nodeIntegration: false`    |
+| Runtime               | **Node.js ≥20 <22, pnpm ≥9 <10**     | Enforced via `engines` in `package.json`. **Always use `pnpm`**, never `npm`              |
+| Domain logic language | **TypeScript 6+** (`strict`)         | Pure domain models and MVVM presentation logic, compiled by esbuild                       |
+| View controllers      | **Plain JavaScript (ES modules)**    | `View/*.js`, `View/ui/**/*.js` — ESM in browser, CommonJS on main process                 |
+| Main process          | **Plain JavaScript (CommonJS)**      | `main.js`, `main/**/*.js` — CommonJS `require()`                                          |
+| Bundler               | **esbuild 0.28+**                    | Bundles TS→ESM for the renderer. Config: `scripts/build-renderer.js`                      |
+| UI & Styling          | **HTML5 + Tailwind CSS 4.3+**        | `@tailwindcss/cli`, source `View/MainWindow.css` → `View/MainWindow.generated.css`        |
+| Graph visualization   | **Cytoscape.js 3.33+**               | Node-graph renderer with custom Web Components (`<paragraph-node>`, `<scene-node>`)       |
+| Rich text editor      | **TipTap 2.x**                       | Headings, dialog blocks, `@` entity mentions, custom text styles, Google Fonts catalog    |
+| Export & Publishing   | **docx 8.x + printToPDF**            | Structured DOCX documents, print-ready PDF via Chromium, standalone HTML                  |
+| Backup & Archive      | **JSZip 3.x**                        | Self-contained project zip export and instant restore                                     |
+| Image processing      | **HTML5 Canvas 2D**                  | Custom `ImageProcessor.ts`: crop, scale, rotate, flip, and color adjustment filters       |
+| Testing               | **Vitest 1.x + happy-dom 20+**       | Fast unit/integration tests. 76 test files, 821 tests. Coverage via `@vitest/coverage-v8` |
+| Linting               | **ESLint 8 + @typescript-eslint 7**  | Type-aware rules for `.ts`, standard `espree` for `.js`                                   |
+| Formatting            | **Prettier 3**                       | No semicolons, single quotes, trailing commas `es5`, 100 char width, 4-space indent       |
+| Import ordering       | **eslint-plugin-simple-import-sort** | Auto-sorted imports and exports in all `.ts` / `.js` files                                |
+| Git hooks             | **Husky 9 + lint-staged 15**         | `pre-commit`: Prettier + ESLint fix. `pre-push`: license check + test suite               |
+| Localization (i18n)   | **i18next 26 + i18next-fs-backend**  | Three locales: `en` (canonical default), `pl`, `de`                                       |
+| License compliance    | **`scripts/check-licenses.js`**      | Allowlist: MIT, ISC, Apache-2.0, BSD-2/3, 0BSD, CC0-1.0, MPL-2.0, Python-2.0              |
 
 ---
 
@@ -56,19 +56,20 @@ Model (pure TS)  ←→  ViewModel (TS)  ←→  View (HTML + JS controllers)
 
 The View layer is split into focused controller modules in `View/ui/` subdirectories:
 
-| Subdirectory | Key Modules & Responsibilities |
-| ------------ | ------------------------------ |
-| `assets/` | Modular media subsystem (`common/`, `picker/`, `manager/`, `editor/`) with backward-compatible facades (`assetManagerModal.js`, `assetPicker.js`, `imageEditorModal.js`) — asset gallery, reference usage tracking, canvas cropping/scaling/filters, media picker |
-| `common/` | `graphValidator.js`, `htmlTemplates.js`, `npcAvatars.js` — story graph validation adapter, XSS-safe HTML escaping, Tailwind badge builders, RPG archetype & custom portrait renderers |
-| `detailsPanel/` | `detailsPanel.js`, `combatModule.js`, `choiceDetails.js`, `exitsModule.js`, `heroReadOnlyDetails.js`, `npcReadOnlyDetails.js`, `historyBar.js` — property inspectors & combat setup |
-| `drawer/` | `drawerLists.js`, `drawerSearch.js`, `filterPopover.js` — entity navigation, search, faceted filters |
-| `editor/` | `mainEditor.js`, `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, `entityLinkModal.js`, `heroEditor.js`, `npcEditor.js` — TipTap rich text, fonts, custom styles |
-| `graph/` | `storyGraphController.js`, `graphZoomControls.js`, `graphDropZone.js` — Cytoscape canvas coordinator, drag-and-drop |
-| `modals/` | `export/` (`exportModal.js`, `gamebookCompiler.js`), `hero/` (`heroModal.js`, `heroSaver.js`), `npc/` (`npcModal.js`, `npcCharacterSaver.js`), `playtest/` (`playtestModal.js`) |
-| `project/` | `projectSaver.js`, `projectStateTracker.js`, `autoSaveService.js` — dirty state tracking, autosave, save orchestrator |
-| `workspace/` | `workspace.js`, `topBar.js`, `contextMenu.js`, `quickSearch.js` — layout resizers, ribbon toolbar, global palette |
+| Subdirectory    | Key Modules & Responsibilities                                                                                                                                                                                                                                    |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assets/`       | Modular media subsystem (`common/`, `picker/`, `manager/`, `editor/`) with backward-compatible facades (`assetManagerModal.js`, `assetPicker.js`, `imageEditorModal.js`) — asset gallery, reference usage tracking, canvas cropping/scaling/filters, media picker |
+| `common/`       | `graphValidator.js`, `htmlTemplates.js`, `npcAvatars.js` — story graph validation adapter, XSS-safe HTML escaping, Tailwind badge builders, RPG archetype & custom portrait renderers                                                                             |
+| `detailsPanel/` | `detailsPanel.js`, `combatModule.js`, `choiceDetails.js`, `exitsModule.js`, `heroReadOnlyDetails.js`, `npcReadOnlyDetails.js`, `historyBar.js` — property inspectors & combat setup                                                                               |
+| `drawer/`       | `drawerLists.js`, `drawerSearch.js`, `filterPopover.js` — entity navigation, search, faceted filters                                                                                                                                                              |
+| `editor/`       | `mainEditor.js`, `editorToolbar.js`, `customStylesMenu.js`, `customStyleModal.js`, `fontBrowserModal.js`, `entityLinkModal.js`, `heroEditor.js`, `npcEditor.js` — TipTap rich text, fonts, custom styles                                                          |
+| `graph/`        | `storyGraphController.js`, `graphZoomControls.js`, `graphDropZone.js` — Cytoscape canvas coordinator, drag-and-drop                                                                                                                                               |
+| `modals/`       | `export/` (`exportModal.js`, `gamebookCompiler.js`), `hero/` (`heroModal.js`, `heroSaver.js`), `npc/` (`npcModal.js`, `npcCharacterSaver.js`), `playtest/` (`playtestModal.js`)                                                                                   |
+| `project/`      | `projectSaver.js`, `projectStateTracker.js`, `autoSaveService.js` — dirty state tracking, autosave, save orchestrator                                                                                                                                             |
+| `workspace/`    | `workspace.js`, `topBar.js`, `contextMenu.js`, `quickSearch.js` — layout resizers, ribbon toolbar, global palette                                                                                                                                                 |
 
 **All controllers receive a shared `appContext` object** (defined in `MainWindow.js`) which provides:
+
 - `vm` — the `MainWindowViewModel` instance
 - `projectData` — current project data state (tags, characters, paragraphs, etc.)
 - Helper methods: `selectEntity()`, `refreshActiveSection()`, bound render functions, etc.
@@ -114,6 +115,7 @@ main.js (bootstrap)
 ### 3.6. Story Graph Subsystem (`Modules/Graph/`)
 
 The Graph subsystem is structured into modular subpackages:
+
 - **`core/`** (`StoryGraph.ts`): Cytoscape.js coordinator — layout, zooming, pan (LMB + RMB pan), multi-selection & marquee selection, drag-and-drop connections, edge routing, and combat outcome transitions.
 - **`nodes/`** (`ParagraphNode.ts/html/Template.ts`, `SceneNode.ts/html/Template.ts`): Custom Web Components `<paragraph-node>` and `<scene-node>` with extracted DOM templates, badges, pills, and full localization support (`graph.end_node_badge`, `graph.node.combat`).
 - **`styles/`** (`StoryGraphStyles.ts`): Unbundled bezier curve control distances, dynamic fanout, high-contrast text calculation (`getContrastTextColor`), and edge crossing prevention (`preventChoiceLineCrossings`).
@@ -133,6 +135,7 @@ Programmatic toast notifications with four severity levels: `success`, `warning`
 ### 3.9. Rich Markdown Editor Subsystem (`Modules/Editor/` & `View/ui/editor/`)
 
 The application features a TipTap-powered Rich WYSIWYG Markdown Editor that seamlessly synchronizes with standard Markdown files and Gamebook Engine project metadata:
+
 - **`core/MarkdownEditor.ts`**: Core TipTap wrapper handling word/char stats, entity autocomplete via `@`, typography formatting, dialog blocks, and custom styled spans.
 - **`services/EntitySyncService.ts`**: Scans document AST or markdown syntax `[Name](entity://type/id)` to auto-sync mentioned locations, characters, and tags with the active scene/paragraph/NPC.
 - **`styles/` (`CustomStylesService.ts` & `styleSanitizer.ts`)**: Pure services managing project-specific text styling rules (thoughts, spells, whisper) with CSS injection and validation against CSS injection/XSS.
@@ -147,14 +150,11 @@ The application features a TipTap-powered Rich WYSIWYG Markdown Editor that seam
 SilnikGierParagrafowych/
 ├── main.js                        # Electron main process entry (CommonJS)
 ├── preload.js                     # ContextBridge API (CommonJS)
-├── renderer.js                    # Minimal renderer bootstrap
-├── index.html                     # Electron entry HTML
 ├── package.json                   # pnpm project config
 ├── tsconfig.json                  # TypeScript strict config (target ES2020, bundler resolution)
 ├── vitest.config.ts               # Vitest config (node env, rawHtmlPlugin, electron mock alias)
 ├── .eslintrc.json                 # ESLint config (type-aware TS, espree JS)
 ├── .prettierrc.json               # Prettier config (no semi, singleQuote, tabWidth 4)
-├── styles.css                     # Global base styles
 │
 ├── main/                          # Main process modules (CommonJS)
 │   ├── windowManager.js
@@ -325,9 +325,9 @@ SilnikGierParagrafowych/
 - **`strict: true`** is enabled — no implicit `any`, strict null checks, etc.
 - **Target**: ES2020. **Module**: ES2020, **Module resolution**: `bundler`.
 - **Naming conventions** (enforced by ESLint):
-  - Classes: `PascalCase` (e.g. `NPC`, `Paragraph`, `StoryGraph`)
-  - Interfaces: `PascalCase` with `I` prefix (e.g. `IStoryGraphOptions`, `IToastOptions`)
-  - Type aliases: `PascalCase` without prefix (e.g. `ToastType`, `SkillMode`)
+    - Classes: `PascalCase` (e.g. `NPC`, `Paragraph`, `StoryGraph`)
+    - Interfaces: `PascalCase` with `I` prefix (e.g. `IStoryGraphOptions`, `IToastOptions`)
+    - Type aliases: `PascalCase` without prefix (e.g. `ToastType`, `SkillMode`)
 - **Explicit return types**: All functions should declare return types (`@typescript-eslint/explicit-function-return-type: warn`).
 - **No `any`**: Prefer typed alternatives (`@typescript-eslint/no-explicit-any: warn`). Legacy `fromJSON(json: any)` exists but avoid adding new `any`.
 - **Unused vars**: Error, except args prefixed with `_` (e.g. `_event`).
@@ -376,9 +376,15 @@ export class EntityName {
     }
 
     // 3. Public getters/setters (getId, setId, hasId, getName, setName, etc.)
-    public getId(): string { return this.id }
-    public setId(id: string): void { this.id = id }
-    public hasId(): boolean { return this.id !== '' }
+    public getId(): string {
+        return this.id
+    }
+    public setId(id: string): void {
+        this.id = id
+    }
+    public hasId(): boolean {
+        return this.id !== ''
+    }
 
     // 4. Collection methods (add/remove/has) with dedup by id OR name
     public addTag(tag: Tag): void {
@@ -401,6 +407,7 @@ export class EntityName {
 ```
 
 **Critical rules**:
+
 - `fromJSON()` must handle `null`/`undefined` input gracefully.
 - `fromJSON()` must support legacy Polish JSON keys for backward compatibility.
 - `toJSON()` must always emit **English keys only**.
@@ -577,12 +584,12 @@ const label = t('entity.npc')
 
 ## 9. Type Declarations (`types/`)
 
-| File              | Purpose                                                                  |
-| ----------------- | ------------------------------------------------------------------------ |
-| `global.d.ts`     | Augments `Window` with `electronAPI` and defines `IRecentProject`        |
-| `ipc.d.ts`        | IPC request/response interfaces (`IProjectData`, `ICreateEntityOptions`, etc.) |
-| `viewModules.d.ts`| Ambient `declare module` declarations for JS view controllers (enables TS imports) |
-| `html.d.ts`       | Ambient module declaration for `.html` imports (esbuild text loader)      |
+| File               | Purpose                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------- |
+| `global.d.ts`      | Augments `Window` with `electronAPI` and defines `IRecentProject`                  |
+| `ipc.d.ts`         | IPC request/response interfaces (`IProjectData`, `ICreateEntityOptions`, etc.)     |
+| `viewModules.d.ts` | Ambient `declare module` declarations for JS view controllers (enables TS imports) |
+| `html.d.ts`        | Ambient module declaration for `.html` imports (esbuild text loader)               |
 
 **Rule**: When adding a new JS view controller module, add a `declare module '*/View/ui/yourModule.js'` block in `viewModules.d.ts` to expose typed exports.
 
@@ -608,14 +615,13 @@ pnpm run test:coverage   # With V8 coverage report
 
 ### 10.3. Test Organization
 
-| Directory          | What to test                                      | Example                       |
-| ------------------ | ------------------------------------------------- | ----------------------------- |
-| `tests/Model/`     | Domain model serialization, logic, backward compat | `NPC.test.ts`, `Scene.test.ts` |
-| `tests/ViewModel/` | ViewModel state, selection, undo, search           | `MainWindowViewModel.test.ts` |
+| Directory          | What to test                                       | Example                                        |
+| ------------------ | -------------------------------------------------- | ---------------------------------------------- |
+| `tests/Model/`     | Domain model serialization, logic, backward compat | `NPC.test.ts`, `Scene.test.ts`                 |
+| `tests/ViewModel/` | ViewModel state, selection, undo, search           | `MainWindowViewModel.test.ts`                  |
 | `tests/View/`      | View controller rendering, UI interactions         | `NpcModal.test.ts`, `StoryGraphScenes.test.ts` |
-| `tests/IPC/`       | IPC handler behavior, service integration          | `ipcHandlers.test.ts`         |
-| `tests/Utils/`     | Utility functions, i18n, icons, toast              | `translate.test.ts`, `icons.test.ts` |
-
+| `tests/IPC/`       | IPC handler behavior, service integration          | `ipcHandlers.test.ts`                          |
+| `tests/Utils/`     | Utility functions, i18n, icons, toast              | `translate.test.ts`, `icons.test.ts`           |
 
 ## 11. Checklists — What to Do When...
 
@@ -669,15 +675,15 @@ pnpm run test:coverage   # With V8 coverage report
 
 ## 12. Common Pitfalls — AVOID
 
-| Pitfall | Correct Approach |
-| ------- | ---------------- |
-| Importing `electron` or `fs` in renderer code | Use `window.electronAPI` exclusively |
-| Using `npm` instead of `pnpm` | Always `pnpm install`, `pnpm run`, `pnpm test` |
-| Adding icons as inline SVG in HTML | Add to `Utils/ui/icons.ts`, use `getIconSvg()` or `<app-icon>` |
-| Creating global variables in View JS | Thread through `appContext` / `ctx` parameter |
-| Editing `MainWindow.generated.css` | Edit `MainWindow.css` instead, then `pnpm run css:build` |
-| Using `console.log` in production code | Use `console.warn` or `console.error` only |
-| Forgetting Polish key backward compat | Add fallback reads in `fromJSON()`: `json.name ?? json.nazwa` |
-| Adding semicolons | Prettier removes them; project convention is no-semicolon |
-| Using `npm install` for dependencies | Use `pnpm add <package>` or `pnpm add -D <package>` |
-| Not adding type declarations for JS modules | Add `declare module` in `types/viewModules.d.ts` |
+| Pitfall                                       | Correct Approach                                               |
+| --------------------------------------------- | -------------------------------------------------------------- |
+| Importing `electron` or `fs` in renderer code | Use `window.electronAPI` exclusively                           |
+| Using `npm` instead of `pnpm`                 | Always `pnpm install`, `pnpm run`, `pnpm test`                 |
+| Adding icons as inline SVG in HTML            | Add to `Utils/ui/icons.ts`, use `getIconSvg()` or `<app-icon>` |
+| Creating global variables in View JS          | Thread through `appContext` / `ctx` parameter                  |
+| Editing `MainWindow.generated.css`            | Edit `MainWindow.css` instead, then `pnpm run css:build`       |
+| Using `console.log` in production code        | Use `console.warn` or `console.error` only                     |
+| Forgetting Polish key backward compat         | Add fallback reads in `fromJSON()`: `json.name ?? json.nazwa`  |
+| Adding semicolons                             | Prettier removes them; project convention is no-semicolon      |
+| Using `npm install` for dependencies          | Use `pnpm add <package>` or `pnpm add -D <package>`            |
+| Not adding type declarations for JS modules   | Add `declare module` in `types/viewModules.d.ts`               |

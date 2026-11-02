@@ -1,8 +1,39 @@
+# Dependencies
 node_modules
+
+# Build & Compilation Outputs
 dist
 coverage
 View/MainWindow.generated.css
 release-builds
 
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor Configs
 .vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temporary & Scratch Files
+*.tmp
+*.bak
 Plan.md
