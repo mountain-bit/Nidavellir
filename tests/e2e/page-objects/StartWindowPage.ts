@@ -31,6 +31,18 @@ export class StartWindowPage {
     readonly langEnBtn = (): Locator => this.page.locator('#btn-lang-en')
 
     readonly recentProjectsList = (): Locator => this.page.locator('#recent-projects-list')
+    readonly recentProjectItems = (): Locator => this.page.locator('#recent-projects-list button')
+    readonly recentProjectItem = (name: string): Locator =>
+        this.page.locator('#recent-projects-list button', { hasText: name })
+
+    /**
+     * Otwiera projekt z listy ostatnich projektów.
+     */
+    async openRecentProject(name: string): Promise<void> {
+        const item = this.recentProjectItem(name)
+        await expect(item).toBeVisible({ timeout: 5000 })
+        await item.click()
+    }
 
     /**
      * Wypełnia formularz i tworzy nowy projekt.

@@ -43,6 +43,24 @@ export class DrawerPage {
     readonly charactersContent = (): Locator => this.page.locator('#left-content-characters')
     readonly addCharacterBtn = (): Locator => this.page.locator('#btn-add-character')
     readonly addTemplateBtn = (): Locator => this.page.locator('#btn-add-template')
+    readonly npcModal = (): Locator => this.page.locator('#npc-create-modal')
+    readonly npcNameInput = (): Locator => this.page.locator('#npc-name-input')
+    readonly npcSaveBtn = (): Locator => this.page.locator('#btn-save-npc-modal')
+    readonly charactersListContainer = (): Locator =>
+        this.page.locator('#characters-list-container')
+    readonly addNpcStatBtn = (): Locator => this.page.locator('#btn-add-npc-stat')
+    readonly npcStatNameInput = (): Locator =>
+        this.page.locator('input[data-stat-field="name"]').last()
+    readonly npcStatValueInput = (): Locator =>
+        this.page.locator('input[data-stat-field="value"]').last()
+    readonly confirmNpcStatBtn = (): Locator =>
+        this.page.locator('button[data-action="confirm-stat"]').last()
+    readonly templateDropdownBtn = (): Locator => this.page.locator('#btn-template-dropdown')
+    readonly templateDropdownMenu = (): Locator => this.page.locator('#npc-template-dropdown-menu')
+    readonly templateDropdownItems = (): Locator =>
+        this.page.locator('#npc-template-dropdown-items .template-dropdown-item')
+    readonly appliedTemplatesList = (): Locator => this.page.locator('#npc-applied-templates-list')
+    readonly appliedTemplateChips = (): Locator => this.page.locator('.npc-applied-template-chip')
 
     /**
      * Przełącza na zakładkę Tagów i tworzy nowy tag.
@@ -85,5 +103,53 @@ export class DrawerPage {
         await this.heroTabBtn().click()
         await expect(this.heroContent()).toBeVisible()
         await this.openHeroModalBtn().click()
+    }
+
+    /**
+     * Przełącza na zakładkę Postaci i tworzy nowego NPC.
+     */
+    async createNpc(name: string): Promise<void> {
+        await this.charactersTabBtn().click()
+        await expect(this.charactersContent()).toBeVisible()
+        await this.addCharacterBtn().click()
+        await expect(this.npcModal()).toBeVisible()
+
+        await this.npcNameInput().fill(name)
+        await this.npcSaveBtn().click()
+        await expect(this.npcModal()).toBeHidden()
+    }
+
+    /**
+     * Tworzy nowy szablon NPC z opcjonalną cechą.
+     */
+    async createTemplate(name: string, stat?: { name: string; value: string }): Promise<void> {
+        await this.charactersTabBtn().click()
+        await expect(this.charactersContent()).toBeVisible()
+        await this.addTemplateBtn().click()
+        await expect(this.npcModal()).toBeVisible()
+
+        await this.npcNameInput().fill(name)
+
+        if (stat) {
+            await this.addNpcStatBtn().click()
+            await this.npcStatNameInput().fill(stat.name)
+            await this.npcStatValueInput().fill(stat.value)
+            await this.confirmNpcStatBtn().click()
+        }
+
+        await this.npcSaveBtn().click()
+        await expect(this.npcModal()).toBeHidden()
+    }
+
+    /**
+     * Stosuje szablon do aktualnie otwartego formularza NPC.
+     */
+    async applyTemplateToNpc(templateName: string): Promise<void> {
+        await this.templateDropdownBtn().click()
+        await expect(this.templateDropdownMenu()).toBeVisible()
+        const targetTpl = this.templateDropdownItems().filter({ hasText: templateName }).first()
+        await expect(targetTpl).toBeVisible()
+        await targetTpl.click()
+        await expect(this.appliedTemplateChips().filter({ hasText: templateName })).toBeVisible()
     }
 }
