@@ -214,13 +214,13 @@ describe('ItemExportService (Stage 4)', () => {
         it('downloadFile triggers DOM element download without crashing', () => {
             const clickSpy = vi.fn()
             const origCreate = document.createElement.bind(document)
-            vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+            vi.spyOn(document, 'createElement').mockImplementation(((tagName: string) => {
                 const el = origCreate(tagName)
                 if (tagName === 'a') {
                     el.click = clickSpy
                 }
                 return el
-            })
+            }) as any)
 
             ItemExportService.downloadFile('test content', 'items.csv', 'text/csv')
             expect(clickSpy).toHaveBeenCalled()
