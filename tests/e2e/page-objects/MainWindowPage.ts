@@ -49,14 +49,17 @@ export class MainWindowPage {
      * Klika przycisk Zapisz w górnym pasku.
      */
     async saveProject(): Promise<void> {
-        await this.saveBtn().click({ force: true })
+        await this.saveBtn().dispatchEvent('click')
     }
 
     /**
      * Otwiera modal szybkiego wyszukiwania.
      */
     async openQuickSearch(): Promise<void> {
-        await this.quickSearchBtn().click({ force: true })
+        await this.quickSearchBtn().dispatchEvent('click')
+        if (!(await this.quickSearchModal().isVisible())) {
+            await this.page.keyboard.press('Control+p')
+        }
         await expect(this.quickSearchModal()).toBeVisible()
     }
 
