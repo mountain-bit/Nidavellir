@@ -4,7 +4,6 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.3.3-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Vitest](https://img.shields.io/badge/Tests-133%20suites%20%7C%201600%2B%20passed-22c55e?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/Node.js-%3E%3D20%20%3C22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-%3E%3D9%20%3C10-F69220?logo=pnpm&logoColor=white)](https://pnpm.io/)
 
