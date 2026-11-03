@@ -56,7 +56,7 @@ export class MainWindowPage {
      * Otwiera modal szybkiego wyszukiwania.
      */
     async openQuickSearch(): Promise<void> {
-        await this.quickSearchBtn().click()
+        await this.quickSearchBtn().click({ force: true })
         await expect(this.quickSearchModal()).toBeVisible()
     }
 

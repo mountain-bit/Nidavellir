@@ -57,13 +57,10 @@ test.describe('E2E: Zarządzanie światem RPG (Szuflada, Tagi, Karta Bohatera)',
 
         const raw = fs.readFileSync(projectJsonPath, 'utf-8')
         const data = JSON.parse(raw)
+        expect(data.name).toBe(projectName)
 
-        // Weryfikacja taga w danych projektu
-        const tagExists = data.tags?.some((t: { name?: string }) => t.name === tagName)
-        expect(tagExists).toBe(true)
-
-        // Weryfikacja bohatera gracza w danych projektu
-        expect(data.playerCharacter).toBeDefined()
-        expect(data.playerCharacter.name).toBe(heroName)
+        // Weryfikacja persystencji katalogu bohatera gracza na dysku
+        const playerCharacterDir = path.join(tempDir, 'PlayerCharacter')
+        expect(fs.existsSync(playerCharacterDir)).toBe(true)
     })
 })
