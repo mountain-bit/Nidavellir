@@ -7,7 +7,7 @@ export class HeroModalPage {
         this.page = page
     }
 
-    readonly modal = (): Locator => this.page.locator('#hero-modal')
+    readonly modal = (): Locator => this.page.locator('#hero-create-modal')
     readonly nameInput = (): Locator => this.page.locator('#hero-name-input')
     readonly saveBtn = (): Locator => this.page.locator('#btn-save-hero-modal')
     readonly closeBtn = (): Locator => this.page.locator('#btn-close-hero-modal')
@@ -26,6 +26,6 @@ export class HeroModalPage {
         await this.waitForOpen()
         await this.nameInput().fill(name)
         await this.saveBtn().click()
-        await expect(this.modal()).toHaveClass(/hidden/)
+        await expect(this.modal()).toBeHidden()
     }
 }

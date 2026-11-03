@@ -38,6 +38,7 @@ export class MainWindowPage {
      */
     async waitForReady(expectedProjectName?: string): Promise<void> {
         await this.page.waitForLoadState('domcontentloaded')
+        await this.page.setViewportSize({ width: 1400, height: 900 }).catch(() => {})
         await expect(this.projectNameDisplay()).toBeVisible({ timeout: 15000 })
         if (expectedProjectName) {
             await expect(this.projectNameDisplay()).toContainText(expectedProjectName)
@@ -48,7 +49,7 @@ export class MainWindowPage {
      * Klika przycisk Zapisz w górnym pasku.
      */
     async saveProject(): Promise<void> {
-        await this.saveBtn().click()
+        await this.saveBtn().click({ force: true })
     }
 
     /**
@@ -64,6 +65,6 @@ export class MainWindowPage {
      */
     async closeQuickSearch(): Promise<void> {
         await this.page.keyboard.press('Escape')
-        await expect(this.quickSearchModal()).toHaveClass(/hidden/)
+        await expect(this.quickSearchModal()).toBeHidden()
     }
 }

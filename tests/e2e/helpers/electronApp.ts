@@ -23,7 +23,7 @@ export async function launchTestApp(): Promise<ITestAppInstance> {
     cleanEnv.NODE_ENV = 'test'
 
     const app = await electron.launch({
-        args: [mainPath, '--no-sandbox', '--disable-gpu'],
+        args: [mainPath, '--no-sandbox', '--disable-gpu', '--window-size=1600,1000'],
         env: cleanEnv,
     })
 

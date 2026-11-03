@@ -40,7 +40,7 @@ export class DrawerPage {
      */
     async createTag(name: string): Promise<void> {
         await this.tagsTabBtn().click()
-        await expect(this.tagsContent()).not.toHaveClass(/hidden/)
+        await expect(this.tagsContent()).toBeVisible()
 
         await this.addTagBtn().click()
         await expect(this.tagCreateForm()).toBeVisible()
@@ -57,7 +57,7 @@ export class DrawerPage {
      */
     async openHeroModal(): Promise<void> {
         await this.heroTabBtn().click()
-        await expect(this.heroContent()).not.toHaveClass(/hidden/)
+        await expect(this.heroContent()).toBeVisible()
         await this.openHeroModalBtn().click()
     }
 }

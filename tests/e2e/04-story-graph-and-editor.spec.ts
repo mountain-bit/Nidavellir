@@ -37,13 +37,15 @@ test.describe('E2E: Graf fabuły i narzędzia obszaru roboczego (Cytoscape, Zoom
         await expect(mainPage.storyGraphCanvas()).toBeVisible()
 
         // 2. Kontrolki powiększenia (Zoom)
-        await expect(mainPage.zoomLevelBadge()).toHaveText('100%')
+        // Początkowa skala jest dopasowana do kontenera grafu
+        await expect(mainPage.zoomLevelBadge()).toHaveText(/\d+%/)
+        const initialZoom = await mainPage.zoomLevelBadge().innerText()
 
         // Przybliżenie
         await mainPage.zoomInBtn().click()
-        await expect(mainPage.zoomLevelBadge()).not.toHaveText('100%')
+        await expect(mainPage.zoomLevelBadge()).not.toHaveText(initialZoom)
 
-        // Reset skali widoku
+        // Reset skali widoku (ustawia dokładnie 100%)
         await mainPage.zoomResetBtn().click()
         await expect(mainPage.zoomLevelBadge()).toHaveText('100%')
 
