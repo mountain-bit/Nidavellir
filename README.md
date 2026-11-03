@@ -27,7 +27,6 @@ It brings together an interactive Cytoscape.js story graph, an enhanced TipTap W
 - [Available Scripts](#available-scripts)
 - [Quality Assurance & Testing](#quality-assurance--testing)
 - [Documentation Links](#documentation-links)
-- [License](#license)
 
 ---
 
