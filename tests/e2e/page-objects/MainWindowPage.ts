@@ -32,6 +32,12 @@ export class MainWindowPage {
     readonly zoomResetBtn = (): Locator => this.page.locator('#btn-graph-zoom-reset')
     readonly zoomFitBtn = (): Locator => this.page.locator('#btn-graph-zoom-fit')
     readonly zoomLevelBadge = (): Locator => this.page.locator('#graph-zoom-level-badge')
+    readonly paragraphNodes = (): Locator => this.page.locator('paragraph-node')
+    readonly firstParagraphNode = (): Locator => this.page.locator('paragraph-node').first()
+
+    // Right Details Panel
+    readonly rightSidebar = (): Locator => this.page.locator('#right-sidebar')
+    readonly detailsContent = (): Locator => this.page.locator('#details-content')
 
     /**
      * Oczekuje na pełne załadowanie okna głównego i widoczność projektu.
@@ -69,5 +75,27 @@ export class MainWindowPage {
     async closeQuickSearch(): Promise<void> {
         await this.page.keyboard.press('Escape')
         await expect(this.quickSearchModal()).toBeHidden()
+    }
+
+    /**
+     * Tworzy nowy paragraf połączony wyborem z wybranego węzła źródłowego.
+     */
+    async addNewConnectedParagraph(sourceNode: Locator, title: string): Promise<void> {
+        const addBtn = sourceNode.locator('.paragraph-node-add-btn')
+        await addBtn.click()
+        const addInput = sourceNode.locator('.paragraph-node-add-input')
+        await expect(addInput).toBeVisible()
+        await addInput.fill(title)
+        const addSubmit = sourceNode.locator('.paragraph-node-add-submit')
+        await addSubmit.click()
+        await expect(this.page.locator('paragraph-node', { hasText: title })).toBeVisible()
+    }
+
+    /**
+     * Zaznacza węzeł paragrafu na płótnie, otwierając prawy panel właściwości.
+     */
+    async selectParagraphNode(nodeLocator: Locator): Promise<void> {
+        await nodeLocator.locator('.paragraph-node-header').click()
+        await expect(this.rightSidebar()).toBeVisible()
     }
 }

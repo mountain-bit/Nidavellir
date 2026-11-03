@@ -10,12 +10,21 @@ export class DrawerPage {
     // Tab Buttons
     readonly paragraphsTabBtn = (): Locator =>
         this.page.locator('button[data-left-tab="paragraphs"]')
+    readonly scenesTabBtn = (): Locator => this.page.locator('button[data-left-tab="scenes"]')
     readonly tagsTabBtn = (): Locator => this.page.locator('button[data-left-tab="tags"]')
     readonly charactersTabBtn = (): Locator =>
         this.page.locator('button[data-left-tab="characters"]')
     readonly itemsTabBtn = (): Locator => this.page.locator('button[data-left-tab="items"]')
     readonly traitsTabBtn = (): Locator => this.page.locator('button[data-left-tab="traits"]')
     readonly heroTabBtn = (): Locator => this.page.locator('button[data-left-tab="main-character"]')
+
+    // Scenes Section Locators
+    readonly scenesContent = (): Locator => this.page.locator('#left-content-scenes')
+    readonly addSceneBtn = (): Locator => this.page.locator('#btn-add-scene')
+    readonly sceneCreateForm = (): Locator => this.page.locator('#scene-create-form')
+    readonly sceneCreateNameInput = (): Locator => this.page.locator('#scene-create-name')
+    readonly sceneCreateSubmitBtn = (): Locator => this.page.locator('#scene-create-submit')
+    readonly scenesListContainer = (): Locator => this.page.locator('#scenes-list-container')
 
     // Tags Section Locators
     readonly tagsContent = (): Locator => this.page.locator('#left-content-tags')
@@ -50,6 +59,23 @@ export class DrawerPage {
 
         // Sprawdzamy czy tag pojawił się na liście
         await expect(this.tagsListContainer()).toContainText(name)
+    }
+
+    /**
+     * Przełącza na zakładkę Scen i tworzy nową scenę.
+     */
+    async createScene(name: string): Promise<void> {
+        await this.scenesTabBtn().click()
+        await expect(this.scenesContent()).toBeVisible()
+
+        await this.addSceneBtn().click()
+        await expect(this.sceneCreateForm()).toBeVisible()
+
+        await this.sceneCreateNameInput().fill(name)
+        await this.sceneCreateSubmitBtn().click()
+
+        // Sprawdzamy czy scena pojawiła się na liście
+        await expect(this.scenesListContainer()).toContainText(name)
     }
 
     /**
