@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-import { ElectronApplication } from '@playwright/test'
+import { ElectronApplication, expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 
@@ -15,7 +14,7 @@ test.describe('E2E: Zarządzanie światem RPG (Szuflada, Tagi, Karta Bohatera)',
         tempDir = createTempProjectDir('nidavelir-rpg-')
         const instance = await launchTestApp()
         app = instance.app
-        startPage = new StartWindowPage(instance.firstWindow)
+        startPage = new StartWindowPage(instance.firstWindow, instance.app)
     })
 
     test.afterEach(async () => {

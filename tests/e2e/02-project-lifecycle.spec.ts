@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-import { ElectronApplication } from '@playwright/test'
+import { ElectronApplication, expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
 
@@ -15,7 +14,7 @@ test.describe('E2E: Cykl życia projektu i persystencja danych', () => {
         tempDir = createTempProjectDir('nidavelir-lifecycle-')
         const instance = await launchTestApp()
         app = instance.app
-        startPage = new StartWindowPage(instance.firstWindow)
+        startPage = new StartWindowPage(instance.firstWindow, instance.app)
     })
 
     test.afterEach(async () => {

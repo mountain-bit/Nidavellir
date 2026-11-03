@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-import { ElectronApplication } from '@playwright/test'
+import { ElectronApplication, expect, test } from '@playwright/test'
 
 import { createTempProjectDir, launchTestApp, removeTempDir } from './helpers/electronApp'
 import { MainWindowPage, StartWindowPage } from './page-objects'
@@ -13,7 +12,7 @@ test.describe('E2E: Graf fabuły i narzędzia obszaru roboczego (Cytoscape, Zoom
         tempDir = createTempProjectDir('nidavelir-workspace-')
         const instance = await launchTestApp()
         app = instance.app
-        startPage = new StartWindowPage(instance.firstWindow)
+        startPage = new StartWindowPage(instance.firstWindow, instance.app)
     })
 
     test.afterEach(async () => {

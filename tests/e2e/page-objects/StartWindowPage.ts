@@ -1,10 +1,14 @@
-import { expect, Locator, Page } from '@playwright/test'
+import { ElectronApplication, expect, Locator, Page } from '@playwright/test'
+
+import { mockChooseFolderInMain } from '../helpers/electronApp'
 
 export class StartWindowPage {
     readonly page: Page
+    readonly app?: ElectronApplication
 
-    constructor(page: Page) {
+    constructor(page: Page, app?: ElectronApplication) {
         this.page = page
+        this.app = app
     }
 
     // Locators
@@ -29,29 +33,14 @@ export class StartWindowPage {
     readonly recentProjectsList = (): Locator => this.page.locator('#recent-projects-list')
 
     /**
-     * Mockuje wybór folderu w API electronAPI.chooseFolder.
-     */
-    async mockChooseFolder(targetFolder: string): Promise<void> {
-        await this.page.evaluate((folder: string): void => {
-            const api = (
-                window as unknown as { electronAPI: { chooseFolder: () => Promise<unknown> } }
-            ).electronAPI
-            if (api) {
-                api.chooseFolder = async (): Promise<unknown> => ({
-                    canceled: false,
-                    path: folder,
-                })
-            }
-        }, targetFolder)
-    }
-
-    /**
      * Wypełnia formularz i tworzy nowy projekt.
      */
     async createNewProject(name: string, folderPath: string): Promise<void> {
-        await this.mockChooseFolder(folderPath)
+        if (this.app) {
+            await mockChooseFolderInMain(this.app, folderPath)
+        }
         await this.createProjectBtn().click()
-        await expect(this.newProjectModal()).not.toHaveClass(/hidden/)
+        await expect(this.newProjectModal()).toBeVisible()
 
         await this.projectNameInput().fill(name)
         await this.browseFolderBtn().click()

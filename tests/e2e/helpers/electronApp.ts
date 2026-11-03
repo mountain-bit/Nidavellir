@@ -52,3 +52,35 @@ export function removeTempDir(dirPath: string): void {
         // Ignorujemy błędy usuwania plików tymczasowych
     }
 }
+
+/**
+ * Mockuje handler 'choose-folder' w procesie głównym Electrona (ipcMain).
+ */
+export async function mockChooseFolderInMain(
+    app: ElectronApplication,
+    targetFolder: string
+): Promise<void> {
+    await app.evaluate(({ ipcMain }, folder) => {
+        ipcMain.removeHandler('choose-folder')
+        ipcMain.handle('choose-folder', async () => ({
+            canceled: false,
+            path: folder,
+        }))
+    }, targetFolder)
+}
+
+/**
+ * Mockuje handler 'choose-folder' w procesie głównym Electrona (ipcMain).
+ */
+export async function mockChooseFolderInMain(
+    app: ElectronApplication,
+    targetFolder: string
+): Promise<void> {
+    await app.evaluate(({ ipcMain }, folder) => {
+        ipcMain.removeHandler('choose-folder')
+        ipcMain.handle('choose-folder', async () => ({
+            canceled: false,
+            path: folder,
+        }))
+    }, targetFolder)
+}
