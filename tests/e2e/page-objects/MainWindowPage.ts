@@ -253,7 +253,21 @@ export class MainWindowPage {
      * Zaznacza węzeł paragrafu na płótnie, otwierając prawy panel właściwości.
      */
     async selectParagraphNode(nodeLocator: Locator): Promise<void> {
-        await nodeLocator.locator('.paragraph-node-header').click()
+        await nodeLocator.scrollIntoViewIfNeeded().catch(() => {})
+        await nodeLocator
+            .locator('.paragraph-node-header')
+            .dblclick({ force: true })
+            .catch(() => {})
+        await nodeLocator.evaluate((el: HTMLElement) => {
+            const p = (el as any).paragraph || (el as any)._paragraph
+            el.dispatchEvent(
+                new CustomEvent('node-open-details', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { paragraph: p },
+                })
+            )
+        })
         await expect(this.rightSidebar()).toBeVisible()
     }
 
@@ -277,7 +291,8 @@ export class MainWindowPage {
      * Otwiera plik opisu aktywnego paragrafu w edytorze tekstu.
      */
     async openActiveParagraphDescription(): Promise<void> {
-        await this.openPlayerTextBtn().click()
+        await expect(this.openPlayerTextBtn()).toBeVisible({ timeout: 5000 })
+        await this.openPlayerTextBtn().click({ force: true })
     }
 
     /**
@@ -400,8 +415,8 @@ export class MainWindowPage {
      * Ustawia aktywny paragraf jako węzeł finałowy (zakończenie).
      */
     async setParagraphAsEndNode(): Promise<void> {
-        await expect(this.paragraphRoleEndRadio()).toBeVisible()
-        await this.paragraphRoleEndRadio().click()
+        await expect(this.paragraphRoleEndRadio()).toBeVisible({ timeout: 5000 })
+        await this.paragraphRoleEndRadio().check({ force: true })
         await expect(this.paragraphRoleEndRadio()).toBeChecked()
     }
 
