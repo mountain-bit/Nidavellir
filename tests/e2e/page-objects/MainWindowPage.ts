@@ -286,6 +286,30 @@ export class MainWindowPage {
     }
 
     /**
+     * Zaznacza węzeł początkowy opowieści (Start) na grafie i w panelu właściwości.
+     */
+    async selectStartNode(): Promise<void> {
+        await this.page.evaluate(() => {
+            const sg = (window as any).storyGraphInstance
+            const paragraphs = sg?.options?.getParagraphs?.() || []
+            const startP = paragraphs.find(
+                (p: any) => (p.getIsStart && p.getIsStart()) || p.isStart === true
+            )
+            if (startP && sg?.options?.onSelectParagraph) {
+                sg.options.onSelectParagraph(startP)
+            }
+        })
+        const startLocator = this.page.locator('paragraph-node', { hasText: 'START' }).first()
+        if (await startLocator.isVisible()) {
+            await startLocator
+                .locator('.paragraph-node-header')
+                .click()
+                .catch(() => {})
+        }
+        await expect(this.rightSidebar()).toBeVisible()
+    }
+
+    /**
      * Przełącza widok na edytor Markdown.
      */
     async switchToMarkdownView(): Promise<void> {

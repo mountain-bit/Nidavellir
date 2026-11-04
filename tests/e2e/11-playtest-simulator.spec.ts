@@ -60,7 +60,8 @@ test.describe('E2E: Symulator rozgrywki (Playtest)', () => {
         await mainPage.selectParagraphNode(finaleNode)
         await mainPage.setParagraphAsEndNode()
 
-        // 2. Uruchomienie symulatora Playtest (startuje z węzła początkowego)
+        // 2. Wybór węzła początkowego i uruchomienie symulatora Playtest
+        await mainPage.selectStartNode()
         await mainPage.openPlaytest()
         await expect(mainPage.playtestModal()).toBeVisible()
         await expect(mainPage.playtestParagraphBadge()).toBeVisible()
