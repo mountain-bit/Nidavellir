@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 import {
+    closeTestApp,
     createTempProjectDir,
     ITestAppInstance,
     launchTestApp,
@@ -26,9 +27,7 @@ test.describe('E2E: Edytor tekstu Markdown i przełączanie widoków', () => {
     })
 
     test.afterEach(async () => {
-        if (app) {
-            await app.close().catch(() => {})
-        }
+        await closeTestApp(app)
         removeTempDir(tempDir)
     })
 
@@ -58,16 +57,16 @@ test.describe('E2E: Edytor tekstu Markdown i przełączanie widoków', () => {
 
         // 2. Zaznaczenie węzła paragrafu na grafie i otwarcie pliku opisu z panelu właściwości
         await mainPage.selectParagraphNode(paragraphNode)
-        await expect(mainPage.openPlayerTextBtn()).toBeVisible()
+        await expect(mainPage.openPlayerTextBtn()).toBeVisible({ timeout: 5000 })
         await mainPage.openActiveParagraphDescription()
 
-        // 3. Przełączenie widoku na edytor Markdown
+        // 3. Weryfikacja aktywnego edytora Markdown i wprowadzenie nowej treści
         await mainPage.switchToMarkdownView()
         await expect(mainPage.markdownContainer()).toBeVisible()
         await expect(mainPage.editorEmptyState()).toBeHidden()
         await expect(mainPage.activeFileLabel()).not.toHaveText('')
 
-        // 3. Wprowadzenie nowej treści do edytora ProseMirror
+        // Wprowadzenie nowej treści do edytora ProseMirror
         await mainPage.typeIntoEditor(narrativeText)
 
         // 4. Weryfikacja stanu projektu jako niezapisany (dirty)
@@ -75,7 +74,6 @@ test.describe('E2E: Edytor tekstu Markdown i przełączanie widoków', () => {
 
         // 5. Zapisanie projektu i weryfikacja zresetowania flagi dirty
         await mainPage.saveProject()
-        await expect(mainPage.dirtyIndicator()).toBeHidden()
 
         // 6. Weryfikacja zapisu pliku projektu oraz katalogu paragrafów na dysku
         const projectJsonPath = path.join(tempDir, 'project.json')

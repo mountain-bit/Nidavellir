@@ -54,6 +54,31 @@ export function removeTempDir(dirPath: string): void {
 }
 
 /**
+ * Bezpiecznie zamyka aplikację testową Electrona, zapobiegając blokadom na zdarzeniach okna.
+ */
+export async function closeTestApp(app?: ElectronApplication): Promise<void> {
+    if (!app) return
+    try {
+        await app
+            .evaluate(({ BrowserWindow, app: electronApp }) => {
+                BrowserWindow.getAllWindows().forEach(win => {
+                    ;(win as any).forceClose = true
+                    try {
+                        win.destroy()
+                    } catch {
+                        // Ignorujemy błędy zniszczenia okna
+                    }
+                })
+                electronApp.quit()
+            })
+            .catch(() => {})
+        await app.close().catch(() => {})
+    } catch {
+        // Ignorujemy błędy zamykania
+    }
+}
+
+/**
  * Mockuje handler 'choose-folder' w procesie głównym Electrona (ipcMain).
  */
 export async function mockChooseFolderInMain(

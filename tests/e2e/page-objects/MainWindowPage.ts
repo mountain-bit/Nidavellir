@@ -313,9 +313,9 @@ export class MainWindowPage {
      * Wprowadza treść do edytora ProseMirror.
      */
     async typeIntoEditor(text: string): Promise<void> {
-        await expect(this.proseMirrorEditor()).toBeVisible()
+        await expect(this.proseMirrorEditor()).toBeVisible({ timeout: 5000 })
         await this.proseMirrorEditor().click()
-        await this.page.keyboard.insertText(text)
+        await this.proseMirrorEditor().pressSequentially(text)
     }
 
     /**

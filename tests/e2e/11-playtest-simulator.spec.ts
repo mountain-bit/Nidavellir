@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import {
+    closeTestApp,
     createTempProjectDir,
     ITestAppInstance,
     launchTestApp,
@@ -24,9 +25,7 @@ test.describe('E2E: Symulator rozgrywki (Playtest)', () => {
     })
 
     test.afterEach(async () => {
-        if (app) {
-            await app.close().catch(() => {})
-        }
+        await closeTestApp(app)
         removeTempDir(tempDir)
     })
 
@@ -61,8 +60,7 @@ test.describe('E2E: Symulator rozgrywki (Playtest)', () => {
         await mainPage.selectParagraphNode(finaleNode)
         await mainPage.setParagraphAsEndNode()
 
-        // 2. Wybór węzła początkowego i uruchomienie symulatora Playtest
-        await mainPage.selectParagraphNode(startNode)
+        // 2. Uruchomienie symulatora Playtest (startuje z węzła początkowego)
         await mainPage.openPlaytest()
         await expect(mainPage.playtestModal()).toBeVisible()
         await expect(mainPage.playtestParagraphBadge()).toBeVisible()
