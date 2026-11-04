@@ -19,7 +19,7 @@ test.describe('E2E: Symulator rozgrywki (Playtest)', () => {
         tempDir = createTempProjectDir('nidavelir-e2e-playtest-')
         appInstance = await launchTestApp()
         app = appInstance.app
-        startPage = new StartWindowPage(appInstance.firstWindow)
+        startPage = new StartWindowPage(appInstance.firstWindow, app)
         await mockChooseFolderInMain(app, tempDir)
     })
 

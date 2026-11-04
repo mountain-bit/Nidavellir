@@ -259,9 +259,23 @@ export class MainWindowPage {
             .dblclick({ force: true })
             .catch(() => {})
         await nodeLocator.evaluate((el: HTMLElement) => {
-            const p = (el as any).paragraph || (el as any)._paragraph
+            const p =
+                (el as any).getParagraph?.() || (el as any).paragraph || (el as any)._paragraph
+            if (p) {
+                const sg = (window as any).storyGraphInstance
+                if (sg?.options?.onSelectParagraph) {
+                    sg.options.onSelectParagraph(p)
+                }
+            }
             el.dispatchEvent(
                 new CustomEvent('node-open-details', {
+                    bubbles: true,
+                    composed: true,
+                    detail: { paragraph: p },
+                })
+            )
+            el.dispatchEvent(
+                new CustomEvent('node-select', {
                     bubbles: true,
                     composed: true,
                     detail: { paragraph: p },

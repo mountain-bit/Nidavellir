@@ -21,7 +21,7 @@ test.describe('E2E: Edytor tekstu Markdown i przełączanie widoków', () => {
         tempDir = createTempProjectDir('nidavelir-e2e-editor-')
         appInstance = await launchTestApp()
         app = appInstance.app
-        startPage = new StartWindowPage(appInstance.firstWindow)
+        startPage = new StartWindowPage(appInstance.firstWindow, app)
         await mockChooseFolderInMain(app, tempDir)
     })
 
