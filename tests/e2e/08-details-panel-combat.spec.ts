@@ -72,7 +72,7 @@ test.describe('E2E: Panel właściwości, moduł walki i przeciwnicy', () => {
 
         // 5. Dodanie rezultatu walki tworzącego nowy paragraf na grafie
         await mainPage.addCombatOutcome(outcomeName, outcomeParagraphTitle)
-        await expect(mainPage.combatOutcomesList()).toContainText(outcomeName)
+        await expect(mainPage.combatOutcomesList()).toContainText(outcomeParagraphTitle)
 
         // Weryfikacja pojawienia się nowego węzła na grafie
         const newParagraphNode = mainPage.page.locator('paragraph-node', {

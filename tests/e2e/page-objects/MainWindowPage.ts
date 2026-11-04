@@ -234,11 +234,11 @@ export class MainWindowPage {
         const addBtn = sourceNode.locator('.paragraph-node-add-btn')
         await addBtn.click({ force: true })
         const addInput = sourceNode.locator('.paragraph-node-add-input')
-        await expect(addInput).toBeVisible()
+        await expect(addInput).toBeVisible({ timeout: 5000 })
         await addInput.fill(title)
-        const addSubmit = sourceNode.locator('.paragraph-node-add-submit')
-        await addSubmit.click({ force: true })
-        await expect(this.page.locator('paragraph-node', { hasText: title })).toBeVisible()
+        await addInput.press('Enter')
+        const targetNode = this.page.locator('paragraph-node', { hasText: title })
+        await expect(targetNode).toBeVisible({ timeout: 10000 })
     }
 
     /**
@@ -534,6 +534,6 @@ export class MainWindowPage {
      * Zamyka aktywny projekt (przycisk w górnym pasku) i powraca do okna startowego.
      */
     async closeProject(): Promise<void> {
-        await this.closeProjectBtn().click({ force: true })
+        await this.closeProjectBtn().dispatchEvent('click')
     }
 }

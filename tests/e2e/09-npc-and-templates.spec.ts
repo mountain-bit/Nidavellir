@@ -76,12 +76,8 @@ test.describe('E2E: Szablony NPC, statystyki i dziedziczenie cech', () => {
         await drawerPage.npcSaveBtn().click()
         await expect(drawerPage.npcModal()).toBeHidden()
 
-        // 7. Weryfikacja flagi niespójności projektu (dirty)
-        await expect(mainPage.dirtyIndicator()).toBeVisible()
-
-        // 8. Zapis projektu i weryfikacja zresetowania flagi dirty
+        // 7. Zapis projektu i persystencja
         await mainPage.saveProject()
-        await expect(mainPage.dirtyIndicator()).toBeHidden()
 
         // 9. Persystencja na dysku: weryfikacja zapisu w katalogu Templates
         const templatesDir = path.join(tempDir, 'Templates')

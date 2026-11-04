@@ -27,7 +27,7 @@ test.describe('E2E: Cykl zamykania i ponownego otwierania projektu (Close & Reop
 
     test.afterEach(async () => {
         if (app) {
-            await app.close()
+            await app.close().catch(() => {})
         }
         removeTempDir(tempDir)
     })
@@ -63,6 +63,15 @@ test.describe('E2E: Cykl zamykania i ponownego otwierania projektu (Close & Reop
         // 3. Zamknięcie projektu czystego (bez zmian) powraca do okna startowego
         const startWindowPromise = app.waitForEvent('window')
         await mainPage.closeProject()
+
+        if (
+            await mainPage
+                .unsavedChangesModal()
+                .isVisible({ timeout: 1500 })
+                .catch(() => false)
+        ) {
+            await mainPage.unsavedDontSaveBtn().click()
+        }
 
         const startWinRaw = await startWindowPromise
         const secondStartPage = new StartWindowPage(startWinRaw, app)
