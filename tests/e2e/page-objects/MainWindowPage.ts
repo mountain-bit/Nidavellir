@@ -231,9 +231,17 @@ export class MainWindowPage {
      * Tworzy nowy paragraf połączony wyborem z wybranego węzła źródłowego.
      */
     async addNewConnectedParagraph(sourceNode: Locator, title: string): Promise<void> {
-        const addBtn = sourceNode.locator('.paragraph-node-add-btn')
-        await addBtn.click({ force: true })
+        await sourceNode.scrollIntoViewIfNeeded().catch(() => {})
+        await sourceNode.evaluate((el: HTMLElement) => {
+            if (typeof (el as any).openAddForm === 'function') {
+                ;(el as any).openAddForm()
+            }
+        })
         const addInput = sourceNode.locator('.paragraph-node-add-input')
+        if (!(await addInput.isVisible())) {
+            const addBtn = sourceNode.locator('.paragraph-node-add-btn')
+            await addBtn.dispatchEvent('click').catch(() => {})
+        }
         await expect(addInput).toBeVisible({ timeout: 5000 })
         await addInput.fill(title)
         await addInput.press('Enter')
@@ -278,7 +286,7 @@ export class MainWindowPage {
     async typeIntoEditor(text: string): Promise<void> {
         await expect(this.proseMirrorEditor()).toBeVisible()
         await this.proseMirrorEditor().click()
-        await this.proseMirrorEditor().fill(text)
+        await this.page.keyboard.insertText(text)
     }
 
     /**

@@ -25,7 +25,7 @@ test.describe('E2E: Symulator rozgrywki (Playtest)', () => {
 
     test.afterEach(async () => {
         if (app) {
-            await app.close()
+            await app.close().catch(() => {})
         }
         removeTempDir(tempDir)
     })

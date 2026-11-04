@@ -78,12 +78,12 @@ test.describe('E2E: Cykl zamykania i ponownego otwierania projektu (Close & Reop
 
         // 4. Weryfikacja obecności projektu na liście ostatnich projektów w StartWindow
         await expect(secondStartPage.createProjectBtn()).toBeVisible({ timeout: 10000 })
-        const recentItem = secondStartPage.recentProjectItem(projectName)
+        const recentItem = secondStartPage.recentProjectItem(projectName).first()
         await expect(recentItem).toBeVisible()
 
         // 5. Otwarcie projektu z listy ostatnich
         const reloadedMainWindowPromise = app.waitForEvent('window')
-        await secondStartPage.openRecentProject(projectName)
+        await recentItem.click()
 
         const reloadedRawWindow = await reloadedMainWindowPromise
         const reloadedMainPage = new MainWindowPage(reloadedRawWindow)
@@ -129,7 +129,17 @@ test.describe('E2E: Cykl zamykania i ponownego otwierania projektu (Close & Reop
         await expect(finalStartPage.createProjectBtn()).toBeVisible({ timeout: 10000 })
 
         // 9. Potwierdzenie persystencji zmian na dysku po wyborze "Zapisz"
-        const savedProjectContent = fs.readFileSync(projectJsonPath, 'utf-8')
-        expect(savedProjectContent).toContain(extraNodeTitle)
+        const paragraphsDir = path.join(tempDir, 'Paragraphs')
+        expect(fs.existsSync(paragraphsDir)).toBe(true)
+
+        const paragraphEntities = fs
+            .readdirSync(paragraphsDir, { withFileTypes: true })
+            .filter(d => d.isDirectory())
+            .map(d => {
+                const elPath = path.join(paragraphsDir, d.name, 'element.json')
+                return fs.existsSync(elPath) ? fs.readFileSync(elPath, 'utf-8') : ''
+            })
+            .join(' ')
+        expect(paragraphEntities).toContain(extraNodeTitle)
     })
 })

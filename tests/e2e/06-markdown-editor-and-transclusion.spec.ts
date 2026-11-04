@@ -27,7 +27,7 @@ test.describe('E2E: Edytor tekstu Markdown i przełączanie widoków', () => {
 
     test.afterEach(async () => {
         if (app) {
-            await app.close()
+            await app.close().catch(() => {})
         }
         removeTempDir(tempDir)
     })
