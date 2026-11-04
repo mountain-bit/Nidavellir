@@ -45,12 +45,23 @@ test.describe('E2E: Edytor tekstu Markdown i przełączanie widoków', () => {
 
         await mainPage.waitForReady(projectName)
 
-        // 1. Zaznaczenie początkowego węzła na grafie i otwarcie pliku opisu z panelu właściwości
-        await mainPage.selectParagraphNode(mainPage.firstParagraphNode())
+        // 1. Dodanie połączonego paragrafu fabularnego do węzła początkowego
+        const startNode = mainPage.firstParagraphNode()
+        await expect(startNode).toBeVisible()
+        const paragraphTitle = 'Ruiny Twierdzy'
+        await mainPage.addNewConnectedParagraph(startNode, paragraphTitle)
+
+        const paragraphNode = mainPage.page.locator('paragraph-node', {
+            hasText: paragraphTitle,
+        })
+        await expect(paragraphNode).toBeVisible()
+
+        // 2. Zaznaczenie węzła paragrafu na grafie i otwarcie pliku opisu z panelu właściwości
+        await mainPage.selectParagraphNode(paragraphNode)
         await expect(mainPage.openPlayerTextBtn()).toBeVisible()
         await mainPage.openActiveParagraphDescription()
 
-        // 2. Przełączenie widoku na edytor Markdown
+        // 3. Przełączenie widoku na edytor Markdown
         await mainPage.switchToMarkdownView()
         await expect(mainPage.markdownContainer()).toBeVisible()
         await expect(mainPage.editorEmptyState()).toBeHidden()

@@ -50,10 +50,17 @@ test.describe('E2E: Panel właściwości, moduł walki i przeciwnicy', () => {
         // 1. Utworzenie postaci NPC w lewej szufladzie
         await drawerPage.createNpc(npcName)
 
-        // 2. Zaznaczenie węzła początkowego na grafie
+        // 2. Dodanie połączonego węzła paragrafu na grafie i jego zaznaczenie
         const startNode = mainPage.firstParagraphNode()
         await expect(startNode).toBeVisible()
-        await mainPage.selectParagraphNode(startNode)
+        const combatParagraphTitle = 'Arena Walki'
+        await mainPage.addNewConnectedParagraph(startNode, combatParagraphTitle)
+
+        const combatNode = mainPage.page.locator('paragraph-node', {
+            hasText: combatParagraphTitle,
+        })
+        await expect(combatNode).toBeVisible()
+        await mainPage.selectParagraphNode(combatNode)
 
         // 3. Aktywacja modułu walki w prawym panelu właściwości
         await mainPage.toggleCombat()

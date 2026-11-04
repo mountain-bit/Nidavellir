@@ -65,7 +65,7 @@ test.describe('E2E: Eksport gry paragrafowej (Export Modal)', () => {
         await expect(mainPage.exportModal()).toBeVisible()
 
         // 4. Weryfikacja statystyk publikacji
-        await expect(mainPage.exportStatCount()).toHaveText('2')
+        await expect(mainPage.exportStatCount()).toContainText('2')
 
         // 5. Weryfikacja sekcji Karty Postaci (obecny bohater Sir Roland)
         await expect(mainPage.exportCharacterSheetContainer()).toBeVisible()

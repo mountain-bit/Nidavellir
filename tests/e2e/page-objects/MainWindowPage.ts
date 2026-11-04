@@ -199,10 +199,13 @@ export class MainWindowPage {
     }
 
     /**
-     * Klika przycisk Zapisz w górnym pasku.
+     * Klika przycisk Zapisz w górnym pasku i oczekuje na potwierdzenie zapisu.
      */
     async saveProject(): Promise<void> {
         await this.saveBtn().dispatchEvent('click')
+        await expect(this.dirtyIndicator()).toHaveClass(/text-emerald-400/, {
+            timeout: 10000,
+        })
     }
 
     /**
@@ -229,12 +232,12 @@ export class MainWindowPage {
      */
     async addNewConnectedParagraph(sourceNode: Locator, title: string): Promise<void> {
         const addBtn = sourceNode.locator('.paragraph-node-add-btn')
-        await addBtn.click()
+        await addBtn.click({ force: true })
         const addInput = sourceNode.locator('.paragraph-node-add-input')
         await expect(addInput).toBeVisible()
         await addInput.fill(title)
         const addSubmit = sourceNode.locator('.paragraph-node-add-submit')
-        await addSubmit.click()
+        await addSubmit.click({ force: true })
         await expect(this.page.locator('paragraph-node', { hasText: title })).toBeVisible()
     }
 

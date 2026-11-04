@@ -110,7 +110,7 @@ test.describe('E2E: Menedżer zasobów graficznych (Asset Manager)', () => {
         await expect(mainPage.assetDetailPath()).toContainText(mapRelativePath)
 
         // 8. Zmiana nazwy zasobu (Rename dialog)
-        const newMapBaseName = 'legendary-map'
+        const newMapBaseName = 'legendary_map'
         const newMapFileName = `${newMapBaseName}.png`
         const newMapRelativePath = `Assets/Images/${newMapFileName}`
 

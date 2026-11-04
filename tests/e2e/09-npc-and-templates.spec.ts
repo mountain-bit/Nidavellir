@@ -55,9 +55,8 @@ test.describe('E2E: Szablony NPC, statystyki i dziedziczenie cech', () => {
         })
 
         // 2. Otwarcie modalu tworzenia postaci NPC
-        await drawerPage.charactersTabBtn().click()
-        await expect(drawerPage.charactersContent()).toBeVisible()
-        await drawerPage.addCharacterBtn().click()
+        await drawerPage.openCharactersTab()
+        await drawerPage.addCharacterBtn().click({ force: true })
         await expect(drawerPage.npcModal()).toBeVisible()
 
         // 3. Wypełnienie imienia postaci

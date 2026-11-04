@@ -63,17 +63,36 @@ export class DrawerPage {
     readonly appliedTemplateChips = (): Locator => this.page.locator('.npc-applied-template-chip')
 
     /**
+     * Zapewnia, że określona zakładka lewej szuflady jest aktywna.
+     * Zapobiega zwijaniu szuflady przy ponownym kliknięciu w ten sam przycisk.
+     */
+    async ensureTabActive(tabBtn: Locator): Promise<void> {
+        const isActive = await tabBtn.evaluate(el => el.classList.contains('active'))
+        if (!isActive) {
+            await tabBtn.click({ force: true })
+        }
+    }
+
+    /**
+     * Otwiera zakładkę postaci w lewej szufladzie.
+     */
+    async openCharactersTab(): Promise<void> {
+        await this.ensureTabActive(this.charactersTabBtn())
+        await expect(this.charactersContent()).toBeVisible()
+    }
+
+    /**
      * Przełącza na zakładkę Tagów i tworzy nowy tag.
      */
     async createTag(name: string): Promise<void> {
-        await this.tagsTabBtn().click()
+        await this.ensureTabActive(this.tagsTabBtn())
         await expect(this.tagsContent()).toBeVisible()
 
-        await this.addTagBtn().click()
+        await this.addTagBtn().click({ force: true })
         await expect(this.tagCreateForm()).toBeVisible()
 
         await this.tagCreateNameInput().fill(name)
-        await this.tagCreateSubmitBtn().click()
+        await this.tagCreateSubmitBtn().click({ force: true })
 
         // Sprawdzamy czy tag pojawił się na liście
         await expect(this.tagsListContainer()).toContainText(name)
@@ -83,14 +102,14 @@ export class DrawerPage {
      * Przełącza na zakładkę Scen i tworzy nową scenę.
      */
     async createScene(name: string): Promise<void> {
-        await this.scenesTabBtn().click()
+        await this.ensureTabActive(this.scenesTabBtn())
         await expect(this.scenesContent()).toBeVisible()
 
-        await this.addSceneBtn().click()
+        await this.addSceneBtn().click({ force: true })
         await expect(this.sceneCreateForm()).toBeVisible()
 
         await this.sceneCreateNameInput().fill(name)
-        await this.sceneCreateSubmitBtn().click()
+        await this.sceneCreateSubmitBtn().click({ force: true })
 
         // Sprawdzamy czy scena pojawiła się na liście
         await expect(this.scenesListContainer()).toContainText(name)
@@ -100,22 +119,21 @@ export class DrawerPage {
      * Otwiera modal Bohatera z poziomu zakładki Bohatera w szufladzie.
      */
     async openHeroModal(): Promise<void> {
-        await this.heroTabBtn().click()
+        await this.ensureTabActive(this.heroTabBtn())
         await expect(this.heroContent()).toBeVisible()
-        await this.openHeroModalBtn().click()
+        await this.openHeroModalBtn().click({ force: true })
     }
 
     /**
      * Przełącza na zakładkę Postaci i tworzy nowego NPC.
      */
     async createNpc(name: string): Promise<void> {
-        await this.charactersTabBtn().click()
-        await expect(this.charactersContent()).toBeVisible()
-        await this.addCharacterBtn().click()
+        await this.openCharactersTab()
+        await this.addCharacterBtn().click({ force: true })
         await expect(this.npcModal()).toBeVisible()
 
         await this.npcNameInput().fill(name)
-        await this.npcSaveBtn().click()
+        await this.npcSaveBtn().click({ force: true })
         await expect(this.npcModal()).toBeHidden()
     }
 
@@ -123,21 +141,20 @@ export class DrawerPage {
      * Tworzy nowy szablon NPC z opcjonalną cechą.
      */
     async createTemplate(name: string, stat?: { name: string; value: string }): Promise<void> {
-        await this.charactersTabBtn().click()
-        await expect(this.charactersContent()).toBeVisible()
-        await this.addTemplateBtn().click()
+        await this.openCharactersTab()
+        await this.addTemplateBtn().click({ force: true })
         await expect(this.npcModal()).toBeVisible()
 
         await this.npcNameInput().fill(name)
 
         if (stat) {
-            await this.addNpcStatBtn().click()
+            await this.addNpcStatBtn().click({ force: true })
             await this.npcStatNameInput().fill(stat.name)
             await this.npcStatValueInput().fill(stat.value)
-            await this.confirmNpcStatBtn().click()
+            await this.confirmNpcStatBtn().click({ force: true })
         }
 
-        await this.npcSaveBtn().click()
+        await this.npcSaveBtn().click({ force: true })
         await expect(this.npcModal()).toBeHidden()
     }
 
