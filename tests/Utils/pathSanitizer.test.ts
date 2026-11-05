@@ -20,6 +20,10 @@ describe('Path and Name Sanitizer', () => {
             expect(removeDiacritics('Zażółć gęślą jaźń')).toBe('Zazolc gesla jazn')
             expect(removeDiacritics('Äpfel und Öl')).toBe('Aepfel und Oel')
             expect(removeDiacritics('')).toBe('')
+            // @ts-expect-error testowanie niepoprawnych typów
+            expect(removeDiacritics(null)).toBe('')
+            // @ts-expect-error testowanie niepoprawnych typów
+            expect(removeDiacritics(123)).toBe('')
         })
     })
 
@@ -37,8 +41,12 @@ describe('Path and Name Sanitizer', () => {
             expect(sanitizeFileName('NUL')).toBe('NUL_file')
         })
 
-        it('powinien zwrócić fallback gdy pusta wartość', () => {
+        it('powinien zwrócić fallback gdy pusta wartość lub nieprawidłowy typ', () => {
             expect(sanitizeFileName('')).toBe('element')
+            // @ts-expect-error testowanie niepoprawnych typów
+            expect(sanitizeFileName(null, 'domyslny')).toBe('domyslny')
+            expect(sanitizeFileName('   ', 'fallbackVal')).toBe('fallbackVal')
+            expect(sanitizeFileName('...   ', 'safe')).toBe('safe')
         })
     })
 
@@ -55,6 +63,13 @@ describe('Path and Name Sanitizer', () => {
 
         it('powinien zabezpieczyć zastrzeżone nazwy Windows w slugach', () => {
             expect(slugifyEntityName('prn')).toBe('prn_elem')
+        })
+
+        it('powinien zwrócić fallback gdy pusta wartość lub po oczyszczeniu brak znaków', () => {
+            expect(slugifyEntityName('')).toBe('element')
+            // @ts-expect-error testowanie niepoprawnych typów
+            expect(slugifyEntityName(null, 'default_slug')).toBe('default_slug')
+            expect(slugifyEntityName('!!!???###', 'fallback_slug')).toBe('fallback_slug')
         })
     })
 
@@ -98,7 +113,11 @@ describe('Path and Name Sanitizer', () => {
             expect(formatDescriptionFileName('items', 'Złoty Klucz')).toBe(
                 'Description_Item_Zloty_Klucz.md'
             )
+            expect(formatDescriptionFileName('customCategory', 'Magiczna Brama')).toBe(
+                'Description_CustomCategory_Magiczna_Brama.md'
+            )
             expect(formatDescriptionFileName('', '')).toBe('Description_Entity_element.md')
+            expect(formatDescriptionFileName('rules', '---')).toBe('Description_Rule_element.md')
         })
     })
 

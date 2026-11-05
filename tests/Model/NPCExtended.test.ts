@@ -74,4 +74,75 @@ describe('NPC Model Extended', () => {
         expect(fromJson.getParameter('p3')?.getFormula()).toBe('Siła * 2')
         expect(fromJson.getSkills()[0].getStatName()).toBe('Zręczność')
     })
+
+    it('zarządza pełnym zestawem metod pomocniczych encji NPC oraz warunkami brzegowymi', () => {
+        const npc = new NPC('npc-4', 'Gildian')
+        expect(npc.hasId()).toBe(true)
+
+        const emptyNpc = new NPC()
+        expect(emptyNpc.hasId()).toBe(false)
+
+        // Description i Summary
+        npc.setDescription(new Description('Opis szczegółowy', 'Krótkie podsumowanie'))
+        expect(npc.getDescription().getText()).toBe('Opis szczegółowy')
+        expect(npc.getSummary()).toBe('Krótkie podsumowanie')
+
+        npc.setSummary('Zaktualizowane podsumowanie')
+        expect(npc.getSummary()).toBe('Zaktualizowane podsumowanie')
+
+        // Statystyki
+        const st = new Stat('st_str', 'Siła', new Description(), 15)
+        npc.addStat(st)
+        expect(npc.hasStat('Siła')).toBe(true)
+        expect(npc.hasStat('st_str')).toBe(true)
+        expect(npc.getStat('Siła')).toBe(15)
+        npc.removeStat('Siła')
+        expect(npc.hasStat('Siła')).toBe(false)
+        npc.setStats([st])
+        expect(npc.getStats()).toHaveLength(1)
+
+        // Umiejętności
+        const sk = new Skill('sk_arch', 'Łucznictwo', new Description(), 'direct', '+3')
+        npc.addSkill(sk)
+        expect(npc.hasSkill('Łucznictwo')).toBe(true)
+        expect(npc.getSkill('sk_arch')).toBe(sk)
+        npc.removeSkill('Łucznictwo')
+        expect(npc.hasSkill('Łucznictwo')).toBe(false)
+        npc.setSkills([sk])
+        expect(npc.getSkills()).toHaveLength(1)
+
+        // Przymioty (Features)
+        const feat = new Feature('f_dark', 'Mroczny', new Description())
+        npc.addFeature(feat)
+        expect(npc.hasFeature('Mroczny')).toBe(true)
+        expect(npc.getFeature('f_dark')).toBe(feat)
+        npc.removeFeature('Mroczny')
+        expect(npc.hasFeature('Mroczny')).toBe(false)
+        npc.setFeatures([feat])
+        expect(npc.getFeatures()).toHaveLength(1)
+
+        // Tagi
+        const tg = new Tag('tg_vip', 'VIP')
+        npc.addTag(tg)
+        expect(npc.hasTag('VIP')).toBe(true)
+        npc.removeTag('VIP')
+        expect(npc.hasTag('VIP')).toBe(false)
+        npc.setTags([tg])
+        expect(npc.getTags()).toHaveLength(1)
+
+        // Custom attributes
+        npc.setCustomAttributes([{ name: 'Rasa', value: 'Krasnolud' }])
+        expect(npc.getCustomAttributes()).toEqual([{ name: 'Rasa', value: 'Krasnolud' }])
+
+        // fromJSON null i ca.key fallback
+        const fromNull = NPC.fromJSON(null)
+        expect(fromNull.getId()).toBe('')
+
+        const fromKeyAttrs = NPC.fromJSON({
+            id: 'npc-attrs',
+            name: 'Kupiec',
+            customAttributes: [{ key: 'Wiek', value: '50' }],
+        })
+        expect(fromKeyAttrs.getCustomAttributes()).toEqual([{ name: 'Wiek', value: '50' }])
+    })
 })

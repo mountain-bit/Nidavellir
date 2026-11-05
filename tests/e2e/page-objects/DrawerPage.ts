@@ -1,0 +1,172 @@
+import { expect, Locator, Page } from '@playwright/test'
+
+export class DrawerPage {
+    readonly page: Page
+
+    constructor(page: Page) {
+        this.page = page
+    }
+
+    // Tab Buttons
+    readonly paragraphsTabBtn = (): Locator =>
+        this.page.locator('button[data-left-tab="paragraphs"]')
+    readonly scenesTabBtn = (): Locator => this.page.locator('button[data-left-tab="scenes"]')
+    readonly tagsTabBtn = (): Locator => this.page.locator('button[data-left-tab="tags"]')
+    readonly charactersTabBtn = (): Locator =>
+        this.page.locator('button[data-left-tab="characters"]')
+    readonly itemsTabBtn = (): Locator => this.page.locator('button[data-left-tab="items"]')
+    readonly traitsTabBtn = (): Locator => this.page.locator('button[data-left-tab="traits"]')
+    readonly heroTabBtn = (): Locator => this.page.locator('button[data-left-tab="main-character"]')
+
+    // Scenes Section Locators
+    readonly scenesContent = (): Locator => this.page.locator('#left-content-scenes')
+    readonly addSceneBtn = (): Locator => this.page.locator('#btn-add-scene')
+    readonly sceneCreateForm = (): Locator => this.page.locator('#scene-create-form')
+    readonly sceneCreateNameInput = (): Locator => this.page.locator('#scene-create-name')
+    readonly sceneCreateSubmitBtn = (): Locator => this.page.locator('#scene-create-submit')
+    readonly scenesListContainer = (): Locator => this.page.locator('#scenes-list-container')
+
+    // Tags Section Locators
+    readonly tagsContent = (): Locator => this.page.locator('#left-content-tags')
+    readonly addTagBtn = (): Locator => this.page.locator('#btn-add-tag')
+    readonly tagCreateForm = (): Locator => this.page.locator('#tag-create-form')
+    readonly tagCreateNameInput = (): Locator => this.page.locator('#tag-create-name')
+    readonly tagCreateSubmitBtn = (): Locator => this.page.locator('#tag-create-submit')
+    readonly tagsListContainer = (): Locator => this.page.locator('#tags-list-container')
+
+    // Hero Section Locators
+    readonly heroContent = (): Locator => this.page.locator('#left-content-main-character')
+    readonly openHeroModalBtn = (): Locator => this.page.locator('#btn-add-main-character')
+    readonly heroCardPreview = (): Locator => this.page.locator('#main-character-container')
+
+    // Characters / NPC Section Locators
+    readonly charactersContent = (): Locator => this.page.locator('#left-content-characters')
+    readonly addCharacterBtn = (): Locator => this.page.locator('#btn-add-character')
+    readonly addTemplateBtn = (): Locator => this.page.locator('#btn-add-template')
+    readonly npcModal = (): Locator => this.page.locator('#npc-create-modal')
+    readonly npcNameInput = (): Locator => this.page.locator('#npc-name-input')
+    readonly npcSaveBtn = (): Locator => this.page.locator('#btn-save-npc-modal')
+    readonly charactersListContainer = (): Locator =>
+        this.page.locator('#characters-list-container')
+    readonly addNpcStatBtn = (): Locator => this.page.locator('#btn-add-npc-stat')
+    readonly npcStatNameInput = (): Locator =>
+        this.page.locator('input[data-stat-field="name"]').last()
+    readonly npcStatValueInput = (): Locator =>
+        this.page.locator('input[data-stat-field="value"]').last()
+    readonly confirmNpcStatBtn = (): Locator =>
+        this.page.locator('button[data-action="confirm-stat"]').last()
+    readonly templateDropdownBtn = (): Locator => this.page.locator('#btn-template-dropdown')
+    readonly templateDropdownMenu = (): Locator => this.page.locator('#npc-template-dropdown-menu')
+    readonly templateDropdownItems = (): Locator =>
+        this.page.locator('#npc-template-dropdown-items .template-dropdown-item')
+    readonly appliedTemplatesList = (): Locator => this.page.locator('#npc-applied-templates-list')
+    readonly appliedTemplateChips = (): Locator => this.page.locator('.npc-applied-template-chip')
+
+    /**
+     * Zapewnia, że określona zakładka lewej szuflady jest aktywna.
+     * Zapobiega zwijaniu szuflady przy ponownym kliknięciu w ten sam przycisk.
+     */
+    async ensureTabActive(tabBtn: Locator): Promise<void> {
+        const isActive = await tabBtn.evaluate(el => el.classList.contains('active'))
+        if (!isActive) {
+            await tabBtn.click({ force: true })
+        }
+    }
+
+    /**
+     * Otwiera zakładkę postaci w lewej szufladzie.
+     */
+    async openCharactersTab(): Promise<void> {
+        await this.ensureTabActive(this.charactersTabBtn())
+        await expect(this.charactersContent()).toBeVisible()
+    }
+
+    /**
+     * Przełącza na zakładkę Tagów i tworzy nowy tag.
+     */
+    async createTag(name: string): Promise<void> {
+        await this.ensureTabActive(this.tagsTabBtn())
+        await expect(this.tagsContent()).toBeVisible()
+
+        await this.addTagBtn().click({ force: true })
+        await expect(this.tagCreateForm()).toBeVisible()
+
+        await this.tagCreateNameInput().fill(name)
+        await this.tagCreateSubmitBtn().click({ force: true })
+
+        // Sprawdzamy czy tag pojawił się na liście
+        await expect(this.tagsListContainer()).toContainText(name)
+    }
+
+    /**
+     * Przełącza na zakładkę Scen i tworzy nową scenę.
+     */
+    async createScene(name: string): Promise<void> {
+        await this.ensureTabActive(this.scenesTabBtn())
+        await expect(this.scenesContent()).toBeVisible()
+
+        await this.addSceneBtn().click({ force: true })
+        await expect(this.sceneCreateForm()).toBeVisible()
+
+        await this.sceneCreateNameInput().fill(name)
+        await this.sceneCreateSubmitBtn().click({ force: true })
+
+        // Sprawdzamy czy scena pojawiła się na liście
+        await expect(this.scenesListContainer()).toContainText(name)
+    }
+
+    /**
+     * Otwiera modal Bohatera z poziomu zakładki Bohatera w szufladzie.
+     */
+    async openHeroModal(): Promise<void> {
+        await this.ensureTabActive(this.heroTabBtn())
+        await expect(this.heroContent()).toBeVisible()
+        await this.openHeroModalBtn().click({ force: true })
+    }
+
+    /**
+     * Przełącza na zakładkę Postaci i tworzy nowego NPC.
+     */
+    async createNpc(name: string): Promise<void> {
+        await this.openCharactersTab()
+        await this.addCharacterBtn().click({ force: true })
+        await expect(this.npcModal()).toBeVisible()
+
+        await this.npcNameInput().fill(name)
+        await this.npcSaveBtn().click({ force: true })
+        await expect(this.npcModal()).toBeHidden()
+    }
+
+    /**
+     * Tworzy nowy szablon NPC z opcjonalną cechą.
+     */
+    async createTemplate(name: string, stat?: { name: string; value: string }): Promise<void> {
+        await this.openCharactersTab()
+        await this.addTemplateBtn().click({ force: true })
+        await expect(this.npcModal()).toBeVisible()
+
+        await this.npcNameInput().fill(name)
+
+        if (stat) {
+            await this.addNpcStatBtn().click({ force: true })
+            await this.npcStatNameInput().fill(stat.name)
+            await this.npcStatValueInput().fill(stat.value)
+            await this.confirmNpcStatBtn().click({ force: true })
+        }
+
+        await this.npcSaveBtn().click({ force: true })
+        await expect(this.npcModal()).toBeHidden()
+    }
+
+    /**
+     * Stosuje szablon do aktualnie otwartego formularza NPC.
+     */
+    async applyTemplateToNpc(templateName: string): Promise<void> {
+        await this.templateDropdownBtn().click()
+        await expect(this.templateDropdownMenu()).toBeVisible()
+        const targetTpl = this.templateDropdownItems().filter({ hasText: templateName }).first()
+        await expect(targetTpl).toBeVisible()
+        await targetTpl.click()
+        await expect(this.appliedTemplateChips().filter({ hasText: templateName })).toBeVisible()
+    }
+}

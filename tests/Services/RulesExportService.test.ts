@@ -68,13 +68,13 @@ describe('RulesExportService', () => {
     it('delegates downloadFile and copyToClipboard to shared ExportUtils', async () => {
         const clickSpy = vi.fn()
         const origCreate = document.createElement.bind(document)
-        vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        vi.spyOn(document, 'createElement').mockImplementation(((tagName: string) => {
             const el = origCreate(tagName)
             if (tagName === 'a') {
                 el.click = clickSpy
             }
             return el
-        })
+        }) as any)
 
         RulesExportService.downloadFile('# Reguły', 'rules.md', 'text/markdown')
         expect(clickSpy).toHaveBeenCalled()

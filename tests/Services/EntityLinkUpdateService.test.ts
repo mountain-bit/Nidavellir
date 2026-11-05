@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-function-return-type */
 import { describe, expect, it } from 'vitest'
 
 import { Choice, type ChoiceDiceCheck, type ChoiceModifier } from '../../Model/Choice'
@@ -250,6 +251,205 @@ describe('EntityLinkUpdateService', () => {
 
             expect(p2.getContent().getText()).toContain('[Ostrze Świtu](entity://item/it_sword)')
             expect(inv.getItems()[0].getName()).toBe('Ostrze Świtu')
+        })
+
+        it('returns early when event is invalid or oldName equals newName', () => {
+            const res1 = EntityLinkUpdateService.updateEntityReferences(null as any)
+            expect(res1.updatedEntitiesCount).toBe(0)
+
+            const res2 = EntityLinkUpdateService.updateEntityReferences({
+                id: '1',
+                oldName: 'Same',
+                newName: 'Same',
+                type: 'item',
+            })
+            expect(res2.updatedEntitiesCount).toBe(0)
+        })
+
+        it('updates combat opponents and outcomes in paragraph combat', () => {
+            const p = new Paragraph('p_combat', 'Arena')
+            const mockOpponent1 = {
+                characterId: 'npc_gladiator',
+                name: 'Gladiator',
+                setName: (n: string) => {
+                    mockOpponent1.name = n
+                },
+            }
+            const mockOpponent2 = {
+                id: 'npc_beast',
+                name: 'Bestia',
+            }
+            const mockOutcome = {
+                targetParagraphId: 'p_victory',
+                name: 'Zwycięstwo',
+            }
+            const mockCombat = {
+                opponents: [mockOpponent1, mockOpponent2],
+                outcomes: [mockOutcome],
+            }
+            ;(p as any).combat = mockCombat
+            ;(p as any).getCombat = () => mockCombat
+
+            // 1. Zmiana nazwy przeciwnika z metodą setName
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id: 'npc_gladiator',
+                    oldName: 'Gladiator',
+                    newName: 'Mistrz Areny',
+                    type: 'character',
+                },
+                { paragraphs: [p] }
+            )
+            expect(mockOpponent1.name).toBe('Mistrz Areny')
+
+            // 2. Zmiana nazwy drugiego przeciwnika bez metody setName
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id: 'npc_beast',
+                    oldName: 'Bestia',
+                    newName: 'Wściekła Bestia',
+                    type: 'character',
+                },
+                { paragraphs: [p] }
+            )
+            expect(mockOpponent2.name).toBe('Wściekła Bestia')
+
+            // 3. Zmiana paragrafu docelowego powiązanego z rezultatem walki
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id: 'p_victory',
+                    oldName: 'Zwycięstwo',
+                    newName: 'Wielkie Zwycięstwo',
+                    type: 'paragraph',
+                },
+                { paragraphs: [p] }
+            )
+            expect(mockOutcome.name).toBe('Wielkie Zwycięstwo')
+        })
+
+        it('updates secondary entity descriptions and character attached traits', () => {
+            const loc = new Location(
+                'loc_1',
+                'Stary Port',
+                new Description('Odwiedź [Targ](entity://location/loc_market).')
+            )
+            const npc = new NPC('npc_1', 'Kapitan')
+
+            const stat = {
+                getId: () => 'stat_sail',
+                getName: () => 'Żeglarstwo',
+                setName: (n: string) => {
+                    ;(stat as any).name = n
+                },
+            }
+            ;(npc as any).getStats = () => [stat]
+
+            const scope = {
+                locations: [loc],
+                characters: [npc],
+            }
+
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id: 'loc_market',
+                    oldName: 'Targ',
+                    newName: 'Rynek Rybny',
+                    type: 'location',
+                },
+                scope
+            )
+            expect(loc.getDescription().getText()).toContain(
+                '[Rynek Rybny](entity://location/loc_market)'
+            )
+
+            EntityLinkUpdateService.updateEntityReferences(
+                {
+                    id: 'stat_sail',
+                    oldName: 'Żeglarstwo',
+                    newName: 'Nawigacja',
+                    type: 'stat',
+                },
+                scope
+            )
+            expect((stat as any).name).toBe('Nawigacja')
+        })
+
+        it('synchronizes active DOM textarea and window main editor instance', () => {
+            const prevDoc = globalThis.document
+            const prevWin = globalThis.window
+
+            const fakeTextarea = {
+                value: 'Tekst z linkiem: [Jan](entity://character/npc_1)',
+            }
+            let editorContent = 'Editor z linkiem: [Jan](entity://character/npc_1)'
+            const fakeEditor = {
+                getMarkdown: () => editorContent,
+                setMarkdown: (v: string) => {
+                    editorContent = v
+                },
+            }
+
+            ;(globalThis as any).document = {
+                getElementById: (id: string) => (id === 'file-editor' ? fakeTextarea : null),
+            }
+            ;(globalThis as any).window = {
+                getMainEditorInstance: () => fakeEditor,
+            }
+
+            try {
+                EntityLinkUpdateService.syncActiveDomEditors({
+                    id: 'npc_1',
+                    oldName: 'Jan',
+                    newName: 'Jan Paweł',
+                    type: 'character',
+                })
+
+                expect(fakeTextarea.value).toContain('[Jan Paweł](entity://character/npc_1)')
+                expect(editorContent).toContain('[Jan Paweł](entity://character/npc_1)')
+            } finally {
+                ;(globalThis as any).document = prevDoc
+                ;(globalThis as any).window = prevWin
+            }
+        })
+    })
+
+    describe('computeUpdatedLabel and computeUpdatedEmbedLabel edge cases', () => {
+        it('handles case-insensitive match, targetId match and partial replaces in embed and entity links', () => {
+            // embed link with case-insensitive match or matching id
+            const md =
+                '[stary jan](embed://character/npc_1)\n' +
+                '[npc_1](embed://character/npc_1)\n' +
+                '[Opis bohatera Stary Jan na zamku](embed://character/npc_1)\n' +
+                '[stary jan](entity://character/npc_1)\n' +
+                '[npc_1](entity://character/npc_1)\n' +
+                '[Wielki Stary Jan](entity://character/npc_1)'
+
+            const res = EntityLinkUpdateService.updateMarkdownLinks(md, {
+                id: 'npc_1',
+                oldName: 'Stary Jan',
+                newName: 'Młody Jan',
+                type: 'character',
+            })
+
+            expect(res.updated).toBe(true)
+            expect(res.text).toContain('[Młody Jan](embed://character/npc_1)')
+            expect(res.text).toContain(
+                '[Opis bohatera Młody Jan na zamku](embed://character/npc_1)'
+            )
+            expect(res.text).toContain('[Młody Jan](entity://character/npc_1)')
+            expect(res.text).toContain('[Wielki Młody Jan](entity://character/npc_1)')
+        })
+
+        it('leaves unmatched or incompatible embed and entity links intact', () => {
+            const md = '[Karczma](embed://location/other_loc)'
+            const res = EntityLinkUpdateService.updateMarkdownLinks(md, {
+                id: 'different_id',
+                oldName: 'Zamek',
+                newName: 'Pałac',
+                type: 'location',
+            })
+            expect(res.updated).toBe(false)
+            expect(res.text).toBe(md)
         })
     })
 

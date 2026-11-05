@@ -20,8 +20,10 @@ describe('Description Model', () => {
         expect(desc.getText()).toBe('Main content')
         expect(desc.getSummary()).toBe('Short summary')
         expect(desc.getFilePath()).toBe('./Paragraphs/p1/Description_Paragraph_p1.md')
-        // Backwards compatible getTextPath alias
+        // Backwards compatible getTextPath/setTextPath alias
         expect(desc.getTextPath()).toBe('./Paragraphs/p1/Description_Paragraph_p1.md')
+        desc.setTextPath('./new/path.md')
+        expect(desc.getFilePath()).toBe('./new/path.md')
     })
 
     it('should correctly serialize to JSON', () => {

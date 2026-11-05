@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from 'vitest'
 
 import { CharacterClass } from '../../Model/CharacterClass'
@@ -183,5 +184,144 @@ describe('PlayerCharacter Model', () => {
         expect(restored.getItem('it_2')?.getName()).toBe('Racje żywnościowe')
         expect(restored.getCharacterClass()?.getName()).toBe('Rycerz')
         expect(restored.getCustomAttributes()).toEqual([{ name: 'Pochodzenie', value: 'Camelot' }])
+    })
+
+    it('obsługuje różne formaty opisu w konstruktorze oraz get/setSummary', () => {
+        // Opis jako string
+        const pcStr = new PlayerCharacter('p_str', 'Bohater', 'Prosty tekst opisu' as any)
+        expect(pcStr.getDescription().getText()).toBe('Prosty tekst opisu')
+
+        // Opis jako obiekt JSON
+        const pcObj = new PlayerCharacter('p_obj', 'Bohater', { text: 'Tekst z obiektu' } as any)
+        expect(pcObj.getDescription().getText()).toBe('Tekst z obiektu')
+
+        // Opis jako null/undefined
+        const pcEmpty = new PlayerCharacter('p_none', 'Bohater', null as any)
+        expect(pcEmpty.getDescription()).toBeInstanceOf(Description)
+        expect(pcEmpty.getSummary()).toBe('')
+
+        // setSummary gdy description nie istnieje lub nie ma metody
+        ;(pcEmpty as any).description = null
+        pcEmpty.setSummary('Nowe streszczenie')
+        expect(pcEmpty.getSummary()).toBe('Nowe streszczenie')
+    })
+
+    it('zarządza setterami tożsamości, statystyk, umiejętności, parametrów i cech', () => {
+        const pc = new PlayerCharacter('p_init', 'Początkowy')
+        pc.setId('p_new')
+        expect(pc.getId()).toBe('p_new')
+
+        pc.setName('Nowe Imię')
+        expect(pc.getName()).toBe('Nowe Imię')
+
+        const newDesc = new Description('Nowy opis')
+        pc.setDescription(newDesc)
+        expect(pc.getDescription()).toBe(newDesc)
+
+        // Statystyki: setStats, removeStat
+        const st = new Stat('st_str', 'Siła', new Description(), 10)
+        pc.setStats([st])
+        expect(pc.getStats()).toHaveLength(1)
+        pc.removeStat('Siła')
+        expect(pc.hasStat('st_str')).toBe(false)
+
+        // Umiejętności: setSkills, removeSkill
+        const sk = new Skill('sk_sneak', 'Skradanie', new Description(), 'direct', '3')
+        pc.setSkills([sk])
+        expect(pc.getSkills()).toHaveLength(1)
+        pc.removeSkill('Skradanie')
+        expect(pc.hasSkill('sk_sneak')).toBe(false)
+
+        // Parametry: setParameters, removeParameter
+        const pm = new Parameter('pm_mana', 'Mana', new Description(), 'direct', 50)
+        pc.setParameters([pm])
+        expect(pc.getParameters()).toHaveLength(1)
+        pc.removeParameter('Mana')
+        expect(pc.hasParameter('pm_mana')).toBe(false)
+
+        // Cechy: addFeature, getFeature, hasFeature, removeFeature, setFeatures
+        const ft = new Feature('ft_night', 'Widzenie w ciemności')
+        pc.addFeature(ft)
+        expect(pc.hasFeature('ft_night')).toBe(true)
+        expect(pc.hasFeature('Widzenie w ciemności')).toBe(true)
+        expect(pc.getFeature('Widzenie w ciemności')).toBe(ft)
+        expect(pc.getFeature('unknown')).toBeUndefined()
+
+        pc.setFeatures([ft])
+        expect(pc.getFeatures()).toHaveLength(1)
+        pc.removeFeature('Widzenie w ciemności')
+        expect(pc.hasFeature('ft_night')).toBe(false)
+
+        // Tagi: setTags, removeTag
+        const tg = new Tag('tg_vip', 'Ważna Postać')
+        pc.setTags([tg])
+        expect(pc.getTags()).toHaveLength(1)
+        pc.removeTag('Ważna Postać')
+        expect(pc.hasTag('tg_vip')).toBe(false)
+
+        // Klasa postaci: get/setCharacterClass
+        const cc = new CharacterClass('cc_mage', 'Mag')
+        pc.setCharacterClass(cc)
+        expect(pc.getCharacterClass()?.getName()).toBe('Mag')
+        pc.setCharacterClass(null)
+        expect(pc.getCharacterClass()).toBeUndefined()
+    })
+
+    it('zarządza ekwipunkami i przedmiotami: setItems, addItem bez ekwipunków, removeItem', () => {
+        const pc = new PlayerCharacter('p_inv', 'Wędrowiec')
+        const item1 = new Item('it_bread', 'Chleb')
+        const item2 = new Item('it_water', 'Woda')
+
+        // setItems przy braku ekwipunków tworzy inv_default
+        pc.setItems([item1])
+        expect(pc.getInventories()).toHaveLength(1)
+        expect(pc.getInventories()[0].getId()).toBe('inv_default')
+        expect(pc.hasItem('Chleb')).toBe(true)
+
+        // setItems przy istniejącym ekwipunku nadpisuje pierwszy
+        pc.setItems([item1, item2])
+        expect(pc.getItems()).toHaveLength(2)
+
+        // setInventories z błędnym typem
+        pc.setInventories(null as any)
+        expect(pc.getInventories()).toEqual([])
+
+        // addItem gdy ekwipunki są puste -> tworzy inv_default
+        const item3 = new Item('it_torch', 'Pochodnia')
+        pc.addItem(item3)
+        expect(pc.getInventories()).toHaveLength(1)
+        expect(pc.hasItem('it_torch')).toBe(true)
+
+        // addItem z nieistniejącym inventoryId fallbackuje do pierwszego
+        const item4 = new Item('it_rope', 'Lina')
+        pc.addItem(item4, 'non_existent_inv_id')
+        expect(pc.hasItem('Lina')).toBe(true)
+
+        // addItem z poprawnym inventoryId
+        const customInv = new Inventory('inv_custom', 'Dodatkowy')
+        pc.addInventory(customInv)
+        const item5 = new Item('it_potion', 'Mikstura')
+        pc.addItem(item5, 'inv_custom')
+        expect(customInv.hasItem('it_potion')).toBe(true)
+
+        // removeItem usuwa z przedmiotów i ze wszystkich ekwipunków
+        pc.removeItem('Chleb')
+        expect(pc.hasItem('it_bread')).toBe(false)
+        expect(pc.hasItem('Chleb')).toBe(false)
+    })
+
+    it('fromJSON tworzy automatyczny ekwipunek gdy items istnieje a inventories brak', () => {
+        expect(PlayerCharacter.fromJSON(null)).toBeInstanceOf(PlayerCharacter)
+
+        const rawJson = {
+            id: 'p_legacy_inv',
+            name: 'Kupiec',
+            items: [{ id: 'it_coin', name: 'Złota Moneta' }],
+        }
+
+        const pc = PlayerCharacter.fromJSON(rawJson)
+        expect(pc.getInventories()).toHaveLength(1)
+        expect(pc.getInventories()[0].getName()).toBe('Główny ekwipunek')
+        expect(pc.hasItem('Złota Moneta')).toBe(true)
     })
 })

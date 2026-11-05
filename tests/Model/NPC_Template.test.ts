@@ -139,4 +139,77 @@ describe('NPC_Template Model', () => {
         expect(restoredProject.hasTemplate('Kupiec')).toBe(false)
         expect(restoredProject.getTemplates()).toHaveLength(0)
     })
+
+    it('obsługuje setId, hasId, setName, setDescription, setStats, setSkills, setFeatures oraz setTags', () => {
+        const tpl = new NPC_Template()
+        expect(tpl.hasId()).toBe(false)
+        tpl.setId('tpl-custom')
+        expect(tpl.getId()).toBe('tpl-custom')
+        expect(tpl.hasId()).toBe(true)
+
+        tpl.setName('Nowa Nazwa')
+        expect(tpl.getName()).toBe('Nowa Nazwa')
+
+        const desc = new Description('Nowy opis')
+        tpl.setDescription(desc)
+        expect(tpl.getDescription()).toBe(desc)
+
+        // Statystyki
+        const stat1 = new Stat('st_int', 'Inteligencja', new Description(), 16)
+        tpl.addStat(stat1)
+        tpl.addStat(new Stat('st_int', 'Inteligencja', new Description(), 18)) // ignoruj duplikat
+        expect(tpl.hasStat('Inteligencja')).toBe(true)
+        expect(tpl.hasStat('st_int')).toBe(true)
+        expect(tpl.getStat('st_int')).toBe(16)
+        expect(tpl.getStat('unknown')).toBeUndefined()
+
+        tpl.setStats([stat1])
+        expect(tpl.getStats()).toHaveLength(1)
+        tpl.removeStat('st_int')
+        expect(tpl.hasStat('st_int')).toBe(false)
+
+        // Umiejętności
+        const skill1 = new Skill('sk_magic', 'Magia', new Description(), 'direct', '5')
+        tpl.addSkill(skill1)
+        tpl.addSkill(new Skill('sk_magic', 'Magia', new Description(), 'direct', '6')) // ignoruj duplikat
+        expect(tpl.hasSkill('Magia')).toBe(true)
+        expect(tpl.hasSkill('sk_magic')).toBe(true)
+        expect(tpl.getSkill('Magia')).toBe(skill1)
+        expect(tpl.getSkill('unknown')).toBeUndefined()
+
+        tpl.setSkills([skill1])
+        expect(tpl.getSkills()).toHaveLength(1)
+        tpl.removeSkill('Magia')
+        expect(tpl.hasSkill('Magia')).toBe(false)
+
+        // Cechy
+        const feat1 = new Feature('f_brave', 'Męstwo')
+        tpl.addFeature(feat1)
+        tpl.addFeature(new Feature('f_brave', 'Męstwo')) // ignoruj duplikat
+        expect(tpl.hasFeature('Męstwo')).toBe(true)
+        expect(tpl.hasFeature('f_brave')).toBe(true)
+        expect(tpl.getFeature('f_brave')).toBe(feat1)
+        expect(tpl.getFeature('unknown')).toBeUndefined()
+
+        tpl.setFeatures([feat1])
+        expect(tpl.getFeatures()).toHaveLength(1)
+        tpl.removeFeature('Męstwo')
+        expect(tpl.hasFeature('Męstwo')).toBe(false)
+
+        // Tagi i parametry
+        const tag1 = new Tag('t_magic', 'Magiczny')
+        tpl.addTag(tag1)
+        tpl.addTag(new Tag('t_magic', 'Magiczny')) // ignoruj duplikat
+        tpl.setTags([tag1])
+        expect(tpl.getTags()).toHaveLength(1)
+
+        const param1 = new Parameter('p_mana', 'Mana', new Description(), 'direct', 100)
+        tpl.addParameter(param1)
+        tpl.addParameter(new Parameter('p_mana', 'Mana', new Description(), 'direct', 100)) // ignoruj duplikat
+        tpl.setParameters([param1])
+        expect(tpl.getParameters()).toHaveLength(1)
+
+        // fromJSON(null)
+        expect(NPC_Template.fromJSON(null)).toBeInstanceOf(NPC_Template)
+    })
 })

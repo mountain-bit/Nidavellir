@@ -51,6 +51,7 @@ function registerAppIpc() {
         const callerWin = BrowserWindow.fromWebContents(event.sender)
         const mainWin = createMainWindow()
         if (callerWin && !callerWin.isDestroyed() && callerWin !== mainWin) {
+            callerWin.forceClose = true
             callerWin.close()
         }
         return true
@@ -60,6 +61,7 @@ function registerAppIpc() {
         const callerWin = BrowserWindow.fromWebContents(event.sender)
         const startWin = createStartWindow()
         if (callerWin && !callerWin.isDestroyed() && callerWin !== startWin) {
+            callerWin.forceClose = true
             callerWin.close()
         }
         return true

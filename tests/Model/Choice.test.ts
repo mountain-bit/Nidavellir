@@ -8,11 +8,19 @@ describe('Choice Model', () => {
     it('should initialize with default values', () => {
         const choice = new Choice()
         expect(choice.getId()).toBe('')
+        expect(choice.hasId()).toBe(false)
         expect(choice.getName()).toBe('')
+        expect(choice.getTitle()).toBe('')
         expect(choice.getFromParagraphId()).toBe('')
         expect(choice.getToParagraphId()).toBe('')
+        expect(choice.getTargetId()).toBe('')
+        expect(choice.getTargetParagraphId()).toBe('')
         expect(choice.getCondition()).toBeNull()
         expect(choice.getDescription()).toBeInstanceOf(Description)
+
+        choice.setId('c_new_id')
+        expect(choice.getId()).toBe('c_new_id')
+        expect(choice.hasId()).toBe(true)
     })
 
     it('should set and get fromParagraphId and toParagraphId', () => {
@@ -109,9 +117,20 @@ describe('Choice Model', () => {
         expect(choice.getCosts()[0].name).toBe('Złoto')
 
         // Rewards
-        choice.addReward({ type: 'item', name: 'Amulet', value: 1 })
+        choice.addReward({ id: 'rew_1', type: 'item', name: 'Amulet', value: 1 })
+        choice.addReward({ id: 'rew_2', type: 'parameter', name: 'Złoto', value: 10 })
         expect(choice.hasRewards()).toBe(true)
         expect(choice.getRewards()[0].name).toBe('Amulet')
+
+        choice.removeReward('rew_1')
+        expect(choice.getRewards().length).toBe(1)
+        expect(choice.getRewards()[0].name).toBe('Złoto')
+
+        choice.removeReward('Złoto')
+        expect(choice.hasRewards()).toBe(false)
+
+        choice.addReward({ type: 'item', name: 'Amulet', value: 1 })
+        expect(choice.hasRewards()).toBe(true)
 
         // Dice check
         choice.setDiceCheck({
@@ -142,5 +161,35 @@ describe('Choice Model', () => {
         expect(restored.getDiceCheck()?.stat).toBe('Zręczność')
         expect(restored.getDiceCheck()?.branches[0].description).toBe('Upadek')
         expect(restored.getDiceCheck()?.branches[1].targetParagraphId).toBe('p_success')
+    })
+
+    it('handles null inputs and dice check fallback parsing', () => {
+        const nullChoice = Choice.fromJSON(null)
+        expect(nullChoice).toBeInstanceOf(Choice)
+        expect(nullChoice.getId()).toBe('')
+
+        const parsedWithFallbackBranch = Choice.fromJSON({
+            id: 'c_branch_fallback',
+            diceCheck: {
+                dice: '2k6',
+                branches: [
+                    { min: 1, max: 6, targetId: 'p_target_id' },
+                    { min: 7, max: 12 }, // no target
+                ],
+            },
+        })
+
+        expect(parsedWithFallbackBranch.getDiceCheck()?.branches[0].targetParagraphId).toBe(
+            'p_target_id'
+        )
+        expect(parsedWithFallbackBranch.getDiceCheck()?.branches[1].targetParagraphId).toBe('')
+
+        const parsedWithNullBranches = Choice.fromJSON({
+            id: 'c_null_branches',
+            diceCheck: {
+                branches: null,
+            },
+        })
+        expect(parsedWithNullBranches.getDiceCheck()?.branches).toEqual([])
     })
 })
