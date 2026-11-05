@@ -339,4 +339,78 @@ describe('ItemWithModifiers - Domain Models & ViewModel (Stage 1)', () => {
             expect(paragraph.hasItemAction('it_relic')).toBe(false)
         })
     })
+
+    describe('Item Model Edge Cases & Setters', () => {
+        it('handles setters, base fields, boundary values and fallback defaults', () => {
+            const item = new Item('it_1', 'Miecz')
+            expect(item.hasId()).toBe(true)
+
+            item.setId('it_changed')
+            expect(item.getId()).toBe('it_changed')
+
+            item.setDescription(new Description('Ostre ostrze'))
+            expect(item.getDescription().getText()).toBe('Ostre ostrze')
+
+            const t1 = new Tag('t1', 'Broń')
+            item.setTags([t1])
+            expect(item.getTags()).toEqual([t1])
+
+            const mod1: IItemModifier = {
+                id: 'm1',
+                targetType: 'stat',
+                targetName: 'Siła',
+                value: 3,
+                operator: '+',
+            }
+            item.setModifiers([mod1])
+            expect(item.getModifiers()).toEqual([mod1])
+
+            item.setCategory('')
+            expect(item.getCategory()).toBe('misc')
+
+            item.setSlotSize(-5)
+            expect(item.getSlotSize()).toBe(1)
+
+            item.setWeight(-10)
+            expect(item.getWeight()).toBe(1)
+
+            item.setIsConsumable(true)
+            expect(item.isConsumable()).toBe(true)
+
+            item.setInStartingInventory(true)
+            expect(item.isInStartingInventory()).toBe(true)
+
+            item.setTargetInventoryId('inv_chest')
+            expect(item.getTargetInventoryId()).toBe('inv_chest')
+        })
+
+        it('handles boundary and legacy JSON inputs in Item.fromJSON', () => {
+            const nullItem = Item.fromJSON(null)
+            expect(nullItem.getId()).toBe('')
+            expect(nullItem.getName()).toBe('')
+
+            const legacyItem = Item.fromJSON({
+                id: 'leg_1',
+                nazwa: 'Topór Wojenny',
+                kategoria: 'weapon',
+                slotSize: 2,
+                weight: 4,
+                isConsumable: false,
+                inStartingInventory: true,
+                targetInventoryId: 'inv_pack',
+                modifiers: null,
+                tags: null,
+            })
+            expect(legacyItem.getId()).toBe('leg_1')
+            expect(legacyItem.getName()).toBe('Topór Wojenny')
+            expect(legacyItem.getCategory()).toBe('weapon')
+            expect(legacyItem.getSlotSize()).toBe(2)
+            expect(legacyItem.getWeight()).toBe(4)
+            expect(legacyItem.isConsumable()).toBe(false)
+            expect(legacyItem.isInStartingInventory()).toBe(true)
+            expect(legacyItem.getTargetInventoryId()).toBe('inv_pack')
+            expect(legacyItem.getModifiers()).toEqual([])
+            expect(legacyItem.getTags()).toEqual([])
+        })
+    })
 })

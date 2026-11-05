@@ -16,6 +16,7 @@
         "test": "vitest",
         "test:run": "vitest run",
         "test:coverage": "vitest run --coverage",
+        "test:perf": "vitest run tests/Performance/",
         "test:e2e": "playwright test",
         "license:check": "node scripts/check-licenses.js",
         "lint": "eslint \"**/*.{ts,js}\"",

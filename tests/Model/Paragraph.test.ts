@@ -402,4 +402,67 @@ describe('Paragraph Model', () => {
         expect(p.getIsStart()).toBe(false)
         expect(p.getIsEnd()).toBe(true)
     })
+
+    it('covers boundary branches, setters, and fallback parsers', () => {
+        // Constructor with single Location object
+        const singleLoc = new Location('loc_single', 'Single Location')
+        const pWithLoc = new Paragraph(
+            'p_loc',
+            'With Single Loc',
+            new Description(),
+            [],
+            false,
+            new Combat('', ''),
+            [],
+            [],
+            singleLoc as any
+        )
+        expect(pWithLoc.getLocations()).toHaveLength(1)
+        expect(pWithLoc.getLocation()?.getId()).toBe('loc_single')
+
+        // setContent
+        const newDesc = new Description('Nowa zawartość')
+        pWithLoc.setContent(newDesc)
+        expect(pWithLoc.getContent().getText()).toBe('Nowa zawartość')
+
+        // Start node setters clearing entities
+        const startP = new Paragraph('start', 'Początek')
+        startP.setIsStart(true)
+        startP.setTags([new Tag('t1', 'Tag')])
+        startP.setCharacters([new NPC('npc1', 'NPC')])
+        startP.setLocations([singleLoc])
+        startP.setItemActions([{ itemId: 'i1', action: 'give' }])
+
+        expect(startP.getTags()).toEqual([])
+        expect(startP.getCharacters()).toEqual([])
+        expect(startP.getLocations()).toEqual([])
+        expect(startP.getItemActions()).toEqual([])
+        expect(startP.getCharacter('npc1')).toBeUndefined()
+
+        // getDisplayNumber for start node when not locked and randomized <= 0
+        expect(startP.getDisplayNumber()).toBe(1)
+
+        // fromJSON edge cases
+        const parsedEdge = Paragraph.fromJSON({
+            id: 'START', // should trigger isStart = true
+            name: 'Fallback Name', // tests json.name fallback
+            choices: [
+                { id: 'ch_dup', name: 'Wybór 1', targetParagraphId: 'p2' },
+                { id: 'ch_dup', name: 'Duplikat wyboru', targetParagraphId: 'p3' },
+            ],
+            location: { id: 'loc_fallback', name: 'Fallback Loc' },
+            itemActions: ['it_raw_string', { id: 'act_obj', itemId: 'it_obj', action: 'require' }],
+        })
+
+        expect(parsedEdge.getIsStart()).toBe(true)
+        expect(parsedEdge.getTitle()).toBe('Fallback Name')
+        expect(parsedEdge.getChoices()).toHaveLength(1)
+        expect(parsedEdge.getChoices()[0].getFromParagraphId()).toBe('START')
+
+        const parsedNonArrayItems = Paragraph.fromJSON({
+            id: 'p_non_array_items',
+            itemActions: 'not_an_array' as any,
+        })
+        expect(parsedNonArrayItems.getItemActions()).toEqual([])
+    })
 })

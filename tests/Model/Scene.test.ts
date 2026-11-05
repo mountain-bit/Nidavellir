@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { Description } from '../../Model/Description'
 import { Location } from '../../Model/Location'
 import { Paragraph } from '../../Model/Paragraph'
 import { Scene } from '../../Model/Scene'
@@ -304,5 +305,51 @@ describe('Scene Model', () => {
         expect(restored.getLocations()[0].getId()).toBe('loc_castle')
         expect(restored.getLocations()[1].getId()).toBe('loc_dungeon')
         expect(restored.getLocation()?.getId()).toBe('loc_castle')
+    })
+
+    it('should handle all setters, entity queries, and tags', () => {
+        const scene = new Scene('s-full', 'Scena Pełna')
+        expect(scene.hasId()).toBe(true)
+
+        scene.setId('s-changed')
+        expect(scene.getId()).toBe('s-changed')
+        scene.setName('Zmieniona Nazwa')
+        expect(scene.getName()).toBe('Zmieniona Nazwa')
+
+        const desc = new Description('Opis sceny')
+        scene.setDescription(desc)
+        expect(scene.getDescription().getText()).toBe('Opis sceny')
+
+        // Paragraphs
+        const p1 = new Paragraph('p_sub1', 'Podparagraf 1')
+        scene.setParagraphs([p1])
+        expect(scene.getParagraph('p_sub1')).toBe(p1)
+        expect(scene.getParagraph('nonexistent')).toBeUndefined()
+
+        // Characters
+        const npc1 = { getId: () => 'npc_bob', getName: () => 'Bob' } as any
+        scene.setCharacters([npc1])
+        expect(scene.hasCharacter('npc_bob')).toBe(true)
+        expect(scene.getCharacter('npc_bob')).toBe(npc1)
+        expect(scene.getCharacter('nonexistent')).toBeUndefined()
+
+        // Locations & setLocation
+        const loc = new Location('loc_single', 'Pojedyncza')
+        scene.setLocation(loc)
+        expect(scene.getLocation()?.getId()).toBe('loc_single')
+        scene.setLocations([loc])
+        expect(scene.getLocations()).toHaveLength(1)
+
+        // Tags
+        const tag = { getId: () => 'tg_act', getName: () => 'Akt1' } as any
+        scene.setTags([tag])
+        expect(scene.hasTag('Akt1')).toBe(true)
+        expect(scene.hasTag('tg_act')).toBe(true)
+        scene.removeTag('Akt1')
+        expect(scene.hasTag('Akt1')).toBe(false)
+
+        // InitialParagraphId
+        scene.setInitialParagraphId('p_init')
+        expect(scene.getInitialParagraphId()).toBe('p_init')
     })
 })

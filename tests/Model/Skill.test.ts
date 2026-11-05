@@ -4,7 +4,13 @@ import { Description } from '../../Model/Description'
 import { Skill } from '../../Model/Skill'
 
 describe('Skill Model', () => {
-    it('tworzy umiejętność w trybie direct i pozwala na zmianę pól', () => {
+    it('tworzy umiejętność w trybie direct i pozwala na zmianę pól bazowych', () => {
+        const defaultSkill = new Skill()
+        expect(defaultSkill.getId()).toBe('')
+        expect(defaultSkill.hasId()).toBe(false)
+        expect(defaultSkill.getName()).toBe('')
+        expect(defaultSkill.getMode()).toBe('direct')
+
         const skill = new Skill(
             's1',
             'Walka wręcz',
@@ -13,14 +19,26 @@ describe('Skill Model', () => {
             '+3'
         )
         expect(skill.getId()).toBe('s1')
+        expect(skill.hasId()).toBe(true)
         expect(skill.getName()).toBe('Walka wręcz')
         expect(skill.getMode()).toBe('direct')
         expect(skill.getValue()).toBe('+3')
         expect(skill.getStatName()).toBe('')
         expect(skill.getModifier()).toBe('')
 
+        skill.setId('s1-mod')
+        expect(skill.getId()).toBe('s1-mod')
+        skill.setName('Szermierka')
+        expect(skill.getName()).toBe('Szermierka')
         skill.setValue('+5')
         expect(skill.getValue()).toBe('+5')
+
+        const newDesc = new Description('Nowy opis')
+        skill.setDescription(newDesc)
+        expect(skill.getDescription().getText()).toBe('Nowy opis')
+
+        skill.setMode('stat_mod')
+        expect(skill.getMode()).toBe('stat_mod')
     })
 
     it('tworzy umiejętność w trybie stat_mod z powiązaną cechą', () => {
@@ -73,11 +91,17 @@ describe('Skill Model', () => {
         expect(fromJson.getModifier()).toBe('+3')
     })
 
-    it('obsługuje pusty obiekt fromJSON', () => {
-        const skill = Skill.fromJSON(null)
-        expect(skill).toBeInstanceOf(Skill)
-        expect(skill.getId()).toBe('')
-        expect(skill.getName()).toBe('')
-        expect(skill.getMode()).toBe('direct')
+    it('obsługuje pusty obiekt i null w fromJSON', () => {
+        const skillNull = Skill.fromJSON(null)
+        expect(skillNull).toBeInstanceOf(Skill)
+        expect(skillNull.getId()).toBe('')
+        expect(skillNull.getName()).toBe('')
+        expect(skillNull.getMode()).toBe('direct')
+
+        const skillEmpty = Skill.fromJSON({})
+        expect(skillEmpty).toBeInstanceOf(Skill)
+        expect(skillEmpty.getId()).toBe('')
+        expect(skillEmpty.getName()).toBe('')
+        expect(skillEmpty.getMode()).toBe('direct')
     })
 })

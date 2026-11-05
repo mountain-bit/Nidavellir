@@ -28,8 +28,20 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'lcov', 'html'],
-            include: ['Model/**/*.ts', 'ViewModel/**/*.ts', 'Services/**/*.ts', 'Utils/**/*.ts'],
-            exclude: ['node_modules/', 'dist/'],
+            include: [
+                'Model/**/*.ts',
+                'ViewModel/**/*.ts',
+                'Services/**/*.ts',
+                'Utils/**/*.ts',
+                'Modules/**/*.ts',
+            ],
+            exclude: [
+                'node_modules/',
+                'dist/',
+                '**/index.ts',
+                'Model/TextCondition.ts',
+                '**/types.ts',
+            ],
         },
     },
 })

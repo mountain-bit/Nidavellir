@@ -11,6 +11,15 @@ describe('Combat Model', () => {
         expect(combat.getCombatOpponents()).toEqual([])
         expect(combat.getOutcomes()).toEqual([])
         expect(combat.getVisibleStatIds()).toEqual([])
+        expect(combat.hasId()).toBe(true)
+
+        combat.setId('c1_changed')
+        expect(combat.getId()).toBe('c1_changed')
+        combat.setName('Nowa Walka')
+        expect(combat.getName()).toBe('Nowa Walka')
+
+        const emptyCombat = new Combat()
+        expect(emptyCombat.hasId()).toBe(false)
     })
 
     it('manages visibleStatIds correctly', () => {
@@ -146,5 +155,61 @@ describe('Combat Model', () => {
         expect(restoredCombat.getCombatOpponents()[0].name).toBe('Król Cieni')
         expect(restoredCombat.getOutcomes().length).toBe(1)
         expect(restoredCombat.getOutcomes()[0].name).toBe('Koronacja bohatera')
+    })
+
+    it('handles legacy opponents and descriptions', () => {
+        const combat = new Combat('c_legacy')
+        const npc1 = { id: 'npc_1', name: 'Bandyta' } as any
+        const npc2 = { id: 'npc_2', name: 'Złodziej' } as any
+
+        combat.addOpponent(npc1)
+        combat.addOpponent(npc2)
+        expect(combat.getOpponents()).toHaveLength(2)
+
+        combat.removeOpponent(npc1)
+        expect(combat.getOpponents()).toHaveLength(1)
+        expect(combat.getOpponents()[0]).toBe(npc2)
+
+        combat.setOpponents([npc1])
+        expect(combat.getOpponents()).toEqual([npc1])
+
+        const descV = { text: 'Wygrana' } as any
+        const descD = { text: 'Przegrana' } as any
+        const descDraw = { text: 'Remis' } as any
+
+        combat.setVictoryDescription(descV)
+        combat.setDefeatDescription(descD)
+        combat.setDrawDescription(descDraw)
+
+        expect(combat.getVictoryDescription()).toBe(descV)
+        expect(combat.getDefeatDescription()).toBe(descD)
+        expect(combat.getDrawDescription()).toBe(descDraw)
+    })
+
+    it('handles edge cases in fromJSON including null inputs and null overriddenStats', () => {
+        const nullCombat = Combat.fromJSON(null)
+        expect(nullCombat).toBeInstanceOf(Combat)
+        expect(nullCombat.getId()).toBe('')
+
+        const parsedWithNullOverrides = Combat.fromJSON({
+            id: 'c_null_overrides',
+            combatOpponents: [
+                {
+                    id: 'opp_null_stats',
+                    name: 'Potwór',
+                    overriddenStats: null,
+                },
+            ],
+            outcomes: [
+                { id: 'out_1', name: 'Wygrana', targetParagraphId: 'p1' },
+                { id: 'out_1', name: 'Duplikat ID', targetParagraphId: 'p2' },
+                { id: '', name: 'Ten sam cel', targetParagraphId: 'p3' },
+                { id: '', name: 'Ten sam cel', targetParagraphId: 'p3' },
+            ],
+        })
+
+        expect(parsedWithNullOverrides.getCombatOpponents()[0].overriddenStats).toEqual({})
+        // Dedup outcomes
+        expect(parsedWithNullOverrides.getOutcomes()).toHaveLength(2)
     })
 })
