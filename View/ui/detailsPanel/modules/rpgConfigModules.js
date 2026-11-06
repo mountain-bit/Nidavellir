@@ -13,25 +13,204 @@ import { buildStatsMap, createSection } from '../common/domHelpers.js'
 import { renderHistoryBar } from '../historyBar.js'
 
 /**
- * Renders the HTML template for stat/trait value editing.
+ * Renders mode toggle buttons HTML for stat/trait configuration.
  *
- * @param {string | number} [value='']
+ * @param {string} [currentKind='numeric']
  * @returns {string} HTML string
  */
-export function renderStatValueModuleHtml(value = '') {
-    const safeValue = escapeHtml(String(value ?? ''))
-    const labelText = escapeHtml(t('details.stat_value'))
-    const placeholderText = escapeHtml(t('details.trait_value'))
+export function renderStatKindButtonsHtml(currentKind = 'numeric') {
+    const isNumeric = currentKind !== 'list'
+    const isList = currentKind === 'list'
+
+    const numericClass = isNumeric
+        ? 'bg-amber-950/80 text-amber-300 border border-amber-500/50'
+        : 'text-gray-400 hover:text-white'
+    const listClass = isList
+        ? 'bg-amber-950/80 text-amber-300 border border-amber-500/50'
+        : 'text-gray-400 hover:text-white'
 
     return `
-        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${labelText}</label>
-        <input id="details-stat-value-input" type="text" value="${safeValue}" placeholder="${placeholderText}" aria-label="${labelText}"
-            class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-amber-500" />
+        <div class="grid grid-cols-2 gap-1.5 bg-[#18181b] p-1 rounded border border-[#27272a]">
+            <button type="button" id="btn-stat-kind-numeric" class="py-1 px-2 rounded text-xs font-medium cursor-pointer transition-colors ${numericClass}">
+                ${escapeHtml(t('details.stat_type_numeric') || 'Numeryczna')}
+            </button>
+            <button type="button" id="btn-stat-kind-list" class="py-1 px-2 rounded text-xs font-medium cursor-pointer transition-colors ${listClass}">
+                ${escapeHtml(t('details.stat_type_list') || 'Lista wartości')}
+            </button>
+        </div>`
+}
+
+/**
+ * Renders the numeric bounds and default value block HTML for stats.
+ *
+ * @param {number | null} [minValue=null]
+ * @param {number | null} [maxValue=null]
+ * @param {string | number} [defaultValue='']
+ * @param {boolean} [isVisible=true]
+ * @returns {string} HTML string
+ */
+export function renderStatNumericBlockHtml(
+    minValue = null,
+    maxValue = null,
+    defaultValue = '',
+    isVisible = true
+) {
+    const hiddenClass = isVisible ? '' : 'hidden'
+    const safeMin = minValue !== null && minValue !== undefined ? escapeHtml(String(minValue)) : ''
+    const safeMax = maxValue !== null && maxValue !== undefined ? escapeHtml(String(maxValue)) : ''
+    const safeVal =
+        defaultValue !== null && defaultValue !== undefined ? escapeHtml(String(defaultValue)) : ''
+    const minLabel = escapeHtml(t('details.stat_min') || 'Wartość minimalna (Min)')
+    const maxLabel = escapeHtml(t('details.stat_max') || 'Wartość maksymalna (Max)')
+    const defLabel = escapeHtml(t('details.stat_value') || 'Wartość cechy')
+
+    return `
+        <div id="stat-numeric-block" class="${hiddenClass} space-y-2 pt-1">
+            <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1">
+                    <label class="block text-[11px] text-gray-400">${minLabel}</label>
+                    <input id="details-stat-min-input" type="number" value="${safeMin}" placeholder="Brak" aria-label="${minLabel}"
+                        class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-amber-500" />
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[11px] text-gray-400">${maxLabel}</label>
+                    <input id="details-stat-max-input" type="number" value="${safeMax}" placeholder="Brak" aria-label="${maxLabel}"
+                        class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-amber-500" />
+                </div>
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${defLabel}</label>
+                <input id="details-stat-value-input" type="text" value="${safeVal}" placeholder="np. 10" aria-label="${defLabel}"
+                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-amber-500" />
+                <div id="stat-val-error-msg" class="text-[10px] text-rose-400 hidden"></div>
+            </div>
+        </div>`
+}
+
+/**
+ * Renders the options list editor and default value block HTML for list-based stats.
+ *
+ * @param {Array<string>} [options=[]]
+ * @param {string | number} [defaultValue='']
+ * @param {boolean} [isVisible=false]
+ * @returns {string} HTML string
+ */
+export function renderStatListBlockHtml(options = [], defaultValue = '', isVisible = false) {
+    const hiddenClass = isVisible ? '' : 'hidden'
+    const optsList = Array.isArray(options) ? options : []
+    const optionsLabel = escapeHtml(t('details.stat_options') || 'Dozwolone wartości')
+    const placeholderText = escapeHtml(t('details.stat_option_placeholder') || 'Nowa wartość...')
+    const defLabel = escapeHtml(t('details.stat_default_value') || 'Wartość domyślna')
+
+    const optionsListHtml =
+        optsList.length === 0
+            ? `<p class="italic text-gray-500 text-[11px] py-1 select-none">${escapeHtml(t('details.stat_no_options') || 'Brak zdefiniowanych wartości na liście')}</p>`
+            : `<div class="space-y-1 max-h-36 overflow-y-auto">
+            ${optsList
+                .map(
+                    (opt, idx) => `
+                <div class="flex items-center justify-between bg-[#18181b] border border-[#27272a] px-2 py-1 rounded text-xs text-zinc-200">
+                    <span class="truncate">${escapeHtml(opt)}</span>
+                    <button type="button" class="btn-remove-stat-option text-gray-400 hover:text-rose-400 p-0.5 cursor-pointer inline-flex items-center" data-option-index="${idx}" title="${escapeHtml(t('buttons.delete') || 'Usuń')}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            `
+                )
+                .join('')}
+           </div>`
+
+    const defaultSelectOptions = `
+        <option value="">-- ${escapeHtml(t('details.stat_default_value') || 'Wartość domyślna')} --</option>
+        ${optsList
+            .map(
+                opt =>
+                    `<option value="${escapeHtml(opt)}" ${opt === defaultValue ? 'selected' : ''}>${escapeHtml(opt)}</option>`
+            )
+            .join('')}
+    `
+
+    return `
+        <div id="stat-list-block" class="${hiddenClass} space-y-2 pt-1">
+            <label class="block text-[11px] text-gray-400">${optionsLabel}</label>
+            ${optionsListHtml}
+            <div class="flex gap-1 pt-0.5">
+                <input id="details-stat-new-option-input" type="text" placeholder="${placeholderText}"
+                    class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500" />
+                <button id="btn-details-stat-add-option" type="button"
+                    class="px-2.5 py-1 bg-amber-700 hover:bg-amber-600 rounded text-xs text-white font-medium cursor-pointer transition-colors">
+                    + ${escapeHtml(t('buttons.add') || 'Dodaj')}
+                </button>
+            </div>
+            <div class="space-y-1 pt-1">
+                <label class="block text-[11px] text-gray-400">${defLabel}</label>
+                <select id="details-stat-default-select" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-amber-500">
+                    ${defaultSelectOptions}
+                </select>
+            </div>
+        </div>`
+}
+
+/**
+ * Renders full stat/trait configuration inner HTML.
+ *
+ * @param {string} [kind='numeric']
+ * @param {number | null} [minValue=null]
+ * @param {number | null} [maxValue=null]
+ * @param {string | number} [defaultValue='']
+ * @param {Array<string>} [options=[]]
+ * @returns {string} HTML string
+ */
+export function renderStatConfigModuleHtml(
+    kind = 'numeric',
+    minValue = null,
+    maxValue = null,
+    defaultValue = '',
+    options = []
+) {
+    const isNumeric = kind !== 'list'
+    const isList = kind === 'list'
+    const typeLabel = escapeHtml(t('details.stat_type') || 'Typ cechy')
+
+    return `
+        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${typeLabel}</label>
+        ${renderStatKindButtonsHtml(kind)}
+        ${renderStatNumericBlockHtml(minValue, maxValue, defaultValue, isNumeric)}
+        ${renderStatListBlockHtml(options, defaultValue, isList)}
     `
 }
 
 /**
- * Renders base stat / trait value editing module in details panel.
+ * Renders the HTML template for stat/trait value editing (maintains backward compatibility).
+ *
+ * @param {string | number} [value='']
+ * @returns {string} HTML string
+ */
+export function renderStatValueModuleHtml(
+    valueOrKind = '',
+    minValue = null,
+    maxValue = null,
+    defaultValue = '',
+    options = []
+) {
+    if (
+        valueOrKind !== 'numeric' &&
+        valueOrKind !== 'list' &&
+        minValue === null &&
+        maxValue === null &&
+        (!options || options.length === 0)
+    ) {
+        return renderStatConfigModuleHtml('numeric', null, null, valueOrKind, [])
+    }
+    return renderStatConfigModuleHtml(valueOrKind, minValue, maxValue, defaultValue, options)
+}
+
+/**
+ * Renders base stat / trait configuration module in details panel.
+ * Supports numeric bounds (min, max) and discrete options list with default value.
  *
  * @param {HTMLElement | null} container
  * @param {object} entity
@@ -46,33 +225,157 @@ export function renderStatValueModule(container, entity, type, ctx = {}, onRefre
         return null
     }
 
+    const refreshDetails = () => {
+        if (typeof onRefreshDetails === 'function') {
+            onRefreshDetails(ctx)
+        } else if (typeof ctx?.renderDetailsPanel === 'function') {
+            ctx.renderDetailsPanel(ctx)
+        }
+    }
+
+    const currentKind = typeof entity.getStatKind === 'function' ? entity.getStatKind() : 'numeric'
+    const currentMin = typeof entity.getMin === 'function' ? entity.getMin() : null
+    const currentMax = typeof entity.getMax === 'function' ? entity.getMax() : null
+    const currentValue = entity.getValue() ?? ''
+    const currentOptions = typeof entity.getOptions === 'function' ? entity.getOptions() : []
+
     const valMod = createSection(
-        'border-b border-[#333338] p-3 space-y-1.5',
-        renderStatValueModuleHtml(entity.getValue() ?? '')
+        'border-b border-[#333338] p-3 space-y-2',
+        renderStatConfigModuleHtml(
+            currentKind,
+            currentMin,
+            currentMax,
+            currentValue,
+            currentOptions
+        )
     )
 
-    const input = valMod.querySelector('#details-stat-value-input')
+    const btnNumeric = valMod.querySelector('#btn-stat-kind-numeric')
+    const btnList = valMod.querySelector('#btn-stat-kind-list')
+    const minInput = valMod.querySelector('#details-stat-min-input')
+    const maxInput = valMod.querySelector('#details-stat-max-input')
+    const valInput = valMod.querySelector('#details-stat-value-input')
+    const errorMsg = valMod.querySelector('#stat-val-error-msg')
+    const newOptionInput = valMod.querySelector('#details-stat-new-option-input')
+    const addOptionBtn = valMod.querySelector('#btn-details-stat-add-option')
+    const defaultSelect = valMod.querySelector('#details-stat-default-select')
+
+    // Mode buttons
+    btnNumeric?.addEventListener('click', () => {
+        if (typeof entity.setStatKind === 'function') {
+            entity.setStatKind('numeric')
+        }
+        refreshDetails()
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    btnList?.addEventListener('click', () => {
+        if (typeof entity.setStatKind === 'function') {
+            entity.setStatKind('list')
+        }
+        refreshDetails()
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    // Min input
+    minInput?.addEventListener('change', () => {
+        if (typeof entity.setMin === 'function') {
+            const raw = minInput.value.trim()
+            entity.setMin(raw !== '' ? Number(raw) : null)
+        }
+        if (typeof renderHistoryBar === 'function') renderHistoryBar(ctx, onRefreshDetails)
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    // Max input
+    maxInput?.addEventListener('change', () => {
+        if (typeof entity.setMax === 'function') {
+            const raw = maxInput.value.trim()
+            entity.setMax(raw !== '' ? Number(raw) : null)
+        }
+        if (typeof renderHistoryBar === 'function') renderHistoryBar(ctx, onRefreshDetails)
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    // Value input (Numeric mode)
     const saveValue = () => {
-        if (!input) return
-        const val = input.value.trim()
+        if (!valInput) return
+        const val = valInput.value.trim()
         entity.setValue(val)
+        if (typeof entity.validateValue === 'function') {
+            const validation = entity.validateValue(val)
+            if (!validation.valid && errorMsg) {
+                errorMsg.textContent = validation.error || 'Nieprawidłowa wartość'
+                errorMsg.classList.remove('hidden')
+                valInput.classList.add('border-rose-500')
+            } else if (errorMsg) {
+                errorMsg.textContent = ''
+                errorMsg.classList.add('hidden')
+                valInput.classList.remove('border-rose-500')
+            }
+        }
         if (typeof renderHistoryBar === 'function') {
             renderHistoryBar(ctx, onRefreshDetails)
         }
         ctx?.refreshActiveSection?.(type)
     }
 
-    input?.addEventListener('change', saveValue)
-    input?.addEventListener('keydown', e => {
+    valInput?.addEventListener('change', saveValue)
+    valInput?.addEventListener('keydown', e => {
         if (e.key === 'Enter') {
             saveValue()
-            input.blur()
+            valInput.blur()
         }
+    })
+
+    // Add option (List mode)
+    const handleAddOption = () => {
+        if (!newOptionInput) return
+        const optVal = newOptionInput.value.trim()
+        if (optVal && typeof entity.addOption === 'function') {
+            entity.addOption(optVal)
+            refreshDetails()
+            ctx?.refreshActiveSection?.(type)
+        }
+    }
+
+    addOptionBtn?.addEventListener('click', handleAddOption)
+    newOptionInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            handleAddOption()
+        }
+    })
+
+    // Remove option buttons
+    valMod.querySelectorAll('.btn-remove-stat-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-option-index'), 10)
+            if (
+                !isNaN(idx) &&
+                typeof entity.getOptions === 'function' &&
+                typeof entity.setOptions === 'function'
+            ) {
+                const current = entity.getOptions()
+                current.splice(idx, 1)
+                entity.setOptions(current)
+                refreshDetails()
+                ctx?.refreshActiveSection?.(type)
+            }
+        })
+    })
+
+    // Default select (List mode)
+    defaultSelect?.addEventListener('change', () => {
+        entity.setValue(defaultSelect.value)
+        if (typeof renderHistoryBar === 'function') renderHistoryBar(ctx, onRefreshDetails)
+        ctx?.refreshActiveSection?.(type)
     })
 
     container.appendChild(valMod)
     return valMod
 }
+
+export const renderStatConfigModule = renderStatValueModule
 
 /**
  * Renders mode toggle buttons HTML for parameter configuration.
@@ -161,19 +464,51 @@ export function renderParameterFormulaBlockHtml(
 }
 
 /**
+ * Renders numeric min/max bounds block HTML for parameters.
+ *
+ * @param {number | null} [minValue=null]
+ * @param {number | null} [maxValue=null]
+ * @returns {string} HTML string
+ */
+export function renderParameterNumericBoundsBlockHtml(minValue = null, maxValue = null) {
+    const safeMin = minValue !== null && minValue !== undefined ? escapeHtml(String(minValue)) : ''
+    const safeMax = maxValue !== null && maxValue !== undefined ? escapeHtml(String(maxValue)) : ''
+    const minLabel = escapeHtml(t('details.param_min') || 'Wartość minimalna (Min)')
+    const maxLabel = escapeHtml(t('details.param_max') || 'Wartość maksymalna (Max)')
+
+    return `
+        <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${minLabel}</label>
+                <input id="details-param-min-input" type="number" value="${safeMin}" placeholder="Brak" aria-label="${minLabel}"
+                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-rose-500" />
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${maxLabel}</label>
+                <input id="details-param-max-input" type="number" value="${safeMax}" placeholder="Brak" aria-label="${maxLabel}"
+                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-rose-500" />
+            </div>
+        </div>`
+}
+
+/**
  * Renders the full parameter configuration inner HTML.
  *
  * @param {string} [currentMode='direct']
  * @param {string | number} [currentValue='']
  * @param {string} [currentFormula='']
  * @param {{ result: number | null, error?: string }} [evalRes={ result: null }]
+ * @param {number | null} [minValue=null]
+ * @param {number | null} [maxValue=null]
  * @returns {string} HTML string
  */
 export function renderParameterConfigModuleHtml(
     currentMode = 'direct',
     currentValue = '',
     currentFormula = '',
-    evalRes = { result: null }
+    evalRes = { result: null },
+    minValue = null,
+    maxValue = null
 ) {
     const modeLabel = escapeHtml(t('details.parameter_mode'))
     const isDirect = currentMode === 'direct'
@@ -184,6 +519,7 @@ export function renderParameterConfigModuleHtml(
         ${renderParameterModeButtonsHtml(currentMode)}
         ${renderParameterDirectBlockHtml(currentValue, isDirect)}
         ${renderParameterFormulaBlockHtml(currentFormula, evalRes, isFormula)}
+        ${renderParameterNumericBoundsBlockHtml(minValue, maxValue)}
     `
 }
 
@@ -220,13 +556,22 @@ export function renderParameterConfigModule(
     const currentMode = entity.getMode() || 'direct'
     const currentValue = typeof entity.getValue === 'function' ? entity.getValue() : ''
     const currentFormula = typeof entity.getFormula === 'function' ? entity.getFormula() : ''
+    const minValue = typeof entity.getMin === 'function' ? entity.getMin() : null
+    const maxValue = typeof entity.getMax === 'function' ? entity.getMax() : null
 
     const statsMap = buildStatsMap(ctx?.projectStats || [])
     const evalRes = evaluateFormula(currentFormula, statsMap)
 
     const paramConfigMod = createSection(
         'border-b border-[#333338] p-3 space-y-2',
-        renderParameterConfigModuleHtml(currentMode, currentValue, currentFormula, evalRes)
+        renderParameterConfigModuleHtml(
+            currentMode,
+            currentValue,
+            currentFormula,
+            evalRes,
+            minValue,
+            maxValue
+        )
     )
 
     const btnDirect = paramConfigMod.querySelector('#btn-param-mode-direct')
@@ -234,6 +579,8 @@ export function renderParameterConfigModule(
     const valInput = paramConfigMod.querySelector('#details-param-val-input')
     const formulaInput = paramConfigMod.querySelector('#details-param-formula-input')
     const formulaPreview = paramConfigMod.querySelector('#param-formula-preview')
+    const minInput = paramConfigMod.querySelector('#details-param-min-input')
+    const maxInput = paramConfigMod.querySelector('#details-param-max-input')
 
     btnDirect?.addEventListener('click', () => {
         entity.setMode('direct')
@@ -246,6 +593,38 @@ export function renderParameterConfigModule(
         refreshDetails()
         ctx?.refreshActiveSection?.(type)
     })
+
+    if (minInput) {
+        const saveMin = () => {
+            const raw = minInput.value.trim()
+            const val = raw === '' ? null : Number(raw)
+            if (typeof entity.setMin === 'function') entity.setMin(val)
+            ctx?.refreshActiveSection?.(type)
+        }
+        minInput.addEventListener('change', saveMin)
+        minInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                saveMin()
+                minInput.blur()
+            }
+        })
+    }
+
+    if (maxInput) {
+        const saveMax = () => {
+            const raw = maxInput.value.trim()
+            const val = raw === '' ? null : Number(raw)
+            if (typeof entity.setMax === 'function') entity.setMax(val)
+            ctx?.refreshActiveSection?.(type)
+        }
+        maxInput.addEventListener('change', saveMax)
+        maxInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                saveMax()
+                maxInput.blur()
+            }
+        })
+    }
 
     if (valInput) {
         const saveVal = () => {
@@ -396,6 +775,34 @@ export function renderSkillStatBlockHtml(
 }
 
 /**
+ * Renders numeric min/max bounds block HTML for skills.
+ *
+ * @param {number | null} [minValue=null]
+ * @param {number | null} [maxValue=null]
+ * @returns {string} HTML string
+ */
+export function renderSkillNumericBoundsBlockHtml(minValue = null, maxValue = null) {
+    const safeMin = minValue !== null && minValue !== undefined ? escapeHtml(String(minValue)) : ''
+    const safeMax = maxValue !== null && maxValue !== undefined ? escapeHtml(String(maxValue)) : ''
+    const minLabel = escapeHtml(t('details.skill_min') || 'Wartość minimalna (Min)')
+    const maxLabel = escapeHtml(t('details.skill_max') || 'Wartość maksymalna (Max)')
+
+    return `
+        <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${minLabel}</label>
+                <input id="details-skill-min-input" type="number" value="${safeMin}" placeholder="Brak" aria-label="${minLabel}"
+                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-blue-500" />
+            </div>
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${maxLabel}</label>
+                <input id="details-skill-max-input" type="number" value="${safeMax}" placeholder="Brak" aria-label="${maxLabel}"
+                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white font-mono focus:outline-none focus:border-blue-500" />
+            </div>
+        </div>`
+}
+
+/**
  * Renders the full skill configuration inner HTML.
  *
  * @param {string} [currentMode='direct']
@@ -403,6 +810,8 @@ export function renderSkillStatBlockHtml(
  * @param {string} [currentStat='']
  * @param {string} [currentMod='+0']
  * @param {Array<{ getName?: () => string, name?: string }>} [projectStats=[]]
+ * @param {number | null} [minValue=null]
+ * @param {number | null} [maxValue=null]
  * @returns {string} HTML string
  */
 export function renderSkillConfigModuleHtml(
@@ -410,7 +819,9 @@ export function renderSkillConfigModuleHtml(
     currentValue = '',
     currentStat = '',
     currentMod = '+0',
-    projectStats = []
+    projectStats = [],
+    minValue = null,
+    maxValue = null
 ) {
     const modeLabel = escapeHtml(t('details.skill_mode'))
     const isDirect = currentMode === 'direct'
@@ -421,6 +832,7 @@ export function renderSkillConfigModuleHtml(
         ${renderSkillModeButtonsHtml(currentMode)}
         ${renderSkillDirectBlockHtml(currentValue, isDirect)}
         ${renderSkillStatBlockHtml(currentStat, currentMod, projectStats, isStat)}
+        ${renderSkillNumericBoundsBlockHtml(minValue, maxValue)}
     `
 }
 
@@ -458,6 +870,8 @@ export function renderSkillConfigModule(
     const currentValue = typeof entity.getValue === 'function' ? entity.getValue() : ''
     const currentStat = typeof entity.getStatName === 'function' ? entity.getStatName() : ''
     const currentMod = typeof entity.getModifier === 'function' ? entity.getModifier() : '+0'
+    const minValue = typeof entity.getMin === 'function' ? entity.getMin() : null
+    const maxValue = typeof entity.getMax === 'function' ? entity.getMax() : null
     const projectStats = ctx?.projectStats || []
 
     const skillConfigMod = createSection(
@@ -467,7 +881,9 @@ export function renderSkillConfigModule(
             currentValue,
             currentStat,
             currentMod,
-            projectStats
+            projectStats,
+            minValue,
+            maxValue
         )
     )
 
@@ -476,6 +892,8 @@ export function renderSkillConfigModule(
     const valInput = skillConfigMod.querySelector('#details-skill-val-input')
     const statSelect = skillConfigMod.querySelector('#details-skill-stat-select')
     const modInput = skillConfigMod.querySelector('#details-skill-mod-input')
+    const minInput = skillConfigMod.querySelector('#details-skill-min-input')
+    const maxInput = skillConfigMod.querySelector('#details-skill-max-input')
 
     btnDirect?.addEventListener('click', () => {
         entity.setMode('direct')
@@ -488,6 +906,38 @@ export function renderSkillConfigModule(
         refreshDetails()
         ctx?.refreshActiveSection?.(type)
     })
+
+    if (minInput) {
+        const saveMin = () => {
+            const raw = minInput.value.trim()
+            const val = raw === '' ? null : Number(raw)
+            if (typeof entity.setMin === 'function') entity.setMin(val)
+            ctx?.refreshActiveSection?.(type)
+        }
+        minInput.addEventListener('change', saveMin)
+        minInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                saveMin()
+                minInput.blur()
+            }
+        })
+    }
+
+    if (maxInput) {
+        const saveMax = () => {
+            const raw = maxInput.value.trim()
+            const val = raw === '' ? null : Number(raw)
+            if (typeof entity.setMax === 'function') entity.setMax(val)
+            ctx?.refreshActiveSection?.(type)
+        }
+        maxInput.addEventListener('change', saveMax)
+        maxInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                saveMax()
+                maxInput.blur()
+            }
+        })
+    }
 
     if (valInput) {
         const saveVal = () => {
@@ -526,4 +976,303 @@ export function renderSkillConfigModule(
 
     container.appendChild(skillConfigMod)
     return skillConfigMod
+}
+
+/**
+ * Renders kind toggle buttons HTML for feature configuration.
+ *
+ * @param {'flag' | 'value' | 'list'} [currentKind='flag']
+ * @returns {string} HTML string
+ */
+export function renderFeatureKindButtonsHtml(currentKind = 'flag') {
+    const isFlag = currentKind !== 'value' && currentKind !== 'list'
+    const isValue = currentKind === 'value'
+    const isList = currentKind === 'list'
+
+    const flagClass = isFlag
+        ? 'bg-purple-950/80 text-purple-300 border border-purple-500/50'
+        : 'text-gray-400 hover:text-white'
+    const valClass = isValue
+        ? 'bg-purple-950/80 text-purple-300 border border-purple-500/50'
+        : 'text-gray-400 hover:text-white'
+    const listClass = isList
+        ? 'bg-purple-950/80 text-purple-300 border border-purple-500/50'
+        : 'text-gray-400 hover:text-white'
+
+    return `
+        <div class="grid grid-cols-3 gap-1 bg-[#18181b] p-1 rounded border border-[#27272a]">
+            <button type="button" id="btn-feature-kind-flag" class="py-1 px-1.5 rounded text-[11px] font-medium cursor-pointer transition-colors text-center truncate ${flagClass}">
+                ${escapeHtml(t('details.feature_type_flag') || 'Flaga')}
+            </button>
+            <button type="button" id="btn-feature-kind-value" class="py-1 px-1.5 rounded text-[11px] font-medium cursor-pointer transition-colors text-center truncate ${valClass}">
+                ${escapeHtml(t('details.feature_type_value') || 'Wartość')}
+            </button>
+            <button type="button" id="btn-feature-kind-list" class="py-1 px-1.5 rounded text-[11px] font-medium cursor-pointer transition-colors text-center truncate ${listClass}">
+                ${escapeHtml(t('details.feature_type_list') || 'Lista')}
+            </button>
+        </div>`
+}
+
+/**
+ * Renders feature flag informational block.
+ *
+ * @param {boolean} [isVisible=true]
+ * @returns {string}
+ */
+export function renderFeatureFlagBlockHtml(isVisible = true) {
+    const hiddenClass = isVisible ? '' : 'hidden'
+    return `
+        <div id="feature-flag-block" class="${hiddenClass} p-2 rounded bg-purple-950/30 border border-purple-800/40 text-[11px] text-purple-300 italic">
+            ${escapeHtml(t('details.feature_flag_hint') || 'Istnienie przymiotu jest wystarczające (nie wymaga dodatkowej wartości).')}
+        </div>`
+}
+
+/**
+ * Renders feature single value block.
+ *
+ * @param {string} [currentValue='']
+ * @param {boolean} [isVisible=false]
+ * @returns {string}
+ */
+export function renderFeatureValueBlockHtml(currentValue = '', isVisible = false) {
+    const hiddenClass = isVisible ? '' : 'hidden'
+    const safeVal = escapeHtml(String(currentValue ?? ''))
+    const label = escapeHtml(t('details.feature_value') || 'Wartość przymiotu')
+    return `
+        <div id="feature-value-block" class="${hiddenClass} space-y-1 pt-1">
+            <label class="block text-[11px] text-gray-400">${label}</label>
+            <input id="details-feature-value-input" type="text" value="${safeVal}" placeholder="np. Srebrny" aria-label="${label}"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2.5 py-1 text-xs text-white focus:outline-none focus:border-purple-500" />
+        </div>`
+}
+
+/**
+ * Renders feature options list editor and default value block.
+ *
+ * @param {Array<string>} [options=[]]
+ * @param {string} [defaultValue='']
+ * @param {boolean} [isVisible=false]
+ * @returns {string}
+ */
+export function renderFeatureListBlockHtml(options = [], defaultValue = '', isVisible = false) {
+    const hiddenClass = isVisible ? '' : 'hidden'
+    const safeOptions = Array.isArray(options) ? options : []
+    const optionsLabel = escapeHtml(t('details.feature_options') || 'Dozwolone wartości')
+    const addLabel = escapeHtml(t('details.feature_add_option') || 'Dodaj wartość')
+    const placeholder = escapeHtml(t('details.feature_option_placeholder') || 'Nowa wartość...')
+    const defLabel = escapeHtml(t('details.feature_default_value') || 'Wartość domyślna')
+    const noOptionsText = escapeHtml(
+        t('details.feature_no_options') || 'Brak zdefiniowanych wartości na liście'
+    )
+
+    const optionsListHtml =
+        safeOptions.length === 0
+            ? `<div class="text-[11px] text-gray-500 italic py-1 text-center">${noOptionsText}</div>`
+            : safeOptions
+                  .map(
+                      (opt, idx) => `
+            <div class="flex items-center justify-between bg-[#18181b] border border-[#27272a] px-2 py-1 rounded text-xs text-white">
+                <span class="truncate">${escapeHtml(opt)}</span>
+                <button type="button" class="btn-remove-feature-option text-gray-400 hover:text-red-400 p-0.5" data-option-idx="${idx}" title="${escapeHtml(t('buttons.delete') || 'Usuń')}">
+                    ✕
+                </button>
+            </div>
+        `
+                  )
+                  .join('')
+
+    const selectOptionsHtml = safeOptions
+        .map(opt => {
+            const isSel = String(opt) === String(defaultValue) ? 'selected' : ''
+            return `<option value="${escapeHtml(opt)}" ${isSel}>${escapeHtml(opt)}</option>`
+        })
+        .join('')
+
+    return `
+        <div id="feature-list-block" class="${hiddenClass} space-y-2 pt-1">
+            <div class="space-y-1">
+                <label class="block text-[11px] text-gray-400">${optionsLabel}</label>
+                <div id="feature-options-list" class="space-y-1 max-h-36 overflow-y-auto pr-1">
+                    ${optionsListHtml}
+                </div>
+                <div class="flex gap-1 pt-1">
+                    <input id="details-feature-new-option-input" type="text" placeholder="${placeholder}"
+                        class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500" />
+                    <button type="button" id="btn-details-feature-add-option"
+                        class="px-2.5 py-1 bg-purple-700 hover:bg-purple-600 rounded text-xs text-white font-medium cursor-pointer transition-colors">
+                        ${addLabel}
+                    </button>
+                </div>
+            </div>
+            <div class="space-y-1 pt-1 border-t border-[#27272a]">
+                <label class="block text-[11px] text-gray-400">${defLabel}</label>
+                <select id="details-feature-default-select" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
+                    <option value="">-- Wybierz domyślną --</option>
+                    ${selectOptionsHtml}
+                </select>
+            </div>
+        </div>`
+}
+
+/**
+ * Renders the full feature configuration inner HTML.
+ *
+ * @param {'flag' | 'value' | 'list'} [currentKind='flag']
+ * @param {string} [defaultValue='']
+ * @param {Array<string>} [options=[]]
+ * @returns {string} HTML string
+ */
+export function renderFeatureConfigModuleHtml(
+    currentKind = 'flag',
+    defaultValue = '',
+    options = []
+) {
+    const typeLabel = escapeHtml(t('details.feature_type') || 'Typ przymiotu')
+    const isFlag = currentKind !== 'value' && currentKind !== 'list'
+    const isValue = currentKind === 'value'
+    const isList = currentKind === 'list'
+
+    return `
+        <label class="block text-xs font-semibold text-[#a1a1aa] uppercase tracking-wide">${typeLabel}</label>
+        ${renderFeatureKindButtonsHtml(currentKind)}
+        ${renderFeatureFlagBlockHtml(isFlag)}
+        ${renderFeatureValueBlockHtml(defaultValue, isValue)}
+        ${renderFeatureListBlockHtml(options, defaultValue, isList)}
+    `
+}
+
+/**
+ * Renders feature configuration module (Flag vs Single value vs Options list).
+ *
+ * @param {HTMLElement | null} container
+ * @param {object} entity
+ * @param {string} type
+ * @param {object} [ctx={}]
+ * @param {Function} [onRefreshDetails]
+ * @returns {HTMLElement | null}
+ */
+export function renderFeatureConfigModule(
+    container,
+    entity,
+    type,
+    ctx = {},
+    onRefreshDetails = null
+) {
+    if (!container || type !== 'feature') return null
+    if (
+        !entity ||
+        typeof entity.getFeatureKind !== 'function' ||
+        typeof entity.setFeatureKind !== 'function'
+    ) {
+        return null
+    }
+
+    const refreshDetails = () => {
+        if (typeof onRefreshDetails === 'function') {
+            onRefreshDetails(ctx)
+        } else if (typeof ctx?.renderDetailsPanel === 'function') {
+            ctx.renderDetailsPanel(ctx)
+        }
+    }
+
+    const currentKind = entity.getFeatureKind() || 'flag'
+    const defaultValue = typeof entity.getValue === 'function' ? entity.getValue() : ''
+    const options = typeof entity.getOptions === 'function' ? entity.getOptions() : []
+
+    const featConfigMod = createSection(
+        'border-b border-[#333338] p-3 space-y-2',
+        renderFeatureConfigModuleHtml(currentKind, defaultValue, options)
+    )
+
+    const btnFlag = featConfigMod.querySelector('#btn-feature-kind-flag')
+    const btnVal = featConfigMod.querySelector('#btn-feature-kind-value')
+    const btnList = featConfigMod.querySelector('#btn-feature-kind-list')
+
+    btnFlag?.addEventListener('click', () => {
+        entity.setFeatureKind('flag')
+        refreshDetails()
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    btnVal?.addEventListener('click', () => {
+        entity.setFeatureKind('value')
+        refreshDetails()
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    btnList?.addEventListener('click', () => {
+        entity.setFeatureKind('list')
+        refreshDetails()
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    const valInput = featConfigMod.querySelector('#details-feature-value-input')
+    if (valInput) {
+        const saveVal = () => {
+            if (typeof entity.setValue === 'function') entity.setValue(valInput.value.trim())
+            ctx?.refreshActiveSection?.(type)
+        }
+        valInput.addEventListener('change', saveVal)
+        valInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                saveVal()
+                valInput.blur()
+            }
+        })
+    }
+
+    const newOptInput = featConfigMod.querySelector('#details-feature-new-option-input')
+    const addOptBtn = featConfigMod.querySelector('#btn-details-feature-add-option')
+    const defSelect = featConfigMod.querySelector('#details-feature-default-select')
+
+    const addOptionHandler = () => {
+        if (!newOptInput) return
+        const val = newOptInput.value.trim()
+        if (!val) return
+        if (typeof entity.addOption === 'function') {
+            entity.addOption(val)
+            if (typeof entity.getValue === 'function' && !entity.getValue()) {
+                entity.setValue(val)
+            }
+        }
+        refreshDetails()
+        ctx?.refreshActiveSection?.(type)
+    }
+
+    addOptBtn?.addEventListener('click', addOptionHandler)
+    newOptInput?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            addOptionHandler()
+        }
+    })
+
+    featConfigMod.querySelectorAll('.btn-remove-feature-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-option-idx') || '-1', 10)
+            if (idx >= 0 && options[idx]) {
+                const optToRemove = options[idx]
+                if (typeof entity.removeOption === 'function') {
+                    entity.removeOption(optToRemove)
+                }
+                if (typeof entity.getValue === 'function' && entity.getValue() === optToRemove) {
+                    const remaining =
+                        typeof entity.getOptions === 'function' ? entity.getOptions() : []
+                    entity.setValue(remaining[0] || '')
+                }
+                refreshDetails()
+                ctx?.refreshActiveSection?.(type)
+            }
+        })
+    })
+
+    defSelect?.addEventListener('change', () => {
+        if (typeof entity.setValue === 'function') {
+            entity.setValue(defSelect.value)
+        }
+        ctx?.refreshActiveSection?.(type)
+    })
+
+    container.appendChild(featConfigMod)
+    return featConfigMod
 }

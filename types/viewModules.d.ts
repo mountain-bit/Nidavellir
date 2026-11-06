@@ -104,7 +104,10 @@ declare module '*/View/ui/modals/npc/npcModal.js' {
     export function addCustomAttribute(
         name?: string,
         value?: string,
-        shouldFocusValue?: boolean
+        shouldFocusValue?: boolean,
+        isEditing?: boolean,
+        featureKind?: string | null,
+        options?: string[]
     ): string
     export function confirmCustomAttribute(id: string): void
     export function editCustomAttribute(id: string): void
@@ -345,7 +348,9 @@ declare module '*/View/ui/modals/npc/npcState.js' {
     export function addCustomAttributeState(
         name?: string,
         value?: string,
-        isEditing?: boolean
+        isEditing?: boolean,
+        featureKind?: string | null,
+        options?: string[]
     ): unknown
     export function addNpcTagState(tagOrName: unknown, color?: string): unknown
     export function getCurrentAvatarId(): string
@@ -2233,6 +2238,7 @@ declare module '*/View/ui/detailsPanel/choice/choiceConditionSection.js' {
 
     export interface IChoiceConditionSectionParams {
         choice?: Choice | unknown
+        projectStats?: unknown[]
         onSave?: () => void
         onRemove?: () => void
     }
@@ -2248,7 +2254,7 @@ declare module '*/View/ui/detailsPanel/choice/choiceConditionSection.js' {
         existingCond?: unknown
     ): Condition | null
     export function renderItemConditionBodyHtml(cond?: unknown): string
-    export function renderStatConditionBodyHtml(cond?: unknown): string
+    export function renderStatConditionBodyHtml(cond?: unknown, projectStats?: unknown[]): string
     export function renderTagConditionBodyHtml(cond?: unknown): string
     export function renderTextConditionBodyHtml(cond?: unknown): string
     export function createChoiceConditionSection(
@@ -2762,11 +2768,17 @@ declare module '*/View/ui/detailsPanel/modules/rpgConfigModules.js' {
         evalRes?: IRpgFormulaEvalResult,
         isVisible?: boolean
     ): string
+    export function renderParameterNumericBoundsBlockHtml(
+        minValue?: number | null,
+        maxValue?: number | null
+    ): string
     export function renderParameterConfigModuleHtml(
         currentMode?: string,
         currentValue?: string | number,
         currentFormula?: string,
-        evalRes?: IRpgFormulaEvalResult
+        evalRes?: IRpgFormulaEvalResult,
+        minValue?: number | null,
+        maxValue?: number | null
     ): string
     export function renderParameterConfigModule(
         container: HTMLElement | null,
@@ -2788,14 +2800,41 @@ declare module '*/View/ui/detailsPanel/modules/rpgConfigModules.js' {
         projectStats?: Array<{ getName?: () => string; name?: string }>,
         isVisible?: boolean
     ): string
+    export function renderSkillNumericBoundsBlockHtml(
+        minValue?: number | null,
+        maxValue?: number | null
+    ): string
     export function renderSkillConfigModuleHtml(
         currentMode?: string,
         currentValue?: string,
         currentStat?: string,
         currentMod?: string,
-        projectStats?: Array<{ getName?: () => string; name?: string }>
+        projectStats?: Array<{ getName?: () => string; name?: string }>,
+        minValue?: number | null,
+        maxValue?: number | null
     ): string
     export function renderSkillConfigModule(
+        container: HTMLElement | null,
+        entity: unknown,
+        type: string,
+        ctx?: unknown,
+        onRefreshDetails?: ((ctx: unknown) => void) | null
+    ): HTMLElement | null
+
+    export function renderFeatureKindButtonsHtml(currentKind?: string): string
+    export function renderFeatureFlagBlockHtml(isVisible?: boolean): string
+    export function renderFeatureValueBlockHtml(currentValue?: string, isVisible?: boolean): string
+    export function renderFeatureListBlockHtml(
+        options?: string[],
+        defaultValue?: string,
+        isVisible?: boolean
+    ): string
+    export function renderFeatureConfigModuleHtml(
+        currentKind?: string,
+        defaultValue?: string,
+        options?: string[]
+    ): string
+    export function renderFeatureConfigModule(
         container: HTMLElement | null,
         entity: unknown,
         type: string,
@@ -2894,9 +2933,13 @@ declare module '*/View/ui/detailsPanel/modules/associationModules.js' {
 
     export function renderFeaturesModuleHeaderHtml(count?: number): string
     export function renderEmptyFeaturesHtml(): string
-    export function renderFeatureItemHtml(f?: unknown): string
+    export function renderFeatureItemHtml(f?: unknown, projectFeatures?: unknown[]): string
     export function renderFeatureOptionsHtml(availableFeatures?: unknown[]): string
-    export function renderAssignFeatureBarHtml(availableFeatures?: unknown[]): string
+    export function renderAddFeatureValueControlHtml(featObj?: unknown): string
+    export function renderAssignFeatureBarHtml(
+        availableFeatures?: unknown[],
+        selectedFeature?: unknown
+    ): string
     export function renderFeaturesModuleHtml(count?: number, availableFeatures?: unknown[]): string
     export function renderFeaturesModule(
         container: HTMLElement | null,

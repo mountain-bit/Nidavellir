@@ -157,6 +157,16 @@ describe('Condition Polymorphic Model', () => {
 
         const emptyStat = new StatCondition()
         expect(emptyStat.getSummary()).toBe('Cecha >= 0')
+
+        const listStatCond = new StatCondition('sc2', 'Klasa', 'Klasa', '==', 'Mag')
+        expect(listStatCond.getValue()).toBe('Mag')
+        expect(listStatCond.getSummary()).toBe('Klasa == Mag')
+        listStatCond.setValue('Wojownik')
+        expect(listStatCond.getValue()).toBe('Wojownik')
+        const listJson = listStatCond.toJSON()
+        const restoredList = StatCondition.fromJSON(listJson)
+        expect(restoredList.getValue()).toBe('Wojownik')
+        expect(restoredList.getOperator()).toBe('==')
     })
 
     it('should create TagCondition with tag name and summary (positive and negated)', () => {

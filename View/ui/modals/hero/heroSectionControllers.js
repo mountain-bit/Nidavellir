@@ -389,6 +389,19 @@ export function renderHeroStats() {
 
     list.innerHTML = stats
         .map((s, idx) => {
+            const isList = s.statKind === 'list' && Array.isArray(s.options) && s.options.length > 0
+            const controlHtml = isList
+                ? `<select class="hero-stat-val bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded px-2 py-1 text-xs font-mono font-bold text-amber-300 focus:outline-none">
+                    ${s.options.map(opt => `<option value="${escapeHtml(opt)}" ${String(opt) === String(s.value) ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+                   </select>`
+                : `<input
+                    type="number"
+                    ${s.min !== null && s.min !== undefined ? `min="${s.min}"` : ''}
+                    ${s.max !== null && s.max !== undefined ? `max="${s.max}"` : ''}
+                    value="${s.value ?? 10}"
+                    class="hero-stat-val w-16 bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded px-2 py-1 text-xs text-right font-mono font-bold text-amber-300 focus:outline-none"
+                />`
+
             return `
             <div class="flex items-center justify-between p-2 rounded-lg bg-zinc-900/90 border border-zinc-800 shadow-sm" data-stat-index="${idx}">
                 <div class="flex items-center gap-1.5 flex-1 min-w-0 mr-2">
@@ -401,11 +414,7 @@ export function renderHeroStats() {
                     />
                 </div>
                 <div class="flex items-center gap-1.5 shrink-0">
-                    <input
-                        type="number"
-                        value="${s.value ?? 10}"
-                        class="hero-stat-val w-16 bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded px-2 py-1 text-xs text-right font-mono font-bold text-amber-300 focus:outline-none"
-                    />
+                    ${controlHtml}
                     <button
                         type="button"
                         class="btn-remove-hero-stat p-1 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
@@ -435,14 +444,32 @@ export function renderHeroStats() {
     })
 
     list.querySelectorAll('.hero-stat-val').forEach((inp, idx) => {
-        inp.oninput = () => {
+        const handleVal = () => {
             const current = state.getHeroStats()
             if (current[idx]) {
-                current[idx].value = parseStatValueAsNumber(inp.value, 10)
+                const s = current[idx]
+                if (inp.tagName === 'SELECT') {
+                    s.value = inp.value
+                } else {
+                    const num = parseStatValueAsNumber(inp.value, 10)
+                    s.value = num
+                    if (
+                        (s.min !== null && s.min !== undefined && num < s.min) ||
+                        (s.max !== null && s.max !== undefined && num > s.max)
+                    ) {
+                        inp.classList.add('border-rose-500', 'bg-rose-950/30', 'text-rose-300')
+                        inp.title = 'Wartość poza dopuszczalnym zakresem'
+                    } else {
+                        inp.classList.remove('border-rose-500', 'bg-rose-950/30', 'text-rose-300')
+                        inp.title = ''
+                    }
+                }
                 state.setHeroStats(current)
                 updateHeroVitalFormulasPreview()
             }
         }
+        inp.oninput = handleVal
+        inp.onchange = handleVal
     })
 
     list.querySelectorAll('.btn-remove-hero-stat').forEach((btn, idx) => {

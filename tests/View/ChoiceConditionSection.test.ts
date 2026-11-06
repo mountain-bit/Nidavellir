@@ -197,6 +197,54 @@ describe('choiceConditionSection', () => {
             expect(html).not.toContain('Stat"onfocus')
         })
 
+        it('renders select dropdown and restricted operators for list-based stats', () => {
+            const listStatCond = new StatCondition(
+                'sc_gender',
+                'Warunek płci',
+                'Płeć',
+                '==',
+                'Kobieta'
+            )
+            const projectStats = [
+                {
+                    getName: (): string => 'Płeć',
+                    getStatKind: (): string => 'list',
+                    getOptions: (): string[] => ['Kobieta', 'Mężczyzna', 'Inna'],
+                },
+            ]
+
+            const html = renderStatConditionBodyHtml(listStatCond, projectStats)
+            expect(html).toContain('select id="choice-cond-stat-val"')
+            expect(html).toContain('value="Kobieta" selected')
+            expect(html).toContain('value="Mężczyzna"')
+            expect(html).not.toContain('input id="choice-cond-stat-val"')
+
+            // Only == and != operators should be rendered
+            expect(html).toContain('value="==" selected')
+            expect(html).toContain('value="!="')
+            expect(html).not.toContain('value=">="')
+        })
+
+        it('renders number input with bounds and full operators for numeric stats', () => {
+            const numStatCond = new StatCondition('sc_str', 'Warunek siły', 'Siła', '>=', 15)
+            const projectStats = [
+                {
+                    getName: (): string => 'Siła',
+                    getStatKind: (): string => 'numeric',
+                    getMin: (): number => 1,
+                    getMax: (): number => 20,
+                    getOptions: (): string[] => [],
+                },
+            ]
+
+            const html = renderStatConditionBodyHtml(numStatCond, projectStats)
+            expect(html).toContain(
+                'input id="choice-cond-stat-val" type="number" min="1" max="20" value="15"'
+            )
+            expect(html).toContain('value=">=" selected')
+            expect(html).toContain('value="<="')
+        })
+
         it('escapes tag condition fields against XSS', () => {
             const maliciousCond = new TagCondition('xss3', '', 'tag<b>bold</b>', true)
             const html = renderTagConditionBodyHtml(maliciousCond)

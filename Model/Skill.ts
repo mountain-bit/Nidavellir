@@ -10,6 +10,8 @@ export class Skill {
     private value: string = ''
     private statName: string = ''
     private modifier: string = ''
+    private min: number | null = null
+    private max: number | null = null
 
     constructor(
         id: string = '',
@@ -18,7 +20,9 @@ export class Skill {
         mode: SkillMode = 'direct',
         value: string = '',
         statName: string = '',
-        modifier: string = ''
+        modifier: string = '',
+        min: number | null = null,
+        max: number | null = null
     ) {
         this.id = id
         this.name = name
@@ -27,6 +31,8 @@ export class Skill {
         this.value = value
         this.statName = statName
         this.modifier = modifier
+        this.min = typeof min === 'number' && !Number.isNaN(min) ? min : null
+        this.max = typeof max === 'number' && !Number.isNaN(max) ? max : null
     }
 
     public getId(): string {
@@ -89,6 +95,37 @@ export class Skill {
         this.modifier = modifier
     }
 
+    public getMin(): number | null {
+        return this.min
+    }
+
+    public setMin(min: number | null): void {
+        this.min = typeof min === 'number' && !Number.isNaN(min) ? min : null
+    }
+
+    public getMax(): number | null {
+        return this.max
+    }
+
+    public setMax(max: number | null): void {
+        this.max = typeof max === 'number' && !Number.isNaN(max) ? max : null
+    }
+
+    public validateValue(val: string | number): { isValid: boolean; message?: string } {
+        const num = typeof val === 'number' ? val : parseFloat(String(val))
+        if (isNaN(num)) {
+            return { isValid: false, message: 'Wartość musi być liczbą' }
+        }
+        if (this.min !== null && num < this.min) {
+            return { isValid: false, message: `Wartość nie może być mniejsza niż ${this.min}` }
+        }
+        if (this.max !== null && num > this.max) {
+            return { isValid: false, message: `Wartość nie może być większa niż ${this.max}` }
+        }
+        return { isValid: true }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public static fromJSON(json: any): Skill {
         if (!json) return new Skill()
         const name = json.name ?? ''
@@ -97,6 +134,8 @@ export class Skill {
         const value = json.value ?? ''
         const statName = json.statName ?? ''
         const modifier = json.modifier ?? ''
+        const min = typeof json.min === 'number' && !Number.isNaN(json.min) ? json.min : null
+        const max = typeof json.max === 'number' && !Number.isNaN(json.max) ? json.max : null
         return new Skill(
             json.id || '',
             name,
@@ -104,10 +143,13 @@ export class Skill {
             mode,
             value,
             statName,
-            modifier
+            modifier,
+            min,
+            max
         )
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     public toJSON(): any {
         return {
             id: this.id,
@@ -117,6 +159,8 @@ export class Skill {
             value: this.value,
             statName: this.statName,
             modifier: this.modifier,
+            min: this.min,
+            max: this.max,
             type: 'skill',
         }
     }
