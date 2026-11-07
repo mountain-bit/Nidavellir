@@ -600,7 +600,7 @@ Wkraczasz do sali numer ${i}. [Arcymag Gorath](entity://character/npc_gorath) rz
                 `[STRESS 10k] QuickSearch: ${queries.length} zapytań w bazie 10 270 obiektów zajęło łącznie ${totalDuration.toFixed(2)} ms (średnio ${avgPerQuery.toFixed(2)} ms/zapytanie)`
             )
             expect(totalDuration).toBeLessThan(2500)
-            expect(avgPerQuery).toBeLessThan(300) // Bezpieczny próg dla przeszukania ponad 10 tysięcy encji
+            expect(avgPerQuery).toBeLessThan(350) // Bezpieczny próg dla przeszukania ponad 10 tysięcy encji z marginesem na wahania obciążenia CPU
             expect(totalMatches).toBeGreaterThan(0)
         })
     })

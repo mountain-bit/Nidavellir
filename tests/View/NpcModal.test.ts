@@ -1809,7 +1809,7 @@ describe('NpcModal Floating Window Controller', () => {
             setupNpcModal()
             openNpcTemplateModal()
 
-            const projectTemplates: unknown[] = []
+            const projectTemplates: Array<{ getName: () => string }> = []
             const projectStats: unknown[] = []
             const projectParameters: unknown[] = []
             const projectSkills: unknown[] = []
@@ -1855,13 +1855,20 @@ describe('NpcModal Floating Window Controller', () => {
             setupNpcModal()
             openNpcTemplateModal()
 
-            let createdPayload: { folderName: string; entityData: Record<string, unknown> } | null =
-                null
+            let createdPayload: {
+                folderName: string
+                category?: string
+                entityData: Record<string, unknown>
+            } | null = null
             ;(window as unknown as { electronAPI: unknown }).electronAPI = {
                 createEntity: vi
                     .fn()
                     .mockImplementation(
-                        (opts: { folderName: string; entityData: Record<string, unknown> }) => {
+                        (opts: {
+                            folderName: string
+                            category?: string
+                            entityData: Record<string, unknown>
+                        }) => {
                             createdPayload = opts
                             return Promise.resolve({
                                 success: true,
@@ -1890,9 +1897,13 @@ describe('NpcModal Floating Window Controller', () => {
             const tpl = saveNpcTemplate(ctx)
             expect(tpl).toBeTruthy()
             expect(createdPayload).toBeTruthy()
-            expect(createdPayload.category).toBe('Templates')
-            expect(createdPayload.folderName).toBe(tpl.getId())
-            expect(createdPayload.folderName).not.toBe('Bandyta')
+            const payload = createdPayload as unknown as {
+                category?: string
+                folderName: string
+            }
+            expect(payload.category).toBe('Templates')
+            expect(payload.folderName).toBe(tpl.getId())
+            expect(payload.folderName).not.toBe('Bandyta')
             expect(tpl.getDescription().filePath).toBe(
                 `./Templates/${tpl.getId()}/Description_Templates_Bandyta.md`
             )
