@@ -104,8 +104,8 @@ export function renderStatListBlockHtml(options = [], defaultValue = '', isVisib
 
     const optionsListHtml =
         optsList.length === 0
-            ? `<p class="italic text-gray-500 text-[11px] py-1 select-none">${escapeHtml(t('details.stat_no_options') || 'Brak zdefiniowanych wartości na liście')}</p>`
-            : `<div class="space-y-1 max-h-36 overflow-y-auto">
+            ? `<div id="stat-options-list" class="space-y-1 max-h-36 overflow-y-auto"><p class="italic text-gray-500 text-[11px] py-1 select-none">${escapeHtml(t('details.stat_no_options') || 'Brak zdefiniowanych wartości na liście')}</p></div>`
+            : `<div id="stat-options-list" class="space-y-1 max-h-36 overflow-y-auto">
             ${optsList
                 .map(
                     (opt, idx) => `
