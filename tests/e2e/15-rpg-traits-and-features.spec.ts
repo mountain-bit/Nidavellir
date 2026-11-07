@@ -152,7 +152,12 @@ test.describe('E2E: Konfiguracja cech RPG, min/max, przymioty (flaga/wartość/l
             await flagChip.click()
             const flagRow = drawerPage
                 .npcAttributeRows()
-                .filter({ hasText: featureFlagName })
+                .filter({
+                    has: rawWindow.locator(
+                        `input[data-attr-field="name"][value="${featureFlagName}"]`
+                    ),
+                })
+                .or(drawerPage.npcAttributeRows().filter({ hasText: featureFlagName }))
                 .first()
             await expect(flagRow).toBeVisible()
             // Pole tekstowe wartości NIE powinno istnieć dla flagi!
@@ -168,7 +173,12 @@ test.describe('E2E: Konfiguracja cech RPG, min/max, przymioty (flaga/wartość/l
             await listChip.click()
             const listRow = drawerPage
                 .npcAttributeRows()
-                .filter({ hasText: featureListName })
+                .filter({
+                    has: rawWindow.locator(
+                        `input[data-attr-field="name"][value="${featureListName}"]`
+                    ),
+                })
+                .or(drawerPage.npcAttributeRows().filter({ hasText: featureListName }))
                 .first()
             await expect(listRow).toBeVisible()
             const selectControl = listRow.locator('select[data-attr-field="value"]')

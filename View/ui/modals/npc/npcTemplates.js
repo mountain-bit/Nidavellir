@@ -115,8 +115,9 @@ export function renderAttributeRowHtml(attr, projectFeatures = []) {
         const nameInputWidth = kind === 'flag' ? 'flex-1' : 'w-1/3 min-w-[80px]'
 
         return `
-        <div class="npc-attribute-row flex items-center gap-1.5 p-1 rounded-lg bg-zinc-900/80 border border-[#4a5e74]/50 shadow-sm transition-all group" data-attr-id="${escapeAttr(attr.id)}" data-state="edit">
+        <div class="npc-attribute-row flex items-center gap-1.5 p-1 rounded-lg bg-zinc-900/80 border border-[#4a5e74]/50 shadow-sm transition-all group" data-attr-id="${escapeAttr(attr.id)}" data-attr-name="${escapeAttr(attr.name)}" data-state="edit">
             <span class="text-[#9bb7d4] pl-1 select-none shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
+            <span class="sr-only">${escapeAttr(attr.name)}</span>
             <input
                 type="text"
                 data-attr-field="name"
@@ -166,7 +167,7 @@ export function renderAttributeRowHtml(attr, projectFeatures = []) {
         : `<span class="text-xs font-semibold text-zinc-100 truncate">${escapeAttr(attr.name || safeT('npc.attr_unnamed', 'Atrybut'))}</span>`
 
     return `
-        <div class="npc-attribute-row flex items-center justify-between gap-2 py-1 px-2.5 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-[#4a5e74]/40 transition-all group cursor-pointer" data-attr-id="${escapeAttr(attr.id)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
+        <div class="npc-attribute-row flex items-center justify-between gap-2 py-1 px-2.5 rounded-lg bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800 hover:border-[#4a5e74]/40 transition-all group cursor-pointer" data-attr-id="${escapeAttr(attr.id)}" data-attr-name="${escapeAttr(attr.name)}" data-state="read" title="${escapeAttr(safeT('npc.click_to_edit', 'Kliknij, aby edytować'))}">
             <div class="flex items-center gap-1.5 min-w-0">
                 <span class="text-[#9bb7d4] pl-0.5 select-none shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
                 ${valueDisplay}
