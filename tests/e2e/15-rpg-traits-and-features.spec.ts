@@ -162,7 +162,8 @@ test.describe('E2E: Konfiguracja cech RPG, min/max, przymioty (flaga/wartość/l
             await expect(flagRow).toBeVisible()
             // Pole tekstowe wartości NIE powinno istnieć dla flagi!
             await expect(flagRow.locator('input[data-attr-field="value"]')).toBeHidden()
-            await expect(flagRow).toContainText('Flaga')
+            await expect(flagRow.locator('[data-i18n="details.feature_type_flag"]')).toBeVisible()
+            await expect(flagRow).toContainText(/flag/i)
         }
 
         // 3.2 Kliknięcie chipu przymiotu typu LISTA -> POWINIEN POJAWIĆ SIĘ SELECT Z OPCJAMI!
