@@ -80,6 +80,8 @@ describe('Parameter Model', () => {
             value: '',
             formula: 'Inteligencja * 2',
             calculatedValue: 20,
+            min: null,
+            max: null,
             type: 'parameter',
         })
 
@@ -104,5 +106,39 @@ describe('Parameter Model', () => {
         expect(paramEmpty.getName()).toBe('')
         expect(paramEmpty.getMode()).toBe('direct')
         expect(paramEmpty.getCalculatedValue()).toBeNull()
+    })
+
+    it('obsługuje granice min i max oraz walidację wartości', () => {
+        const param = new Parameter(
+            'p4',
+            'Energia',
+            new Description(),
+            'direct',
+            50,
+            '',
+            null,
+            0,
+            100
+        )
+        expect(param.getMin()).toBe(0)
+        expect(param.getMax()).toBe(100)
+
+        expect(param.validateValue(50).isValid).toBe(true)
+        expect(param.validateValue(-5).isValid).toBe(false)
+        expect(param.validateValue(150).isValid).toBe(false)
+        expect(param.validateValue('abc').isValid).toBe(false)
+
+        param.setMin(10)
+        param.setMax(90)
+        expect(param.getMin()).toBe(10)
+        expect(param.getMax()).toBe(90)
+
+        const json = param.toJSON()
+        expect(json.min).toBe(10)
+        expect(json.max).toBe(90)
+
+        const fromJson = Parameter.fromJSON(json)
+        expect(fromJson.getMin()).toBe(10)
+        expect(fromJson.getMax()).toBe(90)
     })
 })

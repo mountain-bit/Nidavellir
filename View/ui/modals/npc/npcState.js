@@ -69,9 +69,15 @@ export function clearCustomAttributes() {
     customAttributes = []
 }
 
-export function addCustomAttributeState(name = '', value = '', isEditing = true) {
+export function addCustomAttributeState(
+    name = '',
+    value = '',
+    isEditing = true,
+    featureKind = null,
+    options = []
+) {
     const id = `attr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    customAttributes.push({ id, name, value, isEditing })
+    customAttributes.push({ id, name, value, isEditing, featureKind, options })
     return id
 }
 
@@ -105,6 +111,10 @@ export function setNpcStats(stats) {
             name: s.name || '',
             value: s.value || '',
             isEditing: s.isEditing !== undefined ? s.isEditing : false,
+            statKind: s.statKind || 'numeric',
+            min: s.min ?? null,
+            max: s.max ?? null,
+            options: Array.isArray(s.options) ? [...s.options] : [],
         }))
     }
 }
@@ -113,9 +123,26 @@ export function clearNpcStats() {
     npcStats = []
 }
 
-export function addNpcStatState(name = '', value = '', isEditing = true) {
+export function addNpcStatState(
+    name = '',
+    value = '',
+    isEditing = true,
+    statKind = 'numeric',
+    min = null,
+    max = null,
+    options = []
+) {
     const id = `stat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
-    npcStats.push({ id, name, value, isEditing })
+    npcStats.push({
+        id,
+        name,
+        value,
+        isEditing,
+        statKind,
+        min,
+        max,
+        options: Array.isArray(options) ? [...options] : [],
+    })
     return id
 }
 

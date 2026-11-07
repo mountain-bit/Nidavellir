@@ -120,12 +120,12 @@ export function extractTemplateAttributes(tpl) {
         feats.forEach(f => {
             const name = typeof f.getName === 'function' ? f.getName() : f.name || ''
             let val = ''
-            if (typeof f.getValue === 'function') {
+            if (typeof f.getValue === 'function' && f.getValue()) {
                 val = f.getValue()
-            } else if (f.value !== undefined) {
+            } else if (f.value !== undefined && f.value) {
                 val = f.value
-            } else if (typeof f.getDescription === 'function' && f.getDescription()?.getText) {
-                val = f.getDescription().getText()
+            } else if (typeof f.getDescription === 'function') {
+                val = f.getDescription()?.getText?.() || f.getDescription()?.getSummary?.() || ''
             }
             if (
                 String(name).trim() &&

@@ -56,14 +56,64 @@ export function renderAvatarGridItemHtml(avatar) {
 }
 
 /**
- * Renders a custom attribute row.
+ * Renders an attribute row with flag, value, or list support based on project feature definitions.
  *
- * @param {{ id: string, name: string, value: string, isEditing?: boolean }} attr
+ * @param {{ id: string, name: string, value: string, isEditing?: boolean, featureKind?: string, options?: string[] }} attr
+ * @param {Array<object>} [projectFeatures=[]]
  * @returns {string}
  */
-export function renderAttributeRowHtml(attr) {
+export function renderAttributeRowHtml(attr, projectFeatures = []) {
     const isEditing = attr.isEditing !== false
+    const attrName = (attr?.name || '').trim().toLowerCase()
+
+    const fDef = (Array.isArray(projectFeatures) ? projectFeatures : []).find(f => {
+        const fName = (typeof f.getName === 'function' ? f.getName() : f.name || '')
+            .trim()
+            .toLowerCase()
+        return fName && fName === attrName
+    })
+
+    const kind =
+        (fDef && typeof fDef.getFeatureKind === 'function'
+            ? fDef.getFeatureKind()
+            : fDef && fDef.featureKind
+              ? fDef.featureKind
+              : attr?.featureKind) || (fDef ? 'flag' : 'value')
+
+    const rawOptions =
+        (fDef && typeof fDef.getOptions === 'function'
+            ? fDef.getOptions()
+            : fDef && fDef.options
+              ? fDef.options
+              : attr?.options) || []
+    const options = Array.isArray(rawOptions) ? rawOptions : []
+
     if (isEditing) {
+        let valueControlHtml = ''
+        if (kind === 'flag') {
+            valueControlHtml = `<span class="text-[11px] text-purple-400 italic px-1 select-none shrink-0" data-i18n="details.feature_type_flag">${escapeAttr(safeT('details.feature_type_flag', 'Flaga'))}</span>`
+        } else if (kind === 'list' && options.length > 0) {
+            valueControlHtml = `
+            <select
+                data-attr-field="value"
+                class="flex-1 min-w-[90px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-zinc-200 focus:outline-none transition-colors cursor-pointer"
+            >
+                ${options.map(opt => `<option value="${escapeAttr(opt)}" ${String(opt) === String(attr.value) ? 'selected' : ''}>${escapeAttr(opt)}</option>`).join('')}
+            </select>`
+        } else {
+            valueControlHtml = `
+            <input
+                type="text"
+                data-attr-field="value"
+                value="${escapeAttr(attr.value ?? '')}"
+                placeholder="${escapeAttr(safeT('npc.attr_value_placeholder', 'Wartość (np. Leśny Elf)'))}"
+                data-i18n-placeholder="npc.attr_value_placeholder"
+                class="flex-1 min-w-[90px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none transition-colors"
+            />`
+        }
+
+        const nameInputWidth = kind === 'flag' ? 'flex-1' : 'w-1/3 min-w-[80px]'
+
         return `
         <div class="npc-attribute-row flex items-center gap-1.5 p-1 rounded-lg bg-zinc-900/80 border border-[#4a5e74]/50 shadow-sm transition-all group" data-attr-id="${escapeAttr(attr.id)}" data-state="edit">
             <span class="text-[#9bb7d4] pl-1 select-none shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
@@ -73,16 +123,9 @@ export function renderAttributeRowHtml(attr) {
                 value="${escapeAttr(attr.name)}"
                 placeholder="${escapeAttr(safeT('npc.attr_name_placeholder', 'Atrybut (np. Rasa)'))}"
                 data-i18n-placeholder="npc.attr_name_placeholder"
-                class="w-1/3 min-w-[80px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
+                class="${nameInputWidth} bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
             />
-            <input
-                type="text"
-                data-attr-field="value"
-                value="${escapeAttr(attr.value)}"
-                placeholder="${escapeAttr(safeT('npc.attr_value_placeholder', 'Wartość (np. Leśny Elf)'))}"
-                data-i18n-placeholder="npc.attr_value_placeholder"
-                class="flex-1 min-w-[90px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2.5 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none transition-colors"
-            />
+            ${valueControlHtml}
             <button
                 type="button"
                 data-action="confirm-attribute"
@@ -113,7 +156,10 @@ export function renderAttributeRowHtml(attr) {
     }
 
     const hasValue =
-        attr.value !== undefined && attr.value !== null && String(attr.value).trim() !== ''
+        kind !== 'flag' &&
+        attr.value !== undefined &&
+        attr.value !== null &&
+        String(attr.value).trim() !== ''
     const valueDisplay = hasValue
         ? `<span class="text-xs text-zinc-400 font-medium shrink-0">${escapeAttr(attr.name || safeT('npc.attr_unnamed', 'Atrybut'))}:</span>
            <span class="text-xs font-semibold text-zinc-100 truncate">${escapeAttr(attr.value)}</span>`
@@ -165,7 +211,31 @@ export function renderAttributeRowHtml(attr) {
  */
 export function renderStatRowHtml(stat) {
     const isEditing = stat.isEditing !== false
+    const isList =
+        stat.statKind === 'list' && Array.isArray(stat.options) && stat.options.length > 0
+
     if (isEditing) {
+        const valControlHtml = isList
+            ? `<select
+                data-stat-field="value"
+                class="flex-1 min-w-[70px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-[#adc7e2] font-mono font-bold focus:outline-none transition-colors"
+               >
+                ${stat.options
+                    .map(
+                        opt =>
+                            `<option value="${escapeAttr(opt)}" ${String(opt) === String(stat.value) ? 'selected' : ''}>${escapeAttr(opt)}</option>`
+                    )
+                    .join('')}
+               </select>`
+            : `<input
+                type="text"
+                data-stat-field="value"
+                value="${escapeAttr(stat.value)}"
+                placeholder="${escapeAttr(safeT('npc.stat_value_placeholder', 'Kość / wartość (np. 14, 2d6)'))}"
+                data-i18n-placeholder="npc.stat_value_placeholder"
+                class="flex-1 min-w-[70px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-[#adc7e2] font-mono font-bold placeholder-zinc-500 focus:outline-none transition-colors text-right sm:text-left"
+               />`
+
         return `
         <div class="npc-stat-row flex items-center gap-1.5 p-1.5 rounded-lg bg-zinc-900/80 border border-[#4a5e74]/50 shadow-sm transition-all" data-stat-id="${escapeAttr(stat.id)}" data-state="edit">
             <span class="text-[#9bb7d4] pl-1 select-none shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
@@ -177,14 +247,7 @@ export function renderStatRowHtml(stat) {
                 data-i18n-placeholder="npc.stat_name_placeholder"
                 class="w-1/2 min-w-[85px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-zinc-100 font-semibold placeholder-zinc-500 focus:outline-none transition-colors"
             />
-            <input
-                type="text"
-                data-stat-field="value"
-                value="${escapeAttr(stat.value)}"
-                placeholder="${escapeAttr(safeT('npc.stat_value_placeholder', 'Kość / wartość (np. 14, 2d6)'))}"
-                data-i18n-placeholder="npc.stat_value_placeholder"
-                class="flex-1 min-w-[70px] bg-zinc-950/70 border border-zinc-700/80 focus:border-[#4a5e74] rounded px-2 py-1 text-xs text-[#adc7e2] font-mono font-bold placeholder-zinc-500 focus:outline-none transition-colors text-right sm:text-left"
-            />
+            ${valControlHtml}
             <button
                 type="button"
                 data-action="confirm-stat"

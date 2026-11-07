@@ -5,12 +5,14 @@ on:
     branches:
       - main
       - release
+      - dev
       - develop
   push:
     branches:
       - tests
       - main
       - release
+      - dev
   workflow_dispatch:
 
 concurrency:

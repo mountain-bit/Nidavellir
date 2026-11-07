@@ -106,6 +106,8 @@ export function renderChoiceDetails(container, choice, item, ctx, onRefreshDetai
     // 3. Sekcja warunku
     conditionSection = createChoiceConditionSection({
         choice,
+        ctx,
+        projectStats: ctx?.projectStats || [],
         onSave: () => {
             saveAllChoiceData()
             updateVisibility()

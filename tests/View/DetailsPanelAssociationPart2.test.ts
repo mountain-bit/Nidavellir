@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { initTranslationsWithLocale, t } from '../../dist/Utils/translate.js'
 import {
+    renderAddFeatureValueControlHtml,
     renderAssignFeatureBarHtml,
     renderAssignParameterBarHtml,
     renderAssignSkillBarHtml,
@@ -77,6 +78,36 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             expect(renderTraitItemHtml(null)).toBe('')
         })
 
+        it('renders select dropdown when trait is a list type', () => {
+            const listStat = {
+                getId: (): string => 's_gender',
+                getName: (): string => 'Płeć',
+                getValue: (): string => 'Kobieta',
+                getStatKind: (): string => 'list',
+                getOptions: (): string[] => ['Kobieta', 'Mężczyzna', 'Inna'],
+            }
+            const html = renderTraitItemHtml(listStat)
+            expect(html).toContain('stat-val-select')
+            expect(html).toContain('value="Kobieta" selected')
+            expect(html).toContain('value="Mężczyzna"')
+            expect(html).not.toContain('stat-val-input')
+        })
+
+        it('renders min and max bounds for numeric trait', () => {
+            const numStat = {
+                getId: (): string => 's_str',
+                getName: (): string => 'Siła',
+                getValue: (): string => '15',
+                getStatKind: (): string => 'numeric',
+                getMin: (): number => 1,
+                getMax: (): number => 20,
+            }
+            const html = renderTraitItemHtml(numStat)
+            expect(html).toContain('stat-val-input')
+            expect(html).toContain('min="1"')
+            expect(html).toContain('max="20"')
+        })
+
         it('renders trait select options', () => {
             const stats = [
                 { getId: (): string => 's1', getName: (): string => 'Agility' },
@@ -128,6 +159,26 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             expect(html).toContain('param-val-input')
             expect(html).toContain('value="100"')
             expect(html).toContain('btn-remove-param')
+        })
+
+        it('renders parameter item with min/max bounds and validation error when out of bounds', () => {
+            const mockParam = {
+                getId: (): string => 'p-bounded',
+                getName: (): string => 'Stamina',
+                getMode: (): string => 'direct',
+                getValue: (): string => '150',
+                getMin: (): number => 0,
+                getMax: (): number => 100,
+                validateValue: (_val: unknown): { isValid: boolean; message: string } => ({
+                    isValid: false,
+                    message: 'Wartość nie może być większa niż 100',
+                }),
+            }
+            const html = renderParameterItemHtml(mockParam)
+            expect(html).toContain('min="0"')
+            expect(html).toContain('max="100"')
+            expect(html).toContain('border-rose-500')
+            expect(html).toContain('title="Wartość nie może być większa niż 100"')
         })
 
         it('renders parameter item in formula mode with calculated result badge', () => {
@@ -202,6 +253,26 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             expect(html).toContain('btn-remove-skill')
         })
 
+        it('renders skill item with min/max bounds and validation error when out of bounds', () => {
+            const mockSkill = {
+                getId: (): string => 'sk-bounded',
+                getName: (): string => 'Lockpicking',
+                getMode: (): string => 'direct',
+                getValue: (): string => '25',
+                getMin: (): number => 0,
+                getMax: (): number => 20,
+                validateValue: (_val: unknown): { isValid: boolean; message: string } => ({
+                    isValid: false,
+                    message: 'Wartość nie może być większa niż 20',
+                }),
+            }
+            const html = renderSkillItemHtml(mockSkill)
+            expect(html).toContain('min="0"')
+            expect(html).toContain('max="20"')
+            expect(html).toContain('border-rose-500')
+            expect(html).toContain('title="Wartość nie może być większa niż 20"')
+        })
+
         it('renders skill item in stat_mod mode with badge', () => {
             const mockSkill = {
                 getId: (): string => 'sk-2',
@@ -272,6 +343,32 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             expect(html).toContain('Night Vision')
             expect(html).toContain('Can see clearly in the dark.')
             expect(html).toContain('btn-remove-feature')
+            expect(html).not.toContain('feature-val-select')
+            expect(html).not.toContain('feature-val-input')
+        })
+
+        it('renders input for value-based feature and select for list-based feature', () => {
+            const valFeat = {
+                getId: (): string => 'f-val',
+                getName: (): string => 'Kolor oczu',
+                getFeatureKind: (): string => 'value',
+                getValue: (): string => 'Niebieskie',
+            }
+            const valHtml = renderFeatureItemHtml(valFeat)
+            expect(valHtml).toContain('feature-val-input')
+            expect(valHtml).toContain('value="Niebieskie"')
+
+            const listFeat = {
+                getId: (): string => 'f-list',
+                getName: (): string => 'Rasa',
+                getFeatureKind: (): string => 'list',
+                getValue: (): string => 'Elf',
+                getOptions: (): string[] => ['Człowiek', 'Elf', 'Krasnolud'],
+            }
+            const listHtml = renderFeatureItemHtml(listFeat)
+            expect(listHtml).toContain('feature-val-select')
+            expect(listHtml).toContain('value="Elf" selected')
+            expect(listHtml).toContain('value="Człowiek"')
         })
 
         it('handles null safely in renderFeatureItemHtml', () => {
@@ -292,8 +389,30 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
         it('renders assign feature bar', () => {
             const html = renderAssignFeatureBarHtml([])
             expect(html).toContain('id="details-add-feature-select"')
+            expect(html).toContain('id="details-add-feature-value-container"')
             expect(html).toContain('id="btn-details-add-feature"')
             expect(html).toContain(translate('details.add_feature'))
+        })
+
+        it('renders add feature value control correctly for flag, value, and list', () => {
+            expect(renderAddFeatureValueControlHtml(null)).toBe('')
+            expect(renderAddFeatureValueControlHtml({ featureKind: 'flag' })).toBe('')
+
+            const valHtml = renderAddFeatureValueControlHtml({
+                featureKind: 'value',
+                value: 'Sample',
+            })
+            expect(valHtml).toContain('id="details-add-feature-value-input"')
+            expect(valHtml).toContain('value="Sample"')
+
+            const listHtml = renderAddFeatureValueControlHtml({
+                featureKind: 'list',
+                options: ['Opcja A', 'Opcja B'],
+                value: 'Opcja B',
+            })
+            expect(listHtml).toContain('id="details-add-feature-value-select"')
+            expect(listHtml).toContain('value="Opcja A"')
+            expect(listHtml).toContain('value="Opcja B" selected')
         })
 
         it('renders full features module structure', () => {
@@ -740,6 +859,144 @@ describe('associationModules - Part 2 (Traits, Parameters, Skills, Features)', (
             addBtn.click()
 
             expect(mockVm.selection.addFeatureToSelected).toHaveBeenCalled()
+        })
+
+        it('shows input field when value-based feature is selected and captures entered value', () => {
+            const valFeat = {
+                getId: (): string => 'f-val',
+                getName: (): string => 'Kolor oczu',
+                getFeatureKind: (): string => 'value',
+                getValue: (): string => 'Niebieskie',
+                getOptions: (): string[] => [],
+            }
+            const entity = {
+                getFeatures: (): unknown[] => [],
+                addFeature: vi.fn(),
+                removeFeature: vi.fn(),
+            }
+            let addedFeature: { getValue: () => string } | null = null
+            const mockVm = {
+                selection: {
+                    addFeatureToSelected: vi.fn((f: { getValue: () => string }) => {
+                        addedFeature = f
+                    }),
+                },
+            }
+            const ctx = {
+                vm: mockVm,
+                projectFeatures: [valFeat],
+                refreshActiveSection: vi.fn(),
+            }
+
+            renderFeaturesModule(container, entity, 'character', ctx)
+            const select = container.querySelector(
+                '#details-add-feature-select'
+            ) as HTMLSelectElement
+            const addBtn = container.querySelector('#btn-details-add-feature') as HTMLButtonElement
+
+            select.value = 'f-val'
+            select.dispatchEvent(new Event('change'))
+
+            const valInput = container.querySelector(
+                '#details-add-feature-value-input'
+            ) as HTMLInputElement
+            expect(valInput).toBeTruthy()
+            expect(valInput.value).toBe('Niebieskie')
+
+            valInput.value = 'Szmaragdowe'
+            addBtn.click()
+
+            expect(mockVm.selection.addFeatureToSelected).toHaveBeenCalled()
+            expect(addedFeature).toBeTruthy()
+            expect((addedFeature as unknown as { getValue: () => string }).getValue()).toBe(
+                'Szmaragdowe'
+            )
+        })
+
+        it('shows select dropdown when list-based feature is selected and captures chosen option', () => {
+            const listFeat = {
+                getId: (): string => 'f-list',
+                getName: (): string => 'Klasa postaci',
+                getFeatureKind: (): string => 'list',
+                getValue: (): string => 'Wojownik',
+                getOptions: (): string[] => ['Wojownik', 'Mag', 'Łotrzyk'],
+            }
+            const entity = {
+                getFeatures: (): unknown[] => [],
+                addFeature: vi.fn(),
+                removeFeature: vi.fn(),
+            }
+            let addedFeature: { getValue: () => string } | null = null
+            const mockVm = {
+                selection: {
+                    addFeatureToSelected: vi.fn((f: { getValue: () => string }) => {
+                        addedFeature = f
+                    }),
+                },
+            }
+            const ctx = {
+                vm: mockVm,
+                projectFeatures: [listFeat],
+                refreshActiveSection: vi.fn(),
+            }
+
+            renderFeaturesModule(container, entity, 'character', ctx)
+            const select = container.querySelector(
+                '#details-add-feature-select'
+            ) as HTMLSelectElement
+            const addBtn = container.querySelector('#btn-details-add-feature') as HTMLButtonElement
+
+            select.value = 'f-list'
+            select.dispatchEvent(new Event('change'))
+
+            const valSelect = container.querySelector(
+                '#details-add-feature-value-select'
+            ) as HTMLSelectElement
+            expect(valSelect).toBeTruthy()
+            expect(valSelect.value).toBe('Wojownik')
+
+            valSelect.value = 'Mag'
+            addBtn.click()
+
+            expect(mockVm.selection.addFeatureToSelected).toHaveBeenCalled()
+            expect(addedFeature).toBeTruthy()
+            expect((addedFeature as unknown as { getValue: () => string }).getValue()).toBe('Mag')
+        })
+
+        it('does not display any value input or select when flag-based feature is selected', () => {
+            const flagFeat = {
+                getId: (): string => 'f-flag',
+                getName: (): string => 'Nieśmiertelność',
+                getFeatureKind: (): string => 'flag',
+                getValue: (): string => '',
+                getOptions: (): string[] => [],
+            }
+            const entity = {
+                getFeatures: (): unknown[] => [],
+                addFeature: vi.fn(),
+                removeFeature: vi.fn(),
+            }
+            const mockVm = {
+                selection: {
+                    addFeatureToSelected: vi.fn(),
+                },
+            }
+            const ctx = {
+                vm: mockVm,
+                projectFeatures: [flagFeat],
+                refreshActiveSection: vi.fn(),
+            }
+
+            renderFeaturesModule(container, entity, 'character', ctx)
+            const select = container.querySelector(
+                '#details-add-feature-select'
+            ) as HTMLSelectElement
+
+            select.value = 'f-flag'
+            select.dispatchEvent(new Event('change'))
+
+            expect(container.querySelector('#details-add-feature-value-input')).toBeNull()
+            expect(container.querySelector('#details-add-feature-value-select')).toBeNull()
         })
     })
 

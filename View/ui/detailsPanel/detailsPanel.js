@@ -34,6 +34,7 @@ import { renderExitsModule } from './modules/exitsModule.js'
 import { renderItemsModule } from './modules/itemsModule.js'
 import { renderQuickActionsModule } from './modules/quickActionsModule.js'
 import {
+    renderFeatureConfigModule,
     renderParameterConfigModule,
     renderSkillConfigModule,
     renderStatValueModule,
@@ -150,6 +151,7 @@ function renderStandardEntityModules(container, entity, item, type, ctx, onRefre
     renderStatValueModule(container, entity, type, ctx, onRefresh)
     renderParameterConfigModule(container, entity, type, ctx, onRefresh)
     renderSkillConfigModule(container, entity, type, ctx, onRefresh)
+    renderFeatureConfigModule(container, entity, type, ctx, onRefresh)
     renderSummaryModule(container, entity, ctx)
     renderFilesModule(container, entity, ctx)
     renderLocationsModule(container, entity, type, ctx, onRefresh)

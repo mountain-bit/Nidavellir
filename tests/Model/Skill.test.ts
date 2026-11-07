@@ -80,6 +80,8 @@ describe('Skill Model', () => {
             value: '',
             statName: 'Inteligencja',
             modifier: '+3',
+            min: null,
+            max: null,
             type: 'skill',
         })
 
@@ -103,5 +105,39 @@ describe('Skill Model', () => {
         expect(skillEmpty.getId()).toBe('')
         expect(skillEmpty.getName()).toBe('')
         expect(skillEmpty.getMode()).toBe('direct')
+    })
+
+    it('obsługuje granice min i max oraz walidację wartości', () => {
+        const skill = new Skill(
+            's4',
+            'Otwieranie zamków',
+            new Description(),
+            'direct',
+            '5',
+            '',
+            '',
+            0,
+            20
+        )
+        expect(skill.getMin()).toBe(0)
+        expect(skill.getMax()).toBe(20)
+
+        expect(skill.validateValue(10).isValid).toBe(true)
+        expect(skill.validateValue(-2).isValid).toBe(false)
+        expect(skill.validateValue(25).isValid).toBe(false)
+        expect(skill.validateValue('invalid').isValid).toBe(false)
+
+        skill.setMin(1)
+        skill.setMax(10)
+        expect(skill.getMin()).toBe(1)
+        expect(skill.getMax()).toBe(10)
+
+        const json = skill.toJSON()
+        expect(json.min).toBe(1)
+        expect(json.max).toBe(10)
+
+        const fromJson = Skill.fromJSON(json)
+        expect(fromJson.getMin()).toBe(1)
+        expect(fromJson.getMax()).toBe(10)
     })
 })

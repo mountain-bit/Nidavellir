@@ -235,11 +235,40 @@ export function openHeroModal(options = {}) {
         // Stats
         const stats = targetHero.getStats ? targetHero.getStats() : targetHero.stats || []
         state.setHeroStats(
-            stats.map(s => ({
-                id: s.getId ? s.getId() : s.id || `stat_${Date.now()}`,
-                name: s.getName ? s.getName() : s.name || '',
-                value: s.getValue ? s.getValue() : (s.value ?? 10),
-            }))
+            stats.map(s => {
+                const sId = s.getId ? s.getId() : s.id || `stat_${Date.now()}`
+                const sName = s.getName ? s.getName() : s.name || ''
+                const matchingDef = (ctx?.projectStats || []).find(
+                    p =>
+                        (p.getId && p.getId() === sId) ||
+                        (p.getName && p.getName().toLowerCase() === sName.toLowerCase())
+                )
+                return {
+                    id: sId,
+                    name: sName,
+                    value: s.getValue ? s.getValue() : (s.value ?? 10),
+                    statKind: s.getStatKind
+                        ? s.getStatKind()
+                        : matchingDef?.getStatKind
+                          ? matchingDef.getStatKind()
+                          : s.statKind || matchingDef?.statKind || 'numeric',
+                    min: s.getMin
+                        ? s.getMin()
+                        : matchingDef?.getMin
+                          ? matchingDef.getMin()
+                          : (s.min ?? matchingDef?.min ?? null),
+                    max: s.getMax
+                        ? s.getMax()
+                        : matchingDef?.getMax
+                          ? matchingDef.getMax()
+                          : (s.max ?? matchingDef?.max ?? null),
+                    options: s.getOptions
+                        ? s.getOptions()
+                        : matchingDef?.getOptions
+                          ? matchingDef.getOptions()
+                          : s.options || matchingDef?.options || [],
+                }
+            })
         )
 
         // Vitals
