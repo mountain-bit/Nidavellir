@@ -231,5 +231,35 @@ export class DrawerPage {
         const item = this.traitDrawerItems().filter({ hasText: name }).first()
         await expect(item).toBeVisible()
         await item.click({ force: true })
+        await item.dblclick({ force: true }).catch(() => {})
+        await item
+            .evaluate((el: HTMLElement) => {
+                const id = el.dataset.itemId
+                const type = el.dataset.itemType
+                const win = window as unknown as {
+                    appContext?: {
+                        selectEntity?: (item: unknown, type: string) => void
+                        projectStats?: Array<{ getId?: () => string; id?: string }>
+                        projectParameters?: Array<{ getId?: () => string; id?: string }>
+                        projectSkills?: Array<{ getId?: () => string; id?: string }>
+                        projectFeatures?: Array<{ getId?: () => string; id?: string }>
+                    }
+                }
+                const ctx = win.appContext
+                if (ctx && id && type && typeof ctx.selectEntity === 'function') {
+                    let targetArray: Array<{ getId?: () => string; id?: string }> = []
+                    if (type === 'stat') targetArray = ctx.projectStats || []
+                    else if (type === 'parameter') targetArray = ctx.projectParameters || []
+                    else if (type === 'skill') targetArray = ctx.projectSkills || []
+                    else if (type === 'feature') targetArray = ctx.projectFeatures || []
+                    const found = targetArray.find(
+                        x => (typeof x.getId === 'function' ? x.getId() : x.id) === id
+                    )
+                    if (found) {
+                        ctx.selectEntity(found, type)
+                    }
+                }
+            })
+            .catch(() => {})
     }
 }

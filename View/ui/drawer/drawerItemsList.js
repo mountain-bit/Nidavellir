@@ -114,16 +114,4 @@ export function renderItemsList(ctx) {
     attachDragStartListeners(container, 'item')
     attachContextMenuListeners(container, 'item', rawItems, ctx)
     attachItemSelectionListeners(container, 'item', rawItems, ctx)
-
-    container.querySelectorAll('.drawer-item[data-item-type="item"]').forEach(el => {
-        el.addEventListener('click', () => {
-            const id = el.dataset.itemId
-            const item = rawItems.find(
-                x => (typeof x.getId === 'function' ? x.getId() : x.id) === id
-            )
-            if (item && ctx.selectEntity) {
-                ctx.selectEntity(item, 'item')
-            }
-        })
-    })
 }

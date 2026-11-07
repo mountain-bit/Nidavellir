@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 import {
+    closeTestApp,
     createTempProjectDir,
     ITestAppInstance,
     launchTestApp,
@@ -26,9 +27,7 @@ test.describe('E2E: Konfiguracja cech RPG, min/max, przymioty (flaga/wartość/l
     })
 
     test.afterEach(async () => {
-        if (app) {
-            await app.close()
-        }
+        await closeTestApp(app)
         removeTempDir(tempDir)
     })
 

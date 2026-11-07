@@ -171,15 +171,19 @@ export function attachItemSelectionListeners(container, type, sourceArray, ctx) 
               ? `.drawer-item[data-item-type="${type}"]`
               : '.drawer-item'
     container.querySelectorAll(selector).forEach(el => {
-        el.addEventListener('dblclick', e => {
+        const handleSelect = e => {
             e.preventDefault()
             const id = el.dataset.itemId
-            const item = sourceArray.find(x => x.getId() === id)
-            if (item) {
+            const item = sourceArray.find(
+                x => (typeof x.getId === 'function' ? x.getId() : x.id) === id
+            )
+            if (item && ctx.selectEntity) {
                 const entityType = el.dataset.itemType || (type === 'trait' ? 'stat' : type)
                 ctx.selectEntity(item, entityType)
             }
-        })
+        }
+        el.addEventListener('click', handleSelect)
+        el.addEventListener('dblclick', handleSelect)
     })
 }
 
