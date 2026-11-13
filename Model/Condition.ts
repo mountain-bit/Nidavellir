@@ -174,19 +174,19 @@ export type StatComparisonOperator = '>=' | '<=' | '==' | '>' | '<' | '!='
 export class StatCondition extends Condition {
     private statName: string = ''
     private operator: StatComparisonOperator = '>='
-    private value: number = 0
+    private value: number | string = 0
 
     constructor(
         id: string = '',
         name: string = '',
         statName: string = '',
         operator: StatComparisonOperator = '>=',
-        value: number = 0
+        value: number | string = 0
     ) {
         super(id, name, 'stat')
         this.statName = statName
         this.operator = operator
-        this.value = typeof value === 'number' ? value : 0
+        this.value = typeof value === 'number' || typeof value === 'string' ? value : 0
     }
 
     public getStatName(): string {
@@ -205,12 +205,21 @@ export class StatCondition extends Condition {
         this.operator = operator
     }
 
-    public getValue(): number {
+    public getValue(): number | string {
         return this.value
     }
 
-    public setValue(value: number): void {
-        this.value = typeof value === 'number' ? value : 0
+    public setValue(value: number | string): void {
+        if (typeof value === 'number' && !Number.isNaN(value)) {
+            this.value = value
+        } else if (
+            typeof value === 'string' &&
+            (this.operator === '==' || this.operator === '!=')
+        ) {
+            this.value = value
+        } else {
+            this.value = 0
+        }
     }
 
     public override getSummary(): string {
@@ -246,7 +255,19 @@ export class StatCondition extends Condition {
             ['>=', '<=', '==', '>', '<', '!='].includes(json.operator)
                 ? (json.operator as StatComparisonOperator)
                 : '>='
-        const value = typeof json.value === 'number' ? json.value : 0
+        let value: number | string = 0
+        if (typeof json.value === 'number' && !Number.isNaN(json.value)) {
+            value = json.value
+        } else if (typeof json.value === 'string') {
+            const trimmed = json.value.trim()
+            if (!isNaN(Number(trimmed)) && trimmed !== '') {
+                value = Number(trimmed)
+            } else if (operator === '==' || operator === '!=') {
+                value = trimmed
+            } else {
+                value = 0
+            }
+        }
         return new StatCondition(id, name, statName, operator, value)
     }
 }

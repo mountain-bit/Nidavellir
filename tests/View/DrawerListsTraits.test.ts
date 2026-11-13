@@ -130,36 +130,52 @@ describe('DrawerLists - Traits & Attributes (4 RPG categories)', () => {
             expect(featureItems).toHaveLength(1)
         })
 
-        it('should render parameter badges correctly for direct value and formula', () => {
+        it('should NOT render value badge for stats in the drawer list', () => {
+            renderTraitsList(ctx)
+
+            const stat1 = container.querySelector(
+                '.drawer-item[data-item-id="stat-1"]'
+            ) as HTMLElement
+            expect(stat1.textContent).toContain('Siła')
+            expect(stat1.textContent).not.toContain('12')
+
+            const stat2 = container.querySelector(
+                '.drawer-item[data-item-id="stat-2"]'
+            ) as HTMLElement
+            expect(stat2.textContent).toContain('Zręczność')
+            expect(stat2.textContent).not.toContain('14')
+        })
+
+        it('should NOT render parameter badges for direct value or formula in drawer list', () => {
             renderTraitsList(ctx)
 
             const param1 = container.querySelector(
                 '.drawer-item[data-item-id="param-1"]'
             ) as HTMLElement
             expect(param1.textContent).toContain('Punkty Życia')
-            expect(param1.textContent).toContain('100')
+            expect(param1.textContent).not.toContain('100')
 
             const param2 = container.querySelector(
                 '.drawer-item[data-item-id="param-2"]'
             ) as HTMLElement
             expect(param2.textContent).toContain('Mana')
-            expect(param2.textContent).toContain('= Siła * 2')
+            expect(param2.textContent).not.toContain('Siła * 2')
         })
 
-        it('should render skill badges correctly for direct value and stat modifier', () => {
+        it('should NOT render skill badges for direct value or stat modifier in drawer list', () => {
             renderTraitsList(ctx)
 
             const skill1 = container.querySelector(
                 '.drawer-item[data-item-id="skill-1"]'
             ) as HTMLElement
             expect(skill1.textContent).toContain('Walka mieczem')
-            expect(skill1.textContent).toContain('+3')
+            expect(skill1.textContent).not.toContain('+3')
 
             const skill2 = container.querySelector(
                 '.drawer-item[data-item-id="skill-2"]'
             ) as HTMLElement
             expect(skill2.textContent).toContain('Akrobatyka')
-            expect(skill2.textContent).toContain('Zręczność +2')
+            expect(skill2.textContent).not.toContain('Zręczność')
         })
 
         it('should attach drag and drop metadata to drawer items', () => {

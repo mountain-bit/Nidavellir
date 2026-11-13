@@ -577,6 +577,61 @@ describe('NpcModal Floating Window Controller', () => {
         expect(attrs[0]).toEqual({ name: 'Zawód', value: 'Kowal' })
     })
 
+    it('nie wyświetla pola wartości dla cechy bez wartości (flag) dodanej do NPC', () => {
+        const flagFeature = {
+            getId: (): string => 'feat-flag-1',
+            getName: (): string => 'Niewidzialność',
+            getFeatureKind: (): string => 'flag',
+            getValue: (): string => '',
+            getOptions: (): string[] => [],
+        }
+
+        setupNpcModal({
+            projectFeatures: [flagFeature],
+            projectCharacters: [],
+        })
+
+        addCustomAttribute('Niewidzialność', '', true, true, 'flag')
+
+        const list = document.getElementById('npc-custom-attributes-list')!
+        expect(list.children.length).toBe(1)
+
+        const valInput = list.querySelector('[data-attr-field="value"]')
+        expect(valInput).toBeNull()
+
+        const nameInput = list.querySelector('[data-attr-field="name"]') as HTMLInputElement
+        expect(nameInput).not.toBeNull()
+        expect(nameInput.value).toBe('Niewidzialność')
+    })
+
+    it('wyświetla listę rozwijaną (select) dla cechy typu list dodanej do NPC', () => {
+        const listFeature = {
+            getId: (): string => 'feat-list-1',
+            getName: (): string => 'Frakcja',
+            getFeatureKind: (): string => 'list',
+            getValue: (): string => 'Sojusz',
+            getOptions: (): string[] => ['Sojusz', 'Horda', 'Neutralni'],
+        }
+
+        setupNpcModal({
+            projectFeatures: [listFeature],
+            projectCharacters: [],
+        })
+
+        addCustomAttribute('Frakcja', 'Sojusz', true, true, 'list', [
+            'Sojusz',
+            'Horda',
+            'Neutralni',
+        ])
+
+        const list = document.getElementById('npc-custom-attributes-list')!
+        expect(list.children.length).toBe(1)
+
+        const valSelect = list.querySelector('select[data-attr-field="value"]') as HTMLSelectElement
+        expect(valSelect).not.toBeNull()
+        expect(valSelect.value).toBe('Sojusz')
+    })
+
     it('setCustomAttributes oraz clearCustomAttributes poprawnie modyfikują listę', () => {
         setupNpcModal()
 
@@ -1754,11 +1809,11 @@ describe('NpcModal Floating Window Controller', () => {
             setupNpcModal()
             openNpcTemplateModal()
 
-            const projectTemplates: any[] = []
-            const projectStats: any[] = []
-            const projectParameters: any[] = []
-            const projectSkills: any[] = []
-            const projectTags: any[] = []
+            const projectTemplates: Array<{ getName: () => string }> = []
+            const projectStats: unknown[] = []
+            const projectParameters: unknown[] = []
+            const projectSkills: unknown[] = []
+            const projectTags: unknown[] = []
 
             let refreshed = false
             const ctx = {
@@ -1767,10 +1822,10 @@ describe('NpcModal Floating Window Controller', () => {
                 projectParameters,
                 projectSkills,
                 projectTags,
-                renderCharactersList: () => {
+                renderCharactersList: (): void => {
                     refreshed = true
                 },
-                renderTraitsList: () => {},
+                renderTraitsList: (): void => {},
             }
 
             setNpcName('Szablon Rozbójnika')
@@ -1800,21 +1855,33 @@ describe('NpcModal Floating Window Controller', () => {
             setupNpcModal()
             openNpcTemplateModal()
 
-            let createdPayload: any = null
-            ;(window as any).electronAPI = {
-                createEntity: vi.fn().mockImplementation((opts: any) => {
-                    createdPayload = opts
-                    return Promise.resolve({
-                        success: true,
-                        entity: {
-                            ...opts.entityData,
-                            description: {
-                                filePath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
-                                textPath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
-                            },
-                        },
-                    })
-                }),
+            let createdPayload: {
+                folderName: string
+                category?: string
+                entityData: Record<string, unknown>
+            } | null = null
+            ;(window as unknown as { electronAPI: unknown }).electronAPI = {
+                createEntity: vi
+                    .fn()
+                    .mockImplementation(
+                        (opts: {
+                            folderName: string
+                            category?: string
+                            entityData: Record<string, unknown>
+                        }) => {
+                            createdPayload = opts
+                            return Promise.resolve({
+                                success: true,
+                                entity: {
+                                    ...opts.entityData,
+                                    description: {
+                                        filePath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
+                                        textPath: `./Templates/${opts.folderName}/Description_Templates_Bandyta.md`,
+                                    },
+                                },
+                            })
+                        }
+                    ),
             }
 
             const ctx = {
@@ -1830,9 +1897,13 @@ describe('NpcModal Floating Window Controller', () => {
             const tpl = saveNpcTemplate(ctx)
             expect(tpl).toBeTruthy()
             expect(createdPayload).toBeTruthy()
-            expect(createdPayload.category).toBe('Templates')
-            expect(createdPayload.folderName).toBe(tpl.getId())
-            expect(createdPayload.folderName).not.toBe('Bandyta')
+            const payload = createdPayload as unknown as {
+                category?: string
+                folderName: string
+            }
+            expect(payload.category).toBe('Templates')
+            expect(payload.folderName).toBe(tpl.getId())
+            expect(payload.folderName).not.toBe('Bandyta')
             expect(tpl.getDescription().filePath).toBe(
                 `./Templates/${tpl.getId()}/Description_Templates_Bandyta.md`
             )
@@ -1882,12 +1953,12 @@ describe('NpcModal Floating Window Controller', () => {
 
             const ctx = {
                 vm,
-                projectParameters: [] as any[],
-                projectStats: [] as any[],
-                projectSkills: [] as any[],
-                projectTags: [] as any[],
-                renderCharactersList: () => {},
-                renderTraitsList: () => {},
+                projectParameters: [] as unknown[],
+                projectStats: [] as unknown[],
+                projectSkills: [] as unknown[],
+                projectTags: [] as unknown[],
+                renderCharactersList: (): void => {},
+                renderTraitsList: (): void => {},
             }
 
             const btnAddVital = document.getElementById('btn-add-npc-vital')
@@ -1923,12 +1994,12 @@ describe('NpcModal Floating Window Controller', () => {
 
             const ctx = {
                 vm,
-                projectParameters: [] as any[],
-                projectStats: [] as any[],
-                projectSkills: [] as any[],
-                projectTags: [] as any[],
-                renderCharactersList: () => {},
-                renderTraitsList: () => {},
+                projectParameters: [] as unknown[],
+                projectStats: [] as unknown[],
+                projectSkills: [] as unknown[],
+                projectTags: [] as unknown[],
+                renderCharactersList: (): void => {},
+                renderTraitsList: (): void => {},
             }
 
             const btnAddVital = document.getElementById('btn-add-npc-vital')
@@ -1969,12 +2040,12 @@ describe('NpcModal Floating Window Controller', () => {
             const ctx = {
                 vm,
                 projectTemplates: [tpl],
-                projectParameters: [] as any[],
-                projectStats: [] as any[],
-                projectSkills: [] as any[],
-                projectTags: [] as any[],
-                renderCharactersList: () => {},
-                renderTraitsList: () => {},
+                projectParameters: [] as unknown[],
+                projectStats: [] as unknown[],
+                projectSkills: [] as unknown[],
+                projectTags: [] as unknown[],
+                renderCharactersList: (): void => {},
+                renderTraitsList: (): void => {},
             }
 
             const btnAddVital = document.getElementById('btn-add-npc-vital')

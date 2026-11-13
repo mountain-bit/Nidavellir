@@ -68,6 +68,43 @@ export class MainWindowPage {
     readonly choiceDiceDescInput = (): Locator => this.page.locator('#choice-dice-desc')
     readonly choiceDiceBranchesList = (): Locator => this.page.locator('#choice-dice-branches-list')
 
+    // Trait / Stat Config Module Locators
+    readonly statKindNumericBtn = (): Locator => this.page.locator('#btn-stat-kind-numeric')
+    readonly statKindListBtn = (): Locator => this.page.locator('#btn-stat-kind-list')
+    readonly statMinInput = (): Locator => this.page.locator('#details-stat-min-input')
+    readonly statMaxInput = (): Locator => this.page.locator('#details-stat-max-input')
+    readonly statNewOptionInput = (): Locator => this.page.locator('#details-stat-new-option-input')
+    readonly statAddOptionBtn = (): Locator => this.page.locator('#btn-details-stat-add-option')
+    readonly statOptionsList = (): Locator => this.page.locator('#stat-options-list')
+
+    // Parameter & Skill Config Locators
+    readonly paramMinInput = (): Locator => this.page.locator('#details-param-min-input')
+    readonly paramMaxInput = (): Locator => this.page.locator('#details-param-max-input')
+    readonly skillMinInput = (): Locator => this.page.locator('#details-skill-min-input')
+    readonly skillMaxInput = (): Locator => this.page.locator('#details-skill-max-input')
+
+    // Feature Config Module Locators
+    readonly featureKindFlagBtn = (): Locator => this.page.locator('#btn-feature-kind-flag')
+    readonly featureKindValueBtn = (): Locator => this.page.locator('#btn-feature-kind-value')
+    readonly featureKindListBtn = (): Locator => this.page.locator('#btn-feature-kind-list')
+    readonly featureValueInput = (): Locator => this.page.locator('#details-feature-value-input')
+    readonly featureNewOptionInput = (): Locator =>
+        this.page.locator('#details-feature-new-option-input')
+    readonly featureAddOptionBtn = (): Locator =>
+        this.page.locator('#btn-details-feature-add-option')
+    readonly featureOptionsList = (): Locator => this.page.locator('#feature-options-list')
+
+    // Assign Feature Bar Locators (in entity inspector)
+    readonly addFeatureSelect = (): Locator => this.page.locator('#details-add-feature-select')
+    readonly addFeatureValueContainer = (): Locator =>
+        this.page.locator('#details-add-feature-value-container')
+    readonly addFeatureValueInput = (): Locator =>
+        this.page.locator('#details-add-feature-value-input')
+    readonly addFeatureValueSelect = (): Locator =>
+        this.page.locator('#details-add-feature-value-select')
+    readonly addFeatureBtn = (): Locator => this.page.locator('#btn-details-add-feature')
+    readonly detailsFeaturesList = (): Locator => this.page.locator('#details-features-list')
+
     // Combat Module Locators
     readonly combatToggleBtn = (): Locator => this.page.locator('#btn-toggle-combat-state')
     readonly combatOpponentsToggleAddBtn = (): Locator =>

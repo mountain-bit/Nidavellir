@@ -79,7 +79,6 @@ export function renderTraitsList(ctx) {
                                 <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
                                 <span class="truncate">${escapeHtml(st.getName())}</span>
                             </span>
-                            ${st.getValue !== undefined && st.getValue() !== '' ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-zinc-900 text-amber-300 font-mono border border-zinc-700/60 font-semibold shrink-0">${escapeHtml(String(st.getValue()))}</span>` : ''}
                         </div>
                     `
                         )
@@ -109,7 +108,6 @@ export function renderTraitsList(ctx) {
                                 <span class="text-rose-400 shrink-0 inline-flex items-center">${getIconSvg('parameter', 'w-3 h-3')}</span>
                                 <span class="truncate">${escapeHtml(p.getName())}</span>
                             </span>
-                            ${p.getMode && p.getMode() === 'formula' && p.getFormula && p.getFormula() ? `<span class="px-1.5 py-0.5 rounded text-[9px] bg-rose-950/60 text-rose-300 font-mono border border-rose-500/40 font-bold truncate max-w-[120px] shrink-0" title="${escapeHtml(p.getFormula())}">= ${escapeHtml(p.getFormula())}</span>` : p.getValue && p.getValue() !== '' ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-300 font-mono border border-zinc-700/60 shrink-0">${escapeHtml(String(p.getValue()))}</span>` : ''}
                         </div>
                     `
                         )
@@ -139,7 +137,6 @@ export function renderTraitsList(ctx) {
                                 <span class="text-blue-400 shrink-0 inline-flex items-center">${getIconSvg('skill', 'w-3 h-3')}</span>
                                 <span class="truncate">${escapeHtml(sk.getName())}</span>
                             </span>
-                            ${sk.getMode && sk.getMode() === 'stat_mod' && sk.getStatName && sk.getStatName() ? `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-950/60 text-blue-300 font-mono border border-blue-500/40 truncate max-w-[120px] shrink-0">${escapeHtml(sk.getStatName())} ${escapeHtml((sk.getModifier && sk.getModifier()) || '+0')}</span>` : sk.getValue && sk.getValue() !== '' ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-300 font-mono border border-zinc-700/60 shrink-0">${escapeHtml(String(sk.getValue()))}</span>` : ''}
                         </div>
                     `
                         )

@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { initTranslationsWithLocale } from '../../dist/Utils/translate.js'
 import {
+    renderFeatureConfigModule,
     renderParameterConfigModule,
     renderParameterConfigModuleHtml,
     renderParameterDirectBlockHtml,
@@ -94,6 +95,84 @@ describe('rpgConfigModules', () => {
             input.value = '20'
             input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
             expect(mockStatEntity.setValue).toHaveBeenCalledWith('20')
+        })
+
+        it('saves min and max bounds on change', () => {
+            let currentMin: number | null = null
+            let currentMax: number | null = null
+            const richStatEntity = {
+                ...mockStatEntity,
+                getMin: vi.fn(() => currentMin),
+                setMin: vi.fn((val: number | null) => {
+                    currentMin = val
+                }),
+                getMax: vi.fn(() => currentMax),
+                setMax: vi.fn((val: number | null) => {
+                    currentMax = val
+                }),
+            }
+
+            renderStatValueModule(container, richStatEntity, 'stat', mockCtx)
+
+            const minInput = container.querySelector('#details-stat-min-input') as HTMLInputElement
+            const maxInput = container.querySelector('#details-stat-max-input') as HTMLInputElement
+
+            minInput.value = '1'
+            minInput.dispatchEvent(new Event('change'))
+            expect(richStatEntity.setMin).toHaveBeenCalledWith(1)
+
+            maxInput.value = '20'
+            maxInput.dispatchEvent(new Event('change'))
+            expect(richStatEntity.setMax).toHaveBeenCalledWith(20)
+        })
+
+        it('switches between numeric and list kind and adds/removes options', () => {
+            const onRefreshDetails = vi.fn()
+            let currentKind = 'numeric'
+            let currentOptions = ['Kobieta']
+            const listStatEntity = {
+                ...mockStatEntity,
+                getStatKind: vi.fn(() => currentKind),
+                setStatKind: vi.fn((k: string) => {
+                    currentKind = k
+                }),
+                getOptions: vi.fn(() => currentOptions),
+                setOptions: vi.fn((opts: string[]) => {
+                    currentOptions = opts
+                }),
+                addOption: vi.fn((opt: string) => {
+                    currentOptions.push(opt)
+                }),
+            }
+
+            renderStatValueModule(container, listStatEntity, 'stat', mockCtx, onRefreshDetails)
+
+            const btnList = container.querySelector('#btn-stat-kind-list') as HTMLButtonElement
+            btnList.click()
+            expect(listStatEntity.setStatKind).toHaveBeenCalledWith('list')
+            expect(onRefreshDetails).toHaveBeenCalled()
+
+            // Simulate re-render with list mode active
+            currentKind = 'list'
+            container.innerHTML = ''
+            renderStatValueModule(container, listStatEntity, 'stat', mockCtx, onRefreshDetails)
+
+            const newOptInput = container.querySelector(
+                '#details-stat-new-option-input'
+            ) as HTMLInputElement
+            const addOptBtn = container.querySelector(
+                '#btn-details-stat-add-option'
+            ) as HTMLButtonElement
+
+            newOptInput.value = 'Mężczyzna'
+            addOptBtn.click()
+            expect(listStatEntity.addOption).toHaveBeenCalledWith('Mężczyzna')
+
+            const removeBtn = container.querySelector(
+                '.btn-remove-stat-option'
+            ) as HTMLButtonElement
+            removeBtn.click()
+            expect(listStatEntity.setOptions).toHaveBeenCalled()
         })
     })
 
@@ -368,6 +447,185 @@ describe('rpgConfigModules', () => {
             modInput.value = '+4'
             modInput.dispatchEvent(new Event('change'))
             expect(mockSkillEntity.setModifier).toHaveBeenCalledWith('+4')
+        })
+
+        it('saves min and max bounds for parameter and skill on change', () => {
+            let paramMin: number | null = null
+            let paramMax: number | null = null
+            const richParam = {
+                getMode: vi.fn(() => 'direct'),
+                setMode: vi.fn(),
+                getValue: vi.fn(() => '100'),
+                setValue: vi.fn(),
+                getFormula: vi.fn(() => ''),
+                setFormula: vi.fn(),
+                getMin: vi.fn(() => paramMin),
+                setMin: vi.fn((val: number | null) => {
+                    paramMin = val
+                }),
+                getMax: vi.fn(() => paramMax),
+                setMax: vi.fn((val: number | null) => {
+                    paramMax = val
+                }),
+            }
+
+            renderParameterConfigModule(container, richParam, 'parameter', mockCtx)
+            const pMinInput = container.querySelector(
+                '#details-param-min-input'
+            ) as HTMLInputElement
+            const pMaxInput = container.querySelector(
+                '#details-param-max-input'
+            ) as HTMLInputElement
+
+            pMinInput.value = '10'
+            pMinInput.dispatchEvent(new Event('change'))
+            expect(richParam.setMin).toHaveBeenCalledWith(10)
+
+            pMaxInput.value = '200'
+            pMaxInput.dispatchEvent(new Event('change'))
+            expect(richParam.setMax).toHaveBeenCalledWith(200)
+
+            container.innerHTML = ''
+
+            let skillMin: number | null = null
+            let skillMax: number | null = null
+            const richSkill = {
+                getMode: vi.fn(() => 'direct'),
+                setMode: vi.fn(),
+                getValue: vi.fn(() => '+2'),
+                setValue: vi.fn(),
+                getStatName: vi.fn(() => ''),
+                setStatName: vi.fn(),
+                getModifier: vi.fn(() => '+0'),
+                setModifier: vi.fn(),
+                getMin: vi.fn(() => skillMin),
+                setMin: vi.fn((val: number | null) => {
+                    skillMin = val
+                }),
+                getMax: vi.fn(() => skillMax),
+                setMax: vi.fn((val: number | null) => {
+                    skillMax = val
+                }),
+            }
+
+            renderSkillConfigModule(container, richSkill, 'skill', mockCtx)
+            const sMinInput = container.querySelector(
+                '#details-skill-min-input'
+            ) as HTMLInputElement
+            const sMaxInput = container.querySelector(
+                '#details-skill-max-input'
+            ) as HTMLInputElement
+
+            sMinInput.value = '0'
+            sMinInput.dispatchEvent(new Event('change'))
+            expect(richSkill.setMin).toHaveBeenCalledWith(0)
+
+            sMaxInput.value = '20'
+            sMaxInput.dispatchEvent(new Event('change'))
+            expect(richSkill.setMax).toHaveBeenCalledWith(20)
+        })
+    })
+
+    describe('renderFeatureConfigModule', () => {
+        let mockCtx: {
+            refreshActiveSection: ReturnType<typeof vi.fn>
+        }
+
+        beforeEach(() => {
+            mockCtx = {
+                refreshActiveSection: vi.fn(),
+            }
+        })
+
+        it('renders null when container is missing or type is not feature', () => {
+            expect(renderFeatureConfigModule(null, {}, 'feature')).toBeNull()
+            expect(renderFeatureConfigModule(container, {}, 'stat')).toBeNull()
+        })
+
+        it('switches between flag, value and list modes and manages options', () => {
+            let kind = 'flag'
+            let val = ''
+            let options = ['Ciemność', 'Światłość']
+            const onRefresh = vi.fn()
+
+            const mockFeat = {
+                getFeatureKind: vi.fn(() => kind),
+                setFeatureKind: vi.fn((k: string) => {
+                    kind = k
+                }),
+                getValue: vi.fn(() => val),
+                setValue: vi.fn((v: string) => {
+                    val = v
+                }),
+                getOptions: vi.fn(() => options),
+                setOptions: vi.fn((opts: string[]) => {
+                    options = opts
+                }),
+                addOption: vi.fn((opt: string) => {
+                    options.push(opt)
+                }),
+                removeOption: vi.fn((opt: string) => {
+                    options = options.filter(o => o !== opt)
+                }),
+            }
+
+            renderFeatureConfigModule(container, mockFeat, 'feature', mockCtx, onRefresh)
+            expect(
+                container.querySelector('#feature-flag-block')?.classList.contains('hidden')
+            ).toBe(false)
+            expect(
+                container.querySelector('#feature-value-block')?.classList.contains('hidden')
+            ).toBe(true)
+            expect(
+                container.querySelector('#feature-list-block')?.classList.contains('hidden')
+            ).toBe(true)
+
+            // Switch to value mode
+            const btnVal = container.querySelector('#btn-feature-kind-value') as HTMLButtonElement
+            btnVal.click()
+            expect(mockFeat.setFeatureKind).toHaveBeenCalledWith('value')
+            expect(onRefresh).toHaveBeenCalled()
+
+            // Simulate re-render in value mode
+            kind = 'value'
+            val = 'Błogosławieństwo'
+            container.innerHTML = ''
+            renderFeatureConfigModule(container, mockFeat, 'feature', mockCtx, onRefresh)
+
+            const valInput = container.querySelector(
+                '#details-feature-value-input'
+            ) as HTMLInputElement
+            expect(valInput.value).toBe('Błogosławieństwo')
+            valInput.value = 'Klątwa'
+            valInput.dispatchEvent(new Event('change'))
+            expect(mockFeat.setValue).toHaveBeenCalledWith('Klątwa')
+
+            // Switch to list mode
+            const btnList = container.querySelector('#btn-feature-kind-list') as HTMLButtonElement
+            btnList.click()
+            expect(mockFeat.setFeatureKind).toHaveBeenCalledWith('list')
+
+            // Simulate re-render in list mode
+            kind = 'list'
+            container.innerHTML = ''
+            renderFeatureConfigModule(container, mockFeat, 'feature', mockCtx, onRefresh)
+
+            const newOptInput = container.querySelector(
+                '#details-feature-new-option-input'
+            ) as HTMLInputElement
+            const addOptBtn = container.querySelector(
+                '#btn-details-feature-add-option'
+            ) as HTMLButtonElement
+
+            newOptInput.value = 'Magia'
+            addOptBtn.click()
+            expect(mockFeat.addOption).toHaveBeenCalledWith('Magia')
+
+            const removeBtn = container.querySelector(
+                '.btn-remove-feature-option'
+            ) as HTMLButtonElement
+            removeBtn.click()
+            expect(mockFeat.removeOption).toHaveBeenCalledWith('Ciemność')
         })
     })
 

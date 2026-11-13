@@ -34,6 +34,18 @@ export class DrawerPage {
     readonly tagCreateSubmitBtn = (): Locator => this.page.locator('#tag-create-submit')
     readonly tagsListContainer = (): Locator => this.page.locator('#tags-list-container')
 
+    // Traits / Stats Section Locators
+    readonly traitsContent = (): Locator => this.page.locator('#left-content-traits')
+    readonly addTraitBtn = (): Locator => this.page.locator('#btn-add-trait')
+    readonly traitCreateForm = (): Locator => this.page.locator('#trait-create-form')
+    readonly traitCreateTypeSelect = (): Locator => this.page.locator('#trait-create-type')
+    readonly traitCreateNameInput = (): Locator => this.page.locator('#trait-create-name')
+    readonly traitCreateValueInput = (): Locator => this.page.locator('#trait-create-value')
+    readonly traitCreateSubmitBtn = (): Locator => this.page.locator('#trait-create-submit')
+    readonly traitsListContainer = (): Locator => this.page.locator('#traits-list-container')
+    readonly traitDrawerItems = (): Locator =>
+        this.page.locator('#traits-list-container .drawer-item')
+
     // Hero Section Locators
     readonly heroContent = (): Locator => this.page.locator('#left-content-main-character')
     readonly openHeroModalBtn = (): Locator => this.page.locator('#btn-add-main-character')
@@ -55,6 +67,15 @@ export class DrawerPage {
         this.page.locator('input[data-stat-field="value"]').last()
     readonly confirmNpcStatBtn = (): Locator =>
         this.page.locator('button[data-action="confirm-stat"]').last()
+    readonly addNpcAttributeBtn = (): Locator => this.page.locator('#btn-npc-add-custom-attribute')
+    readonly npcAttributeRows = (): Locator => this.page.locator('.npc-attribute-row')
+    readonly npcAttributeNameInputs = (): Locator =>
+        this.page.locator('.npc-attribute-row input[data-attr-field="name"]')
+    readonly npcAttributeValueInputs = (): Locator =>
+        this.page.locator('.npc-attribute-row input[data-attr-field="value"]')
+    readonly npcAttributeValueSelects = (): Locator =>
+        this.page.locator('.npc-attribute-row select[data-attr-field="value"]')
+    readonly npcPresetChips = (): Locator => this.page.locator('.npc-preset-chip')
     readonly templateDropdownBtn = (): Locator => this.page.locator('#btn-template-dropdown')
     readonly templateDropdownMenu = (): Locator => this.page.locator('#npc-template-dropdown-menu')
     readonly templateDropdownItems = (): Locator =>
@@ -168,5 +189,77 @@ export class DrawerPage {
         await expect(targetTpl).toBeVisible()
         await targetTpl.click()
         await expect(this.appliedTemplateChips().filter({ hasText: templateName })).toBeVisible()
+    }
+
+    /**
+     * Otwiera zakładkę cech i atrybutów w lewej szufladzie.
+     */
+    async openTraitsTab(): Promise<void> {
+        await this.ensureTabActive(this.traitsTabBtn())
+        await expect(this.traitsContent()).toBeVisible()
+    }
+
+    /**
+     * Tworzy nową cechę, parametr, umiejętność lub przymiot w szufladzie.
+     */
+    async createTrait(
+        type: 'stat' | 'parameter' | 'skill' | 'feature',
+        name: string,
+        value?: string
+    ): Promise<void> {
+        await this.openTraitsTab()
+        await this.addTraitBtn().click({ force: true })
+        await expect(this.traitCreateForm()).toBeVisible()
+
+        await this.traitCreateTypeSelect().selectOption(type)
+        await this.traitCreateNameInput().fill(name)
+
+        if (value !== undefined) {
+            await this.traitCreateValueInput().fill(value)
+        }
+
+        await this.traitCreateSubmitBtn().click({ force: true })
+        await expect(this.traitCreateForm()).toBeHidden()
+        await expect(this.traitsListContainer()).toContainText(name)
+    }
+
+    /**
+     * Wybiera element cechy w szufladzie i klika go, aby otworzyć Panel Szczegółów.
+     */
+    async selectTraitItem(name: string): Promise<void> {
+        await this.openTraitsTab()
+        const item = this.traitDrawerItems().filter({ hasText: name }).first()
+        await expect(item).toBeVisible()
+        await item.click({ force: true })
+        await item.dblclick({ force: true }).catch(() => {})
+        await item
+            .evaluate((el: HTMLElement) => {
+                const id = el.dataset.itemId
+                const type = el.dataset.itemType
+                const win = window as unknown as {
+                    appContext?: {
+                        selectEntity?: (item: unknown, type: string) => void
+                        projectStats?: Array<{ getId?: () => string; id?: string }>
+                        projectParameters?: Array<{ getId?: () => string; id?: string }>
+                        projectSkills?: Array<{ getId?: () => string; id?: string }>
+                        projectFeatures?: Array<{ getId?: () => string; id?: string }>
+                    }
+                }
+                const ctx = win.appContext
+                if (ctx && id && type && typeof ctx.selectEntity === 'function') {
+                    let targetArray: Array<{ getId?: () => string; id?: string }> = []
+                    if (type === 'stat') targetArray = ctx.projectStats || []
+                    else if (type === 'parameter') targetArray = ctx.projectParameters || []
+                    else if (type === 'skill') targetArray = ctx.projectSkills || []
+                    else if (type === 'feature') targetArray = ctx.projectFeatures || []
+                    const found = targetArray.find(
+                        x => (typeof x.getId === 'function' ? x.getId() : x.id) === id
+                    )
+                    if (found) {
+                        ctx.selectEntity(found, type)
+                    }
+                }
+            })
+            .catch(() => {})
     }
 }

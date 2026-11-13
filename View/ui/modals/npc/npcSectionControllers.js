@@ -234,24 +234,33 @@ export function editCustomAttribute(id) {
 /**
  * Renders the custom attributes list.
  */
-export function renderCustomAttributes() {
+export function renderCustomAttributes(ctx = null) {
     const listContainer = document.getElementById('npc-custom-attributes-list')
     const emptyNotice = document.getElementById('npc-custom-attributes-empty')
 
     if (!listContainer) return
+
+    const effectiveCtx = ctx || state.getActiveCtx() || {}
+    const vm = effectiveCtx.vm
+    const projectFeatures =
+        effectiveCtx.projectFeatures ||
+        (vm?.project?.getFeatures ? vm.project.getFeatures() : []) ||
+        []
 
     const customAttributes = state.getCustomAttributesArray()
 
     if (customAttributes.length === 0) {
         listContainer.innerHTML = ''
         if (emptyNotice) emptyNotice.classList.remove('hidden')
-        updateTraitsCounterUI()
+        updateTraitsCounterUI(effectiveCtx)
         return
     }
 
     if (emptyNotice) emptyNotice.classList.add('hidden')
 
-    listContainer.innerHTML = customAttributes.map(attr => renderAttributeRowHtml(attr)).join('')
+    listContainer.innerHTML = customAttributes
+        .map(attr => renderAttributeRowHtml(attr, projectFeatures))
+        .join('')
 
     // Attach row listeners
     listContainer.querySelectorAll('.npc-attribute-row').forEach(row => {
@@ -265,7 +274,46 @@ export function renderCustomAttributes() {
         if (nameInput) {
             nameInput.addEventListener('input', e => {
                 const targetAttr = state.findCustomAttribute(attrId)
-                if (targetAttr) targetAttr.name = e.target.value
+                if (targetAttr) {
+                    targetAttr.name = e.target.value
+                    const matchingFeat = projectFeatures.find(f => {
+                        const fName = typeof f.getName === 'function' ? f.getName() : f.name
+                        return (
+                            fName &&
+                            fName.trim().toLowerCase() === e.target.value.trim().toLowerCase()
+                        )
+                    })
+                    const newKind = matchingFeat
+                        ? (typeof matchingFeat.getFeatureKind === 'function'
+                              ? matchingFeat.getFeatureKind()
+                              : matchingFeat.featureKind) || 'flag'
+                        : 'value'
+                    const newOpts = matchingFeat
+                        ? (typeof matchingFeat.getOptions === 'function'
+                              ? matchingFeat.getOptions()
+                              : matchingFeat.options) || []
+                        : []
+                    if (targetAttr.featureKind !== newKind) {
+                        targetAttr.featureKind = newKind
+                        targetAttr.options = newOpts
+                        renderCustomAttributes(effectiveCtx)
+                        const updatedRow = document.querySelector(
+                            `.npc-attribute-row[data-attr-id="${attrId}"]`
+                        )
+                        const updatedNameInput = updatedRow?.querySelector(
+                            '[data-attr-field="name"]'
+                        )
+                        if (updatedNameInput) {
+                            updatedNameInput.focus()
+                            if (typeof updatedNameInput.setSelectionRange === 'function') {
+                                updatedNameInput.setSelectionRange(
+                                    updatedNameInput.value.length,
+                                    updatedNameInput.value.length
+                                )
+                            }
+                        }
+                    }
+                }
             })
             nameInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
@@ -277,6 +325,10 @@ export function renderCustomAttributes() {
 
         if (valInput) {
             valInput.addEventListener('input', e => {
+                const targetAttr = state.findCustomAttribute(attrId)
+                if (targetAttr) targetAttr.value = e.target.value
+            })
+            valInput.addEventListener('change', e => {
                 const targetAttr = state.findCustomAttribute(attrId)
                 if (targetAttr) targetAttr.value = e.target.value
             })
@@ -321,7 +373,7 @@ export function renderCustomAttributes() {
         }
     })
 
-    updateTraitsCounterUI()
+    updateTraitsCounterUI(effectiveCtx)
 }
 
 /**
@@ -330,17 +382,59 @@ export function renderCustomAttributes() {
  * @param {string} [name='']
  * @param {string} [value='']
  * @param {boolean} [shouldFocusValue=false]
+ * @param {boolean} [isEditing=true]
+ * @param {string | null} [featureKind=null]
+ * @param {string[]} [options=[]]
  * @returns {string} ID of created attribute
  */
-export function addCustomAttribute(name = '', value = '', shouldFocusValue = false) {
-    const id = state.addCustomAttributeState(name, value, true)
-    renderCustomAttributes()
+export function addCustomAttribute(
+    name = '',
+    value = '',
+    shouldFocusValue = false,
+    isEditing = true,
+    featureKind = null,
+    options = []
+) {
+    const effectiveCtx = state.getActiveCtx() || {}
+    const vm = effectiveCtx.vm
+    const projectFeatures =
+        effectiveCtx.projectFeatures ||
+        (vm?.project?.getFeatures ? vm.project.getFeatures() : []) ||
+        []
+
+    let kind = featureKind
+    let opts = options
+    if (!kind && name) {
+        const foundFeat = projectFeatures.find(f => {
+            const fName = typeof f.getName === 'function' ? f.getName() : f.name
+            return fName && fName.trim().toLowerCase() === name.trim().toLowerCase()
+        })
+        if (foundFeat) {
+            kind =
+                typeof foundFeat.getFeatureKind === 'function'
+                    ? foundFeat.getFeatureKind()
+                    : foundFeat.featureKind || 'flag'
+            opts =
+                typeof foundFeat.getOptions === 'function'
+                    ? foundFeat.getOptions()
+                    : foundFeat.options || []
+        }
+    }
+
+    const isFlag = kind === 'flag'
+    const id = state.addCustomAttributeState(name, value, isEditing, kind, opts)
+    renderCustomAttributes(effectiveCtx)
 
     const newRow = document.querySelector(`.npc-attribute-row[data-attr-id="${id}"]`)
-    if (newRow) {
-        if (shouldFocusValue) {
+    if (newRow && isEditing) {
+        if (shouldFocusValue && !isFlag) {
             const valInput = newRow.querySelector('[data-attr-field="value"]')
-            if (valInput && typeof valInput.focus === 'function') valInput.focus()
+            if (valInput && typeof valInput.focus === 'function') {
+                valInput.focus()
+            } else {
+                const nameInput = newRow.querySelector('[data-attr-field="name"]')
+                if (nameInput && typeof nameInput.focus === 'function') nameInput.focus()
+            }
         } else {
             const nameInput = newRow.querySelector('[data-attr-field="name"]')
             if (nameInput && typeof nameInput.focus === 'function') nameInput.focus()
@@ -441,13 +535,42 @@ export function renderNpcStats() {
         }
 
         if (valInput) {
-            valInput.addEventListener('input', e => {
+            const handleValChange = e => {
                 const targetStat = state.findNpcStat(statId)
                 if (targetStat) {
                     targetStat.value = e.target.value
+                    if (targetStat.statKind === 'numeric') {
+                        const num = Number(e.target.value)
+                        if (!isNaN(num)) {
+                            if (
+                                (targetStat.min !== null &&
+                                    targetStat.min !== undefined &&
+                                    num < targetStat.min) ||
+                                (targetStat.max !== null &&
+                                    targetStat.max !== undefined &&
+                                    num > targetStat.max)
+                            ) {
+                                valInput.classList.add(
+                                    'border-rose-500',
+                                    'bg-rose-950/30',
+                                    'text-rose-300'
+                                )
+                                valInput.title = 'Wartość poza dopuszczalnym zakresem'
+                            } else {
+                                valInput.classList.remove(
+                                    'border-rose-500',
+                                    'bg-rose-950/30',
+                                    'text-rose-300'
+                                )
+                                valInput.title = ''
+                            }
+                        }
+                    }
                     updateVitalFormulasPreview()
                 }
-            })
+            }
+            valInput.addEventListener('input', handleValChange)
+            valInput.addEventListener('change', handleValChange)
             valInput.addEventListener('keydown', e => {
                 if (e.key === 'Enter') {
                     e.preventDefault()
@@ -500,8 +623,16 @@ export function renderNpcStats() {
  * @param {boolean} [shouldFocusValue=false]
  * @returns {string}
  */
-export function addNpcStat(name = '', value = '', shouldFocusValue = false) {
-    const id = state.addNpcStatState(name, value, true)
+export function addNpcStat(
+    name = '',
+    value = '',
+    shouldFocusValue = false,
+    statKind = 'numeric',
+    min = null,
+    max = null,
+    options = []
+) {
+    const id = state.addNpcStatState(name, value, true, statKind, min, max, options)
     renderNpcStats()
     updateSkillStatDropdowns()
     updateVitalFormulasPreview()
@@ -1456,12 +1587,22 @@ export function renderDynamicSuggestions(ctx) {
                     const foundFeat = existingFeatures.find(
                         f => (f.getName ? f.getName() : f.name) === name
                     )
+                    const kind = foundFeat
+                        ? (typeof foundFeat.getFeatureKind === 'function'
+                              ? foundFeat.getFeatureKind()
+                              : foundFeat.featureKind) || 'flag'
+                        : 'value'
                     const val = foundFeat
                         ? foundFeat.getValue
                             ? foundFeat.getValue()
                             : foundFeat.value || ''
                         : ''
-                    addCustomAttribute(name, String(val), true)
+                    const opts = foundFeat
+                        ? (typeof foundFeat.getOptions === 'function'
+                              ? foundFeat.getOptions()
+                              : foundFeat.options) || []
+                        : []
+                    addCustomAttribute(name, String(val), false, true, kind, opts)
                 })
             })
         }

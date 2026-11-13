@@ -651,19 +651,64 @@ export function renderEmptyTraitsHtml() {
  * Pure template for a single trait/stat row.
  *
  * @param {object} stat
+ * @param {object | null} [statDef=null]
  * @returns {string}
  */
-export function renderTraitItemHtml(stat) {
+export function renderTraitItemHtml(stat, statDef = null) {
     if (!stat) return ''
     const name = typeof stat.getName === 'function' ? stat.getName() : stat.name || ''
     const val = typeof stat.getValue === 'function' ? stat.getValue() : (stat.value ?? '')
+
+    const targetDef = statDef || stat
+
+    const kind =
+        (typeof targetDef.getStatKind === 'function'
+            ? targetDef.getStatKind()
+            : targetDef.statKind) ||
+        (typeof stat.getStatKind === 'function' ? stat.getStatKind() : stat.statKind) ||
+        'numeric'
+
+    let rawOptions =
+        typeof targetDef.getOptions === 'function'
+            ? targetDef.getOptions()
+            : targetDef.options || []
+    if (!rawOptions || rawOptions.length === 0) {
+        rawOptions = typeof stat.getOptions === 'function' ? stat.getOptions() : stat.options || []
+    }
+    const options = Array.isArray(rawOptions) ? rawOptions : []
+
+    const min =
+        (typeof targetDef.getMin === 'function' ? targetDef.getMin() : targetDef.min) ??
+        (typeof stat.getMin === 'function' ? stat.getMin() : stat.min) ??
+        null
+
+    const max =
+        (typeof targetDef.getMax === 'function' ? targetDef.getMax() : targetDef.max) ??
+        (typeof stat.getMax === 'function' ? stat.getMax() : stat.max) ??
+        null
+
+    let controlHtml = ''
+    if (kind === 'list' && options.length > 0) {
+        controlHtml = `
+            <select class="stat-val-select bg-[#202023] border border-[#3f3f46] focus:border-amber-500/60 rounded px-1.5 py-0.5 text-xs text-white font-mono">
+                ${options.map(opt => `<option value="${escapeHtml(opt)}" ${String(opt) === String(val) ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+            </select>
+        `
+    } else {
+        const minAttr = min !== null && min !== undefined ? `min="${min}"` : ''
+        const maxAttr = max !== null && max !== undefined ? `max="${max}"` : ''
+        controlHtml = `
+            <input type="text" ${minAttr} ${maxAttr} class="stat-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-amber-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(val))}" placeholder="10" />
+        `
+    }
+
     return `
         <span class="text-[#d4d4d8] font-medium flex items-center gap-1.5 min-w-0 truncate">
             <span class="text-amber-400 shrink-0 inline-flex items-center">${getIconSvg('stat', 'w-3 h-3')}</span>
             <span class="truncate">${escapeHtml(name)}</span>
         </span>
         <div class="flex items-center gap-1.5 shrink-0">
-            <input type="text" class="stat-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-amber-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(val))}" placeholder="10" />
+            ${controlHtml}
             <button type="button" class="btn-remove-stat text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
         </div>
     `
@@ -755,22 +800,68 @@ export function renderTraitsModule(container, entity, type, ctx, onRefreshDetail
             statsListEl.innerHTML = renderEmptyTraitsHtml()
         } else {
             statsList.forEach(st => {
+                const sId = typeof st.getId === 'function' ? st.getId() : st.id
+                const sName = typeof st.getName === 'function' ? st.getName() : st.name
+                const statDef = (ctx && ctx.projectStats ? ctx.projectStats : []).find(p => {
+                    const pId = typeof p.getId === 'function' ? p.getId() : p.id
+                    const pName = typeof p.getName === 'function' ? p.getName() : p.name
+                    return (pId && pId === sId) || (pName && pName === sName)
+                })
+
                 const row = document.createElement('div')
                 row.className =
                     'flex items-center justify-between bg-[#18181b] px-2 py-1.5 rounded border border-[#27272a] hover:border-amber-500/40 text-xs transition-colors'
-                row.innerHTML = renderTraitItemHtml(st)
+                row.innerHTML = renderTraitItemHtml(st, statDef)
+
+                const valSelect = row.querySelector('.stat-val-select')
+                if (valSelect) {
+                    valSelect.addEventListener('change', () => {
+                        if (st.setValue) st.setValue(valSelect.value)
+                        if (ctx && typeof ctx.refreshActiveSection === 'function') {
+                            ctx.refreshActiveSection(type)
+                        }
+                    })
+                }
 
                 const valInput = row.querySelector('.stat-val-input')
                 if (valInput) {
+                    const validateAndSave = () => {
+                        const val = valInput.value.trim()
+                        const targetForValidation = statDef || st
+                        if (
+                            targetForValidation &&
+                            typeof targetForValidation.validateValue === 'function'
+                        ) {
+                            const res = targetForValidation.validateValue(val)
+                            if (!res.valid) {
+                                valInput.classList.add(
+                                    'border-rose-500',
+                                    'bg-rose-950/30',
+                                    'text-rose-300'
+                                )
+                                valInput.title = res.error || 'Nieprawidłowa wartość'
+                            } else {
+                                valInput.classList.remove(
+                                    'border-rose-500',
+                                    'bg-rose-950/30',
+                                    'text-rose-300'
+                                )
+                                valInput.title = ''
+                            }
+                        }
+                        if (st.setValue) st.setValue(val)
+                    }
+
+                    valInput.addEventListener('input', validateAndSave)
                     valInput.addEventListener('change', () => {
-                        if (st.setValue) st.setValue(valInput.value.trim())
+                        validateAndSave()
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
                             ctx.refreshActiveSection(type)
                         }
                     })
                     valInput.addEventListener('keydown', e => {
                         if (e.key === 'Enter') {
-                            if (st.setValue) st.setValue(valInput.value.trim())
+                            validateAndSave()
                             valInput.blur()
                             if (ctx && typeof ctx.refreshActiveSection === 'function') {
                                 ctx.refreshActiveSection(type)
@@ -817,7 +908,15 @@ export function renderTraitsModule(container, entity, type, ctx, onRefreshDetail
                     typeof statObj.getId === 'function' ? statObj.getId() : statObj.id,
                     typeof statObj.getName === 'function' ? statObj.getName() : statObj.name,
                     statObj.getDescription ? statObj.getDescription() : new Description(),
-                    statObj.getValue ? statObj.getValue() : ''
+                    statObj.getValue ? statObj.getValue() : '',
+                    typeof statObj.getStatKind === 'function'
+                        ? statObj.getStatKind()
+                        : statObj.statKind || 'numeric',
+                    typeof statObj.getMin === 'function' ? statObj.getMin() : (statObj.min ?? null),
+                    typeof statObj.getMax === 'function' ? statObj.getMax() : (statObj.max ?? null),
+                    typeof statObj.getOptions === 'function'
+                        ? statObj.getOptions()
+                        : statObj.options || []
                 )
                 if (ctx && ctx.vm && typeof ctx?.vm?.selection?.addStatToSelected === 'function') {
                     ctx?.vm?.selection?.addStatToSelected(clone)
@@ -881,7 +980,16 @@ export function renderParameterItemHtml(p, charStatsMap = {}) {
         valueDisplay = `<span class="px-1.5 py-0.5 rounded text-[10px] bg-rose-950/60 text-rose-300 font-mono border border-rose-500/40 font-bold truncate max-w-[140px]" title="${escapeHtml(formula)}${calcText}">= ${escapeHtml(formula)}${calcText ? `<span class="text-emerald-400 font-semibold">${calcText}</span>` : ''}</span>`
     } else {
         const val = typeof p.getValue === 'function' ? p.getValue() : (p.value ?? '')
-        valueDisplay = `<input type="text" class="param-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-rose-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(val))}" placeholder="100" />`
+        const minAttr = p.getMin && p.getMin() !== null ? `min="${p.getMin()}"` : ''
+        const maxAttr = p.getMax && p.getMax() !== null ? `max="${p.getMax()}"` : ''
+        const valRes =
+            typeof p.validateValue === 'function' ? p.validateValue(val) : { isValid: true }
+        const invalidBorder = !valRes.isValid
+            ? 'border-rose-500 ring-1 ring-rose-500'
+            : 'border-[#3f3f46]'
+        const titleAttr =
+            !valRes.isValid && valRes.message ? `title="${escapeHtml(valRes.message)}"` : ''
+        valueDisplay = `<input type="text" ${minAttr} ${maxAttr} ${titleAttr} class="param-val-input w-16 bg-[#202023] border ${invalidBorder} focus:border-rose-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(val))}" placeholder="100" />`
     }
 
     return `
@@ -999,7 +1107,29 @@ export function renderParametersModule(container, entity, type, ctx, onRefreshDe
 
                 const valInput = row.querySelector('.param-val-input')
                 if (valInput) {
+                    const validateAndUpdateInput = () => {
+                        if (typeof p.validateValue === 'function') {
+                            const res = p.validateValue(valInput.value)
+                            if (!res.isValid) {
+                                valInput.classList.remove('border-[#3f3f46]')
+                                valInput.classList.add('border-rose-500', 'ring-1', 'ring-rose-500')
+                                valInput.title = res.message || ''
+                            } else {
+                                valInput.classList.remove(
+                                    'border-rose-500',
+                                    'ring-1',
+                                    'ring-rose-500'
+                                )
+                                valInput.classList.add('border-[#3f3f46]')
+                                valInput.removeAttribute('title')
+                            }
+                        }
+                    }
+
+                    valInput.addEventListener('input', validateAndUpdateInput)
+
                     valInput.addEventListener('change', () => {
+                        validateAndUpdateInput()
                         if (p.setValue) p.setValue(valInput.value.trim())
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
                             ctx.refreshActiveSection(type)
@@ -1007,6 +1137,7 @@ export function renderParametersModule(container, entity, type, ctx, onRefreshDe
                     })
                     valInput.addEventListener('keydown', e => {
                         if (e.key === 'Enter') {
+                            validateAndUpdateInput()
                             if (p.setValue) p.setValue(valInput.value.trim())
                             valInput.blur()
                             if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1057,7 +1188,9 @@ export function renderParametersModule(container, entity, type, ctx, onRefreshDe
                     paramObj.getMode ? paramObj.getMode() : 'direct',
                     paramObj.getValue ? paramObj.getValue() : '',
                     paramObj.getFormula ? paramObj.getFormula() : '',
-                    paramObj.getCalculatedValue ? paramObj.getCalculatedValue() : null
+                    paramObj.getCalculatedValue ? paramObj.getCalculatedValue() : null,
+                    paramObj.getMin ? paramObj.getMin() : null,
+                    paramObj.getMax ? paramObj.getMax() : null
                 )
                 if (
                     ctx &&
@@ -1123,7 +1256,16 @@ export function renderSkillItemHtml(sk) {
         valueDisplay = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-950/60 text-blue-300 font-mono border border-blue-500/40 font-bold truncate max-w-[120px]">${escapeHtml(statName)} ${escapeHtml(mod)}</span>`
     } else {
         const val = typeof sk.getValue === 'function' ? sk.getValue() : (sk.value ?? '')
-        valueDisplay = `<input type="text" class="skill-val-input w-16 bg-[#202023] border border-[#3f3f46] focus:border-blue-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(val))}" placeholder="+1" />`
+        const minAttr = sk.getMin && sk.getMin() !== null ? `min="${sk.getMin()}"` : ''
+        const maxAttr = sk.getMax && sk.getMax() !== null ? `max="${sk.getMax()}"` : ''
+        const valRes =
+            typeof sk.validateValue === 'function' ? sk.validateValue(val) : { isValid: true }
+        const invalidBorder = !valRes.isValid
+            ? 'border-rose-500 ring-1 ring-rose-500'
+            : 'border-[#3f3f46]'
+        const titleAttr =
+            !valRes.isValid && valRes.message ? `title="${escapeHtml(valRes.message)}"` : ''
+        valueDisplay = `<input type="text" ${minAttr} ${maxAttr} ${titleAttr} class="skill-val-input w-16 bg-[#202023] border ${invalidBorder} focus:border-blue-500/60 rounded px-1.5 py-0.5 text-xs text-white text-right font-mono" value="${escapeHtml(String(val))}" placeholder="+1" />`
     }
 
     return `
@@ -1232,7 +1374,29 @@ export function renderSkillsModule(container, entity, type, ctx, onRefreshDetail
 
                 const valInput = row.querySelector('.skill-val-input')
                 if (valInput) {
+                    const validateAndUpdateInput = () => {
+                        if (typeof sk.validateValue === 'function') {
+                            const res = sk.validateValue(valInput.value)
+                            if (!res.isValid) {
+                                valInput.classList.remove('border-[#3f3f46]')
+                                valInput.classList.add('border-rose-500', 'ring-1', 'ring-rose-500')
+                                valInput.title = res.message || ''
+                            } else {
+                                valInput.classList.remove(
+                                    'border-rose-500',
+                                    'ring-1',
+                                    'ring-rose-500'
+                                )
+                                valInput.classList.add('border-[#3f3f46]')
+                                valInput.removeAttribute('title')
+                            }
+                        }
+                    }
+
+                    valInput.addEventListener('input', validateAndUpdateInput)
+
                     valInput.addEventListener('change', () => {
+                        validateAndUpdateInput()
                         if (sk.setValue) sk.setValue(valInput.value.trim())
                         if (ctx && typeof ctx.refreshActiveSection === 'function') {
                             ctx.refreshActiveSection(type)
@@ -1240,6 +1404,7 @@ export function renderSkillsModule(container, entity, type, ctx, onRefreshDetail
                     })
                     valInput.addEventListener('keydown', e => {
                         if (e.key === 'Enter') {
+                            validateAndUpdateInput()
                             if (sk.setValue) sk.setValue(valInput.value.trim())
                             valInput.blur()
                             if (ctx && typeof ctx.refreshActiveSection === 'function') {
@@ -1290,7 +1455,9 @@ export function renderSkillsModule(container, entity, type, ctx, onRefreshDetail
                     skillObj.getMode ? skillObj.getMode() : 'direct',
                     skillObj.getValue ? skillObj.getValue() : '',
                     skillObj.getStatName ? skillObj.getStatName() : '',
-                    skillObj.getModifier ? skillObj.getModifier() : ''
+                    skillObj.getModifier ? skillObj.getModifier() : '',
+                    skillObj.getMin ? skillObj.getMin() : null,
+                    skillObj.getMax ? skillObj.getMax() : null
                 )
                 if (ctx && ctx.vm && typeof ctx?.vm?.selection?.addSkillToSelected === 'function') {
                     ctx?.vm?.selection?.addSkillToSelected(clone)
@@ -1336,17 +1503,60 @@ export function renderEmptyFeaturesHtml() {
 
 /**
  * Pure template for a single feature row.
+ * Supports flag mode (no value input), value mode (text input), and list mode (select dropdown).
  *
  * @param {object} f
+ * @param {Array<object>} [projectFeatures=[]]
  * @returns {string}
  */
-export function renderFeatureItemHtml(f) {
+export function renderFeatureItemHtml(f, projectFeatures = []) {
     if (!f) return ''
     const name = typeof f.getName === 'function' ? f.getName() : f.name || ''
     const descText =
         f.getDescription && typeof f.getDescription === 'function'
             ? f.getDescription().getText() || f.getDescription().getSummary()
             : ''
+
+    const fDef = (Array.isArray(projectFeatures) ? projectFeatures : []).find(feat => {
+        const idMatch = f.getId && feat.getId && f.getId() === feat.getId()
+        const nameMatch =
+            feat.getName && f.getName && feat.getName().toLowerCase() === f.getName().toLowerCase()
+        return idMatch || nameMatch
+    })
+
+    const kind =
+        (fDef && typeof fDef.getFeatureKind === 'function'
+            ? fDef.getFeatureKind()
+            : f.getFeatureKind
+              ? f.getFeatureKind()
+              : f.featureKind) || 'flag'
+    const rawOptions =
+        (fDef && typeof fDef.getOptions === 'function'
+            ? fDef.getOptions()
+            : f.getOptions
+              ? f.getOptions()
+              : f.options) || []
+    const options = Array.isArray(rawOptions) ? rawOptions : []
+    const val = typeof f.getValue === 'function' ? f.getValue() : (f.value ?? '')
+
+    let valueDisplay = ''
+    if (kind === 'list' && options.length > 0) {
+        const selectOptions = options
+            .map(opt => {
+                const isSel = String(opt) === String(val) ? 'selected' : ''
+                return `<option value="${escapeHtml(opt)}" ${isSel}>${escapeHtml(opt)}</option>`
+            })
+            .join('')
+        valueDisplay = `
+            <select class="feature-val-select bg-[#202023] border border-[#3f3f46] rounded px-1.5 py-0.5 text-xs text-white focus:outline-none focus:border-purple-500">
+                ${selectOptions}
+            </select>
+        `
+    } else if (kind === 'value') {
+        valueDisplay = `
+            <input type="text" class="feature-val-input w-24 bg-[#202023] border border-[#3f3f46] focus:border-purple-500 rounded px-1.5 py-0.5 text-xs text-white font-mono" value="${escapeHtml(String(val))}" placeholder="Wartość..." />
+        `
+    }
 
     return `
         <div class="min-w-0 flex flex-col flex-1 pr-2">
@@ -1356,7 +1566,10 @@ export function renderFeatureItemHtml(f) {
             </span>
             ${descText ? `<span class="text-[10px] text-gray-400 truncate pl-3.5 italic" title="${escapeHtml(descText)}">${escapeHtml(descText)}</span>` : ''}
         </div>
-        <button type="button" class="btn-remove-feature text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center shrink-0" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+        <div class="flex items-center gap-1.5 shrink-0">
+            ${valueDisplay}
+            <button type="button" class="btn-remove-feature text-gray-400 hover:text-red-400 p-0.5 cursor-pointer inline-flex items-center shrink-0" title="${t('buttons.delete')}">${getIconSvg('close', 'w-3 h-3')}</button>
+        </div>
     `
 }
 
@@ -1379,17 +1592,64 @@ export function renderFeatureOptionsHtml(availableFeatures = []) {
 }
 
 /**
+ * Renders value control (none for flag, input for value, select for list) for the add-feature bar.
+ *
+ * @param {object | null} [featObj=null]
+ * @returns {string}
+ */
+export function renderAddFeatureValueControlHtml(featObj = null) {
+    if (!featObj) return ''
+    const kind =
+        (typeof featObj.getFeatureKind === 'function'
+            ? featObj.getFeatureKind()
+            : featObj.featureKind) || 'flag'
+
+    if (kind === 'flag') {
+        return ''
+    }
+
+    if (kind === 'value') {
+        const val =
+            typeof featObj.getValue === 'function' ? featObj.getValue() : (featObj.value ?? '')
+        const placeholder = t('details.attr_value_placeholder') || 'Wartość...'
+        return `<input type="text" id="details-add-feature-value-input" placeholder="${escapeHtml(placeholder)}" class="w-28 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500 font-mono" value="${escapeHtml(String(val))}" />`
+    }
+
+    if (kind === 'list') {
+        const rawOptions =
+            typeof featObj.getOptions === 'function' ? featObj.getOptions() : featObj.options
+        const options = Array.isArray(rawOptions) ? rawOptions : []
+        const defVal =
+            typeof featObj.getValue === 'function' ? featObj.getValue() : (featObj.value ?? '')
+        const optionsHtml = options
+            .map(opt => {
+                const isSel = String(opt) === String(defVal) ? 'selected' : ''
+                return `<option value="${escapeHtml(opt)}" ${isSel}>${escapeHtml(opt)}</option>`
+            })
+            .join('')
+        return `<select id="details-add-feature-value-select" class="w-28 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-purple-500">
+            ${optionsHtml}
+        </select>`
+    }
+
+    return ''
+}
+
+/**
  * Pure template for the assign feature bar.
  *
  * @param {Array<object>} [availableFeatures=[]]
+ * @param {object | null} [selectedFeature=null]
  * @returns {string}
  */
-export function renderAssignFeatureBarHtml(availableFeatures = []) {
+export function renderAssignFeatureBarHtml(availableFeatures = [], selectedFeature = null) {
+    const valueControl = renderAddFeatureValueControlHtml(selectedFeature)
     return `
         <div class="flex gap-1 pt-1">
             <select id="details-add-feature-select" class="flex-1 bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none">
                 ${renderFeatureOptionsHtml(availableFeatures)}
             </select>
+            <div id="details-add-feature-value-container" class="contents">${valueControl}</div>
             <button id="btn-details-add-feature" type="button" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 rounded text-xs text-white font-medium cursor-pointer transition-colors">
                 ${t('details.add_feature')}
             </button>
@@ -1426,17 +1686,16 @@ export function renderFeaturesModule(container, entity, type, ctx, onRefreshDeta
         return
 
     const featuresList = entity.getFeatures() || []
-    const availableFeatures = (ctx && ctx.projectFeatures ? ctx.projectFeatures : []).filter(
-        fObj => {
-            const fObjId = typeof fObj.getId === 'function' ? fObj.getId() : fObj.id
-            const fObjName = typeof fObj.getName === 'function' ? fObj.getName() : fObj.name
-            return !featuresList.some(f => {
-                const id = typeof f.getId === 'function' ? f.getId() : f.id
-                const name = typeof f.getName === 'function' ? f.getName() : f.name
-                return id === fObjId || name === fObjName
-            })
-        }
-    )
+    const projectFeatures = ctx && ctx.projectFeatures ? ctx.projectFeatures : []
+    const availableFeatures = projectFeatures.filter(fObj => {
+        const fObjId = typeof fObj.getId === 'function' ? fObj.getId() : fObj.id
+        const fObjName = typeof fObj.getName === 'function' ? fObj.getName() : fObj.name
+        return !featuresList.some(f => {
+            const id = typeof f.getId === 'function' ? f.getId() : f.id
+            const name = typeof f.getName === 'function' ? f.getName() : f.name
+            return id === fObjId || name === fObjName
+        })
+    })
 
     const featMod = createSection(
         'border-b border-[#333338] p-3 space-y-2',
@@ -1452,7 +1711,36 @@ export function renderFeaturesModule(container, entity, type, ctx, onRefreshDeta
                 const row = document.createElement('div')
                 row.className =
                     'flex items-center justify-between bg-[#18181b] px-2 py-1.5 rounded border border-[#27272a] hover:border-purple-500/40 text-xs transition-colors'
-                row.innerHTML = renderFeatureItemHtml(f)
+                row.innerHTML = renderFeatureItemHtml(f, projectFeatures)
+
+                const valSelect = row.querySelector('.feature-val-select')
+                if (valSelect) {
+                    valSelect.addEventListener('change', () => {
+                        if (typeof f.setValue === 'function') f.setValue(valSelect.value)
+                        if (ctx && typeof ctx.refreshActiveSection === 'function') {
+                            ctx.refreshActiveSection(type)
+                        }
+                    })
+                }
+
+                const valInput = row.querySelector('.feature-val-input')
+                if (valInput) {
+                    valInput.addEventListener('change', () => {
+                        if (typeof f.setValue === 'function') f.setValue(valInput.value.trim())
+                        if (ctx && typeof ctx.refreshActiveSection === 'function') {
+                            ctx.refreshActiveSection(type)
+                        }
+                    })
+                    valInput.addEventListener('keydown', e => {
+                        if (e.key === 'Enter') {
+                            if (typeof f.setValue === 'function') f.setValue(valInput.value.trim())
+                            valInput.blur()
+                            if (ctx && typeof ctx.refreshActiveSection === 'function') {
+                                ctx.refreshActiveSection(type)
+                            }
+                        }
+                    })
+                }
 
                 const removeBtn =
                     row.querySelector('.btn-remove-feature') || row.querySelector('button')
@@ -1480,18 +1768,64 @@ export function renderFeaturesModule(container, entity, type, ctx, onRefreshDeta
 
     const featureSelect = featMod.querySelector('#details-add-feature-select')
     const addBtn = featMod.querySelector('#btn-details-add-feature')
+    const valContainer = featMod.querySelector('#details-add-feature-value-container')
+
+    const updateValueControl = () => {
+        if (!valContainer || !featureSelect) return
+        const featId = featureSelect.value
+        const featObj = projectFeatures.find(f => {
+            const id = typeof f.getId === 'function' ? f.getId() : f.id
+            return id === featId
+        })
+        valContainer.innerHTML = renderAddFeatureValueControlHtml(featObj)
+    }
+
+    if (featureSelect) {
+        featureSelect.addEventListener('change', updateValueControl)
+        updateValueControl()
+    }
+
     if (addBtn && featureSelect) {
         addBtn.addEventListener('click', () => {
             const featId = featureSelect.value
-            const featObj = (ctx && ctx.projectFeatures ? ctx.projectFeatures : []).find(f => {
+            const featObj = projectFeatures.find(f => {
                 const id = typeof f.getId === 'function' ? f.getId() : f.id
                 return id === featId
             })
             if (featObj) {
+                const kind =
+                    typeof featObj.getFeatureKind === 'function'
+                        ? featObj.getFeatureKind()
+                        : featObj.featureKind || 'flag'
+                const options =
+                    typeof featObj.getOptions === 'function'
+                        ? featObj.getOptions()
+                        : featObj.options || []
+
+                let finalValue = ''
+                if (kind === 'value') {
+                    const valInput = featMod.querySelector('#details-add-feature-value-input')
+                    finalValue = valInput
+                        ? valInput.value.trim()
+                        : typeof featObj.getValue === 'function'
+                          ? featObj.getValue()
+                          : featObj.value || ''
+                } else if (kind === 'list') {
+                    const valSelect = featMod.querySelector('#details-add-feature-value-select')
+                    finalValue = valSelect
+                        ? valSelect.value
+                        : typeof featObj.getValue === 'function'
+                          ? featObj.getValue()
+                          : options[0] || ''
+                }
+
                 const clone = new Feature(
                     typeof featObj.getId === 'function' ? featObj.getId() : featObj.id,
                     typeof featObj.getName === 'function' ? featObj.getName() : featObj.name,
-                    featObj.getDescription ? featObj.getDescription() : new Description()
+                    featObj.getDescription ? featObj.getDescription() : new Description(),
+                    kind,
+                    finalValue,
+                    options
                 )
                 if (
                     ctx &&
@@ -1499,6 +1833,8 @@ export function renderFeaturesModule(container, entity, type, ctx, onRefreshDeta
                     typeof ctx?.vm?.selection?.addFeatureToSelected === 'function'
                 ) {
                     ctx?.vm?.selection?.addFeatureToSelected(clone)
+                } else if (typeof entity.addFeature === 'function') {
+                    entity.addFeature(clone)
                 }
                 refreshDetails(ctx, onRefreshDetails)
                 if (ctx && typeof ctx.refreshActiveSection === 'function') {

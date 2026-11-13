@@ -146,7 +146,15 @@ export function buildConditionFromInputs(type, containerEl, existingCond) {
         const valInput = containerEl.querySelector('#choice-cond-stat-val')
         const statName = nameInput ? nameInput.value.trim() : ''
         const op = opSelect ? opSelect.value || '>=' : '>='
-        const val = valInput ? parseFloat(valInput.value) || 0 : 0
+        let val = 0
+        if (valInput) {
+            if (valInput.tagName === 'SELECT') {
+                val = valInput.value
+            } else {
+                const parsed = parseFloat(valInput.value)
+                val = isNaN(parsed) ? valInput.value : parsed
+            }
+        }
         return new StatCondition(condId, t('details.condition_type_stat'), statName, op, val)
     }
 
@@ -201,14 +209,81 @@ export function renderItemConditionBodyHtml(cond) {
 
 /**
  * Renders HTML for StatCondition body.
+ * Supports discrete list-based stats (select with options, equality operators == and !=)
+ * and numeric stats (min/max bounds, comparison operators).
  *
  * @param {object} [cond]
+ * @param {Array<object>} [projectStats=[]]
  * @returns {string}
  */
-export function renderStatConditionBodyHtml(cond) {
+export function renderStatConditionBodyHtml(cond, projectStats = []) {
     const statName = cond instanceof StatCondition ? cond.getStatName() : cond?.statName || ''
     const op = cond instanceof StatCondition ? cond.getOperator() : cond?.operator || '>='
     const val = cond instanceof StatCondition ? cond.getValue() : (cond?.value ?? 10)
+
+    const statDef = (Array.isArray(projectStats) ? projectStats : []).find(s => {
+        const sName = typeof s?.getName === 'function' ? s.getName() : s?.name || ''
+        return sName && sName.toLowerCase() === statName.toLowerCase()
+    })
+
+    const isList = Boolean(
+        statDef &&
+        (typeof statDef.getStatKind === 'function' ? statDef.getStatKind() : statDef.statKind) ===
+            'list' &&
+        (typeof statDef.getOptions === 'function' ? statDef.getOptions() : statDef.options || [])
+            .length > 0
+    )
+
+    const options = isList
+        ? typeof statDef.getOptions === 'function'
+            ? statDef.getOptions()
+            : statDef.options || []
+        : []
+
+    const min = statDef
+        ? typeof statDef.getMin === 'function'
+            ? statDef.getMin()
+            : (statDef.min ?? null)
+        : null
+    const max = statDef
+        ? typeof statDef.getMax === 'function'
+            ? statDef.getMax()
+            : (statDef.max ?? null)
+        : null
+
+    let opSelectHtml = ''
+    let valControlHtml = ''
+
+    if (isList) {
+        opSelectHtml = `
+            <select id="choice-cond-stat-op" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value="==" ${op === '==' || op === '=' ? 'selected' : ''}>=</option>
+                <option value="!=" ${op === '!=' ? 'selected' : ''}>&ne;</option>
+            </select>
+        `
+        valControlHtml = `
+            <select id="choice-cond-stat-val" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                ${options.map(opt => `<option value="${escapeHtml(opt)}" ${String(opt) === String(val) ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+            </select>
+        `
+    } else {
+        const minAttr = min !== null && min !== undefined ? `min="${min}"` : ''
+        const maxAttr = max !== null && max !== undefined ? `max="${max}"` : ''
+        opSelectHtml = `
+            <select id="choice-cond-stat-op" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
+                <option value=">=" ${op === '>=' ? 'selected' : ''}>&ge;</option>
+                <option value=">" ${op === '>' ? 'selected' : ''}>&gt;</option>
+                <option value="==" ${op === '==' ? 'selected' : ''}>=</option>
+                <option value="<=" ${op === '<=' ? 'selected' : ''}>&le;</option>
+                <option value="<" ${op === '<' ? 'selected' : ''}>&lt;</option>
+                <option value="!=" ${op === '!=' ? 'selected' : ''}>&ne;</option>
+            </select>
+        `
+        valControlHtml = `
+            <input id="choice-cond-stat-val" type="number" ${minAttr} ${maxAttr} value="${escapeHtml(String(val))}"
+                class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+        `
+    }
 
     return `
         <div class="grid grid-cols-4 gap-1.5">
@@ -219,19 +294,11 @@ export function renderStatConditionBodyHtml(cond) {
             </div>
             <div>
                 <label class="block text-[10px] text-gray-400 mb-1 uppercase font-semibold">${escapeHtml(t('details.condition_operator'))}</label>
-                <select id="choice-cond-stat-op" class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-1.5 py-1 text-xs text-white focus:outline-none focus:border-blue-500">
-                    <option value=">=" ${op === '>=' ? 'selected' : ''}>&ge;</option>
-                    <option value=">" ${op === '>' ? 'selected' : ''}>&gt;</option>
-                    <option value="==" ${op === '==' ? 'selected' : ''}>=</option>
-                    <option value="<=" ${op === '<=' ? 'selected' : ''}>&le;</option>
-                    <option value="<" ${op === '<' ? 'selected' : ''}>&lt;</option>
-                    <option value="!=" ${op === '!=' ? 'selected' : ''}>&ne;</option>
-                </select>
+                ${opSelectHtml}
             </div>
             <div>
                 <label class="block text-[10px] text-gray-400 mb-1 uppercase font-semibold">${escapeHtml(t('details.condition_value'))}</label>
-                <input id="choice-cond-stat-val" type="number" value="${val}"
-                    class="w-full bg-[#18181b] border border-[#3f3f46] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500" />
+                ${valControlHtml}
             </div>
         </div>
     `
@@ -305,9 +372,12 @@ export function renderTextConditionBodyHtml(cond) {
  */
 export function createChoiceConditionSection({
     choice,
+    ctx = null,
+    projectStats = [],
     onSave = () => {},
     onRemove = () => {},
 } = {}) {
+    const statsList = projectStats.length > 0 ? projectStats : ctx?.projectStats || []
     const initialCond = choice?.getCondition?.() || choice?.condition
     let currentCondType = detectConditionType(initialCond)
 
@@ -362,10 +432,44 @@ export function createChoiceConditionSection({
             condBody.querySelector('#choice-cond-item-name')?.addEventListener('input', onSave)
             condBody.querySelector('#choice-cond-item-qty')?.addEventListener('input', onSave)
         } else if (currentCondType === 'stat') {
-            condBody.innerHTML = renderStatConditionBodyHtml(currentCond)
-            condBody.querySelector('#choice-cond-stat-name')?.addEventListener('input', onSave)
-            condBody.querySelector('#choice-cond-stat-op')?.addEventListener('change', onSave)
-            condBody.querySelector('#choice-cond-stat-val')?.addEventListener('input', onSave)
+            condBody.innerHTML = renderStatConditionBodyHtml(currentCond, statsList)
+            const statNameInput = condBody.querySelector('#choice-cond-stat-name')
+            const statOpSelect = condBody.querySelector('#choice-cond-stat-op')
+            const statValControl = condBody.querySelector('#choice-cond-stat-val')
+
+            const handleStatNameInput = () => {
+                const enteredName = (statNameInput ? statNameInput.value.trim() : '').toLowerCase()
+                const found = statsList.find(s => {
+                    const sName = typeof s?.getName === 'function' ? s.getName() : s?.name || ''
+                    return sName && sName.toLowerCase() === enteredName
+                })
+                const isList = Boolean(
+                    found &&
+                    (typeof found.getStatKind === 'function'
+                        ? found.getStatKind()
+                        : found.statKind) === 'list' &&
+                    (typeof found.getOptions === 'function'
+                        ? found.getOptions()
+                        : found.options || []
+                    ).length > 0
+                )
+                const isCurrentlySelect = statValControl?.tagName === 'SELECT'
+                if ((isList && !isCurrentlySelect) || (!isList && isCurrentlySelect)) {
+                    const updated = buildConditionObject()
+                    if (updated && typeof choice?.setCondition === 'function') {
+                        choice.setCondition(updated)
+                    }
+                    renderCondBody()
+                    onSave()
+                    return
+                }
+                onSave()
+            }
+
+            statNameInput?.addEventListener('input', handleStatNameInput)
+            statOpSelect?.addEventListener('change', onSave)
+            statValControl?.addEventListener('input', onSave)
+            statValControl?.addEventListener('change', onSave)
         } else if (currentCondType === 'tag') {
             condBody.innerHTML = renderTagConditionBodyHtml(currentCond)
             condBody.querySelector('#choice-cond-tag-name')?.addEventListener('input', onSave)

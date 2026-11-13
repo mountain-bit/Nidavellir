@@ -33,6 +33,9 @@ describe('Feature Model', () => {
             id: 'f2',
             name: 'Eagle Eye',
             description: feature.getDescription(),
+            featureKind: 'flag',
+            value: '',
+            options: [],
             type: 'feature',
         })
 
@@ -52,5 +55,45 @@ describe('Feature Model', () => {
         expect(featureEmpty).toBeInstanceOf(Feature)
         expect(featureEmpty.getId()).toBe('')
         expect(featureEmpty.getName()).toBe('')
+        expect(featureEmpty.getFeatureKind()).toBe('flag')
+    })
+
+    it('obsługuje tryby featureKind (flag, value, list) oraz opcje i walidację', () => {
+        const flagFeat = new Feature('f3', 'Nieśmiertelność')
+        expect(flagFeat.getFeatureKind()).toBe('flag')
+        expect(flagFeat.validateValue('').isValid).toBe(true)
+
+        const valFeat = new Feature('f4', 'Pochodzenie', new Description(), 'value', 'Góry')
+        expect(valFeat.getFeatureKind()).toBe('value')
+        expect(valFeat.getValue()).toBe('Góry')
+        valFeat.setValue('Las')
+        expect(valFeat.getValue()).toBe('Las')
+        expect(valFeat.validateValue('Równiny').isValid).toBe(true)
+
+        const listFeat = new Feature('f5', 'Rasa', new Description(), 'list', 'Elf', [
+            'Człowiek',
+            'Elf',
+            'Krasnolud',
+        ])
+        expect(listFeat.getFeatureKind()).toBe('list')
+        expect(listFeat.getValue()).toBe('Elf')
+        expect(listFeat.getOptions()).toEqual(['Człowiek', 'Elf', 'Krasnolud'])
+        expect(listFeat.validateValue('Elf').isValid).toBe(true)
+        expect(listFeat.validateValue('Ork').isValid).toBe(false)
+
+        listFeat.addOption('Ork')
+        expect(listFeat.validateValue('Ork').isValid).toBe(true)
+        listFeat.removeOption('Człowiek')
+        expect(listFeat.getOptions()).toEqual(['Elf', 'Krasnolud', 'Ork'])
+
+        const json = listFeat.toJSON()
+        expect(json.featureKind).toBe('list')
+        expect(json.value).toBe('Elf')
+        expect(json.options).toEqual(['Elf', 'Krasnolud', 'Ork'])
+
+        const fromJson = Feature.fromJSON(json)
+        expect(fromJson.getFeatureKind()).toBe('list')
+        expect(fromJson.getValue()).toBe('Elf')
+        expect(fromJson.getOptions()).toEqual(['Elf', 'Krasnolud', 'Ork'])
     })
 })

@@ -276,6 +276,48 @@ describe('HeroModal and renderMainCharacter', () => {
         expect(attrsList?.children.length).toBe(0)
     })
 
+    it('renders select for list-based stats and numeric input with bounds for hero', () => {
+        const editHero = {
+            getId: (): string => 'hero_test',
+            getName: (): string => 'Test Hero',
+            getAvatar: (): string => '',
+            getDescription: (): { getText: () => string; getShort: () => string } => ({
+                getText: (): string => '',
+                getShort: (): string => '',
+            }),
+            getStats: (): Stat[] => [
+                new Stat('st_gender', 'Płeć', new Description(), 'Kobieta', 'list', null, null, [
+                    'Kobieta',
+                    'Mężczyzna',
+                ]),
+                new Stat('st_str', 'Siła', new Description(), 15, 'numeric', 1, 20),
+            ],
+            getParameters: (): unknown[] => [],
+            getSkills: (): unknown[] => [],
+            getCustomAttributes: (): unknown[] => [],
+            getTags: (): unknown[] => [],
+            getInventories: (): unknown[] => [],
+        }
+
+        setupHeroModal(ctx)
+        openHeroModal({ ctx, editEntity: editHero })
+
+        const statsList = document.getElementById('hero-stats-list')
+        expect(statsList?.children.length).toBe(2)
+
+        const genderSelect = statsList?.querySelector('select.hero-stat-val') as HTMLSelectElement
+        expect(genderSelect).not.toBeNull()
+        expect(genderSelect.value).toBe('Kobieta')
+
+        const strInput = statsList?.querySelector(
+            'input[type="number"].hero-stat-val'
+        ) as HTMLInputElement
+        expect(strInput).not.toBeNull()
+        expect(strInput.value).toBe('15')
+        expect(strInput.min).toBe('1')
+        expect(strInput.max).toBe('20')
+    })
+
     it('closes the modal immediately when unsaved changes confirmation resolves to dont_save', async () => {
         const confirmModalModule = await import('../../View/ui/modals/confirm/confirmModal.js')
         const showUnsavedSpy = vi
